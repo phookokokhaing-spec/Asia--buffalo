@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title> Asia -Buffalo</title>
+     <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="style.css">
+     <link rel="stylesheet" href="fix.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Myanmar:wght@400;500;700&display=swap">
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-analytics.js"></script>
+    
+    <!-- Firebase Config (ကိုယ်ပိုင်) -->
+    <script src="firebase-config.js"></script>
+</head>
+<body>
+
+    <!-- LOGIN SCREEN -->
+    <div class="login-container" id="loginScreen">
+        <!-- LOGIN FORM -->
+        <div class="login-box" id="loginForm">
+            <h2 class="form-title"><i class="fas fa-user-circle"></i> Login</h2>
+            <div class="message" id="loginMessage"></div>
+            <input id="loginUsername" placeholder="Username" />
+            <div class="password-container">
+                <input id="loginPassword" type="password" placeholder="Password" />
+                <button class="toggle-password" onclick="togglePassword('loginPassword', this)">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
+            <button onclick="handleLogin()">Login</button>
+            <button class="secondary" onclick="showSignupForm()">Create Account</button>
+        </div>
+        
+        <!-- SIGNUP FORM -->
+        <div class="login-box" id="signupForm" style="display:none;">
+            <h2 class="form-title"><i class="fas fa-user-plus"></i> Sign Up</h2>
+            <div class="message" id="signupMessage"></div>
+            <input id="signupUsername" placeholder="Choose Username" />
+            <div class="password-container">
+                <input id="signupPassword" type="password" placeholder="Choose Password" />
+                <button class="toggle-password" onclick="togglePassword('signupPassword', this)">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
+            <button onclick="handleSignup()">Create Account</button>
+            <button class="secondary" onclick="showLoginForm()">Back to Login</button>
+        </div>
+    </div>
+
+    <!-- Orientation Warning -->
+    <div class="orientation-warning" id="orientationWarning">  
+        <div class="warning-content">  
+            <i class="fas fa-mobile-alt"></i>  
+            <h2>ကျေးဇူးပြု၍ ဖုန်းကို ဘေးတိုက်လှန်ပါ</h2>  
+            <p>ဒီဂိမ်းကို Landscape Mode နဲ့သာ ကစားနိုင်ပါသည်</p>  
+        </div>  
+    </div>
+
+    <!-- Audio elements -->
+    <audio id="bgm" loop preload="auto"></audio>
+    <audio id="loadingSound" loop preload="auto"></audio>
+    <audio id="allbuttonSound" preload="auto"></audio>
+    <audio id="spinSound" preload="auto"></audio>
+    <audio id="winlineSound" preload="auto"></audio>
+    <audio id="buffaloSound" preload="auto"></audio>
+    <audio id="coinSound" preload="auto"></audio>
+    <audio id="sixcoinSound" preload="auto"></audio>
+    <audio id="notiSound" preload="auto"></audio>
+    <audio id="victorySound" preload="auto"></audio>
+    <audio id="congratulationsSound" preload="auto"></audio>
+    <audio id="paymentreseiveSound" preload="auto"></audio>
+    <audio id="nowinSound" preload="auto"></audio>
+
+    
+    <!-- LOADING SCREEN -->
+<div id="loadingScreen">
+    <div class="loading-bg" style="background-image: url('images/splash_bg.png');"></div>
+    
+    <!-- Main Frame -->
+    <div class="loading-frame">
+        <!-- Game Title -->
+        <img src="images/title.png" alt="Game Title" class="loading-title">
+        
+        <!-- Start Button -->
+        <div class="start-wrapper" id="startWrapper">
+            <button id="startBtn" class="start-btn">
+                <i class="fas fa-play-circle"></i>
+                <span class="start-text">START GAME</span>
+                <small class="fullscreen-hint">(Fullscreen mode)</small>
+            </button>
+        </div>
+        
+        <!-- Loading Container (START နှိပ်မှပြမယ်) -->
+        <div class="loading-container" id="loadingContainer" style="display: none;">
+            <!-- Step 1 - Internet Speed Check -->
+            <div id="step1Container">
+                <div class="step-text">
+                    <i class="fas fa-wifi"></i>
+                    <span>Internet Speed Checking...</span>
+                </div>
+                <div class="progress-bar-frame">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="internetProgress"></div>
+                    </div>
+                </div>
+                <div class="speed-info" id="speedInfo">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Detecting speed...</span>
+                </div>
+            </div>
+            
+            <!-- Step 2 - Game Loading -->
+            <div id="step2Container" style="display: none;">
+                <div class="step-text">
+                    <i class="fas fa-gamepad"></i>
+                    <span>Loading Game Assets...</span>
+                </div>
+                <div class="progress-bar-frame">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="gameProgress"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Loading Tip -->
+        <div class="loading-tip" id="loadingTip">
+            <i class="fas fa-lightbulb"></i> 
+            Click START to begin loading
+        </div>
+    </div>
+</div>
+
+    <!-- MAIN GAME CONTAINER -->
+    <div class="game-container" id="gameContainer">
+        <!-- TOP PANEL -->
+        <div class="top-panel">
+            <div class="player-info">
+                <div class="user-profile-mini">
+                    <div class="user-avatar" id="userAvatar"><i class="fas fa-user-circle"></i></div>
+                    <div class="user-details-mini">
+                        <div class="username-mini" id="usernameMini">WaiYanPhyo</div>
+                        <div class="user-level">Level <span id="userLevel">12</span></div>
+                    </div>
+                </div>
+                <div class="balance-box">
+                    <small>Balance</small>
+                    <div class="balance-amount" id="balanceAmount">10,000</div>
+                </div>
+                <div class="vip-badge" id="vipBadge"><i class="fas fa-crown"></i> VIP <span id="vipLevel">3</span></div>
+            </div>
+            <div class="game-logo"><i class="fas fa-slot-machine"></i> MINI SLOT</div>
+            <div class="top-actions">
+                <button class="icon-btn fullscreen-btn" id="fullScreenBtn" onclick="toggleFullScreen()">
+                    <i class="fas fa-expand"></i>
+                </button>
+                <button class="menu-btn" id="mainMenuBtn" onclick="toggleMainMenu()">
+                    <i class="fas fa-bars"></i><span class="btn-label">MENU</span>
+                </button>
+            </div>
+        </div>
+     <!-- MIDDLE SECTION -->
+<div class="middle-section">
+    <!-- LEFT PANEL - Chat -->
+    <div class="left-panel">
+        <div class="chat-trigger" onclick="toggleChatModal()">
+            <i class="fas fa-comment-dots"></i>
+            <span class="chat-badge" id="chatBadge" style="display: none;">1</span>
+            <div class="chat-trigger-text">Chat with Admin</div>
+        </div>
+        <div class="chat-messages-preview" id="chatMessagesPreview"></div>
+    </div>
+    
+    <!-- CENTER - 5x4 GRID (အပြည့်) -->
+    <div class="center-area expanded">
+        <div class="grid-5x4" id="slotGrid"></div>
+    </div>
+
+    <!-- RIGHT PANEL (1024 Ways) (သေး) -->
+    <div class="right-panel compact">
+        <div class="ways-display">
+            <i class="fas fa-bolt"></i>
+            <span class="ways-number">1024</span>
+            <span class="ways-text">WAYS</span>
+        </div>
+        <div class="win-history" id="winHistory">
+            <div class="history-title"><i class="fas fa-history"></i> Wins</div>
+            <div class="history-list" id="historyList"></div>
+        </div>
+    </div>
+     </div>
+        <!-- BOTTOM BAR -->
+        <div class="bottom-bar">
+            <div class="bet-control">
+                <div class="bet-controls">
+                    <button id="decreaseBetBtn" class="bet-btn minus">−</button>
+                    <div id="betAmountDisplay" class="bet-display">80</div>
+                    <button id="increaseBetBtn" class="bet-btn plus">+</button>
+                    <div class="bet-btn-container">
+                        <button id="betSelectBtn" class="bet-select-btn">1C</button>
+                        <div id="betOptions" class="bet-options" style="display:none;">
+                            <div class="bet-option" data-c="50">50C</div>
+                            <div class="bet-option" data-c="20">20C</div>
+                            <div class="bet-option" data-c="10">10C</div>
+                            <div class="bet-option" data-c="5">5C</div>
+                            <div class="bet-option active" data-c="1">1C</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="win-display">
+                <div class="win-label">WIN</div>
+                <div class="win-amount" id="winAmount">0</div>
+            </div>
+            <button class="spin-btn" id="spinBtn"><i class="fas fa-play"></i> SPIN</button>
+        </div>
+    </div>
+
+    <!-- Main Menu Modal -->
+    <div class="modal" id="mainMenuModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-bars"></i> MAIN MENU</h3>
+                <span class="close-btn" onclick="closeMainMenu()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <button class="menu-item" onclick="openDepositModal()"><i class="fas fa-wallet"></i><span>ငွေသွင်း / Deposit</span></button>
+                <button class="menu-item" onclick="openWithdrawModal()"><i class="fas fa-money-bill-wave"></i><span>ငွေထုတ် / Withdraw</span></button>
+                <button class="menu-item" onclick="openSettings()"><i class="fas fa-cog"></i><span>ဆက်တင် / Settings</span></button>
+                <button class="menu-item" onclick="openHistory()"><i class="fas fa-history"></i><span>မှတ်တမ်း / History</span></button>
+            </div>
+        </div>
+    </div>
+
+   <!-- User Chat Modal -->
+<div class="user-chat-modal" id="userChatModal">
+    <div class="user-chat-header">
+        <div class="user-chat-title">
+            <i class="fas fa-comments"></i>
+            <span>အကူအညီစကားပြောရန်</span>
+        </div>
+        <button class="user-chat-close" onclick="closeUserChat()">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <div class="user-chat-messages" id="userChatMessages">
+        <div style="text-align:center; padding:40px; color:#888;">စာများဖော်ပြရန်...</div>
+    </div>
+
+    <div class="user-chat-input-area">
+        <input type="text" 
+               id="userChatInput" 
+               placeholder="စာရိုက်ရန်..."
+               onkeypress="handleUserChatKeyPress(event)">
+        <button class="user-chat-send" onclick="sendUserMessage()">
+            <i class="fas fa-paper-plane"></i>
+        </button>
+    </div>
+</div>
+    <!-- DEPOSIT MODAL -->
+    <div class="modal" id="depositModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-wallet"></i> ငွေသွင်း</h3>
+                <button class="close-btn" onclick="closeModal('depositModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="amount-chips">
+                    <div class="amount-chip" onclick="selectAmount(this, 1000)">1,000 <span>ကျပ်</span></div>
+                    <div class="amount-chip" onclick="selectAmount(this, 5000)">5,000 <span>ကျပ်</span></div>
+                    <div class="amount-chip" onclick="selectAmount(this, 10000)">10,000 <span>ကျပ်</span></div>
+                    <div class="amount-chip" onclick="selectAmount(this, 20000)">20,000 <span>ကျပ်</span></div>
+                    <div class="amount-chip" onclick="selectAmount(this, 50000)">50,000 <span>ကျပ်</span></div>
+                    <div class="amount-chip" onclick="selectAmount(this, 100000)">100,000 <span>ကျပ်</span></div>
+                </div>
+                <div class="custom-amount">
+                    <input type="number" id="customAmount" placeholder="အခြားပမာဏ ထည့်ပါ" min="1000" step="500">
+                    <button onclick="useCustomAmount()">သုံးမည်</button>
+                </div>
+                <div class="section-title"><i class="fas fa-credit-card"></i> ငွေပေးချေနည်း</div>
+                <div class="payment-methods">
+                    <div class="method-grid">
+                        <div class="method-btn active" onclick="selectPaymentMethod(this, 'kbz')"><i class="fas fa-mobile-alt"></i><span>KBZ Pay</span></div>
+                        <div class="method-btn" onclick="selectPaymentMethod(this, 'wave')"><i class="fas fa-wave-square"></i><span>Wave Pay</span></div>
+                        <div class="method-btn" onclick="selectPaymentMethod(this, 'cb')"><i class="fas fa-university"></i><span>CB Pay</span></div>
+                    </div>
+                </div>
+                <div class="bank-info-card">
+                    <div class="bank-header"><i class="fas fa-university"></i><span id="bankName">KBZ Pay</span></div>
+                    <div class="bank-detail-item"><i class="fas fa-user"></i><span>အမည်: <strong id="accountName">ဒေါ်အေးအေး</strong></span></div>
+                    <div class="bank-detail-item"><i class="fas fa-phone"></i><span>ဖုန်းနံပါတ်: <strong id="accountPhone">09-123456789</strong></span></div>
+                    <div class="bank-detail-item"><i class="fas fa-id-card"></i><span>ငွေလွှဲ ID: <strong id="accountRef">KBZ12345</strong></span></div>
+                    <div class="warning-box"><i class="fas fa-exclamation-triangle"></i> ဤအကောင့်သို့သာ ငွေလွှဲပါ။</div>
+                </div>
+                <div class="user-fields">
+                    <input type="tel" id="senderPhone" placeholder="သင့်ဖုန်းနံပါတ်" maxlength="11">
+                    <input type="text" id="transferId" placeholder="ငွေလွှဲ ID (၅လုံး)" maxlength="5">
+                </div>
+                <div class="upload-area" id="uploadArea" onclick="triggerFileUpload()">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>Screenshot တင်ရန် နှိပ်ပါ</p>
+                    <small>ငွေလွှဲပြီးပါက Screenshot တင်ပေးပါ</small>
+                </div>
+                <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="handleFileSelect(event)">
+                <div class="preview-container" id="previewContainer">
+                    <img class="preview-image" id="previewImage" src="#" alt="Preview">
+                    <button class="remove-image" onclick="removeImage()"><i class="fas fa-times"></i></button>
+                </div>
+                <button class="submit-btn" onclick="submitDeposit()"><i class="fas fa-paper-plane"></i> ငွေသွင်းရန် တင်ပြမည်</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- WITHDRAW MODAL -->
+    <div class="modal" id="withdrawModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-money-bill-wave"></i> ငွေထုတ်</h3>
+                <button class="close-btn" onclick="closeModal('withdrawModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div style="background: rgba(255,215,0,0.1); border-radius: 15px; padding: 20px; margin-bottom: 25px;">
+                    <div style="color: rgba(255,255,255,0.8); margin-bottom: 10px;">ထုတ်ယူနိုင်သော ငွေပမာဏ</div>
+                    <div style="font-size: 32px; font-weight: 800; color: #ffd700;" id="displayBalance">10,000 ကျပ်</div>
+                    <div style="color: rgba(255,255,255,0.6); font-size: 13px; margin-top: 10px;"><i class="fas fa-info-circle"></i> အနည်းဆုံး 5,000 ကျပ် / အများဆုံး 500,000 ကျပ်</div>
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label style="color: white; display: block; margin-bottom: 10px;">ထုတ်ယူမည့်ပမာဏ</label>
+                    <input type="number" id="withdrawAmount" placeholder="ပမာဏထည့်ပါ" min="5000" max="500000" style="width:100%; padding:15px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:15px; color:white; font-size:18px;">
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label style="color: white; display: block; margin-bottom: 10px;">ငွေလက်ခံမည့်ဘဏ်</label>
+                    <select id="withdrawBank" style="width:100%; padding:15px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:15px; color:white; margin-bottom:10px;">
+                        <option value="KBZ Pay">KBZ Pay</option>
+                        <option value="Wave Pay">Wave Pay</option>
+                        <option value="CB Pay">CB Pay</option>
+                        <option value="AYA Pay">AYA Pay</option>
+                    </select>
+                    <input type="text" id="withdrawAccount" placeholder="အကောင့်နံပါတ် / ဖုန်းနံပါတ်" style="width:100%; padding:15px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:15px; color:white; margin-bottom:10px;">
+                    <input type="text" id="withdrawName" placeholder="အကောင့်အမည်" style="width:100%; padding:15px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:15px; color:white;">
+                </div>
+                <div style="background: rgba(255,59,48,0.1); border-radius: 15px; padding: 15px; margin-bottom: 25px;">
+                    <div style="display: flex; justify-content: space-between; color: white; margin-bottom: 8px;">
+                        <span>ဝန်ဆောင်ခ (5%)</span>
+                        <span id="feeAmount">0 ကျပ်</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; color: white; font-size: 18px; font-weight: 700;">
+                        <span>လက်ခံရရှိမည့်ငွေ</span>
+                        <span id="netAmount" style="color: #00c853;">0 ကျပ်</span>
+                    </div>
+                </div>
+                <button class="submit-btn" onclick="submitWithdraw()" style="background: linear-gradient(145deg, #ff6b6b, #ee5a5a); box-shadow: 0 10px 0 #b33939;">
+                    <i class="fas fa-money-check-alt"></i> ငွေထုတ်ယူရန် တောင်းဆိုမည်
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SUCCESS MODAL -->
+    <div class="modal" id="successModal">
+        <div class="modal-content" style="text-align: center;">
+            <div style="font-size: 70px; color: #00c853; margin-bottom: 20px;"><i class="fas fa-check-circle"></i></div>
+            <h3 id="successTitle" style="color: white; margin-bottom: 15px;">အောင်မြင်ပါသည်။</h3>
+            <p id="successMessage" style="color: rgba(255,255,255,0.8); margin-bottom: 25px;"></p>
+            <div id="modalDetails" style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 15px; margin-bottom: 25px; text-align: left;"></div>
+            <button class="modal-btn" onclick="closeModal('successModal')">အိုကေ</button>
+        </div>
+    </div>
+
+    <!-- CONFIRM MODAL -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-question-circle"></i> အတည်ပြုချက်</h3>
+                <button class="close-btn" onclick="closeModal('confirmModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage" style="color: white; margin-bottom: 25px; text-align: center; font-size: 16px;"></p>
+                <div class="modal-actions">
+                    <button class="btn btn-primary" id="confirmYesBtn">အတည်ပြုမည်</button>
+                    <button class="btn btn-warning" onclick="closeModal('confirmModal')">မလုပ်တော့ပါ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NOTIFICATION -->
+    <div class="notification" id="notification">
+        <i class="fas fa-info-circle" id="notificationIcon"></i>
+        <div id="notificationMessage"></div>
+    </div>
+
+    <!-- CELEBRATION NOTIFICATION -->
+    <div class="celebration-notification" id="celebrationNotification">
+        <div class="celebration-content">
+            <div class="celebration-icon" id="celebrationIcon"><i class="fas fa-gift"></i></div>
+            <div class="celebration-text">
+                <div id="celebrationTitle" class="celebration-title">ဆုလက်ဆောင်</div>
+                <div id="celebrationMessage" class="celebration-message"></div>
+                <div id="celebrationAmount" class="celebration-amount">0 ကျပ်</div>
+            </div>
+            <div class="celebration-close" onclick="closeCelebration()"><i class="fas fa-times"></i></div>
+        </div>
+        <div class="celebration-confetti" id="celebrationConfetti"></div>
+    </div>
+
+    <!-- Floating numbers animation container -->
+    <div id="floatingNumbers" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10000;"></div>
+
+    <!-- USER SURPRISE BOX MODAL -->
+    <div class="modal" id="userSurpriseModal">
+        <div class="modal-content" style="max-width: 650px; background: linear-gradient(145deg, #1a1a2e, #16213e);">
+            <div class="modal-header">
+                <h3 style="color: #ffd700;"><i class="fas fa-gift"></i> Surprise Box ရွေးချယ်ရန်</h3>
+                <button class="close-btn" onclick="closeUserSurpriseModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; margin-bottom: 20px; background: rgba(255,215,0,0.1); padding: 15px; border-radius: 15px;">
+                    <p style="color: white; margin-bottom: 5px;" id="userSelectionCount">သင်ရွေးချယ်ရန် ကျန် ၅ ခု</p>
+                    <div style="width: 100%; background: #333; height: 5px; border-radius: 5px;">
+                        <div id="selectionProgress" style="width: 0%; background: #ffd700; height: 5px; border-radius: 5px; transition: width 0.3s;"></div>
+                    </div>
+                </div>
+                <div style="background: rgba(0,0,0,0.3); border-radius: 20px; padding: 15px; margin-bottom: 20px;">
+                    <div id="userBoxGrid" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;"></div>
+                </div>
+                <div style="background: rgba(255,255,255,0.03); border-radius: 15px; padding: 15px; margin-bottom: 20px;">
+                    <h4 style="color: white; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-check-circle" style="color: #00c853;"></i> သင်ရွေးချယ်ထားသော Box များ
+                    </h4>
+                    <div id="userSelectedBoxes" style="display: flex; flex-wrap: wrap; gap: 8px; min-height: 40px;">
+                        <span style="color: rgba(255,255,255,0.5);">Box မရွေးရသေးပါ။</span>
+                    </div>
+                </div>
+                <div id="userSurpriseResult" style="display: none; text-align: center; padding: 20px; background: rgba(255,215,0,0.1); border-radius: 15px; margin-bottom: 20px;">
+                    <i id="resultIcon" class="fas fa-gift" style="font-size: 40px; color: #ffd700;"></i>
+                    <h3 id="resultTitle" style="color: white; margin: 10px 0;"></h3>
+                    <p id="resultMessage" style="color: #ffd700; font-size: 24px; font-weight: 700;"></p>
+                </div>
+                <div style="display: flex; gap: 15px;">
+                    <button id="claimUserSurpriseBtn" class="primary-btn" onclick="claimUserSurprise()" style="flex: 2; background: linear-gradient(145deg, #ffd700, #ffaa00);" disabled>
+                        <i class="fas fa-check-circle"></i> ရွေးချယ်မှုအတည်ပြုမည်
+                    </button>
+                    <button onclick="closeUserSurpriseModal()" class="secondary-btn" style="flex: 1;">ပိတ်မည်</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Core Libraries & Helpers -->
+    <script src="sound-manager.js"></script>
+    <script src="login.js"></script>
+    <script src="userpayment.js"></script>
+    <script src="game.js"></script>
+    <script src="script.js"></script>
+    <script src="userchat.js"></script>
+
+</body>
+</html> 
