@@ -22,26 +22,64 @@ window.gameState = window.gameState || {
     pendingGift: null,
     spinCounter: 0,
     freeSpins: 0,
-    totalFreeSpins: 0,  
+    totalFreeSpins: 0,
     isFreeSpinning: false,
     scatterCount: 0,
     totalScatter: 0,
     pendingGiftSpins: 3,
-    spinCount: 0
+    spinCount: 0,
+    threeMatchCount: 0,
+    totalSpinsSinceReset: 0,
+    checkInterval: 10,
+    targetThreeMatchRate: 0.1,
+    threeMatchControl: false,
+    reduceThreeMatch: false
 };
-
 
 // Firebase
 let currentUser = null;
 // Reel Configuration - မြန်မာတိရစ္ဆာန်များ
-const REELS = [
-    ['seven', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'wild', 'bonus', 'coin'],
-    ['seven', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'wild', 'bonus', 'coin'],
-    ['seven', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'wild', 'bonus', 'coin'],
-    ['seven', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'wild', 'bonus', 'coin'],
-    ['seven', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'wild', 'bonus', 'coin']
+const REEL_STRIPS_NORMAL = [
+    // Reel 0
+    [ 'seven', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'seven', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'wild' ],
+    // Reel 1
+    [ 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'seven', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'wild' ],
+    // Reel 2
+    [ 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'seven', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'wild' ],
+    // Reel 3
+    [ 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'seven', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'wild' ],
+    // Reel 4
+    [ 'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'seven', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'wild' ]
 ];
 
+const REEL_STRIPS_ADMIN = [
+    // Reel 0 – သင်္ကေတတွေကို ပိုကွဲပြားအောင် စီစဉ်
+    [ 'seven', 'lion', 'ele', 'zebra', 'ayeaye', 'coin', 'buffalo', 'tha', 'bonus', 'seven', 'lion', 'ele', 'zebra', 'ayeaye', 'coin', 'buffalo', 'tha', 'bonus', 'wild' ],
+    // Reel 1
+    [ 'lion', 'ele', 'zebra', 'ayeaye', 'coin', 'seven', 'tha', 'buffalo', 'bonus', 'lion', 'ele', 'zebra', 'ayeaye', 'coin', 'seven', 'tha', 'buffalo', 'bonus', 'wild' ],
+    // Reel 2
+    [ 'buffalo', 'tha', 'seven', 'lion', 'ele', 'zebra', 'ayeaye', 'coin', 'bonus', 'buffalo', 'tha', 'seven', 'lion', 'ele', 'zebra', 'ayeaye', 'coin', 'bonus', 'wild' ],
+    // Reel 3
+    [ 'ele', 'zebra', 'ayeaye', 'coin', 'seven', 'lion', 'tha', 'buffalo', 'bonus', 'ele', 'zebra', 'ayeaye', 'coin', 'seven', 'lion', 'tha', 'buffalo', 'bonus', 'wild' ],
+    // Reel 4
+    [ 'tha', 'ayeaye', 'coin', 'seven', 'lion', 'ele', 'zebra', 'buffalo', 'bonus', 'tha', 'ayeaye', 'coin', 'seven', 'lion', 'ele', 'zebra', 'buffalo', 'bonus', 'wild' ]
+];
+
+// လက်ရှိအသုံးပြုမယ့် Reel Strips (ပုံမှန်အနေနဲ့ Normal ကိုထား)
+let currentReelStrips = REEL_STRIPS_NORMAL;
+
+const REEL_STRIPS_REDUCED_THREE = [
+    // Reel 0 
+    [ 'seven', 'lion', 'ele', 'zebra', 'ayeaye', 'coin', 'buffalo', 'tha', 'bonus', 'seven', 'lion', 'ele', 'zebra', 'ayeaye', 'coin', 'buffalo', 'tha', 'bonus', 'wild' ],
+    // Reel 1
+    [ 'lion', 'ele', 'zebra', 'ayeaye', 'coin', 'seven', 'tha', 'buffalo', 'bonus', 'lion', 'ele', 'zebra', 'ayeaye', 'coin', 'seven', 'tha', 'buffalo', 'bonus', 'wild' ],
+    // Reel 2
+    [ 'buffalo', 'tha', 'seven', 'lion', 'ele', 'zebra', 'ayeaye', 'coin', 'bonus', 'buffalo', 'tha', 'seven', 'lion', 'ele', 'zebra', 'ayeaye', 'coin', 'bonus', 'wild' ],
+    // Reel 3
+    [ 'ele', 'zebra', 'ayeaye', 'coin', 'seven', 'lion', 'tha', 'buffalo', 'bonus', 'ele', 'zebra', 'ayeaye', 'coin', 'seven', 'lion', 'tha', 'buffalo', 'bonus', 'wild' ],
+    // Reel 4
+    [ 'tha', 'ayeaye', 'coin', 'seven', 'lion', 'ele', 'zebra', 'buffalo', 'bonus', 'tha', 'ayeaye', 'coin', 'seven', 'lion', 'ele', 'zebra', 'buffalo', 'bonus', 'wild' ]
+];
 // Image paths
 const IMAGE_PATHS = {
     'seven': 'images/seven.png',
@@ -60,32 +98,33 @@ const IMAGE_PATHS = {
 // Paytable (multipliers)
 // မူရင်း PAYTABLE ကိုသိမ်းထားမယ်
 const PAYTABLE_ORIGINAL = {
-    'buffalo': {3: 3, 4: 8, 5: 20},
-    'seven': {3: 2, 4: 6, 5: 15},
-    'lion': {3: 1.5, 4: 4, 5: 10},
-    'ele': {3: 1, 4: 3, 5: 8},
-    'tha': {3: 0.8, 4: 2, 5: 6},
-    'zebra': {3: 0.6, 4: 1.5, 5: 4},
-    'ayeaye': {3: 0.4, 4: 1, 5: 3},
-    'coin': {3: 0.2, 4: 0.5, 5: 2}
+    'buffalo': {3: 2.25, 4: 3.0, 5: 20},
+    'ele':     {3: 1.5,  4: 2.0, 5: 12},
+    'lion':    {3: 1.125,4: 1.5, 5: 10},
+    'zebra':   {3: 0.75, 4: 1.0, 5: 6},
+    'tha':     {3: 0.6,  4: 0.8, 5: 5},
+    'seven':   {3: 0.45, 4: 0.6, 5: 4},
+    'coin':    {3: 0.3,  4: 0.4, 5: 3},
+    'ayeaye':  {3: 0.15, 4: 0.2, 5: 2} 
 };
 
 // လက်ရှိ PAYTABLE (အစပိုင်းမှာ မူရင်းအတိုင်း)
 let PAYTABLE = JSON.parse(JSON.stringify(PAYTABLE_ORIGINAL));
 
-// window မှာထည့်
 window.PAYTABLE = PAYTABLE;
- 
-const ADMIN_PAYTABLE = {
-    'buffalo': {3: 1, 4: 5, 5: 15},      // Admin Mode မှာတောင် Buffalo ကောင်းနေမယ်
-    'seven': {3: 0, 4: 4, 5: 12},
-    'lion': {3: 0, 4: 3, 5: 8},
-    'ele': {3: 0, 4: 2, 5: 6},
-    'tha': {3: 0, 4: 1.5, 5: 4},
-    'zebra': {3: 0, 4: 1, 5: 3},
-    'ayeaye': {3: 0, 4: 0.5, 5: 2},
-    'coin': {3: 0, 4: 0.3, 5: 1}
+
+
+ const ADMIN_PAYTABLE = {
+    'buffalo': {3: 0.75, 4: 2.0, 5: 15},
+    'ele':     {3: 0.5,  4: 1.5, 5: 9},
+    'lion':    {3: 0.4,  4: 1.2, 5: 7.5},
+    'zebra':   {3: 0.25, 4: 0.7, 5: 4.5},
+    'tha':     {3: 0.2,  4: 0.6, 5: 3.75},
+    'seven':   {3: 0.15, 4: 0.45, 5: 3},
+    'coin':    {3: 0.1,  4: 0.3, 5: 2.25},
+    'ayeaye':  {3: 0.05, 4: 0.15, 5: 1.5}
 };
+
 window.ADMIN_PAYTABLE = ADMIN_PAYTABLE;
 
 // C MULTIPLIER
@@ -121,6 +160,158 @@ const ANIMATION_CONFIG = {
     LIGHTNING_INTERVAL: 3000,
     PARTICLE_COUNT: 30
 };
+
+
+// ============================================
+// ADMIN CONTROL MODE (1)- SIMPLE ON/OFF
+// ============================================
+
+let adminControlMode = false;  // false = OFF (အစိမ်း), true = ON (အနီ)
+
+// Listen to admin control mode
+function listenToAdminControlMode() {
+    console.log('🔥 Admin Control 1 listener started');
+
+    if (!firebase.firestore) {
+        console.warn('Firebase not available');
+
+        return;
+      }
+
+    const db = firebase.firestore();
+
+    db.collection('settings').doc('adminControl')
+        .onSnapshot((doc) => {
+            if (doc.exists) {
+                const data = doc.data();
+                const newMode = data.enabled === true;
+
+                if (newMode !== adminControlMode) {
+                    adminControlMode = newMode;
+
+                    if (adminControlMode) {
+                        // ON - Admin Control (Reduced Payouts)
+                        PAYTABLE = JSON.parse(JSON.stringify(ADMIN_PAYTABLE));
+                        currentReelStrips = REEL_STRIPS_ADMIN;
+                        console.log('🔴 ADMIN MODE: ON - ဆုကြေးလျှော့ချ');
+
+                        // Three-match control ကို ဖွင့်မယ် (Admin Mode မှာမှ ထိန်းချုပ်မယ်)
+                        if (window.gameState) {
+                            window.gameState.threeMatchControl = true;
+                            window.gameState.targetThreeMatchRate = 0.05; // Admin မှာ ပိုတင်းကျပ်အောင်
+                        }
+                    } else {
+                        // OFF - Normal (Standard Payouts)
+                        PAYTABLE = JSON.parse(JSON.stringify(PAYTABLE_ORIGINAL));
+                        currentReelStrips = REEL_STRIPS_NORMAL;
+                        console.log('🟢 NORMAL MODE: OFF - ပုံမှန်ဆုကြေး');
+
+                        // Three-match control ကို ပိတ်မယ်
+                        if (window.gameState) {
+                            window.gameState.threeMatchControl = false;
+                        }
+                    }
+                }
+            }
+        }, (error) => {
+            console.error('Error listening to admin control:', error);
+           console.log('🔥 Admin Control 1 listener started');
+        });
+}
+
+// Update mode indicator (UI မှာမပြချင်ရင် comment ချထားပါ)
+function updateModeIndicator() {
+    let indicator = document.getElementById('adminModeIndicator');
+
+    if (!indicator) {
+        indicator = document.createElement('div');
+        indicator.id = 'adminModeIndicator';
+        indicator.style.cssText = `
+            position: fixed;
+            top: 60px;
+            right: 20px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+            z-index: 9999;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        `;
+        document.body.appendChild(indicator);
+    }
+
+    if (adminControlMode) {
+        indicator.style.background = '#ff5252';
+        indicator.style.color = 'white';
+        indicator.style.border = '2px solid #ff0000';
+        indicator.style.boxShadow = '0 0 20px #ff5252';
+        indicator.innerHTML = `
+            <i class="fas fa-exclamation-triangle"></i>
+            <span>ADMIN MODE</span>
+            <span style="background:white; color:#ff5252; padding:2px 8px; border-radius:12px;">REDUCED</span>
+        `;
+    } else {
+        indicator.style.background = '#4caf50';
+        indicator.style.color = 'white';
+        indicator.style.border = '2px solid #00ff00';
+        indicator.style.boxShadow = '0 0 20px #4caf50';
+        indicator.innerHTML = `
+            <i class="fas fa-check-circle"></i>
+            <span>NORMAL MODE</span>
+            <span style="background:white; color:#4caf50; padding:2px 8px; border-radius:12px;">STANDARD</span>
+        `;
+    }
+}
+
+// Show notification (UI မှာမပြချင်ရင် comment ချထားပါ)
+function showModeNotification(isAdminMode) {
+    const notification = document.getElementById('notification');
+    const messageEl = document.getElementById('notificationMessage');
+    const iconEl = document.getElementById('notificationIcon');
+
+    if (!notification || !messageEl) return;
+
+    if (isAdminMode) {
+        messageEl.textContent = '🔴 ADMIN MODE: ဆုကြေးလျှော့ချထားပါသည်။';
+        iconEl.className = 'fas fa-exclamation-triangle';
+        notification.style.background = '#ff5252';
+    } else {
+        messageEl.textContent = '🟢 NORMAL MODE: ပုံမှန်ဆုကြေး';
+        iconEl.className = 'fas fa-check-circle';
+        notification.style.background = '#4caf50';
+    }
+
+    notification.style.display = 'flex';
+    setTimeout(() => {
+        notification.style.display = 'none';
+    }, 3000);
+}
+
+// Admin functions
+async function turnOnAdminMode() {
+    if (!firebase.firestore) return false;
+    const db = firebase.firestore();
+    await db.collection('settings').doc('adminControl').set({
+        enabled: true,
+        updatedAt: new Date().toISOString()
+    }, { merge: true });
+    return true;
+}
+
+async function turnOffAdminMode() {
+    if (!firebase.firestore) return false;
+    const db = firebase.firestore();
+    await db.collection('settings').doc('adminControl').set({
+        enabled: false,
+        updatedAt: new Date().toISOString()
+    }, { merge: true });
+    return true;
+}
+
 
 // ==============================================
 // ADMIN CONTROL 2 - UNIQUE MODE (GAME INTEGRATION)
@@ -174,59 +365,60 @@ function generateSpinResult() {
     const symbolsWithoutWild = ['seven', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus'];
     const symbolsWithWild = ['seven', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'wild'];
 
-    // Get current admin control state
     const adminCtrl = window.adminControl2 || { enabled: false, mode: 'normal' };
-    
+
     console.log('🎯 Admin Control 2 status:', JSON.stringify(adminCtrl));
 
-    // ADMIN MODE IS ON
+    let activeReelStrips;
+    if (window.gameState && window.gameState.reduceThreeMatch) {
+        activeReelStrips = REEL_STRIPS_REDUCED_THREE;
+        console.log('🎯 Using REDUCED THREE-MATCH reel strips');
+    } else if (adminControlMode) {
+        activeReelStrips = REEL_STRIPS_ADMIN;
+    } else {
+        activeReelStrips = REEL_STRIPS_NORMAL;
+    }
+
     if (adminCtrl.enabled && adminCtrl.mode === 'always_different') {
-        
-        // ပထမဆုံး မတူညီတဲ့ ၈ လုံးကို ရွေးမယ်
+
         let pool = [...symbolsWithoutWild];
         let selected = [];
-        
-        // ၈ လုံး ရွေးတယ် (တစ်လုံးမှ မထပ်အောင်)
+
         for (let i = 0; i < 8; i++) {
             let randomIndex = Math.floor(Math.random() * pool.length);
             selected.push(pool[randomIndex]);
             pool.splice(randomIndex, 1);
         }
-        
-        // Column 0 မှာ ၄ လုံး (အတန်း 0 ကနေ 3)
+
         for (let row = 0; row < 4; row++) {
             result[0][row] = selected[row];
         }
-        
-        // Column 1 မှာ ကျန် ၄ လုံး (အတန်း 0 ကနေ 3)
+
         for (let row = 0; row < 4; row++) {
             result[1][row] = selected[row + 4];
         }
-        
-        // ကျန် Column 2,3,4 ကို ပုံမှန်အတိုင်း Wild ပါအောင် ထုတ်မယ်
+
         for (let col = 2; col < 5; col++) {
             for (let row = 0; row < 4; row++) {
                 result[col][row] = symbolsWithWild[Math.floor(Math.random() * symbolsWithWild.length)];
             }
         }
-    } 
-    
-    // ADMIN MODE IS OFF (မူလအတိုင်း)
+    }
+
     else {
         for (let col = 0; col < 5; col++) {
+            const reelStrip = activeReelStrips[col];
+            const stripLength = reelStrip.length;
+            
+            const startIndex = Math.floor(Math.random() * stripLength);
+            
             for (let row = 0; row < 4; row++) {
-                if (col === 0 || col === 1) {
-                    // Column 0 နဲ့ 1 မှာ Wild မပါဘူး
-                    result[col][row] = symbolsWithoutWild[Math.floor(Math.random() * symbolsWithoutWild.length)];
-                } else {
-                    // Column 2,3,4 မှာ Wild ပါတယ်
-                    result[col][row] = symbolsWithWild[Math.floor(Math.random() * symbolsWithWild.length)];
-                }
+                const index = (startIndex + row) % stripLength;
+                result[col][row] = reelStrip[index];
             }
         }
     }
 
-    // နောက်ဆုံး စစ်ဆေး: Column 0 နဲ့ 1 မှာ Wild မပါအောင် သေချာလုပ်မယ်
     for (let row = 0; row < 4; row++) {
         if (result[0][row] === 'wild') {
             result[0][row] = symbolsWithoutWild[Math.floor(Math.random() * symbolsWithoutWild.length)];
@@ -241,10 +433,12 @@ function generateSpinResult() {
 
     return result;
 }
-// ဂိမ်းစချိန်မှာ Firebase ကို နားထောင်မယ်
+
 document.addEventListener('DOMContentLoaded', function() {
     listenToAdminControl2();
 });
+
+
 
 // ============================================
 // 2. DOM READY & INITIALIZATION
@@ -260,6 +454,7 @@ document.addEventListener('DOMContentLoaded', function() {
         window.currentUser = currentUser;
         loadUserFromFirebase();
     }
+     listenToAdminControlMode();
      // Start listening to Firebase
     listenToAdminControl2();
    // Add click event to dashboard button (if exists)
@@ -845,11 +1040,32 @@ function animateReelsStaggered(finalResult) {
     }, 100 + (cells.length * 40) + 800);
 }
 
+
+function checkThreeMatchRate() {
+    const state = window.gameState;
+    const expectedCount = Math.floor(state.checkInterval * state.targetThreeMatchRate); // 10 * 0.2 = 2
+    
+    console.log(`🎯 Three-match check: ${state.threeMatchCount}/${expectedCount} in last ${state.checkInterval} spins`);
+    
+    if (state.threeMatchCount > expectedCount) {
+        // သတ်မှတ်ချက်ထက် ပိုနေရင် နောက် spin တွေမှာ ၃ ကောင်တူတာကို လျှော့ချမယ်
+        state.reduceThreeMatch = true;
+        console.log('⚠️ Reducing three-match probability for next spins');
+    } else {
+        state.reduceThreeMatch = false;
+    }
+    
+    // Counter တွေကို ပြန် Reset လုပ်မယ်
+    state.threeMatchCount = 0;
+    state.totalSpinsSinceReset = 0;
+}
+
 // ============================================
 // 8. WIN CALCULATION (1024 WAYS)
 // ============================================
 function calculateWinnings(result) {
-
+    console.log('🔥 calculateWinnings called');
+    console.log('🎮 threeMatchControl status:', window.gameState?.threeMatchControl);
     const paytable = window.PAYTABLE;
     let totalWin = 0;
     let buffaloCount = 0;
@@ -924,6 +1140,32 @@ function calculateWinnings(result) {
         }
     }
 
+    // ******************* THREE-MATCH CONTROL  *******************
+
+let threeMatchWinCount = 0;
+winLines.forEach(line => {
+    console.log(`🔍 Win line - symbol: ${line.symbol}, count: ${line.count}, type: ${typeof line.count}`);
+    if (line.count === 3) {
+        threeMatchWinCount++;
+    }
+});
+console.log(`📊 threeMatchWinCount: ${threeMatchWinCount}`);
+
+ if (window.gameState && window.gameState.threeMatchControl) {
+    console.log('⚙️ Inside threeMatchControl block');
+    window.gameState.threeMatchCount += threeMatchWinCount;
+    window.gameState.totalSpinsSinceReset++;
+  
+    console.log(`📊 Counters - ThreeMatch: ${window.gameState.threeMatchCount}, TotalSpins: ${window.gameState.totalSpinsSinceReset}, Interval: ${window.gameState.checkInterval}`);
+
+    if (window.gameState.totalSpinsSinceReset >= window.gameState.checkInterval) {
+        console.log('⏰ Check interval reached! Calling checkThreeMatchRate...');
+        checkThreeMatchRate();
+    }
+}
+
+    // *******************************************************************************
+
     // Jackpot for 12+ buffalo
     if (buffaloCount >= 12) {
         totalWin += window.gameState.jackpot;
@@ -936,42 +1178,42 @@ function calculateWinnings(result) {
     }
 
     if (totalWin > 0) {
-    window.gameState.balance += totalWin;
-    window.gameState.winAmount = totalWin;
-    updateBalanceDisplay();
-    updateWinDisplay(totalWin);
-    addWinToHistory(totalWin);
-    playWinSounds(totalWin, winLines);
-    showWinLinesInfo(winLines);
+        window.gameState.balance += totalWin;
+        window.gameState.winAmount = totalWin;
+        updateBalanceDisplay();
+        updateWinDisplay(totalWin);
+        addWinToHistory(totalWin);
+        playWinSounds(totalWin, winLines);
+        showWinLinesInfo(winLines);
 
-    // Win animations based on amount
-    if (typeof WinAnimations !== 'undefined') {
-        if (totalWin >= 50000) {
-            WinAnimations.super();
-            // Super Win ဆိုရင် congratulations ခေါ်
-            if (typeof SoundManager !== 'undefined') {
-                SoundManager.congratulations();
-            }
-        } else if (totalWin >= 15000) {
-            WinAnimations.mega();
-            // Mega Win ဆိုရင် congratulations ခေါ်
-            if (typeof SoundManager !== 'undefined') {
-                SoundManager.congratulations();
-            }
-        } else if (totalWin >= 5000) {
-            WinAnimations.big();
-            // Big Win ဆိုရင် congratulations ခေါ်
-            if (typeof SoundManager !== 'undefined') {
-                SoundManager.congratulations();
+        // Win animations based on amount
+        if (typeof WinAnimations !== 'undefined') {
+            if (totalWin >= 50000) {
+                WinAnimations.super();
+                // Super Win ဆိုရင် congratulations ခေါ်
+                if (typeof SoundManager !== 'undefined') {
+                    SoundManager.congratulations();
+                }
+            } else if (totalWin >= 15000) {
+                WinAnimations.mega();
+                // Mega Win ဆိုရင် congratulations ခေါ်
+                if (typeof SoundManager !== 'undefined') {
+                    SoundManager.congratulations();
+                }
+            } else if (totalWin >= 5000) {
+                WinAnimations.big();
+                // Big Win ဆိုရင် congratulations ခေါ်
+                if (typeof SoundManager !== 'undefined') {
+                    SoundManager.congratulations();
+                }
             }
         }
-    }
 
-    checkLevelUp();
-} else {
-    window.gameState.winAmount = 0;
-    updateWinDisplay(0);
-}
+        checkLevelUp();
+    } else {
+        window.gameState.winAmount = 0;
+        updateWinDisplay(0);
+    }
 
     // Remove duplicates from winIndices
     winIndices = [...new Set(winIndices)];
@@ -993,7 +1235,6 @@ function countBuffalo(result) {
     }
     return count;
 }
-
 // ============================================
 // 9. WIN HIGHLIGHT & RISE ANIMATIONS
 // ============================================
@@ -3618,6 +3859,9 @@ const WinAnimations = (function() {
 // ============================================
 // 23. EXPORT GLOBALS
 // ============================================
+window.adminControlMode = adminControlMode;
+window.turnOnAdminMode = turnOnAdminMode;
+window.turnOffAdminMode = turnOffAdminMode;
 window.spin = spin;
 window.closeUserSurpriseModal = closeUserSurpriseModal;
 window.selectUserBox = selectUserBox;
@@ -3633,152 +3877,4 @@ window.buffaloStampede = buffaloStampede;
 window.highlightWinsPremium = highlightWinsPremium;
 window.WinAnimations = WinAnimations;
 console.log('✅ Game.js ULTIMATE VERSION fully loaded with all features!');
-
-
-// ============================================
-// ADMIN CONTROL MODE - SIMPLE ON/OFF
-// Admin က ON လိုက်ရင် 4 ကောင်တူမှ အနိုင်
-// =================/v===========================
-
-// Admin Control Mode State
-let adminControlMode = false;  // false = OFF (အစိမ်း), true = ON (အနီ)
-
-// Listen to admin control mode
-function listenToAdminControlMode() {
-    if (!firebase.firestore) {
-        console.warn('Firebase not available');
-        return;
-    }
-    
-    const db = firebase.firestore();
-    
-    db.collection('settings').doc('adminControl')
-        .onSnapshot((doc) => {
-            if (doc.exists) {
-                const data = doc.data();
-                const newMode = data.enabled === true;
-                
-                if (newMode !== adminControlMode) {
-                    adminControlMode = newMode;
-                    
-                    if (adminControlMode) {
-                        // ON - Admin Control (4+ win)
-                        PAYTABLE = JSON.parse(JSON.stringify(ADMIN_PAYTABLE));
-                        console.log('🔴 ADMIN MODE: ON - 4 ကောင်တူမှအနိုင်');
-                    } else {
-                        // OFF - Normal (3+ win)
-                        PAYTABLE = JSON.parse(JSON.stringify(ORIGINAL_PAYTABLE));
-                        console.log('🟢 NORMAL MODE: OFF - 3 ကောင်တူကစပြီးအနိုင်');
-                    }
-                    
-                }
-            }
-        }, (error) => {
-            console.error('Error listening to admin control:', error);
-        });
-}
-
-// Update mode indicator
-function updateModeIndicator() {
-    let indicator = document.getElementById('adminModeIndicator');
-    
-    if (!indicator) {
-        indicator = document.createElement('div');
-        indicator.id = 'adminModeIndicator';
-        indicator.style.cssText = `
-            position: fixed;
-            top: 60px;
-            right: 20px;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 14px;
-            z-index: 9999;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        `;
-        document.body.appendChild(indicator);
-    }
-    
-    if (adminControlMode) {
-        indicator.style.background = '#ff5252';
-        indicator.style.color = 'white';
-        indicator.style.border = '2px solid #ff0000';
-        indicator.style.boxShadow = '0 0 20px #ff5252';
-        indicator.innerHTML = `
-            <i class="fas fa-exclamation-triangle"></i>
-            <span>ADMIN CONTROL</span>
-            <span style="background:white; color:#ff5252; padding:2px 8px; border-radius:12px;">4+ WIN</span>
-        `;
-    } else {
-        indicator.style.background = '#4caf50';
-        indicator.style.color = 'white';
-        indicator.style.border = '2px solid #00ff00';
-        indicator.style.boxShadow = '0 0 20px #4caf50';
-        indicator.innerHTML = `
-            <i class="fas fa-check-circle"></i>
-            <span>NORMAL MODE</span>
-            <span style="background:white; color:#4caf50; padding:2px 8px; border-radius:12px;">3+ WIN</span>
-        `;
-    }
-}
-
-// Show notification
-function showModeNotification(isAdminMode) {
-    const notification = document.getElementById('notification');
-    const messageEl = document.getElementById('notificationMessage');
-    const iconEl = document.getElementById('notificationIcon');
-    
-    if (!notification || !messageEl) return;
-    
-    if (isAdminMode) {
-        messageEl.textContent = '🔴 ADMIN MODE: ၄ ကောင်တူမှသာ အနိုင်ရမည်';
-        iconEl.className = 'fas fa-exclamation-triangle';
-        notification.style.background = '#ff5252';
-    } else {
-        messageEl.textContent = '🟢 NORMAL MODE: ၃ ကောင်တူကစပြီး အနိုင်ရမည်';
-        iconEl.className = 'fas fa-check-circle';
-        notification.style.background = '#4caf50';
-    }
-    
-    notification.style.display = 'flex';
-    setTimeout(() => {
-        notification.style.display = 'none';
-    }, 3000);
-}
-
-// Admin functions
-async function turnOnAdminMode() {
-    if (!firebase.firestore) return false;
-    const db = firebase.firestore();
-    await db.collection('settings').doc('adminControl').set({
-        enabled: true,
-        updatedAt: new Date().toISOString()
-    }, { merge: true });
-    return true;
-}
-
-async function turnOffAdminMode() {
-    if (!firebase.firestore) return false;
-    const db = firebase.firestore();
-    await db.collection('settings').doc('adminControl').set({
-        enabled: false,
-        updatedAt: new Date().toISOString()
-    }, { merge: true });
-    return true;
-}
-
-// Initialize
-document.addEventListener('DOMContentLoaded', function() {
-    listenToAdminControlMode();
-});
-
-// Export
-window.adminControlMode = adminControlMode;
-window.turnOnAdminMode = turnOnAdminMode;
-window.turnOffAdminMode = turnOffAdminMode;
-
 
