@@ -23,6 +23,7 @@ async function sendToTelegram(message, imageBase64 = null) {
             formData.append('photo', blob, 'screenshot.jpg');
             formData.append('caption', message);
             formData.append('parse_mode', 'HTML');
+            formData.append('disable_notification', 'false');
 
             // sendPhoto API ကိုခေါ်မယ်
             const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
@@ -39,7 +40,8 @@ async function sendToTelegram(message, imageBase64 = null) {
                 body: JSON.stringify({
                     chat_id: ADMIN_CHAT_ID,
                     text: message,
-                    parse_mode: 'HTML'
+                    parse_mode: 'HTML',
+                    disable_notification: false
                 })
             });
             const result = await response.json();
@@ -412,9 +414,11 @@ window.submitDeposit = async function() {
 
         console.log('Deposit data:', deposit);
         await db.collection('deposits').add(deposit);
+       showNotification('ငွေသွင်းတောင်းဆိုမှု လက်ခံရရှိပါသည်။ Admin များစစ်ဆေးနေပါသည်။', 'info');
         // Telegram ကိုပို့မယ်
         await notifyNewDeposit(deposit);
-
+       
+        setTimeout(() => {
         showSuccessModal(
             'ငွေသွင်းတောင်းဆိုမှု အောင်မြင်ပါသည်။',
             'စီစစ်ပြီးပါက ငွေဖြည့်သွင်းပေးပါမည်။',
@@ -424,14 +428,16 @@ window.submitDeposit = async function() {
                 'အခြေအနေ: စောင့်ဆိုင်းဆဲ'
             ]
         );
+    }, 2000);
 
-        resetDepositForm();
-        setTimeout(() => closeModal('depositModal'), 2000);
+    // Form နဲ့ Modal ကိုရှင်း
+    resetDepositForm();
+    setTimeout(() => closeModal('depositModal'), 2500);
 
-    } catch (error) {
-        console.error('Deposit error:', error);
-        showNotification('မအောင်မြင်ပါ။ ထပ်ကြိုးစားပါ။', 'error');
-    }
+} catch (error) {
+    console.error('Deposit error:', error);
+    showNotification('မအောင်မြင်ပါ။ ထပ်ကြိုးစားပါ။', 'error');
+}
 };
 
 // ===== WITHDRAW =====
