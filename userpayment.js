@@ -52,6 +52,30 @@ async function sendToTelegram(message, imageBase64 = null) {
     }
 }
 
+// ===== TELEGRAM ADMIN AUDIO NOTIFICATION =====
+async function sendTelegramAdminSound() {
+    try {
+        // Admin sound ရဲ့ URL
+        const audioUrl = window.location.origin + '/sounds/admin.mp3';
+        
+        const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendAudio`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: ADMIN_CHAT_ID,
+                audio: audioUrl,
+                caption: '💰 ငွေသွင်းတောင်းဆိုမှုအသစ်',
+                parse_mode: 'HTML',
+                disable_notification: false
+            })
+        });
+        
+        const result = await response.json();
+        console.log('Telegram admin audio result:', result);
+    } catch (error) {
+        console.error('Telegram audio error:', error);
+    }
+}
 // ငွေသွင်းတဲ့အခါ ခေါ်မယ့် Function (ပုံပါ)
 async function notifyNewDeposit(deposit) {
     const message =
@@ -66,6 +90,11 @@ async function notifyNewDeposit(deposit) {
 
     // screenshot ပါပို့မယ်
     await sendToTelegram(message, deposit.screenshot);
+  await sendTelegramAdminSound();
+ if (window.SoundManager) {
+        SoundManager.admin();  // admin.mp3 ဖွင့်မယ်
+        SoundManager.noti();   // noti.mp3 ဖွင့်မယ်
+    }
 }
 
 // ငွေထုတ်တဲ့အခါ ခေါ်မယ့် Function (ပုံမပါ)
@@ -83,11 +112,16 @@ async function notifyNewWithdrawal(withdrawal) {
 
     // ပုံမပါဘူး
     await sendToTelegram(message);
+  await sendTelegramAdminSound();
+ if (window.SoundManager) {
+        SoundManager.admin();  // admin.mp3 ဖွင့်မယ်
+        SoundManager.noti();   // noti.mp3 ဖွင့်မယ်
+    }
 }
 
 
 let paymentState = {
-    selectedAmount: 1000,
+    selectedAmount: 3000,
     selectedMethod: 'kbzpay',
     selectedFile: null,
     customAmount: '',
@@ -301,9 +335,9 @@ window.selectAmount = function(element, amount) {
 window.useCustomAmount = function() {
     const customInput = document.getElementById('customAmount');
     const amount = parseInt(customInput.value);
-
-    if (!amount || amount < 1000) {
-        showNotification('အနည်းဆုံး ၁,၀၀၀ ကျပ်ထည့်ပါ။', 'error');
+     console.log('Custom amount entered:', amount);
+    if (!amount || amount < 3000) {
+        showNotification('အနည်းဆုံး ၃,၀၀၀ ကျပ်ထည့်ပါ။', 'error');
         return;
     }
     if (amount > 1000000) {
@@ -549,7 +583,7 @@ function getBankIcon(name) {
 }
 
 function resetDepositForm() {
-    paymentState.selectedAmount = 1000;
+
     paymentState.selectedMethod = 'kbzpay';
     paymentState.selectedFile = null;
     paymentState.customAmount = '';
@@ -717,15 +751,14 @@ window.getBankAccountsObject = function() {
                 type = 'bank_' + index;
             }
             
-            // Safe toLowerCase
-            const key = type.toLowerCase().replace(/\s+/g, '');
-            
-            accounts[key] = {
-                name: account.accountHolder || account.holder || 'N/A',
-                phone: account.accountNumber || account.phone || 'N/A',
-                refId: account.refId || account.id || 'N/A',
-                type: account.bankName || account.type || 'Bank'
-            };
+           const key = type.toLowerCase().replace(/\s+/g, '');
+
+accounts[key] = {
+    name: account.holder || 'N/A',              // accountHolder -> holder
+    phone: account.number || 'N/A',              // accountNumber -> number
+    refId: account.id || 'N/A',                  // refId မရှိ, id ကိုသုံး
+    type: account.name || 'Bank'                  // bankName -> name
+};
         });
         
         // If no accounts created, return fallback
@@ -934,3 +967,26 @@ setTimeout(() => {
 }, 1000);
 
 console.log('✅ Payment.js fixes applied');
+
+// ===== COPY PHONE NUMBER FUNCTION =====
+window.copyToClipboard = function(elementId) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+    
+    // ဖုန်းနံပါတ်ကိုယူ
+    const phoneNumber = element.textContent;
+    
+    // Copy ကူးမယ်
+    navigator.clipboard.writeText(phoneNumber).then(() => {
+        showNotification('📋 ဖုန်းနံပါတ် ကူးယူပြီးပါပြီ။', 'success');
+    }).catch(() => {
+        // Fallback နည်း
+        const textarea = document.createElement('textarea');
+        textarea.value = phoneNumber;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showNotification('📋 ဖုန်းနံပါတ် ကူးယူပြီးပါပြီ။', 'success');
+    });
+};

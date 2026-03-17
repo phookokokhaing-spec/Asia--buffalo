@@ -7,12 +7,14 @@
 // 1. GAME STATE & CONFIGURATION
 // ============================================
 window.gameState = window.gameState || {
-    balance: 10000,
+    balance: 0,
     betAmount: 80,
     betMultiplier: 1,
     betType: '10C',
     betIndex: 2,
     winAmount: 0,
+    consecutiveWins: 0,
+    MAX_CONSECUTIVE_WINS: 2,
     isSpinning: false,
     autoSpin: false,
     autoSpinActive: false,
@@ -850,12 +852,25 @@ function loadCurrentUserData() {
 }
 
 // ============================================
+// CHECK USER CAN PLAY
+// ============================================
+function checkUserCanPlay() {
+    if (window.gameState.balance <= 0) {
+        alert('ကျေးဇူးပြု၍ ငွေသွင်းပြီးမှဆော့ပါ');
+        return false;
+    }
+    return true;
+}
+// ============================================
 // 6. SPIN FUNCTION & ANIMATIONS
 // ============================================
 
 function spin() {
     console.log('🎰 Spinning...');
 
+      if (!checkUserCanPlay()) {
+        return; 
+    }
     if (window.gameState.isSpinning) {
         console.log('⚠️ Already spinning');
         return;
@@ -1066,6 +1081,24 @@ function checkThreeMatchRate() {
 function calculateWinnings(result) {
     console.log('🔥 calculateWinnings called');
     console.log('🎮 threeMatchControl status:', window.gameState?.threeMatchControl);
+   if (window.gameState.consecutiveWins >= window.gameState.MAX_CONSECUTIVE_WINS) {
+    
+    if (Math.random() < 0.8) {  
+        console.log('⚠️ Streak protection activated - forcing loss');
+        window.gameState.consecutiveWins = 0;
+        return {
+            totalWin: 0,
+            indices: [],
+            buffaloIndices: [],
+            winLines: []
+        };
+    } else {
+        
+        console.log('🍀 Lucky! Allowed to continue streak');
+   
+    }
+}
+
     const paytable = window.PAYTABLE;
     let totalWin = 0;
     let buffaloCount = 0;
@@ -1177,43 +1210,53 @@ console.log(`📊 threeMatchWinCount: ${threeMatchWinCount}`);
         winIndices.push(...buffaloIndices);
     }
 
-    if (totalWin > 0) {
-        window.gameState.balance += totalWin;
-        window.gameState.winAmount = totalWin;
-        updateBalanceDisplay();
-        updateWinDisplay(totalWin);
-        addWinToHistory(totalWin);
-        playWinSounds(totalWin, winLines);
-        showWinLinesInfo(winLines);
+   if (totalWin > 0) {
+    // ********** STREAK COUNTER INCREMENT **********
+    window.gameState.consecutiveWins++;  // ဆက်တိုက် win အရေအတွက်တိုး
+    console.log('✅ Win! Consecutive wins:', window.gameState.consecutiveWins);
+    
+    window.gameState.balance += totalWin;
+    window.gameState.winAmount = totalWin;
+    updateBalanceDisplay();
+    updateWinDisplay(totalWin);
+    addWinToHistory(totalWin);
+    playWinSounds(totalWin, winLines);                                                               
+    showWinLinesInfo(winLines);
 
-        // Win animations based on amount
-        if (typeof WinAnimations !== 'undefined') {
-            if (totalWin >= 50000) {
-                WinAnimations.super();
-                // Super Win ဆိုရင် congratulations ခေါ်
-                if (typeof SoundManager !== 'undefined') {
-                    SoundManager.congratulations();
-                }
-            } else if (totalWin >= 15000) {
-                WinAnimations.mega();
-                // Mega Win ဆိုရင် congratulations ခေါ်
-                if (typeof SoundManager !== 'undefined') {
-                    SoundManager.congratulations();
-                }
-            } else if (totalWin >= 5000) {
-                WinAnimations.big();
-                // Big Win ဆိုရင် congratulations ခေါ်
-                if (typeof SoundManager !== 'undefined') {
-                    SoundManager.congratulations();
-                }
-            }
+   // Bet အလိုက် ရာခိုင်နှုန်းနဲ့တွက်မယ်
+const bet = window.gameState.betAmount;
+const winPercentage = (totalWin / bet) * 100;  // နိုင်ငွေရဲ့ ဆနှုန်း
+
+// ရာခိုင်နှုန်းအလိုက် ဆုအမျိုးအစားသတ်မှတ်မယ်
+if (typeof WinAnimations !== 'undefined') {
+    if (winPercentage >= 1500) {  // ၁၅ဆ (1500%) နိုင်ရင်
+        WinAnimations.mega(totalWin);      // totalWin ကိုထည့်ခေါ်
+        console.log('💰 MEGA WIN!', (totalWin/bet).toFixed(1) + 'x', totalWin + 'KS');
+        if (typeof SoundManager !== 'undefined') {
+            SoundManager.congratulations();
         }
-
-        checkLevelUp();
-    } else {
-        window.gameState.winAmount = 0;
-        updateWinDisplay(0);
+    } else if (winPercentage >= 1000) {  // ၁၀ဆ (1000%) နိုင်ရင်
+        WinAnimations.super(totalWin);     // totalWin ကိုထည့်ခေါ်
+        console.log('🎰 SUPER WIN!', (totalWin/bet).toFixed(1) + 'x', totalWin + 'KS');
+        if (typeof SoundManager !== 'undefined') {
+            SoundManager.congratulations();
+        }
+    } else if (winPercentage >= 500) {  // ၅ဆ (500%) နိုင်ရင်
+        WinAnimations.big(totalWin);       // totalWin ကိုထည့်ခေါ်
+        console.log('🎉 BIG WIN!', (totalWin/bet).toFixed(1) + 'x', totalWin + 'KS');
+        if (typeof SoundManager !== 'undefined') {
+            SoundManager.congratulations();
+        }
     }
+}
+
+    checkLevelUp();
+} else {
+    // ********** STREAK COUNTER RESET **********
+    window.gameState.consecutiveWins = 0;  // ရှုံးရင် ဆက်တိုက် win အရေအတွက်ပြတ်
+    window.gameState.winAmount = 0;
+    updateWinDisplay(0);
+}
 
     // Remove duplicates from winIndices
     winIndices = [...new Set(winIndices)];
@@ -1612,149 +1655,250 @@ function showFreeSpinEndAnimation(totalWin) {
 }
 
 // ============================================
-// 11. PREMIUM BUFFALO STAMPEDE
+// ULTIMATE PREMIUM BUFFALO STAMPEDE (V3)
 // ============================================
-class PremiumBuffaloStampede {
+class UltimatePremiumBuffaloStampede {
     constructor() {
         this.container = null;
         this.stampedeCount = 0;
         this.maxStampedes = 3;
         this.interval = null;
+        this.imageBasePath = '/images/'; // မင်းရဲ့ image folder လမ်းကြောင်း
+        this.setupStyles();
         this.createContainer();
     }
 
-    createContainer() {
-        this.container = document.createElement('div');
-        this.container.id = 'premiumBuffaloStampede';
-        this.container.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 99999;
-            display: none;
-            pointer-events: none;
+    setupStyles() {
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes buffaloRun {
+            0% {
+                transform: translate(-50%, -50%) translateZ(-800px) scale(0.3);
+                opacity: 0;
+            }
+            20% {
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) translateZ(400px) scale(2);
+                opacity: 0;
+            }
+        }
+            @keyframes dustRise {
+                0% { transform: translateY(0) scale(1); opacity: 0.5; }
+                100% { transform: translateY(-150px) scale(3); opacity: 0; }
+            }
+            @keyframes sparklePop {
+                0% { transform: scale(0); opacity: 1; }
+                100% { transform: scale(2); opacity: 0; }
+            }
+            @keyframes groundShake {
+                0%, 100% { transform: translateX(0); }
+                25% { transform: translateX(-15px); }
+                75% { transform: translateX(15px); }
+            }
+            @keyframes messagePop {
+                0% { transform: translate(-50%, -50%) scale(0.2); opacity: 0; }
+                50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+                100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            }
+            @keyframes buffaloEnter {
+                0% { transform: translateX(-100%) scale(0.5); opacity: 0; }
+                100% { transform: translateX(0) scale(1); opacity: 1; }
+            }
         `;
-        document.body.appendChild(this.container);
+        document.head.appendChild(style);
     }
 
-    startStampede(winAmount, buffaloCount) {
-        if (this.interval) {
-            clearInterval(this.interval);
-        }
+  createContainer() {
+    this.container = document.createElement('div');
+    this.container.id = 'ultimatePremiumBuffaloStampede';
+    this.container.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 150%;
+        height: 150%;
+        z-index: 999999;
+        pointer-events: none;
+        display: none;
+        overflow: hidden;
+        perspective: 1200px;
+        transform-style: preserve-3d;
+    `;
+    document.body.appendChild(this.container);
+}
 
+    startStampede(winAmount, baseCount) {
+        this.stop();
         this.stampedeCount = 0;
         this.winAmount = winAmount;
-        this.buffaloCount = buffaloCount;
-
-        this.runPremiumStampede();
-
-        this.interval = setInterval(() => {
+        this.baseCount = baseCount;
+        
+        const triggerCycle = () => {
+            this.runCycle();
             this.stampedeCount++;
+            
             if (this.stampedeCount < this.maxStampedes) {
-                this.runPremiumStampede();
-            } else {
-                clearInterval(this.interval);
+                this.interval = setTimeout(triggerCycle, 2800);
             }
-        }, 2500);
+        };
+        triggerCycle();
     }
 
-    runPremiumStampede() {
+    runCycle() {
         this.container.innerHTML = '';
         this.container.style.display = 'block';
 
-        const stampedeNumber = this.stampedeCount + 1;
-        const totalBuffalo = Math.min(this.buffaloCount + this.stampedeCount * 2, 20);
+        const count = this.baseCount + (this.stampedeCount * 5);
+        const isFinal = (this.stampedeCount === 2);
 
-        // Dust clouds
-        for (let i = 0; i < 20; i++) {
-            this.createDustCloud(i);
+        // 1. ဖုန်မှုန့်များ (Premium ကုဒ်မှ)
+        for (let i = 0; i < 25; i++) {
+            this.createDustCloud();
         }
 
-        // Buffalo herd
-        for (let i = 0; i < totalBuffalo; i++) {
-            this.createBuffalo(i, stampedeNumber);
+        // 2. ကျွဲအုပ်စု (Layers ၃ ထပ် - Ultimate ကုဒ်မှ)
+        const layerCounts = [
+            Math.floor(count * 0.3), // အနောက် - ၃၀%
+            Math.floor(count * 0.4), // အလယ် - ၄၀%
+            Math.floor(count * 0.3)  // အရှေ့ - ၃၀%
+        ];
+
+      this.spawnBuffaloLayer(layerCounts[2], 30, 1.2, 6.0); // အရှေ့ဆုံး
+this.spawnBuffaloLayer(layerCounts[1], 20, 0.9, 8.0); // အလယ်
+this.spawnBuffaloLayer(layerCounts[0], 10, 0.6, 10.0); // အနောက်ဆုံး
+        // 3. ရွှေရောင်အမှုန်များ (နောက်ဆုံးအကြိမ်ဆိုပိုထည့်)
+        if (isFinal) {
+            for (let i = 0; i < 40; i++) {
+                this.createSparkle();
+            }
+            
+            // နောက်ဆုံးအကြိမ်ဆို Vibration ပိုရှည်
+            if (navigator.vibrate) {
+                navigator.vibrate([300, 100, 300, 100, 300]);
+            }
+        } else {
+            if (navigator.vibrate) {
+                navigator.vibrate([200, 100, 200]);
+            }
         }
 
-        // Ground shake
+        // 4. မြေငလျင် (Premium ကုဒ်မှ)
         this.createGroundShake();
 
-        // Stampede message
-        this.showStampedeMessage(stampedeNumber);
+        // 5. Message ပြမယ်
+        this.showMessage(isFinal);
 
-        if (navigator.vibrate) {
-            navigator.vibrate([200, 100, 200]);
+        // 6. Sound Effects (Premium ကုဒ်မှ)
+        this.playSounds(isFinal);
+    }
+
+    spawnBuffaloLayer(count, zIndex, scale, speed) {
+        for (let i = 0; i < count; i++) {
+            this.createBuffaloImage(zIndex, scale, speed);
         }
     }
 
-    createBuffalo(index, stampedeNumber) {
-        const buffalo = document.createElement('div');
-        const size = 80 + Math.random() * 40;
-        const bottom = 20 + (index * 4) % 150;
-        const delay = index * 0.08;
-        const duration = 2 + Math.random() * 1.5;
+    createBuffaloImage(zIndex, scale, speed) {
+    const buffalo = document.createElement('div');
+    const buffaloType = Math.floor(Math.random() * 3) + 1;
+// ပုံနာမည်တွေက running_bull1.png, running_bull2.png, running_bull3.png ဆိုရင်
+const imageUrl = `${this.imageBasePath}running_bull${buffaloType}.png`;
+    
+    // ကျွဲတွေကို မျက်နှာပြင်အလယ်မှာထားပြီး Z-axis နဲ့ရွှေ့မယ်
+    buffalo.style.cssText = `
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: ${120 * scale}px;
+        height: ${80 * scale}px;
+        margin-left: -${60 * scale}px;  // တစ်ဝက်ပြန်နှုတ်
+        margin-top: -${40 * scale}px;    // တစ်ဝက်ပြန်နှုတ်
+        z-index: ${zIndex};
+        background-image: url('${imageUrl}');
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        animation: buffaloRun ${speed}s ease-out forwards;
+        filter: drop-shadow(0 0 20px rgba(255,215,0,0.3));
+        transform-style: preserve-3d;
+        will-change: transform;
+    `;
 
-        const colors = stampedeNumber === 3 ? ['#DAA520', '#FFD700', '#F4A460'] :
-                      stampedeNumber === 2 ? ['#8B4513', '#A0522D', '#CD853F'] :
-                      ['#654321', '#8B4513', '#A0522D'];
+    this.container.appendChild(buffalo);
+}
 
-        buffalo.style.cssText = `
-            position: absolute;
-            left: -200px;
-            bottom: ${bottom}px;
-            width: ${size}px;
-            height: ${size * 0.6}px;
-            background: ${colors[Math.floor(Math.random() * colors.length)]};
-            border-radius: 50% 20% 20% 10%;
-            animation: buffaloRun ${duration}s linear ${delay}s forwards;
-            opacity: ${0.7 + Math.random() * 0.3};
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-            transform: scaleX(${Math.random() > 0.5 ? 1 : -1});
-            filter: drop-shadow(0 0 10px rgba(255,215,0,0.3));
-        `;
-
-        buffalo.innerHTML = `
-            <div style="position:absolute; top:-10px; left:15px; width:20px; height:25px; background:${colors[0]}; border-radius:50% 50% 0 0; transform:rotate(-20deg);"></div>
-            <div style="position:absolute; top:-10px; right:15px; width:20px; height:25px; background:${colors[0]}; border-radius:50% 50% 0 0; transform:rotate(20deg);"></div>
-            <div style="position:absolute; bottom:5px; left:20px; width:12px; height:12px; background:black; border-radius:50%;"></div>
-            <div style="position:absolute; bottom:5px; right:20px; width:12px; height:12px; background:black; border-radius:50%;"></div>
-        `;
-
-        this.container.appendChild(buffalo);
-    }
-
-    createDustCloud(index) {
+    createDustCloud() {
         const dust = document.createElement('div');
-        const size = 30 + Math.random() * 60;
+        const size = 30 + Math.random() * 80;
         const left = Math.random() * 100;
+        const duration = 2 + Math.random() * 2;
+        const delay = Math.random() * 1;
 
         dust.style.cssText = `
             position: absolute;
             left: ${left}%;
             bottom: 30px;
             width: ${size}px;
-            height: ${size * 0.4}px;
-            background: rgba(139, 69, 19, ${0.2 + Math.random() * 0.4});
+            height: ${size * 0.5}px;
+            background: rgba(139, 69, 19, ${0.2 + Math.random() * 0.5});
             border-radius: 50%;
-            filter: blur(${5 + Math.random() * 10}px);
-            animation: dustFloat ${3 + Math.random() * 2}s ease-out forwards;
+            filter: blur(${5 + Math.random() * 15}px);
+            animation: dustRise ${duration}s ease-out ${delay}s forwards;
             transform: scale(${0.5 + Math.random()});
         `;
         this.container.appendChild(dust);
     }
 
+    createSparkle() {
+        const sparkle = document.createElement('div');
+        const size = 10 + Math.random() * 30;
+        const left = Math.random() * 100;
+        const top = 20 + Math.random() * 60;
+
+        sparkle.style.cssText = `
+            position: absolute;
+            left: ${left}%;
+            top: ${top}%;
+            width: ${size}px;
+            height: ${size}px;
+            background: #FFD700;
+            border-radius: 50%;
+            filter: blur(2px);
+            animation: sparklePop 1.5s ease-out forwards;
+            box-shadow: 0 0 20px #FFA500;
+        `;
+        this.container.appendChild(sparkle);
+    }
+
     createGroundShake() {
         const gameContainer = document.querySelector('.game-container');
         if (gameContainer) {
-            gameContainer.style.animation = `groundShake_${this.stampedeCount} 0.2s linear`;
+            gameContainer.style.animation = 'groundShake 0.3s linear';
             setTimeout(() => {
                 gameContainer.style.animation = '';
             }, 2000);
         }
+
+        // Body ကိုပါ လှုပ်မယ် (Ultimate ကုဒ်မှ)
+        const body = document.body;
+        body.style.transition = 'transform 0.1s';
+        let shakes = 0;
+        const shakeIntensity = 10 + (this.stampedeCount * 5);
+        const interval = setInterval(() => {
+            const x = (Math.random() - 0.5) * shakeIntensity;
+            const y = (Math.random() - 0.5) * shakeIntensity;
+            body.style.transform = `translate(${x}px, ${y}px)`;
+            shakes++;
+            if (shakes > 12) {
+                clearInterval(interval);
+                body.style.transform = '';
+            }
+        }, 40);
     }
 
-    showStampedeMessage(stampedeNumber) {
+    showMessage(isFinal) {
         const message = document.createElement('div');
         message.style.cssText = `
             position: absolute;
@@ -1762,239 +1906,82 @@ class PremiumBuffaloStampede {
             left: 50%;
             transform: translate(-50%, -50%);
             text-align: center;
-            z-index: 100000;
-            animation: messagePop 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 100001;
+            animation: messagePop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            text-shadow: 3px 3px 0 #000, 5px 5px 0 #444;
         `;
-
-        const stampedeText = ['၁ ကြိမ်', '၂ ကြိမ်', '၃ ကြိမ်'][stampedeNumber - 1];
-
-        message.innerHTML = `
-            <div style="font-size: 70px; font-weight: 900; color: #ffd700; 
-                        text-shadow: 0 0 30px #ffaa00, 0 0 60px #ff5500;
-                        margin-bottom: 10px;">
-                🐃 BUFFALO STAMPEDE! 🐃
-            </div>
-            <div style="font-size: 50px; font-weight: 700; color: white; margin-bottom: 10px;">
-                ${stampedeText}
-            </div>
-            <div style="font-size: 40px; color: #00ff00; text-shadow: 0 0 20px #00ff00;">
-                +${formatNumber(this.winAmount)} ကျပ်
-            </div>
-        `;
-        this.container.appendChild(message);
-    }
-
-    stopStampede() {
-        if (this.interval) {
-            clearInterval(this.interval);
-        }
-        if (this.container) {
-            this.container.style.display = 'none';
-            this.container.innerHTML = '';
-        }
-        const gameContainer = document.querySelector('.game-container');
-        if (gameContainer) {
-            gameContainer.style.animation = '';
-        }
-    }
-}
-
-const premiumBuffaloStampede = new PremiumBuffaloStampede();
-
-// Legacy buffalo stampede for compatibility
-class BuffaloStampede {
-    constructor() {
-        this.container = null;
-        this.stampedeCount = 0;
-        this.maxStampedes = 3;
-        this.interval = null;
-        this.createContainer();
-    }
-
-    createContainer() {
-        this.container = document.createElement('div');
-        this.container.id = 'buffaloStampede';
-        this.container.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 99999;
-            display: none;
-            pointer-events: none;
-        `;
-        document.body.appendChild(this.container);
-    }
-
-    startStampede(winAmount, buffaloCount) {
-        if (this.interval) {
-            clearInterval(this.interval);
-            this.interval = null;
-        }
-
-        this.stampedeCount = 0;
-        this.winAmount = winAmount;
-        this.buffaloCount = buffaloCount;
-
-        this.runStampede();
-
-        this.interval = setInterval(() => {
-            this.stampedeCount++;
-            if (this.stampedeCount < this.maxStampedes) {
-                this.runStampede();
-            } else {
-                clearInterval(this.interval);
-                this.interval = null;
-            }
-        }, 3000);
-    }
-
-    runStampede() {
-        this.container.innerHTML = '';
-        this.container.style.display = 'block';
 
         const stampedeNumber = this.stampedeCount + 1;
-        const totalBuffalo = Math.min(this.buffaloCount + this.stampedeCount, 12);
-
-        const herd = document.createElement('div');
-        herd.style.cssText = `
-            position: absolute;
-            bottom: 50px;
-            left: 0;
-            width: 100%;
-            height: 200px;
-            overflow: hidden;
-        `;
-        this.container.appendChild(herd);
-
-        for (let i = 0; i < totalBuffalo; i++) {
-            const buffalo = document.createElement('div');
-            const size = 70 + Math.random() * 30;
-            const bottom = 10 + (i * 6);
-            const delay = i * 0.1;
-            const duration = 2 + Math.random() * 1.5;
-
-            buffalo.style.cssText = `
-                position: absolute;
-                left: -150px;
-                bottom: ${bottom}px;
-                width: ${size}px;
-                height: ${size * 0.7}px;
-                background: ${this.stampedeCount === 2 ? '#DAA520' : '#8B4513'};
-                border-radius: 50% 20% 20% 10%;
-                animation: buffaloRun_${Date.now()}_${i} ${duration}s linear ${delay}s forwards;
-                opacity: ${0.9 - (i * 0.03)};
-                box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            `;
-
-            buffalo.innerHTML = `
-                <div style="position:absolute; top:-8px; left:15px; width:20px; height:25px; background:#654321; border-radius:50% 50% 0 0; transform:rotate(-20deg);"></div>
-                <div style="position:absolute; top:-8px; right:15px; width:20px; height:25px; background:#654321; border-radius:50% 50% 0 0; transform:rotate(20deg);"></div>
-                <div style="position:absolute; bottom:5px; left:20px; width:12px; height:12px; background:black; border-radius:50%;"></div>
-                <div style="position:absolute; bottom:5px; right:20px; width:12px; height:12px; background:black; border-radius:50%;"></div>
-            `;
-
-            herd.appendChild(buffalo);
-
-            const style = document.createElement('style');
-            style.textContent = `
-                @keyframes buffaloRun_${Date.now()}_${i} {
-                    0% { left: -150px; transform: scale(0.8); }
-                    100% { left: 120%; transform: scale(1.1); }
-                }
-            `;
-            document.head.appendChild(style);
-        }
-
-        const dustCount = 30 + (this.stampedeCount * 10);
-        for (let i = 0; i < dustCount; i++) {
-            const dust = document.createElement('div');
-            const size = 20 + Math.random() * 50;
-            const left = Math.random() * 100;
-
-            dust.style.cssText = `
-                position: absolute;
-                left: ${left}%;
-                bottom: 30px;
-                width: ${size}px;
-                height: ${size * 0.5}px;
-                background: rgba(139, 69, 19, ${0.2 + Math.random() * 0.5});
-                border-radius: 50%;
-                filter: blur(${3 + Math.random() * 8}px);
-                animation: dustFloat_${Date.now()} ${1 + Math.random()}s ease-out forwards;
-            `;
-            this.container.appendChild(dust);
-        }
-
-        const message = document.createElement('div');
-        message.style.cssText = `
-            position: absolute;
-            top: 30%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            z-index: 100000;
-            animation: messagePop 0.5s ease;
-        `;
-
-        let stampedeText = '';
-        if (stampedeNumber === 1) stampedeText = '၁ ကြိမ်';
-        else if (stampedeNumber === 2) stampedeText = '၂ ကြိမ်';
-        else stampedeText = '၃ ကြိမ်';
+        const stampedeText = ['FIRST WAVE', 'MEGA RUSH', 'ULTIMATE STAMPEDE'][stampedeNumber - 1];
+        const stampedeMyan = ['၁ ကြိမ်', '၂ ကြိမ်', '၃ ကြိမ်'][stampedeNumber - 1];
+        const color = isFinal ? '#FFD700' : (stampedeNumber === 2 ? '#FFA500' : '#FFF');
 
         message.innerHTML = `
-            <div style="font-size: 50px; font-weight: 900; color: #ffd700; text-shadow: 0 0 30px #ffaa00;">
-                🐃 STAMPEDE! x${stampedeNumber}
+            <div style="font-size: ${isFinal ? 90 : 70}px; font-weight: 900; color: ${color}; 
+                        text-shadow: 0 0 30px #ffaa00, 0 0 60px #ff5500;
+                        margin-bottom: 10px;">
+                ${stampedeText}!
             </div>
-            <div style="font-size: 40px; font-weight: 700; color: white; margin-top: 10px;">
-                +${formatNumber(this.winAmount)} ကျပ်
+            <div style="font-size: 60px; font-weight: 700; color: white; margin-bottom: 15px;">
+                ${stampedeMyan}
             </div>
-            <div style="font-size: 24px; color: #ffd700; margin-top: 5px;">
-                ${stampedeText} ပြေး
+            <div style="font-size: 50px; color: #00ff00; text-shadow: 0 0 20px #00ff00;">
+                +${this.winAmount.toLocaleString()} ကျပ်
             </div>
         `;
         this.container.appendChild(message);
+       setTimeout(() => {
+        if (message && message.parentNode) {
+            message.style.transition = 'opacity 0.5s';
+            message.style.opacity = '0';
+            setTimeout(() => {
+                if (message && message.parentNode) {
+                    message.parentNode.removeChild(message);
+                }
+            }, 500);
+        }
+    }, 2000);
+}
 
-        const gameContainer = document.querySelector('.game-container');
-        if (gameContainer) {
-            gameContainer.style.animation = `gameShake_${stampedeNumber} 0.2s linear`;
+    playSounds(isFinal) {
+        if (typeof SoundManager === 'undefined') return;
+
+        // Buffalo sound
+        if (SoundManager.buffalo) SoundManager.buffalo();
+
+        // ဒုတိယအကြိမ်ဆို coin rain
+        if (this.stampedeCount === 1 && SoundManager.coinRain) {
+            SoundManager.coinRain();
         }
 
-        if (typeof SoundManager !== 'undefined') {
-            SoundManager.buffalo();
-            if (stampedeNumber === 2 && SoundManager.coinRain) SoundManager.coinRain();
-            if (stampedeNumber === 3) {
-                if (SoundManager.victory) SoundManager.victory();
-                if (SoundManager.sixCoin) SoundManager.sixCoin();
-            }
+        // နောက်ဆုံးအကြိမ်ဆို victory + six coin
+        if (isFinal) {
+            if (SoundManager.victory) SoundManager.victory();
+            if (SoundManager.sixCoin) SoundManager.sixCoin();
+            if (SoundManager.congratulations) SoundManager.congratulations();
         }
-
-        setTimeout(() => {
-            if (this.container) {
-                this.container.innerHTML = '';
-            }
-        }, 2000);
     }
 
-    stopStampede() {
-        if (this.interval) {
-            clearInterval(this.interval);
-            this.interval = null;
-        }
+    stop() {
+        clearTimeout(this.interval);
         if (this.container) {
             this.container.style.display = 'none';
             this.container.innerHTML = '';
         }
+        
+        // Game container shake ကိုပြန်ဖြုတ်
         const gameContainer = document.querySelector('.game-container');
         if (gameContainer) {
             gameContainer.style.animation = '';
         }
+        
+        // Body transform ကိုပြန်ဖြုတ်
+        document.body.style.transform = '';
     }
 }
 
-const buffaloStampede = new BuffaloStampede();
-
+// Global instance ဆောက်မယ်
+const buffaloStampede = new UltimatePremiumBuffaloStampede();
 // ============================================
 // 12. AUTO SPIN (LONG PRESS)
 // ============================================
@@ -3363,7 +3350,7 @@ const WinAnimations = (function() {
 
             /* ========== BIG WIN ========== */
             .big-win-text {
-                font-size: 140px;
+                font-size: 100px;
                 font-weight: 900;
                 text-transform: uppercase;
                 letter-spacing: 20px;
@@ -3412,7 +3399,7 @@ const WinAnimations = (function() {
 
             /* ========== MEGA WIN ========== */
             .mega-win-text {
-                font-size: 140px;
+                font-size: 100px;
                 font-weight: 900;
                 text-transform: uppercase;
                 letter-spacing: 25px;
@@ -3483,7 +3470,7 @@ const WinAnimations = (function() {
 
             /* ========== SUPER WIN ========== */
             .super-win-text {
-                font-size: 140px;
+                font-size: 100px;
                 font-weight: 900;
                 text-transform: uppercase;
                 letter-spacing: 25px;
@@ -3630,6 +3617,22 @@ const WinAnimations = (function() {
                 0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 0.5; }
                 50% { transform: translate(10%, 10%) rotate(180deg) scale(1.3); opacity: 0.8; }
             }
+                      /* ကိန်းဂဏန်းပြမည့် style */
+               .win-amount-counter {
+                display: block;
+                font-size: 100px; /* စာသားထက် နည်းနည်းသေးမယ် */
+                color: #fff;
+                font-family: 'Bangers', cursive;
+                text-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 2px 2px 5px #000;
+                margin-top: 20px;
+                animation: counterPulse 0.5s infinite alternate;
+           }
+
+             @keyframes counterPulse {
+             from { transform: scale(1); }
+             to { transform: scale(1.05); }
+         }
+
         `;
         
         document.head.appendChild(style);
@@ -3774,86 +3777,104 @@ const WinAnimations = (function() {
         }
     }
 
-    // ၇။ BIG WIN ပြမယ်
-    function showBigWin() {
+   function animateValue(obj, start, end, duration) {
+    if (!obj) {
+        console.log('animateValue: obj is null');
+        return;
+    }
+    console.log('animateValue: starting', start, end);
+    
+    let startTimestamp = null;
+    const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        const currentVal = Math.floor(progress * (end - start) + start);
+        
+        obj.innerHTML = currentVal.toLocaleString() + ' KS';
+        console.log('animateValue step:', currentVal);
+        
+        if (progress < 1) {
+            window.requestAnimationFrame(step);
+        } else {
+            obj.innerHTML = end.toLocaleString() + ' KS';
+            console.log('animateValue done:', end);
+        }
+    };
+    window.requestAnimationFrame(step);
+}
+
+    // ၇။ BIG WIN
+    function showBigWin(amount = 0) {
         addWinStyles();
         clearAll();
         const container = createContainer();
         
         const div = document.createElement('div');
         div.className = 'big-win-text';
-        div.textContent = 'BIG WIN';
+        // HTML structure
+        div.innerHTML = `BIG WIN <div id="win-counter" class="win-amount-counter">0 KS</div>`;
         container.appendChild(div);
         
+        setTimeout(() => {
+            animateValue(document.getElementById('win-counter'), 0, amount, 2500);
+        }, 500);
+
         createCoins(60);
         createSplash(25);
-        
-        console.log('🎰 BIG WIN animation started');
-        
-        // 4 စက္ကန့်အကြာမှာ ဖျက်မယ်
-        setTimeout(() => {
-            clearAll();
-            console.log('🎰 BIG WIN animation ended');
-        }, 4000);
+        setTimeout(() => clearAll(), 5000);
     }
 
-    // ၈။ MEGA WIN ပြမယ်
-    function showMegaWin() {
+    // ၈။ MEGA WIN
+    function showMegaWin(amount = 0) {
         addWinStyles();
         clearAll();
         const container = createContainer();
         
         const div = document.createElement('div');
         div.className = 'mega-win-text';
-        div.textContent = 'MEGA WIN';
+        div.innerHTML = `MEGA WIN <div id="win-counter" class="win-amount-counter">0 KS</div>`;
         container.appendChild(div);
         
+        setTimeout(() => {
+            animateValue(document.getElementById('win-counter'), 0, amount, 3000);
+        }, 500);
+
         createDJLights();
         createCoins(80);
         createSplash(30);
-        
-        console.log('🎰 MEGA WIN animation started');
-        
-        // 4 စက္ကန့်အကြာမှာ ဖျက်မယ်
-        setTimeout(() => {
-            clearAll();
-            console.log('🎰 MEGA WIN animation ended');
-        }, 4000);
+        setTimeout(() => clearAll(), 6000);
     }
 
-    // ၉။ SUPER WIN ပြမယ်
-    function showSuperWin() {
+    // ၉။ SUPER WIN
+    function showSuperWin(amount = 0) {
         addWinStyles();
         clearAll();
         const container = createContainer();
         
         const div = document.createElement('div');
         div.className = 'super-win-text';
-        div.textContent = 'SUPER WIN';
+        div.innerHTML = `SUPER WIN <div id="win-counter" class="win-amount-counter">0 KS</div>`;
         container.appendChild(div);
         
+        setTimeout(() => {
+            animateValue(document.getElementById('win-counter'), 0, amount, 3500);
+        }, 500);
+
         createDJLights();
         createCoins(100);
         createSplash(40);
-        
-        console.log('🎰 SUPER WIN animation started');
-        
-        // 4 စက္ကန့်အကြာမှာ ဖျက်မယ်
-        setTimeout(() => {
-            clearAll();
-            console.log('🎰 SUPER WIN animation ended');
-        }, 4000);
+        setTimeout(() => clearAll(), 7000);
     }
 
-    // Public API
     return {
         big: showBigWin,
         mega: showMegaWin,
         super: showSuperWin,
         clear: clearAll
     };
-
 })();
+
+
 
 
 // ============================================

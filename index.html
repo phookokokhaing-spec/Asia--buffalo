@@ -151,7 +151,7 @@
                 </div>
                 <div class="balance-box">
                     <small>Balance</small>
-                    <div class="balance-amount" id="balanceAmount">10,000</div>
+                    <div class="balance-amount" id="balanceAmount">0</div>
                 </div>
                 <div class="vip-badge" id="vipBadge"><i class="fas fa-crown"></i> VIP <span id="vipLevel">3</span></div>
             </div>
@@ -273,7 +273,7 @@
             </div>
             <div class="modal-body">
                 <div class="amount-chips">
-                    <div class="amount-chip" onclick="selectAmount(this, 1000)">1,000 <span>ကျပ်</span></div>
+                    <div class="amount-chip" onclick="selectAmount(this, 3000)">3,000 <span>ကျပ်</span></div>
                     <div class="amount-chip" onclick="selectAmount(this, 5000)">5,000 <span>ကျပ်</span></div>
                     <div class="amount-chip" onclick="selectAmount(this, 10000)">10,000 <span>ကျပ်</span></div>
                     <div class="amount-chip" onclick="selectAmount(this, 20000)">20,000 <span>ကျပ်</span></div>
@@ -281,7 +281,7 @@
                     <div class="amount-chip" onclick="selectAmount(this, 100000)">100,000 <span>ကျပ်</span></div>
                 </div>
                 <div class="custom-amount">
-                    <input type="number" id="customAmount" placeholder="အခြားပမာဏ ထည့်ပါ" min="1000" step="500">
+                    <input type="number" id="customAmount" placeholder="အခြားပမာဏ ထည့်ပါ" min="3000" step="500">
                     <button onclick="useCustomAmount()">သုံးမည်</button>
                 </div>
                 <div class="section-title"><i class="fas fa-credit-card"></i> ငွေပေးချေနည်း</div>
@@ -292,13 +292,29 @@
                         <div class="method-btn" onclick="selectPaymentMethod(this, 'cb')"><i class="fas fa-university"></i><span>CB Pay</span></div>
                     </div>
                 </div>
-                <div class="bank-info-card">
-                    <div class="bank-header"><i class="fas fa-university"></i><span id="bankName">KBZ Pay</span></div>
-                    <div class="bank-detail-item"><i class="fas fa-user"></i><span>အမည်: <strong id="accountName">ဒေါ်အေးအေး</strong></span></div>
-                    <div class="bank-detail-item"><i class="fas fa-phone"></i><span>ဖုန်းနံပါတ်: <strong id="accountPhone">09-123456789</strong></span></div>
-                    <div class="bank-detail-item"><i class="fas fa-id-card"></i><span>ငွေလွှဲ ID: <strong id="accountRef">KBZ12345</strong></span></div>
-                    <div class="warning-box"><i class="fas fa-exclamation-triangle"></i> ဤအကောင့်သို့သာ ငွေလွှဲပါ။</div>
-                </div>
+               <div class="bank-info-card">
+             <div class="bank-header"><i class="fas fa-university"></i><span id="bankName">KBZ Pay</span></div>
+    
+             <div class="bank-detail-item">
+            <i class="fas fa-user"></i>
+             <span>အမည်: <strong id="accountName">ဒေါ်အေးအေး</strong></span>
+          </div>
+    
+            <div class="bank-detail-item">
+          <i class="fas fa-phone"></i>
+          <span>ဖုန်းနံပါတ်: <strong id="accountPhone">09-123456789</strong></span>
+          <button class="copy-btn" onclick="copyToClipboard('accountPhone')">
+            <i class="fas fa-copy"></i> ကူးယူရန်
+            </button>
+         </div>
+    
+          <div class="bank-detail-item">
+        <i class="fas fa-id-card"></i>
+        <span>ငွေလွှဲ ID: <strong id="accountRef">KBZ12345</strong></span>
+        </div>
+    
+         <div class="warning-box"><i class="fas fa-exclamation-triangle"></i> ဤအကောင့်သို့သာ ငွေလွှဲပါ။</div>
+           </div>
                 <div class="user-fields">
                     <input type="tel" id="senderPhone" placeholder="သင့်ဖုန်းနံပါတ်" maxlength="11">
                     <input type="text" id="transferId" placeholder="ငွေလွှဲ ID (၅လုံး)" maxlength="5">

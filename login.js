@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 window.currentUser = {
                     id: user.uid,
                     username: userData.username,
-                    balance: userData.balance || 10000,
+                    balance: userData.balance || 0,
                     level: userData.level || 1,
                     vip: userData.vip || 0,
                     role: userData.role || 'user',
@@ -238,7 +238,7 @@ async function handleSignup() {
         await window.db.collection('users').doc(user.uid).set({
             username: username,
             email: email,
-            balance: 10000,
+            balance: 0,
             level: 1,
             vip: 0,
             role: 'user',

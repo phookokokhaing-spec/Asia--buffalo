@@ -1,4 +1,26 @@
 
+.copy-btn {
+    background: none;
+    border: none;
+    color: #ffd700;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 5px 10px;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border-radius: 5px;
+}
+
+.copy-btn:hover {
+    background: rgba(255, 215, 0, 0.2);
+    color: #fff;
+}
+
+.copy-btn:active {
+    transform: scale(0.95);
+}
 /* ===== FIX: GRID FULL WIDTH ===== */
 .center-area {
     display: flex;
