@@ -385,6 +385,28 @@ html, body {
     line-height: 1.2;
 }
 
+
+. jackpotpool-box {
+    background: linear-gradient(145deg, #2a2a4a, #1a1a3a);
+    padding: 8px 20px;
+    border-radius: 12px;
+    border: 1px solid #6c5ce7;
+    box-shadow: 0 0 15px rgba(108, 92, 231, 0.3);
+}
+
+.jackpotpool-box small {
+    color: #a0a0c0;
+    font-size: 11px;
+    display: block;
+}
+
+.pool-amount {
+    font-size: 26px;
+    font-weight: 800;
+    color: #00d4ff;
+    text-shadow: 0 0 10px #00d4ff;
+    line-height: 1.2;
+}
 .vip-badge {
     background: linear-gradient(145deg, #6c5ce7, #a463f5);
     padding: 5px 15px;
@@ -583,15 +605,15 @@ html, body {
 }
 
 .ways-number {
-    font-size: 48px;
-    font-weight: 900;
+    font-size: 28px;
+    font-weight: 700;
     color: #00d4ff;
     text-shadow: 0 0 20px #00d4ff;
     line-height: 1;
 }
 
 .ways-text {
-    font-size: 14px;
+    font-size: 10px;
     color: #a0a0c0;
     display: block;
     margin-top: 5px;
@@ -1893,15 +1915,15 @@ html, body {
 }
 
 .ways-number {
-    font-size: 36px; /* နည်းနည်းသေး */
-    font-weight: 900;
+    font-size: 24px; /* နည်းနည်းသေး */
+    font-weight: 700;
     color: #00d4ff;
     text-shadow: 0 0 15px #00d4ff;
     line-height: 1;
 }
 
 .ways-text {
-    font-size: 11px;
+    font-size: 8px;
     color: #a0a0c0;
     display: block;
     margin-top: 3px;
@@ -2221,8 +2243,8 @@ html, body {
 }
 
 .ways-number {
-    font-size: 36px;
-    font-weight: 900;
+    font-size: 24px;
+    font-weight: 700;
     color: #00d4ff;
     text-shadow: 0 0 15px #00d4ff;
     line-height: 1;
@@ -2392,8 +2414,8 @@ html, body {
 }
 
 .ways-number {
-    font-size: 42px;
-    font-weight: 900;
+    font-size: 24px;
+    font-weight: 700;
     color: #00d4ff;
     text-shadow: 0 0 15px #00d4ff, 0 0 30px #00d4ff;
     line-height: 1;

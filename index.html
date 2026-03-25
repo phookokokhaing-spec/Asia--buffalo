@@ -13,10 +13,11 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-analytics.js"></script>
-    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-analytics.js"></script>    
     <!-- Firebase Config (ကိုယ်ပိုင်) -->
     <script src="firebase-config.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
@@ -62,20 +63,32 @@
         </div>  
     </div>
 
-    <!-- Audio elements -->
-    <audio id="bgm" loop preload="auto"></audio>
-    <audio id="loadingSound" loop preload="auto"></audio>
-    <audio id="allbuttonSound" preload="auto"></audio>
-    <audio id="spinSound" preload="auto"></audio>
-    <audio id="winlineSound" preload="auto"></audio>
-    <audio id="buffaloSound" preload="auto"></audio>
-    <audio id="coinSound" preload="auto"></audio>
-    <audio id="sixcoinSound" preload="auto"></audio>
-    <audio id="notiSound" preload="auto"></audio>
-    <audio id="victorySound" preload="auto"></audio>
-    <audio id="congratulationsSound" preload="auto"></audio>
-    <audio id="paymentreseiveSound" preload="auto"></audio>
-    <audio id="nowinSound" preload="auto"></audio>
+    
+    <!-- All Game Sounds (with jackpotspin) -->
+<audio id="bgm" loop preload="auto"></audio>
+<audio id="loadingSound" preload="auto"></audio>
+<audio id="allbuttonSound" preload="auto"></audio>
+<audio id="clickSound" preload="auto"></audio>
+<audio id="popbuttonSound" preload="auto"></audio>
+<audio id="backSound" preload="auto"></audio>
+<audio id="spinSound" preload="auto"></audio>
+<audio id="winlineSound" preload="auto"></audio>
+<audio id="nowinSound" preload="auto"></audio>
+<audio id="buffaloSound" preload="auto"></audio>
+<audio id="lionSound" preload="auto"></audio>
+<audio id="coinSound" preload="auto"></audio>
+<audio id="coinrainSound" preload="auto"></audio>
+<audio id="sixcoinSound" preload="auto"></audio>
+<audio id="jackpotspinSound" preload="auto"></audio>
+<audio id="jackpotSound" preload="auto"></audio>   
+<audio id="victorySound" preload="auto"></audio>
+<audio id="congratulationsSound" preload="auto"></audio>
+<audio id="congratsSound" preload="auto"></audio>
+<audio id="notiSound" preload="auto"></audio>
+<audio id="notificationSound" preload="auto"></audio>
+<audio id="adminSound" preload="auto"></audio>
+<audio id="paymentreseiveSound" preload="auto"></audio>
+<audio id="withdrawSound" preload="auto"></audio>
 
     
     <!-- LOADING SCREEN -->
@@ -152,7 +165,12 @@
                 <div class="balance-box">
                     <small>Balance</small>
                     <div class="balance-amount" id="balanceAmount">0</div>
-                </div>
+          </div>
+        
+          <div class="jackpotpool-box" style="background: linear-gradient(145deg, #2a2a4a, #1a1a3a); padding: 8px 20px; border-radius: 12px; border: 1px solid #6c5ce7; box-shadow: 0 0 15px rgba(108, 92, 231, 0.3);">
+              <small></small>
+              <div class="pool-amount" id="jackpotPool" style="font-size: 20px; font-weight: 600; color: #00d4ff; text-shadow: 0 0 10px #00d4ff;">0</div>
+             </div>
                 <div class="vip-badge" id="vipBadge"><i class="fas fa-crown"></i> VIP <span id="vipLevel">3</span></div>
             </div>
             <div class="game-logo"><i class="fas fa-slot-machine"></i> MINI SLOT</div>
@@ -182,7 +200,7 @@
         <div class="grid-5x4" id="slotGrid"></div>
     </div>
 
-    <!-- RIGHT PANEL (1024 Ways) (သေး) -->
+        <!-- RIGHT PANEL (1024 Ways) (သေး) -->
     <div class="right-panel compact">
         <div class="ways-display">
             <i class="fas fa-bolt"></i>
@@ -472,6 +490,8 @@
 
     <!-- Core Libraries & Helpers -->
     <script src="sound-manager.js"></script>
+<!-- Jackpot Animation -->
+<script src="JackpotAnimation.js"></script>
     <script src="login.js"></script>
     <script src="userpayment.js"></script>
     <script src="game.js"></script>

@@ -1,4 +1,75 @@
+@keyframes jackpotAwardPop {
+    0% { transform: translate(-50%, -50%) scale(0.1) rotate(-180deg); opacity: 0; }
+    60% { transform: translate(-50%, -50%) scale(1.1) rotate(5deg); }
+    100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; }
+}
 
+/* ===== VIP CONTAINER ===== */
+/* VIP ဘောင်အတွက် */
+.vip-container, .vip-box, .vip-card {
+    border: 2px solid gold;  /* ဒါက အဝါရောင်ဘောင် */
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+}
+/* ===== VIP HEADER ===== */
+.vip-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 5px;
+}
+
+.vip-header span:first-child {
+    color: gold;
+    font-size: 9px;
+    font-weight: bold;
+}
+
+#vipLevelDisplay {
+    background: gold;
+    color: black;
+    padding: 3px 10px;
+    border-radius: 15px;
+    font-weight: bold;
+    font-size: 11px;
+}
+
+#vipName {
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
+    background: rgba(255, 215, 0, 0.2);
+    padding: 3px 10px;
+    border-radius: 10px;
+}
+
+/* ===== VIP PROGRESS BAR ===== */
+.vip-progress-container {
+    width: 100%;
+    height: 5px;
+    background: #2a2a3a;
+    border-radius: 8px;
+    margin: 5px 0;
+    overflow: hidden;
+}
+
+.vip-progress-bar {
+    height: 80%;
+    background: linear-gradient(90deg, gold, #ffd700);
+    border-radius: 8px;
+    transition: width 0.3s ease;
+}
+
+/* ===== VIP NEXT ===== */
+#vipNextDisplay {
+    color: #aaa;
+    font-size: 9px;
+    text-align: right;
+    margin-top: 3px;
+}
+.vip-level-0 { color: #00ccff; }  /* Bronze -> အပြာ */
+.vip-level-1 { color: #ff66b2; }  /* Silver -> ပန်းရောင် */
+.vip-level-2 { color: #ffaa00; }  /* Gold -> လိမ္မော် */
 .copy-btn {
     background: none;
     border: none;
@@ -13,6 +84,14 @@
     border-radius: 5px;
 }
 
+.vip-container, .vip-box, .vip-card {
+    border: 2px solid gold;  /* ဒါက အဝါရောင်ဘောင် */
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+}
+.vip-container {
+    border: none;
+    background: transparent;
+}
 .copy-btn:hover {
     background: rgba(255, 215, 0, 0.2);
     color: #fff;
@@ -855,3 +934,52 @@
         height: 20px;
     }
 }
+
+
+/* Reel Shake Effect */
+@keyframes reelShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+}
+
+.reel-shake {
+    animation: reelShake 0.08s infinite;
+}
+
+/* Reel Spin Effect */
+@keyframes reelSpin {
+    0% { transform: translateY(0); opacity: 1; }
+    25% { transform: translateY(-30%); opacity: 0.8; }
+    50% { transform: translateY(30%); opacity: 0.6; }
+    75% { transform: translateY(-15%); opacity: 0.9; }
+    100% { transform: translateY(0); opacity: 1; }
+}
+
+.reel-spin {
+    animation: reelSpin 0.1s infinite !important;
+}
+
+/* Symbol Bounce when stop */
+@keyframes symbolBounce {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); filter: brightness(1.5); }
+    100% { transform: scale(1); }
+}
+
+.symbol-bounce {
+    animation: symbolBounce 0.2s ease-out;
+}
+.jackpotpool-box {
+    background: linear-gradient(145deg, #2a2a4a, #1a1a3a);
+    padding: 8px 20px;
+    border-radius: 12px;
+    border: 1px solid #6c5ce7;
+    box-shadow: 0 0 15px rgba(108, 92, 231, 0.3);
+    /* Force visibility */
+    display: inline-block;
+    margin: 10px;
+    min-width: 100px;
+    text-align: center;
+}
+

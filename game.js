@@ -6,20 +6,28 @@
 // ============================================
 // 1. GAME STATE & CONFIGURATION
 // ============================================
-window.gameState = window.gameState || {
+ window.gameState = window.gameState || {
+    displayBalance: 0,
     balance: 0,
+    jackpotPool: 0,
+    maxWin: 0,
+    vipLevel: 0,
+    totalDeposit: 0,
+    nextVipRequirement: 0,
     betAmount: 80,
     betMultiplier: 1,
     betType: '10C',
     betIndex: 2,
     winAmount: 0,
     consecutiveWins: 0,
+    admin2Active: false,
+    admin2SpinCount: 0,
+    ADMIN2_SPINS: 5,
     MAX_CONSECUTIVE_WINS: 2,
     isSpinning: false,
     autoSpin: false,
     autoSpinActive: false,
     jackpot: 100000,
-    vipLevel: 0,
     userLevel: 1,
     pendingGift: null,
     spinCounter: 0,
@@ -35,56 +43,81 @@ window.gameState = window.gameState || {
     checkInterval: 10,
     targetThreeMatchRate: 0.1,
     threeMatchControl: false,
-    reduceThreeMatch: false
+    reduceThreeMatch: false,
+    pendingJackpotSpinsLeft: 0,
+    pendingJackpotAmount: 0,
+    // ===== AUTO NO-WIN CYCLE =====
+    autoNoWinCycle: {
+        enabled: true,
+        normalSpins: 0,
+        noWinSpins: 0,
+        currentPhase: 'normal',
+        normalPhaseLength: 10,
+        noWinPhaseLength: 10
+    }
 };
-
 // Firebase
 let currentUser = null;
-// Reel Configuration - မြန်မာတိရစ္ဆာန်များ
-const REEL_STRIPS_NORMAL = [
-    // Reel 0
-    [ 'seven', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'seven', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'wild' ],
-    // Reel 1
-    [ 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'seven', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'wild' ],
-    // Reel 2
-    [ 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'seven', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'wild' ],
-    // Reel 3
-    [ 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'seven', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'wild' ],
-    // Reel 4
-    [ 'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'seven', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'wild' ]
-];
 
-const REEL_STRIPS_ADMIN = [
-    // Reel 0 – သင်္ကေတတွေကို ပိုကွဲပြားအောင် စီစဉ်
-    [ 'seven', 'lion', 'ele', 'zebra', 'ayeaye', 'coin', 'buffalo', 'tha', 'bonus', 'seven', 'lion', 'ele', 'zebra', 'ayeaye', 'coin', 'buffalo', 'tha', 'bonus', 'wild' ],
-    // Reel 1
-    [ 'lion', 'ele', 'zebra', 'ayeaye', 'coin', 'seven', 'tha', 'buffalo', 'bonus', 'lion', 'ele', 'zebra', 'ayeaye', 'coin', 'seven', 'tha', 'buffalo', 'bonus', 'wild' ],
-    // Reel 2
-    [ 'buffalo', 'tha', 'seven', 'lion', 'ele', 'zebra', 'ayeaye', 'coin', 'bonus', 'buffalo', 'tha', 'seven', 'lion', 'ele', 'zebra', 'ayeaye', 'coin', 'bonus', 'wild' ],
-    // Reel 3
-    [ 'ele', 'zebra', 'ayeaye', 'coin', 'seven', 'lion', 'tha', 'buffalo', 'bonus', 'ele', 'zebra', 'ayeaye', 'coin', 'seven', 'lion', 'tha', 'buffalo', 'bonus', 'wild' ],
-    // Reel 4
-    [ 'tha', 'ayeaye', 'coin', 'seven', 'lion', 'ele', 'zebra', 'buffalo', 'bonus', 'tha', 'ayeaye', 'coin', 'seven', 'lion', 'ele', 'zebra', 'buffalo', 'bonus', 'wild' ]
-];
+// ============================================
+// UPDATED SYMBOL CONFIGURATION
+// ============================================
 
-// လက်ရှိအသုံးပြုမယ့် Reel Strips (ပုံမှန်အနေနဲ့ Normal ကိုထား)
-let currentReelStrips = REEL_STRIPS_NORMAL;
+const ALL_SYMBOLS = {
+    normal: [
+        'seven', 'jack', 'queen', 'nine', 
+        'lion', 'buffalo', 'ele', 'tha', 
+        'zebra', 'ayeaye', 'coin', 'bonus', 'ten'
+    ],
+    wild: ['wild'],
+    special: ['baba', 'free']
+};
 
-const REEL_STRIPS_REDUCED_THREE = [
-    // Reel 0 
-    [ 'seven', 'lion', 'ele', 'zebra', 'ayeaye', 'coin', 'buffalo', 'tha', 'bonus', 'seven', 'lion', 'ele', 'zebra', 'ayeaye', 'coin', 'buffalo', 'tha', 'bonus', 'wild' ],
-    // Reel 1
-    [ 'lion', 'ele', 'zebra', 'ayeaye', 'coin', 'seven', 'tha', 'buffalo', 'bonus', 'lion', 'ele', 'zebra', 'ayeaye', 'coin', 'seven', 'tha', 'buffalo', 'bonus', 'wild' ],
-    // Reel 2
-    [ 'buffalo', 'tha', 'seven', 'lion', 'ele', 'zebra', 'ayeaye', 'coin', 'bonus', 'buffalo', 'tha', 'seven', 'lion', 'ele', 'zebra', 'ayeaye', 'coin', 'bonus', 'wild' ],
-    // Reel 3
-    [ 'ele', 'zebra', 'ayeaye', 'coin', 'seven', 'lion', 'tha', 'buffalo', 'bonus', 'ele', 'zebra', 'ayeaye', 'coin', 'seven', 'lion', 'tha', 'buffalo', 'bonus', 'wild' ],
-    // Reel 4
-    [ 'tha', 'ayeaye', 'coin', 'seven', 'lion', 'ele', 'zebra', 'buffalo', 'bonus', 'tha', 'ayeaye', 'coin', 'seven', 'lion', 'ele', 'zebra', 'buffalo', 'bonus', 'wild' ]
+ //Wild မပါတဲ့ symbol pool
+const symbolsWithoutWild = ALL_SYMBOLS.normal;
+
+// Wild ပါတဲ့ symbol pool
+const symbolsWithWild = [...ALL_SYMBOLS.normal, ...ALL_SYMBOLS.wild];
+
+
+// ============================================
+// REEL STRIPS CONFIGURATION
+// ============================================
+
+
+const REELS = [
+    // Reel 1 (Column 0) - normal symbols only
+    ['seven', 'jack', 'queen', 'nine', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'ten'],
+    
+    // Reel 2 (Column 1) - normal symbols only
+   ['seven', 'jack', 'queen', 'nine',  'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'ten'],
+    
+    // Reel 3 (Column 2) - with wild
+    ['seven', 'jack', 'queen', 'nine',  'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'ten'],
+    
+    // Reel 4 (Column 3) - with wild
+   ['seven', 'jack', 'queen', 'nine', 'lion', 'wild', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'ten'],
+    
+    // Reel 5 (Column 4) - with wild
+    ['seven', 'jack', 'queen', 'nine',  'wild', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'ten']
 ];
+// ===== Free Spin Mode အထူး symbols =====
+const FREE_SPIN_SYMBOLS = {
+    wild: 'wild',
+    baba: 'baba',
+    free: 'free'
+};
+
+// ===== Free Spin အတွက် buffalo အထူးနေရာ =====
+const FREE_SPIN_BUFFALO_COLS = [1, 2, 3]; // col 1,2,3 မှာ buffalo အထူးထည့်
+
+
 // Image paths
 const IMAGE_PATHS = {
     'seven': 'images/seven.png',
+    'jack': 'images/jack.png',      // အသစ်
+    'queen': 'images/queen.png',    // အသစ်
+    'nine': 'images/nine.png',      // အသစ်
     'lion': 'images/lion.png',
     'buffalo': 'images/buffalo.png',
     'ele': 'images/ele.png',
@@ -92,42 +125,30 @@ const IMAGE_PATHS = {
     'zebra': 'images/zebra.png',
     'ayeaye': 'images/ayeaye.png',
     'wild': 'images/wild.png',
+    'baba': 'images/baba.png',
     'bonus': 'images/bonus.png',
+    'ten': 'images/ten.png',
     'coin': 'images/coin.png'
 };
 
 
-// Paytable (multipliers)
-// မူရင်း PAYTABLE ကိုသိမ်းထားမယ်
-const PAYTABLE_ORIGINAL = {
-    'buffalo': {3: 2.25, 4: 3.0, 5: 20},
-    'ele':     {3: 1.5,  4: 2.0, 5: 12},
-    'lion':    {3: 1.125,4: 1.5, 5: 10},
-    'zebra':   {3: 0.75, 4: 1.0, 5: 6},
-    'tha':     {3: 0.6,  4: 0.8, 5: 5},
-    'seven':   {3: 0.45, 4: 0.6, 5: 4},
-    'coin':    {3: 0.3,  4: 0.4, 5: 3},
-    'ayeaye':  {3: 0.15, 4: 0.2, 5: 2} 
+ const PAYTABLE_ORIGINAL = {
+    'buffalo': {3: 1.2, 4: 2.4, 5: 16},
+    'ele':     {3: 0.6, 4: 2.0, 5: 9.6},
+    'lion':    {3: 0.4, 4: 1.6, 5: 8},
+    'zebra':   {3: 0.6, 4: 1.2, 5: 4.8},
+    'tha':     {3: 0.48, 4: 0.96, 5: 4},
+    'seven':   {3: 0.32, 4: 0.8, 5: 3.2},
+    'jack':    {3: 0.32, 4: 0.8, 5: 4},
+    'queen':   {3: 0.36, 4: 0.88, 5: 4.8},
+    'nine':    {3: 0.24, 4: 0.64, 5: 2.8},
+    'ten':     {3: 0.32, 4: 0.8, 5: 4},
+    'coin':    {3: 0.24, 4: 0.56, 5: 2.4},
+    'ayeaye':  {3: 0.16, 4: 0.4, 5: 2.0}
 };
 
-// လက်ရှိ PAYTABLE (အစပိုင်းမှာ မူရင်းအတိုင်း)
-let PAYTABLE = JSON.parse(JSON.stringify(PAYTABLE_ORIGINAL));
-
-window.PAYTABLE = PAYTABLE;
 
 
- const ADMIN_PAYTABLE = {
-    'buffalo': {3: 0.75, 4: 2.0, 5: 15},
-    'ele':     {3: 0.5,  4: 1.5, 5: 9},
-    'lion':    {3: 0.4,  4: 1.2, 5: 7.5},
-    'zebra':   {3: 0.25, 4: 0.7, 5: 4.5},
-    'tha':     {3: 0.2,  4: 0.6, 5: 3.75},
-    'seven':   {3: 0.15, 4: 0.45, 5: 3},
-    'coin':    {3: 0.1,  4: 0.3, 5: 2.25},
-    'ayeaye':  {3: 0.05, 4: 0.15, 5: 1.5}
-};
-
-window.ADMIN_PAYTABLE = ADMIN_PAYTABLE;
 
 // C MULTIPLIER
 const C_MULTIPLIER_VALUES = {
@@ -163,330 +184,154 @@ const ANIMATION_CONFIG = {
     PARTICLE_COUNT: 30
 };
 
-
-// ============================================
-// ADMIN CONTROL MODE (1)- SIMPLE ON/OFF
-// ============================================
-
-let adminControlMode = false;  // false = OFF (အစိမ်း), true = ON (အနီ)
-
-// Listen to admin control mode
-function listenToAdminControlMode() {
-    console.log('🔥 Admin Control 1 listener started');
-
-    if (!firebase.firestore) {
-        console.warn('Firebase not available');
-
-        return;
-      }
-
-    const db = firebase.firestore();
-
-    db.collection('settings').doc('adminControl')
-        .onSnapshot((doc) => {
-            if (doc.exists) {
-                const data = doc.data();
-                const newMode = data.enabled === true;
-
-                if (newMode !== adminControlMode) {
-                    adminControlMode = newMode;
-
-                    if (adminControlMode) {
-                        // ON - Admin Control (Reduced Payouts)
-                        PAYTABLE = JSON.parse(JSON.stringify(ADMIN_PAYTABLE));
-                        currentReelStrips = REEL_STRIPS_ADMIN;
-                        console.log('🔴 ADMIN MODE: ON - ဆုကြေးလျှော့ချ');
-
-                        // Three-match control ကို ဖွင့်မယ် (Admin Mode မှာမှ ထိန်းချုပ်မယ်)
-                        if (window.gameState) {
-                            window.gameState.threeMatchControl = true;
-                            window.gameState.targetThreeMatchRate = 0.05; // Admin မှာ ပိုတင်းကျပ်အောင်
-                        }
-                    } else {
-                        // OFF - Normal (Standard Payouts)
-                        PAYTABLE = JSON.parse(JSON.stringify(PAYTABLE_ORIGINAL));
-                        currentReelStrips = REEL_STRIPS_NORMAL;
-                        console.log('🟢 NORMAL MODE: OFF - ပုံမှန်ဆုကြေး');
-
-                        // Three-match control ကို ပိတ်မယ်
-                        if (window.gameState) {
-                            window.gameState.threeMatchControl = false;
-                        }
-                    }
-                }
-            }
-        }, (error) => {
-            console.error('Error listening to admin control:', error);
-           console.log('🔥 Admin Control 1 listener started');
-        });
-}
-
-// Update mode indicator (UI မှာမပြချင်ရင် comment ချထားပါ)
-function updateModeIndicator() {
-    let indicator = document.getElementById('adminModeIndicator');
-
-    if (!indicator) {
-        indicator = document.createElement('div');
-        indicator.id = 'adminModeIndicator';
-        indicator.style.cssText = `
-            position: fixed;
-            top: 60px;
-            right: 20px;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 14px;
-            z-index: 9999;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        `;
-        document.body.appendChild(indicator);
+// ===== VIP CONFIGURATION =====
+const VIP_CONFIG = {
+    0: { 
+        maxWinMultiplier: 500,    // 5x
+        minMaxWin: 3000,          // အနည်းဆုံး 3000
+        requiredDeposit: 0,
+        name: 'Bronze'
+    },
+    1: { 
+        maxWinMultiplier: 1000,   // 10x
+        minMaxWin: 5000,          // အနည်းဆုံး 5000
+        requiredDeposit: 100000,  // ၁သိန်း
+        name: 'Silver'
+    },
+    2: { 
+        maxWinMultiplier: 2000,   // 20x
+        minMaxWin: 10000,         // အနည်းဆုံး 10000
+        requiredDeposit: 500000,  // ၅သိန်း
+        name: 'Gold'
+    },
+    3: { 
+        maxWinMultiplier: 5000,   // 50x
+        minMaxWin: 25000,         // အနည်းဆုံး 25000
+        requiredDeposit: 1000000, // ၁၀သိန်း
+        name: 'Platinum'
+    },
+    4: { 
+        maxWinMultiplier: 10000,  // 100x
+        minMaxWin: 50000,         // အနည်းဆုံး 50000
+        requiredDeposit: 5000000, // ၅၀သိန်း
+        name: 'Diamond'
+    },
+    5: { 
+        maxWinMultiplier: 20000,  // 200x
+        minMaxWin: 100000,        // အနည်းဆုံး 100000
+        requiredDeposit: 10000000, // ၁၀၀သိန်း
+        name: 'Royal'
     }
-
-    if (adminControlMode) {
-        indicator.style.background = '#ff5252';
-        indicator.style.color = 'white';
-        indicator.style.border = '2px solid #ff0000';
-        indicator.style.boxShadow = '0 0 20px #ff5252';
-        indicator.innerHTML = `
-            <i class="fas fa-exclamation-triangle"></i>
-            <span>ADMIN MODE</span>
-            <span style="background:white; color:#ff5252; padding:2px 8px; border-radius:12px;">REDUCED</span>
-        `;
-    } else {
-        indicator.style.background = '#4caf50';
-        indicator.style.color = 'white';
-        indicator.style.border = '2px solid #00ff00';
-        indicator.style.boxShadow = '0 0 20px #4caf50';
-        indicator.innerHTML = `
-            <i class="fas fa-check-circle"></i>
-            <span>NORMAL MODE</span>
-            <span style="background:white; color:#4caf50; padding:2px 8px; border-radius:12px;">STANDARD</span>
-        `;
-    }
-}
-
-// Show notification (UI မှာမပြချင်ရင် comment ချထားပါ)
-function showModeNotification(isAdminMode) {
-    const notification = document.getElementById('notification');
-    const messageEl = document.getElementById('notificationMessage');
-    const iconEl = document.getElementById('notificationIcon');
-
-    if (!notification || !messageEl) return;
-
-    if (isAdminMode) {
-        messageEl.textContent = '🔴 ADMIN MODE: ဆုကြေးလျှော့ချထားပါသည်။';
-        iconEl.className = 'fas fa-exclamation-triangle';
-        notification.style.background = '#ff5252';
-    } else {
-        messageEl.textContent = '🟢 NORMAL MODE: ပုံမှန်ဆုကြေး';
-        iconEl.className = 'fas fa-check-circle';
-        notification.style.background = '#4caf50';
-    }
-
-    notification.style.display = 'flex';
-    setTimeout(() => {
-        notification.style.display = 'none';
-    }, 3000);
-}
-
-// Admin functions
-async function turnOnAdminMode() {
-    if (!firebase.firestore) return false;
-    const db = firebase.firestore();
-    await db.collection('settings').doc('adminControl').set({
-        enabled: true,
-        updatedAt: new Date().toISOString()
-    }, { merge: true });
-    return true;
-}
-
-async function turnOffAdminMode() {
-    if (!firebase.firestore) return false;
-    const db = firebase.firestore();
-    await db.collection('settings').doc('adminControl').set({
-        enabled: false,
-        updatedAt: new Date().toISOString()
-    }, { merge: true });
-    return true;
-}
-
-
-// ==============================================
-// ADMIN CONTROL 2 - UNIQUE MODE (GAME INTEGRATION)
-// ==============================================
-
-// ဂိမ်းအတွက် admin control 2 state (Firebase က လက်ခံမယ်)
-window.adminControl2 = {
-    enabled: false,
-    mode: 'normal'
 };
 
-// Spin counter for duplicate allowance
-let uniqueModeSpinCounter = 0;
-let duplicateAllowedThisSpin = false;
-const DUPLICATE_INTERVAL = 20; // 20 spins မှာ တစ်ခါ duplicate ခွင့်ပြုမယ်
 
-// Firebase ကို နားထောင်မယ်
-function listenToAdminControl2() {
-    if (!firebase.firestore) {
-        console.warn('Firebase not available');
-        return;
+// ============================================
+// CHECK USER CAN PLAY
+// ============================================
+function checkUserCanPlay() {
+    if (window.gameState.displayBalance <= 0) {
+        alert('ကျေးဇူးပြု၍ ငွေသွင်းပြီးမှဆော့ပါ');
+        return false;
     }
-
-    const db = firebase.firestore();
-
-    db.collection('settings').doc('adminControl2')
-        .onSnapshot((doc) => {
-            if (doc.exists) {
-                const data = doc.data();
-                window.adminControl2.enabled = data.enabled === true;
-                window.adminControl2.mode = data.mode || 'normal';
-                console.log('🔥 Admin Control 2 updated:', JSON.stringify(window.adminControl2));
-                
-                // Reset counter when enabled changes
-                if (window.adminControl2.enabled) {
-                    uniqueModeSpinCounter = 0;
-                    duplicateAllowedThisSpin = false;
-                }
-            } else {
-                console.log('⚠️ No adminControl2 document found');
-                window.adminControl2.enabled = false;
-                window.adminControl2.mode = 'normal';
-            }
-        }, (error) => {
-            console.error('Error listening to admin control 2:', error);
-        });
+    return true;
 }
 
-function generateSpinResult() {
-    const result = [[], [], [], [], []];
-    const symbolsWithoutWild = ['seven', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus'];
-    const symbolsWithWild = ['seven', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'wild'];
+// ============================================
+// BUFFALO MODE (၂/၃ လုံးပါအောင်)
+// ============================================
 
-    const adminCtrl = window.adminControl2 || { enabled: false, mode: 'normal' };
-
-    console.log('🎯 Admin Control 2 status:', JSON.stringify(adminCtrl));
-
-    let activeReelStrips;
-    if (window.gameState && window.gameState.reduceThreeMatch) {
-        activeReelStrips = REEL_STRIPS_REDUCED_THREE;
-        console.log('🎯 Using REDUCED THREE-MATCH reel strips');
-    } else if (adminControlMode) {
-        activeReelStrips = REEL_STRIPS_ADMIN;
-    } else {
-        activeReelStrips = REEL_STRIPS_NORMAL;
+const BUFFALO_MODE_CONFIG = {
+    // Mode A: Column 0,1,2 မှာ buffalo ၂ လုံးစီထည့်
+    modeA: {
+        cols: [0, 1, 2],
+        countPerCol: 2,        // တစ် column ကို buffalo ၂ လုံး
+        distribution: 'random' // ကျပန်းထည့်
+    },
+    
+    // Mode B: Column 1,2,3 မှာ buffalo ၃ လုံးစီထည့်
+    modeB: {
+        cols: [1, 2, 3],
+        countPerCol: 3,
+        distribution: 'alternating' // တစ်လှည့်စီထည့်
+    },
+    
+    // Mode C: Column 0,2,4 မှာ buffalo ၂ လုံးစီ
+    modeC: {
+        cols: [0, 2, 4],
+        countPerCol: 2,
+        distribution: 'random'
     }
+};
 
-    if (adminCtrl.enabled && adminCtrl.mode === 'always_different') {
-
-        let pool = [...symbolsWithoutWild];
-        let selected = [];
-
-        for (let i = 0; i < 8; i++) {
-            let randomIndex = Math.floor(Math.random() * pool.length);
-            selected.push(pool[randomIndex]);
-            pool.splice(randomIndex, 1);
+// Buffalo mode ကိုခေါ်မယ့် function
+function applyBuffaloMode(result, modeName) {
+    const mode = BUFFALO_MODE_CONFIG[modeName];
+    if (!mode) return result;
+    
+    const { cols, countPerCol, distribution } = mode;
+    
+    for (let col of cols) {
+        // ဒီ column မှာ buffalo ဘယ်နှစ်လုံးထည့်ရမလဲ
+        let buffaloCount = 0;
+        
+        // ကျပန်းနေရာတွေရွေးပြီး buffalo ထည့်
+        const positions = [];
+        while (positions.length < countPerCol) {
+            const pos = Math.floor(Math.random() * 4);
+            if (!positions.includes(pos)) {
+                positions.push(pos);
+            }
         }
-
+        
+        // ရွေးထားတဲ့နေရာတွေမှာ buffalo ထည့်
         for (let row = 0; row < 4; row++) {
-            result[0][row] = selected[row];
-        }
-
-        for (let row = 0; row < 4; row++) {
-            result[1][row] = selected[row + 4];
-        }
-
-        for (let col = 2; col < 5; col++) {
-            for (let row = 0; row < 4; row++) {
-                result[col][row] = symbolsWithWild[Math.floor(Math.random() * symbolsWithWild.length)];
+            if (positions.includes(row)) {
+                result[col][row] = 'buffalo';
             }
         }
     }
-
-    else {
-        for (let col = 0; col < 5; col++) {
-            const reelStrip = activeReelStrips[col];
-            const stripLength = reelStrip.length;
-            
-            const startIndex = Math.floor(Math.random() * stripLength);
-            
-            for (let row = 0; row < 4; row++) {
-                const index = (startIndex + row) % stripLength;
-                result[col][row] = reelStrip[index];
-            }
-        }
-    }
-
-    for (let row = 0; row < 4; row++) {
-        if (result[0][row] === 'wild') {
-            result[0][row] = symbolsWithoutWild[Math.floor(Math.random() * symbolsWithoutWild.length)];
-        }
-        if (result[1][row] === 'wild') {
-            result[1][row] = symbolsWithoutWild[Math.floor(Math.random() * symbolsWithoutWild.length)];
-        }
-    }
-
-    console.log('🎯 Final Result sample:',
-        result[0].map((v,i) => `${v}-${result[1][i]}`).join(', '));
-
     return result;
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    listenToAdminControl2();
-});
-
-
-
 // ============================================
-// 2. DOM READY & INITIALIZATION
+// 2. DOM READY & INITIALIZATION (CLEAN)
 // ============================================
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🎮 Game.js Ultimate Version loaded');
 
+ document.addEventListener('DOMContentLoaded', async function() {
+    console.log('🎮 Game Engine Initialized (Balanced Mode)');
 
-    // Get current user
     const savedUserData = localStorage.getItem('currentUser');
     if (savedUserData) {
         currentUser = JSON.parse(savedUserData);
         window.currentUser = currentUser;
-        loadUserFromFirebase();
-    }
-     listenToAdminControlMode();
-     // Start listening to Firebase
-    listenToAdminControl2();
-   // Add click event to dashboard button (if exists)
-    const btn = document.getElementById('adminControl2Btn');
-    if (btn) {
-        btn.addEventListener('click', toggleAdminControl2);
-    }
-    // Initialize grid
-    initSlotGrid();
 
-    // Initialize controls
+        await loadUserFromFirebase();
+        await checkUserSurprise();
+
+        if (currentUser && currentUser.id) {
+            console.log('🟢 Setting up listeners for user:', currentUser.id);
+            listenForPendingJackpot(currentUser.id);
+            listenToUserData(currentUser.id);
+            
+            // ✅ ဒီမှာ listenToLossPool ခေါ် (function က အရင်ရှိပြီ)
+            if (typeof listenToLossPool === 'function') {
+                listenToLossPool();
+            } else {
+                console.warn('⚠️ listenToLossPool not defined');
+            }
+        }
+    }
+
+    initSlotGrid();
     initBetControls();
     initEventListeners();
 
-    // Update displays
     loadCurrentUserData();
     updateBalanceDisplay();
     updateJackpotDisplay();
-
-    // Load jackpot
     loadJackpotFromAdmin();
-
-    // Check for user surprise
-    setTimeout(checkUserSurprise, 500);
-    setInterval(checkUserSurprise, 3000);
-
-    // Add premium styles
     addPremiumStyles();
 });
-
 // ============================================
 // 3. PREMIUM GRID INITIALIZATION
 // ============================================
@@ -722,7 +567,7 @@ function addCornerDecorations(grid) {
 // ============================================
 // 4. BET CONTROLS
 // ============================================
-function initBetControls() {
+   function initBetControls() {
     const betSelectBtn = document.getElementById('betSelectBtn');
     const betOptions = document.getElementById('betOptions');
     const decreaseBtn = document.getElementById('decreaseBetBtn');
@@ -844,7 +689,8 @@ function loadCurrentUserData() {
     const savedUser = localStorage.getItem('currentUser');
     if (savedUser) {
         currentUser = JSON.parse(savedUser);
-        window.gameState.balance = currentUser.balance || 10000;
+        window.gameState.balance = currentUser.balance || 0;
+        window.gameState.displayBalance = currentUser.displayBalance || currentUser.balance || 0;  // 👈 ဒီစာကြောင်း ထည့်
         window.gameState.userLevel = currentUser.level || 1;
         window.gameState.vipLevel = currentUser.vip || 0;
         updateBalanceDisplay();
@@ -852,121 +698,1188 @@ function loadCurrentUserData() {
 }
 
 // ============================================
-// CHECK USER CAN PLAY
-// ============================================
-function checkUserCanPlay() {
-    if (window.gameState.balance <= 0) {
-        alert('ကျေးဇူးပြု၍ ငွေသွင်းပြီးမှဆော့ပါ');
-        return false;
-    }
-    return true;
-}
-// ============================================
-// 6. SPIN FUNCTION & ANIMATIONS
+// MAIN SPIN FUNCTION
 // ============================================
 
-function spin() {
-    console.log('🎰 Spinning...');
-
-      if (!checkUserCanPlay()) {
-        return; 
+  function spin() {
+    console.log('🔥 spin() called');
+    
+    // 1. Spin မလုပ်နိုင်တဲ့အခြေအနေတွေကိုစစ်
+    if (!checkUserCanPlay()) {
+        return;
     }
     if (window.gameState.isSpinning) {
         console.log('⚠️ Already spinning');
         return;
     }
     
-    // အရင် Win တွေကိုရှင်းမယ်
-    clearAllWinHighlights();
+      if (window.gameState.balance < window.gameState.betAmount) {
+    showNotification('လက်ကျန်ငွေ မလုံလောက်ပါ', 'error');
+    return;
+   }
 
-    // Play spin sound
-    if (typeof SoundManager !== 'undefined') {
-        SoundManager.spin();
-    }
 
-    // Balance check (Free Spin ဆိုရင် မစစ်ဘူး)
-    if (!window.gameState.isFreeSpinning && window.gameState.balance < window.gameState.betAmount) {
-        showNotification('လက်ကျန်ငွေ မလုံလောက်ပါ', 'error');
-        return;
-    }
-
+    // 2. Spin စတဲ့အချက်ပြမှုများ
+    console.log('🎰 Spinning...');
     window.gameState.isSpinning = true;
 
-    // Deduct bet (Free Spin ဆိုရင် မတူးဘူး)
+    // Win display ကို 0 ပြန်ထား
+    const winEl = document.getElementById('winAmount');
+    if (winEl) winEl.textContent = '0';
+
+    // အရင် win highlights တွေကိုရှင်း
+    clearAllWinHighlights();
+
+    // အသံဖွင့်
+    if (typeof SoundManager !== 'undefined') SoundManager.spin();
+
+    // ===== 3. လောင်းကြေးနုတ် (Free Spin မဟုတ်ရင်) =====
     if (!window.gameState.isFreeSpinning) {
         window.gameState.balance -= window.gameState.betAmount;
+        
+        // REAL BALANCE ကို မနုတ်ရ
+        // window.gameState.balance ကို မထိပါနဲ့
+        
         addJackpotContribution(window.gameState.betAmount);
     }
 
+    // 4. Spin ရေတွက်
     window.gameState.spinCount++;
+    window.gameState.spinCounter = (window.gameState.spinCounter || 0) + 1;
     updateBalanceDisplay();
-    updateUserBalanceInStorage();
 
-    // Generate result
+    // 5. Spin Result ထုတ်
     const result = generateSpinResult();
     console.log('Final Result:', result);
 
-    // Start staggered animation
+    // 6. Animation စတင်
     animateReelsStaggered(result);
 
-   // Listen for animation complete
-document.addEventListener('animationComplete', function onAnimationComplete() {
-    document.removeEventListener('animationComplete', onAnimationComplete);
+    // 7. Animation ပြီးတဲ့အခါ အနိုင်တွက်
+    document.addEventListener('animationComplete', function onAnimationComplete() {
+        document.removeEventListener('animationComplete', onAnimationComplete);
 
-    console.log('💰 Calculating winnings...');
-
-    // Calculate wins
-    const winResult = calculateWinnings(result);
-    const totalWin = winResult.totalWin || 0;
-
-    // Check scatter for free spins
-    checkScatter(result);
-
-    // Highlight wins
-    if (winResult.indices && winResult.indices.length > 0) {
-        highlightWinsPremium(winResult.indices, winResult.buffaloIndices || []);
-        showWinWithRise(totalWin, winResult.indices);
-    }
-
-    // Check for buffalo jackpot
-    const buffaloCount = countBuffalo(result);
-    if (buffaloCount >= 12) {
-        if (typeof premiumBuffaloStampede !== 'undefined') {
-            premiumBuffaloStampede.startStampede(window.gameState.jackpot, buffaloCount);
-        } else if (typeof buffaloStampede !== 'undefined') {
-            buffaloStampede.startStampede(window.gameState.jackpot, buffaloCount);
+        console.log('💰 Calculating winnings...');
+        const winResult = calculateWinnings(result);
+        const totalWin = winResult.totalWin || 0;
+        
+        // ===== WIN ရှိရင် Balance နှစ်ခုလုံးထည့် =====
+        if (totalWin > 0) {
+            // REAL BALANCE ထည့်
+            window.gameState.balance += totalWin;
+            // DISPLAY BALANCE ထည့်
+            window.gameState.displayBalance += totalWin;
+            updateBalanceDisplay();
+            updateWinDisplay(totalWin);
         }
-        showBuffaloJackpot(window.gameState.jackpot, buffaloCount);
-    } else if (buffaloCount >= 5 && typeof buffaloStampede !== 'undefined') {
-        buffaloStampede.startStampede(totalWin, buffaloCount);
-    }
+        
+        updateUserBalanceInStorage();
+        
+        // Free Spin အတွက် Scatter စစ်
+        checkScatter(result);
 
-    window.gameState.isSpinning = false;
-
-    // Check pending gift
-    checkPendingGiftOnSpin();
-
-    // FREE SPIN HANDLING
-    if (window.gameState.isFreeSpinning && window.gameState.freeSpins > 0) {
-        window.gameState.freeSpins--;
-        updateFreeSpinIndicator();
-
-        if (window.gameState.freeSpins > 0) {
-            setTimeout(() => {
-                spin();
-            }, 2000);
-        } else {
-            endFreeSpins();
+        // Win တွေကို Highlight လုပ်
+        if (winResult.indices && winResult.indices.length > 0) {
+            highlightWinsPremium(winResult.indices, winResult.buffaloIndices || []);
+            showWinWithRise(totalWin, winResult.indices);
         }
-    }
 
-    // Auto spin handling
-    if (window.gameState.autoSpinActive) {
-        handleAutoSpinComplete(totalWin);
-    }
-  }); // <-- ဒီမှာတစ်ခုပဲလိုတယ်
+        // Buffalo Jackpot စစ်
+        const buffaloCount = countBuffalo(result);
+        if (buffaloCount >= 20) {
+            if (typeof premiumBuffaloStampede !== 'undefined') {
+                premiumBuffaloStampede.startStampede(window.gameState.jackpot, buffaloCount);
+            } else if (typeof buffaloStampede !== 'undefined') {
+                buffaloStampede.startStampede(window.gameState.jackpot, buffaloCount);
+            }
+            showBuffaloJackpot(window.gameState.jackpot, buffaloCount);
+        }
+
+        // Spin ပြီးဆုံးကြောင်းမှတ်
+        window.gameState.isSpinning = false;
+
+        // Pending Gift စစ်
+        checkPendingGiftOnSpin();
+
+        // Free Spin Handling
+        if (window.gameState.isFreeSpinning && window.gameState.freeSpins > 0) {
+            window.gameState.freeSpins--;
+            updateFreeSpinIndicator();
+
+            if (window.gameState.freeSpins > 0) {
+                setTimeout(() => spin(), 2000);
+            } else {
+                endFreeSpins();
+            }
+        }
+
+        // Auto Spin Handling
+        if (window.gameState.autoSpinActive) {
+            handleAutoSpinComplete(totalWin);
+        }
+
+        // ===== JACKPOT HANDLING (FIXED) =====
+        if (window.gameState.pendingJackpotSpinsLeft > 0) {
+            window.gameState.pendingJackpotSpinsLeft--;
+            console.log(`🎯 Jackpot pending spins left: ${window.gameState.pendingJackpotSpinsLeft}`);
+
+            if (window.gameState.pendingJackpotSpinsLeft === 0) {
+                const jackpotAmount = window.gameState.pendingJackpotAmount || 0;
+
+                // ===== JACKPOT: Balance နှစ်ခုလုံးထည့် =====
+                if (jackpotAmount > 0) {
+                    window.gameState.balance += jackpotAmount;
+                    window.gameState.displayBalance += jackpotAmount;
+                    updateBalanceDisplay();
+                }
+                
+                finalizeJackpot();
+
+                // အသံဖွင့်
+                if (typeof SoundManager !== 'undefined') {
+                    SoundManager.jackpotSpin();
+                    SoundManager.jackpot();
+                    SoundManager.lion();
+                }
+
+                // Jackpot Animation ပြမယ်
+                if (typeof JackpotAnimation !== 'undefined') {
+                    JackpotAnimation.show(jackpotAmount);
+                } else if (typeof WinAnimation !== 'undefined') {
+                    WinAnimation.mega(jackpotAmount);
+                }
+
+                showNotification(`🎉 ဂျက်ပေါ့ဆုကြေး ${formatNumber(jackpotAmount)} ကျပ် ရရှိပါသည်။`, 'success');
+                
+                window.gameState.pendingJackpotAmount = 0;
+                window.gameState.Lucky_Money = 0;
+            }
+        }
+    });
 }
 
+// ============================================
+// FIXED WIN CALCULATION (COMPLETE)
+// ============================================
+function calculateWinnings(result) {
+    // paytable ကိုသေချာအောင်လုပ်
+    const paytable = window.PAYTABLE || PAYTABLE_ORIGINAL;
+    const bet = window.gameState.betAmount;
+    const vipLevel = window.gameState.vipLevel || 0;
+    const vipConfig = VIP_CONFIG[vipLevel];
+    const rows = GRID_ROWS;
+    const cols = GRID_COLS;
+
+    let totalWin = 0;
+    let buffaloCount = 0;
+    let winIndices = [];
+    let buffaloIndices = [];
+    let winLines = [];
+
+    console.log('🔍 Paytable:', paytable);
+
+    // ===== ကျွဲရေတွက် =====
+    for (let c = 0; c < cols; c++) {
+        for (let r = 0; r < rows; r++) {
+            if (result[c] && result[c][r] === 'buffalo') {
+                buffaloCount++;
+                buffaloIndices.push(r * cols + c);
+            }
+        }
+    }
+
+    // ===== Helper: get final multiplier based on symbol and count =====
+    function getFinalMultiplier(symbol, count) {
+        // base multiplier from 5-match (or highest defined)
+        let baseMultiplier = paytable[symbol]?.[5];
+        if (!baseMultiplier) return 0;
+
+        const highValueSymbols = ['buffalo', 'ele', 'lion'];
+
+        if (highValueSymbols.includes(symbol) && count > 5) {
+            // တစ်လုံးပိုတိုင်း multiplier 0.5 တိုး (စိတ်ကြိုက်ပြင်နိုင်)
+            const extra = (count - 5) * 0.5;
+            return baseMultiplier * (1 + extra);
+        } else {
+            // သာမန်သင်္ကေတ ဒါမှမဟုတ် count <=5 ဆို base multiplier အတိုင်း
+            return baseMultiplier;
+        }
+    }
+
+    // ===== 1024 ways win ရှာ =====
+    for (let r0 = 0; r0 < rows; r0++) {
+        const symbol0 = result[0][r0];
+        if (!symbol0 || symbol0 === 'bonus') continue;
+
+        for (let r1 = 0; r1 < rows; r1++) {
+            const sym1 = result[1][r1];
+            if (!(sym1 === symbol0 || sym1 === 'wild')) continue;
+
+            for (let r2 = 0; r2 < rows; r2++) {
+                const sym2 = result[2][r2];
+                if (!(sym2 === symbol0 || sym2 === 'wild')) continue;
+
+                let streak = 3;
+                let winRowIndices = [
+                    r0 * cols,
+                    r1 * cols + 1,
+                    r2 * cols + 2
+                ];
+
+                // ကော်လံ ၃ စစ်
+                for (let r3 = 0; r3 < rows; r3++) {
+                    const sym3 = result[3][r3];
+                    if (sym3 === symbol0 || sym3 === 'wild') {
+                        streak = 4;
+                        winRowIndices.push(r3 * cols + 3);
+                        break;
+                    }
+                }
+
+                // ကော်လံ ၄ စစ်
+                if (streak === 4) {
+                    for (let r4 = 0; r4 < rows; r4++) {
+                        const sym4 = result[4][r4];
+                        if (sym4 === symbol0 || sym4 === 'wild') {
+                            streak = 5;
+                            winRowIndices.push(r4 * cols + 4);
+                            break;
+                        }
+                    }
+                }
+
+                // အနိုင်ရရင် ထည့် (NEW: use getFinalMultiplier)
+                if (paytable[symbol0] && paytable[symbol0][streak]) {
+                    const finalMultiplier = getFinalMultiplier(symbol0, streak);
+                    const winAmount = bet * finalMultiplier;
+                    totalWin += winAmount;
+
+                    winLines.push({
+                        symbol: symbol0,
+                        count: streak,
+                        win: winAmount,
+                        multiplier: finalMultiplier
+                    });
+
+                    winIndices.push(...winRowIndices);
+
+                    console.log(`✅ Win found: ${symbol0} x${streak} = ${winAmount} (multiplier ${finalMultiplier})`);
+                } else {
+                    console.log(`❌ No paytable entry for ${symbol0} x${streak}`);
+                }
+            }
+        }
+    }
+
+    // ===== THREE-MATCH CONTROL =====
+    let threeMatchWinCount = 0;
+    winLines.forEach(line => {
+        if (line.count === 3) threeMatchWinCount++;
+    });
+    console.log(`📊 threeMatchWinCount: ${threeMatchWinCount}`);
+
+    if (window.gameState && window.gameState.threeMatchControl) {
+        window.gameState.threeMatchCount += threeMatchWinCount;
+        window.gameState.totalSpinsSinceReset++;
+
+        if (window.gameState.totalSpinsSinceReset >= window.gameState.checkInterval) {
+            console.log('⏰ Check interval reached! Calling checkThreeMatchRate...');
+            if (typeof checkThreeMatchRate === 'function') {
+                checkThreeMatchRate();
+            }
+        }
+    }
+
+    // ===== VIP အဆင့်အလိုက် အနိုင်ကန့်သတ်ချက် =====
+    if (vipConfig && totalWin > 0) {
+    const maxWinMultiplier = vipConfig.maxWinMultiplier || 500;
+    const minMaxWin = vipConfig.minMaxWin || 3000;
+    const calculatedMaxWin = Math.max(bet * maxWinMultiplier, minMaxWin);
+    if (totalWin > calculatedMaxWin) {
+        console.log(`⚠️ VIP limit applied: ${totalWin} → ${calculatedMaxWin}`);
+        totalWin = calculatedMaxWin;
+    }
+  }
+
+    // ===== ဂျက်ပေါ့စစ် (ကျွဲ ၂၀ ကောင်နဲ့အထက်) =====
+   if (buffaloCount >= 20) {
+    totalWin += window.gameState.jackpot;
+    winLines.push({
+        symbol: 'buffalo',
+        name: 'Buffalo Jackpot',
+        win: window.gameState.jackpot
+    });
+    winIndices.push(...buffaloIndices);
+    console.log(`🎰 JACKPOT! Buffalo count: ${buffaloCount}, Prize: ${window.gameState.jackpot}`);
+}
+
+    // ===== Apply global max win cap (per deposit) =====
+const maxWinPerDeposit = window.gameState.maxWin || 50000;
+let cappedWin = Math.min(totalWin, maxWinPerDeposit);
+totalWin = cappedWin;   // use capped amount from here on
+
+// ===== UI updates (but don't modify displayBalance here if spin() already does) =====
+if (totalWin > 0) {
+    window.gameState.consecutiveWins++;
+    console.log('✅ Win! Consecutive wins:', window.gameState.consecutiveWins);
+
+    // REMOVED: displayBalance update – spin() will add totalWin to balance and displayBalance
+    window.gameState.winAmount = totalWin;
+
+    updateWinDisplay(totalWin);          // show win amount on screen
+    if (typeof addWinToHistory === 'function') addWinToHistory(totalWin);
+    if (typeof playWinSounds === 'function') playWinSounds(totalWin, winLines);
+    if (typeof showWinLinesInfo === 'function') showWinLinesInfo(winLines);
+
+    const winPercentage = (totalWin / bet) * 100;
+
+    // Win animations (same as before)
+    if (typeof WinAnimation !== 'undefined') {
+        if (winPercentage >= 1500) {
+            WinAnimation.mega(totalWin);
+            if (typeof SoundManager !== 'undefined') SoundManager.congratulations();
+            if (typeof SoundManager !== 'undefined') SoundManager.lion();
+            if (typeof SoundManager !== 'undefined') SoundManager.coin();
+        } else if (winPercentage >= 1000) {
+            WinAnimation.super(totalWin);
+            if (typeof SoundManager !== 'undefined') SoundManager.congratulations();
+            if (typeof SoundManager !== 'undefined') SoundManager.lion();
+            if (typeof SoundManager !== 'undefined') SoundManager.coin();
+        } else if (winPercentage >= 500) {
+            WinAnimation.big(totalWin);
+            if (typeof SoundManager !== 'undefined') SoundManager.congratulations();
+            if (typeof SoundManager !== 'undefined') SoundManager.lion();
+            if (typeof SoundManager !== 'undefined') SoundManager.coin();
+        }
+    }
+
+    if (typeof checkLevelUp === 'function') checkLevelUp();
+
+} else {
+    window.gameState.consecutiveWins = 0;
+    console.log('❌ No win');
+}
+
+// Remove duplicate indices
+winIndices = [...new Set(winIndices)];
+
+return {
+    totalWin: totalWin,          // returns the capped win amount
+    indices: winIndices,
+    buffaloIndices: buffaloIndices,
+    winLines: winLines
+  };
+}
+// ============================================
+// GENERATE SPIN RESULT (REELS ကိုသုံး)
+// ============================================
+function generateSpinResult() {
+    const result = [[], [], [], [], []];
+
+    // ===== NORMAL SPIN =====
+    if (!window.gameState.isFreeSpinning) {
+        for (let col = 0; col < 5; col++) {
+            const reel = REELS[col];
+            const startPos = Math.floor(Math.random() * reel.length);
+            for (let row = 0; row < 4; row++) {
+                result[col][row] = reel[(startPos + row) % reel.length];
+            }
+        }
+
+        // ===== ADMIN CONTROL 1: Apply Buffalo Mode (Normal Spin) =====
+        const adminCtrl1 = window.adminControl1 || { enabled: false, mode: null };
+        if (adminCtrl1.enabled && adminCtrl1.mode && BUFFALO_MODE_CONFIG[adminCtrl1.mode]) {
+            applyBuffaloMode(result, adminCtrl1.mode);
+        }
+    }
+
+    // ===== FREE SPIN MODE =====
+    else {
+        for (let col = 0; col < 5; col++) {
+            let enhancedReel = [...REELS[col]];
+
+            enhancedReel.push(FREE_SPIN_SYMBOLS.wild);
+            enhancedReel.push(FREE_SPIN_SYMBOLS.baba);
+            enhancedReel.push(FREE_SPIN_SYMBOLS.free);
+
+            const adminCtrl1 = window.adminControl1 || { enabled: false, freeSpinBuffaloEnabled: false };
+            if (adminCtrl1.enabled && adminCtrl1.freeSpinBuffaloEnabled) {
+                if (FREE_SPIN_BUFFALO_COLS.includes(col)) {
+                    enhancedReel.push('buffalo');
+                    enhancedReel.push('buffalo');
+                }
+            } else {
+                if (FREE_SPIN_BUFFALO_COLS.includes(col)) {
+                    enhancedReel.push('buffalo');
+                    enhancedReel.push('buffalo');
+                }
+            }
+
+            const startPos = Math.floor(Math.random() * enhancedReel.length);
+            for (let row = 0; row < 4; row++) {
+                const index = (startPos + row) % enhancedReel.length;
+                result[col][row] = enhancedReel[index];
+            }
+        }
+    }
+
+    // =========================================================
+    // AUTO NO-WIN CYCLE (using column-based no-win)
+    // =========================================================
+    let shouldApplyNoWin = false;
+
+    if (window.gameState.autoNoWinCycle && window.gameState.autoNoWinCycle.enabled) {
+        const cycle = window.gameState.autoNoWinCycle;
+
+        if (cycle.currentPhase === 'nowin') {
+            shouldApplyNoWin = true;
+            cycle.noWinSpins++;
+            console.log(`🔄 NO-WIN spin #${cycle.noWinSpins}`);
+            if (cycle.noWinSpins >= cycle.noWinPhaseLength) {
+                cycle.currentPhase = 'normal';
+                cycle.normalSpins = 0;
+                cycle.noWinSpins = 0;
+                console.log('🔄 Switching to NORMAL phase');
+            }
+        } else {
+            // normal phase
+            shouldApplyNoWin = false;
+            cycle.normalSpins++;
+            console.log(`🔄 NORMAL spin #${cycle.normalSpins}`);
+            if (cycle.normalSpins >= cycle.normalPhaseLength) {
+                cycle.currentPhase = 'nowin';
+                cycle.normalSpins = 0;
+                cycle.noWinSpins = 0;
+                console.log('🔄 Switching to NO-WIN phase');
+            }
+        }
+    } else {
+        // auto cycle disabled → use manual adminControl2 (original)
+        const adminCtrl2 = window.adminControl2 || { enabled: false };
+        shouldApplyNoWin = adminCtrl2.enabled && adminCtrl2.mode === 'always_different';
+    }
+
+    // ===== APPLY NO-WIN =====
+    if (shouldApplyNoWin) {
+        if (window.gameState.autoNoWinCycle && window.gameState.autoNoWinCycle.enabled) {
+            forceNoWinByColumns(result);   // auto cycle method
+        } else {
+            applyAdminControl2(result);      // manual admin method
+        }
+    }
+
+    // ===== REMOVE WILD FROM COL 0 & COL 1 (extra safety) =====
+    const symbolsWithoutWild = ['seven', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus'];
+    for (let row = 0; row < 4; row++) {
+        if (result[0][row] === 'wild') {
+            result[0][row] = symbolsWithoutWild[Math.floor(Math.random() * symbolsWithoutWild.length)];
+        }
+        if (result[1][row] === 'wild') {
+            result[1][row] = symbolsWithoutWild[Math.floor(Math.random() * symbolsWithoutWild.length)];
+        }
+    }
+
+    return result;
+}
+
+function forceNoWinByColumns(result) {
+    const allSymbols = ['seven', 'jack', 'queen', 'nine', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'ten'];
+    
+    // 1. col0 အတွက် random symbols (ထပ်တူဖြစ်ခွင့်ရှိတယ်)
+    for (let row = 0; row < 4; row++) {
+        result[0][row] = allSymbols[Math.floor(Math.random() * allSymbols.length)];
+    }
+    
+    // 2. col0 မှာသုံးထားတဲ့ symbol set ကို ဖော်ထုတ်
+    const usedInCol0 = new Set(result[0]);
+    
+    // 3. col1 အတွက် သုံးလို့ရတဲ့ symbol pool (col0 မှာမရှိတဲ့ symbol တွေ)
+    let availableForCol1 = allSymbols.filter(s => !usedInCol0.has(s));
+    
+    // လုံလောက်တဲ့ symbol မရှိရင် (ဖြစ်ခဲ) allSymbols ကနေ ပြန်ရွေးပေမယ့် wild မပါအောင်
+    if (availableForCol1.length < 4) {
+        availableForCol1 = [...allSymbols];
+    }
+    
+    for (let row = 0; row < 4; row++) {
+        result[1][row] = availableForCol1[Math.floor(Math.random() * availableForCol1.length)];
+    }
+    
+    // 4. wild ပါလာရင် ဖယ် (safety)
+    for (let row = 0; row < 4; row++) {
+        if (result[0][row] === 'wild') result[0][row] = 'nine';
+        if (result[1][row] === 'wild') result[1][row] = 'ten';
+    }
+    
+    console.log('🔧 forceNoWinByColumns: col0 and col1 symbol sets are disjoint → guaranteed no win');
+}
+
+// ===== ADMIN CONTROL 2 - NOWIN CONTROL =====
+window.adminControl2 = {
+    enabled: false,
+    mode: 'normal'
+};
+
+let uniqueModeSpinCounter = 0;
+let duplicateAllowedThisSpin = false;
+const DUPLICATE_INTERVAL = 20;
+
+function listenToAdminControl2() {
+    if (!window.firebase || !window.firebase.firestore) {
+        console.warn('⚠️ Firebase not available, admin control 2 disabled');
+        return;
+    }
+
+    const db = firebase.firestore();
+
+    db.collection('settings').doc('adminControl2')
+        .onSnapshot((doc) => {
+            if (doc.exists) {
+                const data = doc.data();
+                window.adminControl2.enabled = data.enabled === true;
+                window.adminControl2.mode = data.mode || 'normal';
+                console.log('🔥 Admin Control 2 updated:', JSON.stringify(window.adminControl2));
+
+                if (window.adminControl2.enabled) {
+                    uniqueModeSpinCounter = 0;
+                    duplicateAllowedThisSpin = false;
+                }
+            } else {
+                console.log('⚠️ No adminControl2 document found, using default');
+                window.adminControl2.enabled = false;
+                window.adminControl2.mode = 'normal';
+            }
+        }, (error) => {
+            console.error('❌ Error listening to admin control 2:', error);
+        });
+}
+
+function applyAdminControl2(result) {
+    const adminCtrl = window.adminControl2 || { enabled: false, mode: 'normal' };
+
+    if (!adminCtrl.enabled || adminCtrl.mode !== 'always_different') {
+        return result;
+    }
+
+    console.log('🎯 Admin Control 2 ACTIVE: Making Col 0 and Col 1 different');
+
+    const symbolsWithoutWild = ['seven', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus'];
+    let pool = [...symbolsWithoutWild];
+    let selectedCol0 = [];
+    let selectedCol1 = [];
+
+    for (let i = 0; i < 4; i++) {
+        if (pool.length === 0) pool = [...symbolsWithoutWild];
+        let randomIndex = Math.floor(Math.random() * pool.length);
+        selectedCol0.push(pool[randomIndex]);
+        pool.splice(randomIndex, 1);
+    }
+
+    for (let i = 0; i < 4; i++) {
+        if (pool.length === 0) {
+            const remaining = symbolsWithoutWild.filter(s => !selectedCol0.includes(s));
+            pool = remaining.length > 0 ? [...remaining] : [...symbolsWithoutWild];
+        }
+        let randomIndex = Math.floor(Math.random() * pool.length);
+        selectedCol1.push(pool[randomIndex]);
+        pool.splice(randomIndex, 1);
+    }
+
+    for (let row = 0; row < 4; row++) {
+        result[0][row] = selectedCol0[row];
+        result[1][row] = selectedCol1[row];
+    }
+
+    for (let row = 0; row < 4; row++) {
+        if (result[0][row] === 'wild') {
+            result[0][row] = symbolsWithoutWild[Math.floor(Math.random() * symbolsWithoutWild.length)];
+        }
+        if (result[1][row] === 'wild') {
+            result[1][row] = symbolsWithoutWild[Math.floor(Math.random() * symbolsWithoutWild.length)];
+        }
+    }
+
+    console.log('🎯 Admin Control 2 Applied - Sample:',
+        result[0].map((v,i) => `${v}-${result[1][i]}`).join(', '));
+
+    return result;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    listenToAdminControl2();
+    console.log('🎮 Admin Control 2 listener started');
+});
+
+
+// ============================================
+// 7. STAGGERED ANIMATION WITH DROP EFFECT (No Disappear)
+// ============================================
+
+function animateReelsStaggered(finalResult) {
+    const cells = document.querySelectorAll('.grid-cell');
+    if (cells.length === 0) return;
+
+    console.log('🎰 Real slot machine animation started');
+
+    // Animation class အဟောင်းတွေ ဖြုတ်
+    cells.forEach(cell => {
+        const img = cell.querySelector('img');
+        if (img) {
+            img.classList.remove('symbol-drop', 'symbol-glow', 'reel-spin');
+        }
+        cell.classList.remove('reel-shake');
+    });
+
+    // Reel တစ်ခုစီအတွက် သီးခြား animation
+    for (let col = 0; col < 5; col++) {
+        const reelCells = Array.from(cells).filter(cell => parseInt(cell.dataset.col) === col);
+        
+        // Reel တစ်ခုလုံးကို လှည့်နေတဲ့ပုံပေါ်အောင်
+        reelCells.forEach(cell => {
+            cell.classList.add('reel-shake');
+            const img = cell.querySelector('img');
+            if (img) {
+                img.classList.add('reel-spin');
+            }
+        });
+        
+        // Reel အလိုက် ရပ်မယ် (ကော်လံ 0 ကနေ 4 အထိ စဉ်တန်းရပ်)
+        setTimeout(() => {
+            reelCells.forEach((cell, row) => {
+                // လှည့်တာ ရပ်
+                cell.classList.remove('reel-shake');
+                const img = cell.querySelector('img');
+                if (img) {
+                    img.classList.remove('reel-spin');
+                }
+                
+                // Final symbol ထည့်
+                const symbol = finalResult[col][row];
+                if (img && symbol) {
+                    img.src = `images/${symbol}.png`;
+                    // ရပ်တဲ့အခါ အနည်းငယ် bounce
+                    img.classList.add('symbol-bounce');
+                    setTimeout(() => {
+                        img.classList.remove('symbol-bounce');
+                    }, 300);
+                }
+                cell.dataset.symbol = symbol;
+            });
+            
+            // နောက်ဆုံး reel ရပ်ပြီးရင် event လွှတ်
+            if (col === 4) {
+                setTimeout(() => {
+                    document.dispatchEvent(new CustomEvent('animationComplete'));
+                    console.log('✅ All reels stopped');
+                }, 300);
+            }
+        }, 400 + (col * 200)); // col 0: 400ms, col1: 600ms, col2: 800ms, etc
+    }
+}
+
+function checkThreeMatchRate() {
+    const state = window.gameState;
+    const expectedCount = Math.floor(state.checkInterval * state.targetThreeMatchRate); // 10 * 0.2 = 2
+    
+    console.log(`🎯 Three-match check: ${state.threeMatchCount}/${expectedCount} in last ${state.checkInterval} spins`);
+    
+    if (state.threeMatchCount > expectedCount) {
+        // သတ်မှတ်ချက်ထက် ပိုနေရင် နောက် spin တွေမှာ ၃ ကောင်တူတာကို လျှော့ချမယ်
+        state.reduceThreeMatch = true;
+        console.log('⚠️ Reducing three-match probability for next spins');
+    } else {
+        state.reduceThreeMatch = false;
+    }
+    
+    // Counter တွေကို ပြန် Reset လုပ်မယ်
+    state.threeMatchCount = 0;
+    state.totalSpinsSinceReset = 0;
+}
+
+
+// ============================================
+// WIN ANIMATIONS - BIG WIN, MEGA WIN, SUPER WIN
+//=============================================
+const WinAnimation = (function() {
+    
+    // ========== PRIVATE VARIABLES ==========
+    let canvas = null;
+    let ctx = null;
+    let animationId = null;
+    let isActive = false;
+    let currentType = 'mega';
+    let currentAmount = 0;
+    
+    let particles = [];
+    let rotatingLights = [];
+    let time = 0;
+    let lightAngleOffset = 0;
+    let scaleBig = 0;
+    let glowIntensity = 0;
+    let wobbleX = 0, wobbleY = 0;
+    let amountScale = 0;
+    let displayAmount = "";
+    let digitIndex = 0;
+    let burstInterval = null;
+    let shakeOffset = { x: 0, y: 0 };
+    let shakeTimer = null;
+    let backgroundStars = [];
+    
+    const WIDTH = 800;
+    const HEIGHT = 450;
+    const LIGHT_COUNT = 16;
+    
+    // ========== PARTICLE CLASS (optimized) ==========
+    class Particle {
+        constructor(x, y, vx, vy, size, color, life, shape = 'circle') {
+            this.x = x;
+            this.y = y;
+            this.vx = vx;
+            this.vy = vy;
+            this.size = size;
+            this.color = color;
+            this.life = life;
+            this.maxLife = life;
+            this.shape = shape;
+        }
+        update() {
+            this.x += this.vx;
+            this.y += this.vy;
+            this.vy += 0.05;
+            this.vx *= 0.99;
+            this.life -= 2;
+            return this.life > 0;
+        }
+        draw(ctx) {
+            const alpha = Math.min(1, this.life / this.maxLife);
+            ctx.save();
+            ctx.globalAlpha = alpha * 0.9;
+            if (this.shape === 'star') {
+                ctx.font = `${this.size * 1.5}px "Segoe UI Emoji", "Apple Color Emoji"`;
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                const starEmoji = Math.random() > 0.6 ? "✨" : "⭐";
+                ctx.fillStyle = this.color;
+                ctx.fillText(starEmoji, this.x, this.y);
+            } 
+            else if (this.shape === 'coin') {
+                ctx.font = `${this.size * 1.4}px "Segoe UI Emoji", "Apple Color Emoji"`;
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillStyle = this.color;
+                ctx.fillText("🪙", this.x, this.y);
+            } 
+            else {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+    }
+    
+    // ========== ROTATING LIGHTS ==========
+    function initRotatingLights() {
+        rotatingLights = [];
+        const colors = ['#ff0040', '#ff8000', '#ffff00', '#80ff00', '#00ff80', '#00ffff', '#0080ff', '#ff00ff', '#ff0080', '#ff4400', '#ff66cc', '#ffaa33', '#33ffaa', '#ff3366', '#ff99cc', '#ffcc33'];
+        for (let i = 0; i < LIGHT_COUNT; i++) {
+            rotatingLights.push({
+                angle: (i / LIGHT_COUNT) * Math.PI * 2,
+                radius: 170 + Math.random() * 20,
+                color: colors[i % colors.length],
+                size: 5 + Math.random() * 4,
+                speed: 0.008 + Math.random() * 0.003,
+                pulse: 0
+            });
+        }
+    }
+    
+    function updateRotatingLights() {
+        lightAngleOffset += 0.01;
+        for (let i = 0; i < rotatingLights.length; i++) {
+            const light = rotatingLights[i];
+            light.angle += light.speed;
+            light.pulse = 0.6 + Math.sin(time * 0.01 + i) * 0.4;
+        }
+    }
+    
+    function drawRotatingLights(centerX, centerY) {
+        ctx.save();
+        ctx.globalAlpha = 0.25;
+        for (const light of rotatingLights) {
+            const x = centerX + Math.cos(light.angle + lightAngleOffset) * light.radius;
+            const y = centerY + Math.sin(light.angle + lightAngleOffset) * light.radius;
+            ctx.beginPath();
+            ctx.arc(x, y, light.size * light.pulse, 0, Math.PI * 2);
+            ctx.fillStyle = light.color;
+            ctx.fill();
+        }
+        ctx.restore();
+    }
+    
+    function drawLightRays(centerX, centerY, intensity) {
+        ctx.save();
+        ctx.globalAlpha = 0.1;
+        for (let i = 0; i < 16; i++) {
+            const angle = (i / 16) * Math.PI * 2 + time * 0.005;
+            const x1 = centerX + Math.cos(angle) * 25;
+            const y1 = centerY + Math.sin(angle) * 25;
+            const x2 = centerX + Math.cos(angle) * 170;
+            const y2 = centerY + Math.sin(angle) * 170;
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.lineWidth = 6;
+            ctx.strokeStyle = `rgba(255, 200, 80, 0.4)`;
+            ctx.stroke();
+        }
+        ctx.restore();
+    }
+    
+    // ========== 3D TEXT ==========
+    function draw3DWinText(x, y, scale, wobbleX, wobbleY, glowIntensity) {
+        const text = currentType === 'big' ? "BIG WIN" : (currentType === 'super' ? "SUPER WIN" : "MEGA WIN");
+        const fontSize = 72 * (0.7 + scale * 0.6);
+        ctx.save();
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.font = `900 ${fontSize}px "Poppins", "Arial Black", "Impact"`;
+        
+        const offsetX = Math.sin(wobbleX) * 2.5;
+        const offsetY = Math.sin(wobbleY) * 2;
+        
+        const depths = [
+            { dx: 8, dy: 8, color: '#2a1a00', blur: 0 },
+            { dx: 6, dy: 6, color: '#3a2800', blur: 1 },
+            { dx: 4, dy: 4, color: '#4a2a00', blur: 2 },
+            { dx: 3, dy: 2.5, color: '#5a3a00', blur: 3 },
+            { dx: 1.5, dy: 1, color: '#7a5200', blur: 4 }
+        ];
+        for (let i = 0; i < depths.length; i++) {
+            const d = depths[i];
+            ctx.shadowBlur = d.blur;
+            ctx.shadowColor = 'rgba(0,0,0,0.4)';
+            ctx.fillStyle = d.color;
+            ctx.fillText(text, x + d.dx + offsetX, y + d.dy + offsetY);
+        }
+        
+        const grad = ctx.createLinearGradient(x - 90, y - 35, x + 90, y + 35);
+        const gradPos = (time * 0.012) % 1;
+        grad.addColorStop(gradPos, '#FDB827');
+        grad.addColorStop(gradPos + 0.2, '#FFE484');
+        grad.addColorStop(gradPos + 0.4, '#FFD966');
+        grad.addColorStop(gradPos + 0.6, '#F79F1A');
+        ctx.fillStyle = grad;
+        ctx.shadowBlur = 24 * (1 + glowIntensity);
+        ctx.shadowColor = `rgba(255, 180, 30, ${0.5 + glowIntensity * 0.6})`;
+        ctx.fillText(text, x + offsetX, y + offsetY);
+        
+        ctx.shadowBlur = 0;
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#FFEAA0';
+        ctx.strokeText(text, x + offsetX, y + offsetY);
+        
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.fillStyle = 'rgba(255, 255, 220, 0.3)';
+        ctx.fillText(text, x + offsetX - 2, y + offsetY - 2);
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.restore();
+    }
+    
+    function draw3DAmount(amountStr, x, y, scale, glowIntensity) {
+        ctx.save();
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        const fontSize = 52 * (0.8 + scale * 0.4);
+        ctx.font = `bold ${fontSize}px "Poppins", "Arial Black", monospace`;
+        
+        ctx.fillStyle = '#3a2800';
+        ctx.fillText(amountStr, x + 3, y + 3);
+        ctx.fillStyle = '#5a3c00';
+        ctx.fillText(amountStr, x + 2, y + 2);
+        ctx.fillStyle = '#7a5200';
+        ctx.fillText(amountStr, x + 1, y + 1);
+        
+        const grad = ctx.createLinearGradient(x - 60, y - 20, x + 60, y + 20);
+        grad.addColorStop(0, '#FFB347');
+        grad.addColorStop(0.5, '#FFD966');
+        grad.addColorStop(1, '#FFA500');
+        ctx.fillStyle = grad;
+        ctx.shadowBlur = 16 * (1 + glowIntensity);
+        ctx.shadowColor = `rgba(255, 100, 0, ${0.5 + glowIntensity * 0.5})`;
+        ctx.fillText(amountStr, x, y);
+        
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.fillStyle = 'rgba(255,255,200,0.2)';
+        ctx.fillText(amountStr, x - 1, y - 1);
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.restore();
+    }
+    
+    // ========== BURST – 360° all directions ==========
+    function doBurst() {
+        const centerX = WIDTH / 2;
+        const centerY = HEIGHT / 2 - 20;
+        
+        const colorsGold = ['#FFD966', '#FFB347', '#FFA500', '#FFD700', '#FF6B35', '#F4C542'];
+        const colorsStar = ['#FF3366', '#33FF66', '#FF33CC', '#FF6600', '#00FFFF', '#FF00FF'];
+        
+        // main burst: 170 particles, all directions
+        for (let i = 0; i < 170; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 6 + 3;
+            const vx = Math.cos(angle) * speed * (Math.random() * 1.2);
+            const vy = Math.sin(angle) * speed * (Math.random() * 1.1);
+            const size = Math.random() * 7 + 2.5;
+            
+            let color, shape;
+            const typeRand = Math.random();
+            if (typeRand < 0.5) {
+                shape = 'coin';
+                color = `hsl(${45 + Math.random() * 20}, 100%, 60%)`;
+            } else if (typeRand < 0.8) {
+                shape = 'star';
+                color = colorsStar[Math.floor(Math.random() * colorsStar.length)];
+            } else {
+                shape = 'circle';
+                color = colorsGold[Math.floor(Math.random() * colorsGold.length)];
+            }
+            
+            const life = Math.random() * 120 + 80;
+            particles.push(new Particle(centerX, centerY, vx, vy, size, color, life, shape));
+        }
+        
+        // floating particles around the text (random positions near text)
+        for (let i = 0; i < 60; i++) {
+            const randX = centerX + (Math.random() - 0.5) * 180;
+            const randY = centerY + (Math.random() - 0.5) * 120;
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 3 + 1;
+            const vx = Math.cos(angle) * speed;
+            const vy = Math.sin(angle) * speed;
+            const size = Math.random() * 4 + 1.5;
+            const color = colorsStar[Math.floor(Math.random() * colorsStar.length)];
+            particles.push(new Particle(randX, randY, vx, vy, size, color, 70 + Math.random() * 50, Math.random() > 0.6 ? 'star' : 'circle'));
+        }
+    }
+    
+    // ========== COIN RAIN – spread widely above text ==========
+    function startCoinRain() {
+        const centerX = WIDTH / 2;
+        const centerY = HEIGHT / 2 - 20;
+        for (let i = 0; i < 70; i++) {
+            setTimeout(() => {
+                const x = centerX + (Math.random() - 0.5) * 220;   // wide spread
+                const y = centerY - 50 + Math.random() * 50;
+                const vx = (Math.random() - 0.5) * 2.2;
+                const vy = Math.random() * 5 + 3;
+                const size = Math.random() * 7 + 4;
+                const color = `hsl(${45 + Math.random() * 20}, 100%, 60%)`;
+                particles.push(new Particle(x, y, vx, vy, size, color, 130, 'coin'));
+            }, i * 30);
+        }
+    }
+    
+    // ========== SCREEN SHAKE ==========
+    function startScreenShake() {
+        if (shakeTimer) clearTimeout(shakeTimer);
+        const duration = 350;
+        const startTime = performance.now();
+        function shake() {
+            const elapsed = performance.now() - startTime;
+            if (elapsed >= duration) {
+                shakeOffset = { x: 0, y: 0 };
+                if (canvas) canvas.style.transform = `translate(-50%, -50%)`;
+                return;
+            }
+            const intensity = (1 - elapsed / duration) * 6;
+            shakeOffset.x = (Math.random() - 0.5) * intensity;
+            shakeOffset.y = (Math.random() - 0.5) * intensity;
+            if (canvas) canvas.style.transform = `translate(calc(-50% + ${shakeOffset.x}px), calc(-50% + ${shakeOffset.y}px))`;
+            requestAnimationFrame(shake);
+        }
+        shake();
+    }
+    
+    // ========== CANVAS SETUP ==========
+    function setupCanvas() {
+        if (canvas && canvas.parentNode) canvas.parentNode.removeChild(canvas);
+        canvas = document.createElement('canvas');
+        canvas.id = 'win-animation-canvas';
+        canvas.width = WIDTH;
+        canvas.height = HEIGHT;
+        canvas.style.position = 'fixed';
+        canvas.style.top = '50%';
+        canvas.style.left = '50%';
+        canvas.style.transform = 'translate(-50%, -50%)';
+        canvas.style.zIndex = '999995';
+        canvas.style.borderRadius = '16px';
+        canvas.style.boxShadow = '0 0 30px rgba(0,0,0,0.8)';
+        canvas.style.cursor = 'pointer';
+        document.body.appendChild(canvas);
+        ctx = canvas.getContext('2d');
+        canvas.onclick = () => { if (isActive) resetAndStart(currentAmount); };
+        
+        // pre‑generate background stars
+        backgroundStars = [];
+        for (let i = 0; i < 80; i++) {
+            backgroundStars.push({
+                x: Math.random() * WIDTH,
+                y: Math.random() * HEIGHT,
+                size: Math.random() * 1.5 + 0.5,
+                alpha: Math.random() * 0.5 + 0.2
+            });
+        }
+    }
+    
+    function drawBackground() {
+           if (!ctx) return;
+        const grad = ctx.createLinearGradient(0, 0, WIDTH, HEIGHT);
+        grad.addColorStop(0, '#0a0a1a');
+        grad.addColorStop(0.5, '#12122a');
+        grad.addColorStop(1, '#1a1a2e');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        
+        for (let s of backgroundStars) {
+            ctx.fillStyle = `rgba(255,200,100,${s.alpha})`;
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    function drawParticlesAndUpdate() {
+        for (let i = 0; i < particles.length; i++) {
+            const alive = particles[i].update();
+            if (alive) particles[i].draw(ctx);
+            else { particles.splice(i, 1); i--; }
+        }
+    }
+    
+    // ========== RESET & START ==========
+    function resetAndStart(amount) {
+        if (animationId) cancelAnimationFrame(animationId);
+        if (burstInterval) clearInterval(burstInterval);
+        
+        isActive = true;
+        currentAmount = amount;
+        
+        scaleBig = 0;
+        amountScale = 0;
+        glowIntensity = 0;
+        digitIndex = 0;
+        particles = [];
+        time = 0;
+        
+        const amountStr = amount.toLocaleString();
+        displayAmount = "";
+        const animateDigits = () => {
+            if (digitIndex <= amountStr.length) {
+                displayAmount = amountStr.substring(0, digitIndex);
+                digitIndex++;
+                setTimeout(animateDigits, 80);
+            }
+        };
+        animateDigits();
+        
+        if (typeof gsap !== 'undefined') {
+            const tl = gsap.timeline();
+            tl.to({val:0}, {val:1, duration:0.5, ease:"backOut(1.2)", onUpdate:function(){ scaleBig = this.targets()[0].val; }})
+              .to({val:0}, {val:1, duration:0.8, delay:0.2, ease:"elastic.out(1,0.4)", onUpdate:function(){ amountScale = this.targets()[0].val; }}, "<")
+              .to({g:0}, {g:1, duration:0.7, repeat:3, yoyo:true, ease:"power1.inOut", onUpdate:function(){ glowIntensity = this.targets()[0].g; }}, "<0.2")
+              .to({x:0}, {x:Math.PI*2, duration:2.5, repeat:-1, ease:"none", onUpdate:function(){ wobbleX = this.targets()[0].x; }})
+              .to({y:0}, {y:Math.PI*2, duration:3, repeat:-1, ease:"none", onUpdate:function(){ wobbleY = this.targets()[0].y; }}, "<");
+        } else {
+            scaleBig = 1; amountScale = 1; glowIntensity = 1;
+        }
+        
+        doBurst();
+        startCoinRain();
+        startScreenShake();
+        
+        let burstTimes = 0;
+        burstInterval = setInterval(() => {
+            burstTimes++;
+            if (burstTimes < 3) doBurst();
+            else { clearInterval(burstInterval); burstInterval = null; }
+        }, 600);
+        
+        setTimeout(() => {
+            if (isActive) {
+                if (typeof gsap !== 'undefined') {
+                    gsap.to({val:scaleBig}, {val:0, duration:0.6, ease:"power2.in", onUpdate:function(){ scaleBig = this.targets()[0].val; amountScale = this.targets()[0].val; }, onComplete:()=>{ isActive=false; clearCanvas(); }});
+                } else {
+                    isActive = false;
+                    clearCanvas();
+                }
+            }
+        }, 5500);
+        
+        function animateLoop() {
+            if (!ctx) {   // if context lost, stop animation
+        if (animationId) cancelAnimationFrame(animationId);
+        animationId = null;
+        return;
+    }
+            if (!isActive && particles.length === 0) { animationId = null; return; }
+            drawBackground();
+            updateRotatingLights();
+            if (isActive) {
+                const cx = WIDTH/2, cy = HEIGHT/2 - 20;
+                drawRotatingLights(cx, cy);
+                drawLightRays(cx, cy, glowIntensity);
+                draw3DWinText(cx, cy, scaleBig, wobbleX, wobbleY, glowIntensity);
+                if (displayAmount) draw3DAmount(displayAmount, cx, cy + 68, amountScale, glowIntensity);
+                drawParticlesAndUpdate();
+            } else {
+                drawParticlesAndUpdate();
+            }
+            time++;
+            animationId = requestAnimationFrame(animateLoop);
+        }
+        animateLoop();
+    }
+    
+    function clearCanvas() {
+        if (canvas && canvas.parentNode) canvas.parentNode.removeChild(canvas);
+        canvas = null; ctx = null;
+        if (shakeTimer) clearTimeout(shakeTimer);
+        shakeOffset = { x: 0, y: 0 };
+    }
+    
+    // ========== PUBLIC API ==========
+    function showMegaWin(amount = 0) {
+        setupCanvas();
+        currentType = 'mega';
+        resetAndStart(amount);
+    }
+    function showBigWin(amount = 0) {
+        setupCanvas();
+        currentType = 'big';
+        resetAndStart(amount);
+    }
+    function showSuperWin(amount = 0) {
+        setupCanvas();
+        currentType = 'super';
+        resetAndStart(amount);
+    }
+    function clear() {
+        if (animationId) cancelAnimationFrame(animationId);
+        if (burstInterval) clearInterval(burstInterval);
+        isActive = false;
+        clearCanvas();
+        const container = document.getElementById('win-animation-container');
+        if (container) container.remove();
+        const canvasEl = document.getElementById('win-animation-canvas');
+        if (canvasEl) canvasEl.remove();
+    }
+    
+    initRotatingLights();
+    
+    return { mega: showMegaWin, big: showBigWin, super: showSuperWin, clear: clear };
+})();
 
 // ============================================
 // CLEAR ALL WIN HIGHLIGHTS
@@ -997,283 +1910,17 @@ function clearAllWinHighlights() {
     console.log('🧹 All win highlights cleared');
 }
 
-// ============================================
-// 7. STAGGERED ANIMATION WITH DROP EFFECT (No Disappear)
-// ============================================
-function animateReelsStaggered(finalResult) {
-    const cells = document.querySelectorAll('.grid-cell');
-    if (cells.length === 0) return;
-
-    console.log('✨ Staggered drop animation started (no disappear)');
-
-    // Animation class အဟောင်းတွေ ဖြုတ်
-    cells.forEach(cell => {
-        const img = cell.querySelector('img');
-        if (img) {
-            img.classList.remove('symbol-drop', 'symbol-glow');
-            // Opacity ကို မပြောင်းဘူး
-        }
-    });
-
-    // တစ်ခုချင်းစီ ကျလာအောင် လုပ်
-    cells.forEach((cell, index) => {
-        setTimeout(() => {
-            const row = Math.floor(index / 5);
-            const col = index % 5;
-            const symbol = finalResult[col][row];
-            const img = cell.querySelector('img');
-
-            if (img && symbol) {
-                // ပုံအသစ်ထည့်
-                img.src = `images/${symbol}.png`;
-                
-                // Animation class ထည့် (ကျလာမယ်)
-                img.classList.add('symbol-drop');
-                cell.classList.add('symbol-glow');
-                
-                // Animation ပြီးရင် class ဖြုတ်
-                setTimeout(() => {
-                    img.classList.remove('symbol-drop');
-                    cell.classList.remove('symbol-glow');
-                }, 800);
-            }
-            cell.dataset.symbol = symbol;
-            
-        }, 100 + (index * 40)); // တစ်ခုနဲ့တစ်ခု 40ms ခြား
-    });
-
-    // Animation ပြီးတဲ့ Event ကို ပြန်ခေါ်
-    setTimeout(() => {
-        cells.forEach(cell => {
-            const img = cell.querySelector('img');
-            if (img) {
-                img.classList.remove('symbol-drop', 'symbol-glow');
-            }
-        });
-        document.dispatchEvent(new CustomEvent('animationComplete'));
-        console.log('✅ Drop animation complete');
-    }, 100 + (cells.length * 40) + 800);
-}
-
-
-function checkThreeMatchRate() {
-    const state = window.gameState;
-    const expectedCount = Math.floor(state.checkInterval * state.targetThreeMatchRate); // 10 * 0.2 = 2
-    
-    console.log(`🎯 Three-match check: ${state.threeMatchCount}/${expectedCount} in last ${state.checkInterval} spins`);
-    
-    if (state.threeMatchCount > expectedCount) {
-        // သတ်မှတ်ချက်ထက် ပိုနေရင် နောက် spin တွေမှာ ၃ ကောင်တူတာကို လျှော့ချမယ်
-        state.reduceThreeMatch = true;
-        console.log('⚠️ Reducing three-match probability for next spins');
-    } else {
-        state.reduceThreeMatch = false;
-    }
-    
-    // Counter တွေကို ပြန် Reset လုပ်မယ်
-    state.threeMatchCount = 0;
-    state.totalSpinsSinceReset = 0;
-}
 
 // ============================================
-// 8. WIN CALCULATION (1024 WAYS)
+// COUNT BUFFALO FUNCTION
 // ============================================
-function calculateWinnings(result) {
-    console.log('🔥 calculateWinnings called');
-    console.log('🎮 threeMatchControl status:', window.gameState?.threeMatchControl);
-   if (window.gameState.consecutiveWins >= window.gameState.MAX_CONSECUTIVE_WINS) {
-    
-    if (Math.random() < 0.8) {  
-        console.log('⚠️ Streak protection activated - forcing loss');
-        window.gameState.consecutiveWins = 0;
-        return {
-            totalWin: 0,
-            indices: [],
-            buffaloIndices: [],
-            winLines: []
-        };
-    } else {
-        
-        console.log('🍀 Lucky! Allowed to continue streak');
-   
-    }
-}
-
-    const paytable = window.PAYTABLE;
-    let totalWin = 0;
-    let buffaloCount = 0;
-    let winIndices = [];
-    let buffaloIndices = [];
-    let winLines = [];
-    const bet = window.gameState.betAmount;
-    const rows = 4;
-    const cols = 5;
-
-    // Count buffalo for jackpot
-    for (let c = 0; c < cols; c++) {
-        for (let r = 0; r < rows; r++) {
-            if (result[c][r] === 'buffalo') {
-                buffaloCount++;
-                buffaloIndices.push(r * 5 + c);
-            }
-        }
-    }
-
-    // 1024 ways to win - check all combinations
-    for (let r0 = 0; r0 < rows; r0++) {
-        const symbol0 = result[0][r0];
-        if (!symbol0) continue;
-
-        for (let r1 = 0; r1 < rows; r1++) {
-            if (result[1][r1] !== symbol0 && result[1][r1] !== 'wild') continue;
-
-            for (let r2 = 0; r2 < rows; r2++) {
-                const sym2 = result[2][r2];
-                if (!(sym2 === symbol0 || sym2 === 'wild')) continue;
-
-                let streak = 3;
-                let winRowIndices = [r0 * 5, r1 * 5 + 1, r2 * 5 + 2];
-
-                // Check col 3
-                for (let r3 = 0; r3 < rows; r3++) {
-                    const sym3 = result[3][r3];
-                    if (sym3 === symbol0 || sym3 === 'wild') {
-                        streak = 4;
-                        winRowIndices.push(r3 * 5 + 3);
-                        break;
-                    }
-                }
-
-                // Check col 4
-                if (streak === 4) {
-                    for (let r4 = 0; r4 < rows; r4++) {
-                        const sym4 = result[4][r4];
-                        if (sym4 === symbol0 || sym4 === 'wild') {
-                            streak = 5;
-                            winRowIndices.push(r4 * 5 + 4);
-                            break;
-                        }
-                    }
-                }
-
-                if (PAYTABLE[symbol0] && PAYTABLE[symbol0][streak]) {
-                    const win = bet * PAYTABLE[symbol0][streak];
-                    totalWin += win;
-
-                    winLines.push({
-                        symbol: symbol0,
-                        count: streak,
-                        win: win,
-                        multiplier: PAYTABLE[symbol0][streak]
-                    });
-
-                    winIndices.push(...winRowIndices);
-                }
-            }
-        }
-    }
-
-    // ******************* THREE-MATCH CONTROL  *******************
-
-let threeMatchWinCount = 0;
-winLines.forEach(line => {
-    console.log(`🔍 Win line - symbol: ${line.symbol}, count: ${line.count}, type: ${typeof line.count}`);
-    if (line.count === 3) {
-        threeMatchWinCount++;
-    }
-});
-console.log(`📊 threeMatchWinCount: ${threeMatchWinCount}`);
-
- if (window.gameState && window.gameState.threeMatchControl) {
-    console.log('⚙️ Inside threeMatchControl block');
-    window.gameState.threeMatchCount += threeMatchWinCount;
-    window.gameState.totalSpinsSinceReset++;
-  
-    console.log(`📊 Counters - ThreeMatch: ${window.gameState.threeMatchCount}, TotalSpins: ${window.gameState.totalSpinsSinceReset}, Interval: ${window.gameState.checkInterval}`);
-
-    if (window.gameState.totalSpinsSinceReset >= window.gameState.checkInterval) {
-        console.log('⏰ Check interval reached! Calling checkThreeMatchRate...');
-        checkThreeMatchRate();
-    }
-}
-
-    // *******************************************************************************
-
-    // Jackpot for 12+ buffalo
-    if (buffaloCount >= 12) {
-        totalWin += window.gameState.jackpot;
-        winLines.push({
-            line: 'JACKPOT',
-            name: 'Buffalo Jackpot',
-            win: window.gameState.jackpot
-        });
-        winIndices.push(...buffaloIndices);
-    }
-
-   if (totalWin > 0) {
-    // ********** STREAK COUNTER INCREMENT **********
-    window.gameState.consecutiveWins++;  // ဆက်တိုက် win အရေအတွက်တိုး
-    console.log('✅ Win! Consecutive wins:', window.gameState.consecutiveWins);
-    
-    window.gameState.balance += totalWin;
-    window.gameState.winAmount = totalWin;
-    updateBalanceDisplay();
-    updateWinDisplay(totalWin);
-    addWinToHistory(totalWin);
-    playWinSounds(totalWin, winLines);                                                               
-    showWinLinesInfo(winLines);
-
-   // Bet အလိုက် ရာခိုင်နှုန်းနဲ့တွက်မယ်
-const bet = window.gameState.betAmount;
-const winPercentage = (totalWin / bet) * 100;  // နိုင်ငွေရဲ့ ဆနှုန်း
-
-// ရာခိုင်နှုန်းအလိုက် ဆုအမျိုးအစားသတ်မှတ်မယ်
-if (typeof WinAnimations !== 'undefined') {
-    if (winPercentage >= 1500) {  // ၁၅ဆ (1500%) နိုင်ရင်
-        WinAnimations.mega(totalWin);      // totalWin ကိုထည့်ခေါ်
-        console.log('💰 MEGA WIN!', (totalWin/bet).toFixed(1) + 'x', totalWin + 'KS');
-        if (typeof SoundManager !== 'undefined') {
-            SoundManager.congratulations();
-        }
-    } else if (winPercentage >= 1000) {  // ၁၀ဆ (1000%) နိုင်ရင်
-        WinAnimations.super(totalWin);     // totalWin ကိုထည့်ခေါ်
-        console.log('🎰 SUPER WIN!', (totalWin/bet).toFixed(1) + 'x', totalWin + 'KS');
-        if (typeof SoundManager !== 'undefined') {
-            SoundManager.congratulations();
-        }
-    } else if (winPercentage >= 500) {  // ၅ဆ (500%) နိုင်ရင်
-        WinAnimations.big(totalWin);       // totalWin ကိုထည့်ခေါ်
-        console.log('🎉 BIG WIN!', (totalWin/bet).toFixed(1) + 'x', totalWin + 'KS');
-        if (typeof SoundManager !== 'undefined') {
-            SoundManager.congratulations();
-        }
-    }
-}
-
-    checkLevelUp();
-} else {
-    // ********** STREAK COUNTER RESET **********
-    window.gameState.consecutiveWins = 0;  // ရှုံးရင် ဆက်တိုက် win အရေအတွက်ပြတ်
-    window.gameState.winAmount = 0;
-    updateWinDisplay(0);
-}
-
-    // Remove duplicates from winIndices
-    winIndices = [...new Set(winIndices)];
-
-    return {
-        totalWin: totalWin,
-        indices: winIndices,
-        buffaloIndices: buffaloIndices,
-        winLines: winLines
-    };
-}
-
 function countBuffalo(result) {
     let count = 0;
     for (let c = 0; c < 5; c++) {
         for (let r = 0; r < 4; r++) {
-            if (result[c][r] === 'buffalo') count++;
+            if (result[c] && result[c][r] === 'buffalo') {
+                count++;
+            }
         }
     }
     return count;
@@ -1982,6 +2629,7 @@ const imageUrl = `${this.imageBasePath}running_bull${buffaloType}.png`;
 
 // Global instance ဆောက်မယ်
 const buffaloStampede = new UltimatePremiumBuffaloStampede();
+
 // ============================================
 // 12. AUTO SPIN (LONG PRESS)
 // ============================================
@@ -2171,34 +2819,101 @@ function stopAutoSpin(reason = 'manual') {
     }
 }
 
+
 // ============================================
-// 13. USER SURPRISE BOX
+// SURPRISE BOX SYSTEM (FIRESTORE VERSION)
 // ============================================
+// ===== SURPRISE BOX STATE =====
 let userSurpriseData = null;
 let selectedBoxIndices = [];
-const MAX_USER_SELECTIONS = 5;
+let surpriseListener = null;  // 👈 ဒါထည့်
+const MAX_SELECTIONS = 5;
+// ===== 1. LISTEN FOR SURPRISE BOX FROM FIRESTORE =====
+function listenForSurpriseBox(userId) {
+    if (!userId || !firebase.firestore) return;
 
+    if (surpriseListener) surpriseListener();
+
+    const db = firebase.firestore();
+    
+    surpriseListener = db.collection('sentBoxes')
+        .where('userId', '==', userId)
+        .where('opened', '==', false)
+        .onSnapshot((snapshot) => {
+            snapshot.docChanges().forEach((change) => {
+                if (change.type === 'added') {
+                    const boxData = change.doc.data();
+                    boxData.firestoreId = change.doc.id;
+                    
+                    // Save to localStorage
+                    saveSurpriseToLocalStorage(boxData);
+                    
+                    // Check if user is in game
+                    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+                    if (currentUser && currentUser.id === userId) {
+                        checkUserSurprise();
+                    }
+                }
+            });
+        }, (error) => {
+            console.error('Error listening to surprise box:', error);
+        });
+}
+
+// ===== 2. SAVE TO LOCAL STORAGE =====
+function saveSurpriseToLocalStorage(boxData) {
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    if (!currentUser || currentUser.id !== boxData.userId) return;
+
+    const surpriseKey = `userSurprise_${currentUser.id}`;
+    let surpriseData = JSON.parse(localStorage.getItem(surpriseKey));
+
+    if (!surpriseData || surpriseData.status !== 'pending') {
+        // Create new surprise box set
+        surpriseData = {
+            id: boxData.firestoreId,
+            status: 'pending',
+            boxes: [],
+            createdAt: new Date().toISOString()
+        };
+    }
+
+    // Add box to the set
+    surpriseData.boxes.push({
+        id: boxData.id,
+        type: boxData.type,
+        amount: boxData.value,
+        spins: boxData.value,
+        opened: false,
+        firestoreId: boxData.firestoreId
+    });
+
+    localStorage.setItem(surpriseKey, JSON.stringify(surpriseData));
+}
+
+// ===== 3. CHECK PENDING SURPRISE =====
 function checkUserSurprise() {
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
     if (!currentUser) return;
 
-    const userSurpriseKey = `userSurprise_${currentUser.id}`;
-    const surpriseJson = localStorage.getItem(userSurpriseKey);
+    const surpriseKey = `userSurprise_${currentUser.id}`;
+    const surpriseJson = localStorage.getItem(surpriseKey);
 
     if (surpriseJson) {
         try {
             const data = JSON.parse(surpriseJson);
-            if (data.status === 'pending') {
+            if (data.status === 'pending' && data.boxes && data.boxes.length > 0) {
                 userSurpriseData = data;
-                showUserSurpriseModal();
+                showSurpriseModal();
             }
         } catch(e) {
-            console.error('Error parsing surprise data:', e);
+            console.error('Error parsing surprise:', e);
         }
     }
 }
 
-function showUserSurpriseModal() {
+// ===== 4. SHOW MODAL =====
+function showSurpriseModal() {
     const modal = document.getElementById('userSurpriseModal');
     if (!modal || !userSurpriseData) return;
 
@@ -2206,18 +2921,18 @@ function showUserSurpriseModal() {
     document.getElementById('userSurpriseResult').style.display = 'none';
     document.getElementById('claimUserSurpriseBtn').disabled = true;
 
-    renderUserBoxGrid();
-    updateUserSelectionDisplay();
+    renderBoxGrid();
+    updateSelectionDisplay();
 
     modal.style.display = 'flex';
 }
 
-function renderUserBoxGrid() {
+// ===== 5. RENDER BOX GRID =====
+function renderBoxGrid() {
     const grid = document.getElementById('userBoxGrid');
     if (!grid || !userSurpriseData) return;
 
     let html = '';
-
     userSurpriseData.boxes.forEach((box, index) => {
         const isSelected = selectedBoxIndices.includes(index);
         const isOpened = box.opened;
@@ -2243,14 +2958,12 @@ function renderUserBoxGrid() {
             icon = 'fa-play-circle';
             iconColor = '#2196f3';
         } else {
-            bgColor = '#9e9e9e20';
-            borderColor = '#9e9e9e';
             icon = 'fa-smile';
             iconColor = '#9e9e9e';
         }
 
         html += `
-            <div onclick="${!isOpened ? `selectUserBox(${index})` : ''}"
+            <div onclick="${!isOpened ? `selectBox(${index})` : ''}"
                  style="background: ${bgColor};
                         border: 2px solid ${borderColor};
                         border-radius: 12px;
@@ -2262,8 +2975,8 @@ function renderUserBoxGrid() {
                         transition: all 0.2s;">
                 <i class="fas ${icon}" style="color: ${iconColor}; font-size: 24px;"></i>
                 <div style="color: white; font-size: 12px; margin-top: 5px;">Box ${index + 1}</div>
-                ${isOpened ? '<div style="color: #ff5252; font-size: 10px;"><i class="fas fa-check-circle"></i> ဖွင့်ပြီး</div>' : ''}
-                ${isSelected ? '<div style="color: #ffd700; font-size: 10px;"><i class="fas fa-check"></i> ရွေးပြီး</div>' : ''}
+                ${isOpened ? '<div style="color: #ff5252; font-size: 10px;">✓ ဖွင့်ပြီး</div>' : ''}
+                ${isSelected ? '<div style="color: #ffd700; font-size: 10px;">✓ ရွေးပြီး</div>' : ''}
             </div>
         `;
     });
@@ -2271,35 +2984,43 @@ function renderUserBoxGrid() {
     grid.innerHTML = html;
 }
 
-function selectUserBox(index) {
+// ===== SELECT USER BOX =====
+// ===== SELECT BOX =====
+window.selectBox = function(index) {
+    console.log('selectBox called with index:', index);
+    
+    if (!userSurpriseData) {
+        console.error('userSurpriseData is null');
+        return;
+    }
+    
     if (selectedBoxIndices.includes(index)) {
         selectedBoxIndices = selectedBoxIndices.filter(i => i !== index);
     } else {
-        if (selectedBoxIndices.length >= MAX_USER_SELECTIONS) {
-            showNotification(`သင်ရွေးချယ်ခွင့် အများဆုံး ${MAX_USER_SELECTIONS} ခုသာရှိပါသည်။`, 'error');
+        if (selectedBoxIndices.length >= MAX_SELECTIONS) {
+            showNotification(`အများဆုံး ${MAX_SELECTIONS} ခုသာရွေးနိုင်ပါသည်။`, 'error');
             return;
         }
         selectedBoxIndices.push(index);
     }
+    
+    renderBoxGrid();
+    updateSelectionDisplay();
+    
+    const claimBtn = document.getElementById('claimUserSurpriseBtn');
+    if (claimBtn) claimBtn.disabled = selectedBoxIndices.length === 0;
+};
 
-    renderUserBoxGrid();
-    updateUserSelectionDisplay();
-
-    document.getElementById('claimUserSurpriseBtn').disabled = selectedBoxIndices.length === 0;
-}
-
-function updateUserSelectionDisplay() {
-    const remaining = MAX_USER_SELECTIONS - selectedBoxIndices.length;
+// ===== 7. UPDATE SELECTION DISPLAY =====
+function updateSelectionDisplay() {
+    const remaining = MAX_SELECTIONS - selectedBoxIndices.length;
     const countEl = document.getElementById('userSelectionCount');
     const progressEl = document.getElementById('selectionProgress');
     const selectedContainer = document.getElementById('userSelectedBoxes');
 
-    if (countEl) {
-        countEl.textContent = `သင်ရွေးချယ်ရန် ကျန် ${remaining} ခု`;
-    }
-
+    if (countEl) countEl.textContent = `ကျန် ${remaining} ခု`;
     if (progressEl) {
-        const percent = (selectedBoxIndices.length / MAX_USER_SELECTIONS) * 100;
+        const percent = (selectedBoxIndices.length / MAX_SELECTIONS) * 100;
         progressEl.style.width = percent + '%';
     }
 
@@ -2314,18 +3035,15 @@ function updateUserSelectionDisplay() {
                 if (box.type === 'credit') color = '#00c853';
                 else if (box.type === 'vip') color = '#ffd700';
                 else if (box.type === 'freespin') color = '#2196f3';
-                html += `
-                    <span style="background: ${color}20; border: 1px solid ${color}; border-radius: 15px; padding:5px 12px; color: white; font-size: 13px;">
-                        Box ${idx + 1}
-                    </span>
-                `;
+                html += `<span style="background: ${color}20; border:1px solid ${color}; border-radius:15px; padding:5px 12px;">Box ${idx + 1}</span>`;
             });
-            selectedContainer.innerHTML = html;
+           selectedContainer.innerHTML = html;
         }
     }
-}
+} 
 
-function claimUserSurprise() {
+    // ===== CLAIM SURPRISE =====
+async function claimSurprise() {
     if (selectedBoxIndices.length === 0 || !userSurpriseData) return;
 
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
@@ -2334,91 +3052,96 @@ function claimUserSurprise() {
         return;
     }
 
-    let totalCredits = 0;
-    let vipUpgrade = 0;
-    let totalSpins = 0;
-    let thankYouCount = 0;
+     let totalCredits = 0;
+let vipUpgrade = 0;
+let totalSpins = 0;
+const openedBoxes = [];
 
-    selectedBoxIndices.forEach(index => {
-        const box = userSurpriseData.boxes[index];
+selectedBoxIndices.forEach(index => {
+    const box = userSurpriseData.boxes[index];
+    if (!box.opened) {
+        box.opened = true;
+        box.openedBy = currentUser.username;
+        box.openedAt = new Date().toISOString();
+        openedBoxes.push(box);
 
-        if (!box.opened) {
-            box.opened = true;
-            box.openedBy = currentUser.username;
-            box.openedAt = new Date().toISOString();
+        if (box.type === 'credit') {
+            totalCredits += box.amount || 0;
+            currentUser.balance = (currentUser.balance || 0) + (box.amount || 0);
+            currentUser.displayBalance = (currentUser.displayBalance || 0) + (box.amount || 0);  // 👈 ဒါထည့်
+        } else if (box.type === 'vip') {
+            vipUpgrade++;
+            currentUser.vip = (currentUser.vip || 0) + 1;
+        } else if (box.type === 'freespin') {
+            const spins = box.spins || box.value || 0;
+            totalSpins += spins;
+            currentUser.freeSpins = (currentUser.freeSpins || 0) + spins;
+        }
+    }
+});
 
-            if (box.type === 'credit') {
-                totalCredits += box.amount;
-                currentUser.balance = (currentUser.balance || 0) + box.amount;
-            } else if (box.type === 'vip') {
-                vipUpgrade++;
-                currentUser.vip = (currentUser.vip || 0) + 1;
-            } else if (box.type === 'freespin') {
-                totalSpins += box.spins;
-                currentUser.freeSpins = (currentUser.freeSpins || 0) + box.spins;
-            } else {
-                thankYouCount++;
-            }
+// ===== SHOW ANIMATION =====
+if (totalCredits > 0) {
+    showSurpriseBoxAnimation('credit', totalCredits);
+} else if (vipUpgrade > 0) {
+    showSurpriseBoxAnimation('vip', vipUpgrade);
+} else if (totalSpins > 0) {
+    showSurpriseBoxAnimation('freespin', totalSpins);
+}
+
+    // Update Firestore with valid numbers
+    const db = firebase.firestore();
+    const batch = db.batch();
+
+    openedBoxes.forEach(box => {
+        if (box.firestoreId) {
+            const boxRef = db.collection('sentBoxes').doc(box.firestoreId);
+            batch.update(boxRef, {
+                opened: true,
+                openedBy: currentUser.username,
+                openedAt: new Date().toISOString()
+            });
         }
     });
 
-    localStorage.setItem('currentUser', JSON.stringify(currentUser));
-    updateUserInUsersList(currentUser);
+    const userRef = db.collection('users').doc(currentUser.id);
+    const updateData = {
+        balance: currentUser.balance || 0,
+        vip: currentUser.vip || 0,
+        freeSpins: currentUser.freeSpins || 0  // 👈 undefined မဖြစ်အောင် || 0 ထည့်
+    };
+    batch.update(userRef, updateData);
 
+    await batch.commit();
+    
+
+    // ===== UPDATE LOCAL STORAGE =====
+    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+
+    const users = JSON.parse(localStorage.getItem('slotUsers')) || [];
+    const userIndex = users.findIndex(u => u.id === currentUser.id);
+    if (userIndex !== -1) users[userIndex] = currentUser;
+    localStorage.setItem('slotUsers', JSON.stringify(users));
+
+    // Mark surprise as completed
     userSurpriseData.status = 'completed';
     userSurpriseData.completedAt = new Date().toISOString();
     userSurpriseData.selectedBoxes = selectedBoxIndices;
 
-    saveUserSurpriseHistory(currentUser, userSurpriseData, selectedBoxIndices);
+    const surpriseKey = `userSurprise_${currentUser.id}`;
+    localStorage.removeItem(surpriseKey);
 
-    const userSurpriseKey = `userSurprise_${currentUser.id}`;
-    localStorage.removeItem(userSurpriseKey);
-
+    // Update game state
     window.gameState.balance = currentUser.balance;
     updateBalanceDisplay();
 
-    showUserSurpriseResult(totalCredits, vipUpgrade, totalSpins, thankYouCount);
-
+    // Show result
+    showSurpriseResult(totalCredits, vipUpgrade, totalSpins);
     document.getElementById('claimUserSurpriseBtn').disabled = true;
 }
 
-function updateUserInUsersList(updatedUser) {
-    const users = JSON.parse(localStorage.getItem('slotUsers')) || [];
-    const index = users.findIndex(u => u.id === updatedUser.id);
-    if (index !== -1) {
-        users[index] = updatedUser;
-        localStorage.setItem('slotUsers', JSON.stringify(users));
-    }
-}
-
-function saveUserSurpriseHistory(user, surpriseData, selectedIndices) {
-    const history = JSON.parse(localStorage.getItem('surpriseHistory')) || [];
-
-    const selectedPrizes = selectedIndices.map(index => {
-        const box = surpriseData.boxes[index];
-        return {
-            boxNumber: index + 1,
-            type: box.type,
-            value: box.amount || box.spins || 0
-        };
-    });
-
-    history.push({
-        time: new Date().toISOString(),
-        username: user.username,
-        userId: user.id,
-        type: 'user_claimed',
-        selectedBoxes: selectedIndices.map(i => i + 1),
-        prizes: selectedPrizes,
-        totalCredits: selectedPrizes.filter(p => p.type === 'credit').reduce((sum, p) => sum + p.value, 0),
-        totalSpins: selectedPrizes.filter(p => p.type === 'freespin').reduce((sum, p) => sum + p.value, 0),
-        vipUpgrades: selectedPrizes.filter(p => p.type === 'vip').length
-    });
-
-    localStorage.setItem('surpriseHistory', JSON.stringify(history));
-}
-
-function showUserSurpriseResult(credits, vip, spins, thankYou) {
+// ===== 9. SHOW RESULT =====
+function showSurpriseResult(credits, vip, spins) {
     const resultDiv = document.getElementById('userSurpriseResult');
     const icon = document.getElementById('resultIcon');
     const title = document.getElementById('resultTitle');
@@ -2435,7 +3158,7 @@ function showUserSurpriseResult(credits, vip, spins, thankYou) {
         icon.className = 'fas fa-crown';
         icon.style.color = '#ffd700';
         title.textContent = 'ဂုဏ်ယူပါတယ်။';
-        message.textContent = 'VIP အဆင့်တိုးပါသည်။';
+        message.textContent = `VIP အဆင့် ${vip} တိုးပါသည်။`;
     } else if (spins > 0) {
         icon.className = 'fas fa-play-circle';
         icon.style.color = '#2196f3';
@@ -2445,41 +3168,167 @@ function showUserSurpriseResult(credits, vip, spins, thankYou) {
         icon.className = 'fas fa-smile';
         icon.style.color = '#9e9e9e';
         title.textContent = 'ကံကောင်းပါစေ။';
-        message.textContent = 'ကျေးဇူးတင်ပါတယ်။ နောက်တစ်ကြိမ် ကံစမ်းပါ။';
+        message.textContent = 'ကျေးဇူးတင်ပါတယ်။';
     }
 
-    renderUserBoxGrid();
+    renderBoxGrid();
 
     setTimeout(() => {
-        if (resultDiv.style.display === 'block') {
-            closeUserSurpriseModal();
-        }
+        if (resultDiv.style.display === 'block') closeSurpriseModal();
     }, 5000);
 }
 
+// ===== 10. CLOSE MODAL =====
 function closeUserSurpriseModal() {
     const modal = document.getElementById('userSurpriseModal');
-    if (modal) {
-        modal.style.display = 'none';
+    if (modal) modal.style.display = 'none';
+    if (userSurpriseData && userSurpriseData.boxes.every(b => b.opened)) userSurpriseData = null;
+}
+
+// ===== 11. INIT LISTENER ON AUTH =====
+function initSurpriseListener() {
+    firebase.auth().onAuthStateChanged((user) => {
+        if (user) {
+            listenForSurpriseBox(user.uid);
+            checkUserSurprise();
+        }
+    });
+}
+
+// ===== EXPORT =====
+window.checkUserSurprise = checkUserSurprise;
+window.claimUserSurprise = claimUserSurprise;
+window.closeUserSurpriseModal = closeUserSurpriseModal;
+window.initSurpriseListener = initSurpriseListener;
+
+// Auto init if firebase is ready
+if (typeof firebase !== 'undefined' && firebase.auth) {
+    initSurpriseListener();
+}
+
+
+// ===== SURPRISE BOX ANIMATION =====
+function showSurpriseBoxAnimation(boxType, boxValue) {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.9);
+        z-index: 10000000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        animation: fadeIn 0.3s;
+    `;
+
+    let icon = 'fa-gift';
+    let color = '#ffd700';
+    let title = 'SURPRISE BOX!';
+    let message = '';
+
+    if (boxType === 'credit') {
+        icon = 'fa-coins';
+        color = '#00c853';
+        title = 'CREDIT REWARD!';
+        message = `${formatNumber(boxValue)} ကျပ်`;
+    } else if (boxType === 'vip') {
+        icon = 'fa-crown';
+        color = '#ffd700';
+        title = 'VIP UPGRADE!';
+        message = `VIP Level ${boxValue}`;
+    } else if (boxType === 'freespin') {
+        icon = 'fa-play-circle';
+        color = '#2196f3';
+        title = 'FREE SPINS!';
+        message = `${boxValue} Spins`;
     }
 
-    if (userSurpriseData && userSurpriseData.boxes.every(b => b.opened)) {
-        userSurpriseData = null;
+    overlay.innerHTML = `
+        <div style="
+            background: linear-gradient(145deg, #1a1a2e, #16213e);
+            border: 3px solid ${color};
+            border-radius: 30px;
+            padding: 40px;
+            text-align: center;
+            animation: popIn 0.5s cubic-bezier(0.34, 1.2, 0.64, 1);
+            box-shadow: 0 0 50px ${color};
+        ">
+            <div style="font-size: 80px; margin-bottom: 20px;">
+                <i class="fas ${icon}" style="color: ${color};"></i>
+            </div>
+            <h2 style="
+                font-size: 40px;
+                font-weight: 900;
+                color: ${color};
+                margin-bottom: 20px;
+                text-shadow: 0 0 20px ${color};
+            ">
+                ${title}
+            </h2>
+            <div style="
+                font-size: 48px;
+                font-weight: bold;
+                color: white;
+                margin-bottom: 20px;
+            ">
+                ${message}
+            </div>
+            <div style="font-size: 20px; color: #aaa;">
+                ဂုဏ်ယူပါသည်။
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    // Create floating particles
+    for (let i = 0; i < 50; i++) {
+        setTimeout(() => {
+            const particle = document.createElement('div');
+            particle.style.cssText = `
+                position: fixed;
+                top: ${Math.random() * 100}%;
+                left: ${Math.random() * 100}%;
+                width: ${10 + Math.random() * 20}px;
+                height: ${10 + Math.random() * 20}px;
+                background: ${color};
+                border-radius: 50%;
+                filter: blur(3px);
+                animation: fadeOut 1s ease-out forwards;
+                pointer-events: none;
+                z-index: 10000001;
+            `;
+            document.body.appendChild(particle);
+            setTimeout(() => particle.remove(), 1000);
+        }, i * 50);
     }
+
+    // Remove after 3 seconds
+    setTimeout(() => {
+        overlay.style.animation = 'fadeOut 0.5s';
+        setTimeout(() => overlay.remove(), 500);
+    }, 7000);
 }
 
 // ============================================
 // 14. BALANCE & JACKPOT FUNCTIONS
 // ============================================
+
 function updateBalanceDisplay() {
     const balanceEl = document.getElementById('balanceAmount');
     const creditDisplay = document.getElementById('credit-display');
-
+    
+    // ယခုကစားလို့ရတဲ့ balance ကိုပြမယ်
+    const actualAmount = window.gameState.balance;
+    
     if (balanceEl) {
-        balanceEl.textContent = formatNumber(window.gameState.balance);
+        balanceEl.textContent = formatNumber(actualAmount);
     }
     if (creditDisplay) {
-        creditDisplay.textContent = formatNumber(window.gameState.balance);
+        creditDisplay.textContent = formatNumber(actualAmount);
     }
 }
 
@@ -2499,14 +3348,17 @@ function updateUserBalanceInStorage() {
     if (savedUser) {
         const currentUser = JSON.parse(savedUser);
         currentUser.balance = window.gameState.balance;
+        currentUser.displayBalance = window.gameState.displayBalance || window.gameState.balance;
         currentUser.level = window.gameState.userLevel;
         currentUser.vip = window.gameState.vipLevel;
+
         localStorage.setItem('currentUser', JSON.stringify(currentUser));
         window.currentUser = currentUser;
 
         if (db && currentUser.id) {
             db.collection('users').doc(currentUser.id).update({
                 balance: window.gameState.balance,
+                displayBalance: window.gameState.displayBalance || window.gameState.balance,
                 level: window.gameState.userLevel,
                 vip: window.gameState.vipLevel,
                 lastSpin: new Date().toISOString()
@@ -2664,157 +3516,34 @@ function createBuffaloConfetti() {
     }, 5000);
 }
 
+
 // ============================================
-// 15. WIN HISTORY & CELEBRATION
+// Loss Pool Jackpot Functions (defined early)
 // ============================================
-function addWinToHistory(amount) {
-    const historyList = document.getElementById('historyList');
-    if (!historyList) return;
-
-    if (historyList.innerHTML.includes('No wins')) {
-        historyList.innerHTML = '';
+function listenToLossPool() {
+    if (!firebase || !firebase.firestore) {
+        console.warn('Firebase not available for loss pool');
+        return;
     }
-
-    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const winItem = document.createElement('div');
-    winItem.className = 'history-item';
-    winItem.style.cssText = `
-        display: flex;
-        justify-content: space-between;
-        padding: 8px 12px;
-        background: rgba(255,215,0,0.1);
-        border-radius: 8px;
-        margin-bottom: 5px;
-        animation: slideIn 0.3s;
-        color: white;
-    `;
-    winItem.innerHTML = `<span>${time}</span><span style="color: #00ff00;">+${formatNumber(amount)}</span>`;
-
-    historyList.prepend(winItem);
-
-    while (historyList.children.length > 10) {
-        historyList.removeChild(historyList.lastChild);
-    }
+    const db = firebase.firestore();
+    db.collection('admin').doc('lossPool').onSnapshot((doc) => {
+        if (doc.exists) {
+            const total = doc.data().totalAmount || 0;
+            window.gameState.jackpotPool = total;
+        } else {
+            window.gameState.jackpotPool = 0;
+        }
+        updateJackpotPoolDisplay();
+        console.log('🔄 LossPool updated:', window.gameState.jackpotPool);
+    }, (err) => {
+        console.error('LossPool listener error:', err);
+    });
 }
 
-function showCelebration(type, amount, username = 'Admin') {
-    const notification = document.getElementById('celebrationNotification');
-    const icon = document.getElementById('celebrationIcon').querySelector('i');
-    const title = document.getElementById('celebrationTitle');
-    const message = document.getElementById('celebrationMessage');
-    const amountEl = document.getElementById('celebrationAmount');
-
-    let iconClass = 'fa-gift';
-    let iconColor = '#ffd700';
-    let titleText = 'ဆုလက်ဆောင်';
-    let messageText = '';
-    let amountText = '';
-
-    switch(type) {
-        case 'credit':
-            iconClass = 'fa-coins';
-            iconColor = '#00c853';
-            titleText = 'ငွေလက်ဆောင်';
-            messageText = `${username} ထံမှ`;
-            amountText = `${formatNumber(amount)} ကျပ်`;
-            break;
-        case 'vip':
-            iconClass = 'fa-crown';
-            iconColor = '#ffd700';
-            titleText = 'VIP လက်ဆောင်';
-            messageText = `${username} က သင့်အား`;
-            amountText = 'VIP အဆင့်တိုးပေးခဲ့သည်';
-            break;
-        case 'freespin':
-            iconClass = 'fa-play-circle';
-            iconColor = '#2196f3';
-            titleText = 'Free Spin လက်ဆောင်';
-            messageText = `${username} ထံမှ`;
-            amountText = `Free Spin ${amount} ကြိမ်`;
-            break;
-    }
-
-    icon.className = 'fas ' + iconClass;
-    icon.style.color = iconColor;
-    title.textContent = titleText;
-    title.style.color = iconColor;
-    message.textContent = messageText;
-    amountEl.textContent = amountText;
-    amountEl.style.color = iconColor;
-
-    notification.classList.add('show');
-    createConfetti();
-
-    if (type === 'credit') {
-        createFloatingNumbers(amount);
-    }
-
-    setTimeout(() => {
-        closeCelebration();
-    }, 5000);
-}
-
-function createConfetti() {
-    const container = document.getElementById('celebrationConfetti');
-    if (!container) return;
-
-    container.innerHTML = '';
-    const colors = ['#ffd700', '#00c853', '#2196f3', '#ff5252', '#ffaa00'];
-
-    for (let i = 0; i < 50; i++) {
-        const confetti = document.createElement('div');
-        confetti.className = 'confetti-piece';
-        confetti.style.cssText = `
-            position: absolute;
-            top: -10px;
-            left: ${Math.random() * 100}%;
-            width: ${Math.random() * 10 + 5}px;
-            height: ${Math.random() * 10 + 5}px;
-            background: ${colors[Math.floor(Math.random() * colors.length)]};
-            transform: rotate(${Math.random() * 360}deg);
-            animation: confettiFall ${2 + Math.random() * 3}s linear forwards;
-        `;
-        container.appendChild(confetti);
-    }
-}
-
-function createFloatingNumbers(amount) {
-    const container = document.getElementById('floatingNumbers');
-    if (!container) return;
-
-    container.innerHTML = '';
-
-    for (let i = 0; i < 10; i++) {
-        const num = document.createElement('div');
-        num.className = 'floating-number';
-        num.style.cssText = `
-            position: absolute;
-            left: ${Math.random() * 100}%;
-            top: ${Math.random() * 100}%;
-            color: #ffd700;
-            font-size: ${20 + Math.random() * 30}px;
-            font-weight: 900;
-            text-shadow: 0 0 20px gold;
-            animation: floatNumber ${1 + Math.random()}s ease-out forwards;
-            pointer-events: none;
-        `;
-        num.textContent = '+' + formatNumber(amount);
-        container.appendChild(num);
-
-        setTimeout(() => {
-            num.remove();
-        }, 2000);
-    }
-}
-
-function closeCelebration() {
-    const notification = document.getElementById('celebrationNotification');
-    if (notification) {
-        notification.classList.remove('show');
-    }
-    const confetti = document.getElementById('celebrationConfetti');
-    if (confetti) {
-        confetti.innerHTML = '';
+function updateJackpotPoolDisplay() {
+    const jackpotEl = document.getElementById('jackpotPool');
+    if (jackpotEl) {
+        jackpotEl.textContent = formatNumber(window.gameState.jackpotPool || 0);
     }
 }
 
@@ -2852,9 +3581,351 @@ function checkPendingGiftOnSpin() {
         }
     } else {
         window.gameState.spinCounter = 0;
+ }
+
+}
+
+
+// ============================================
+// LISTEN FOR PENDING JACKPOT (SAFE VERSION)
+// ============================================
+function listenForPendingJackpot(userId) {
+    if (!userId || !db) {
+        console.warn('⚠️ listenForPendingJackpot: userId or db missing');
+        return;
+    }
+    console.log('🟢 Jackpot Listener Started for User:', userId);
+
+    const notificationsRef = db.collection('notifications')
+        .where('userId', '==', userId)
+        .where('type', '==', 'jackpot')
+        .where('read', '==', false);
+
+    return notificationsRef.onSnapshot((snapshot) => {
+        snapshot.docChanges().forEach((change) => {
+            if (change.type === 'added') {
+                const data = change.doc.data();
+                const amount = data.amount || 0;
+                const spinReq = data.spinRequirement || 10;
+                const docId = change.doc.id; 
+
+                if (amount > 0) {
+                    window.gameState.pendingJackpotAmount = amount;
+                    window.gameState.pendingJackpotSpinsLeft = spinReq;
+                    window.gameState.Lucky_Money = amount;
+                    window.gameState.Lucky_MoneySpinReq = spinReq;
+                    window.gameState.currentNotifId = docId; 
+
+                    console.log(`🎉 Jackpot Loaded: ${amount} (${spinReq} spins left)`);
+                }
+            }
+        });
+    }, (error) => {
+        console.error('🔥 Error listening to notifications:', error);
+    });
+}
+
+// ============================================
+// JACKPOT ပြီးဆုံးကြောင်း FIRESTORE မှာ သွားမှတ်မည့် FUNCTION
+// ============================================
+async function finalizeJackpot() {
+    const docId = window.gameState.currentNotifId;
+    if (!docId) return;
+
+    try {
+        await db.collection('notifications').doc(docId).update({
+            read: true,
+            completedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        console.log('✅ Jackpot notification marked as read.');
+        
+        // Reset local pending state
+        window.gameState.currentNotifId = null;
+        window.gameState.pendingJackpotAmount = 0;
+        window.gameState.pendingJackpotSpinsLeft = 0;
+    } catch (err) {
+        console.error('❌ Error finalizing jackpot noti:', err);
     }
 }
 
+
+// ============================================
+// LISTEN FOR USER BALANCE (REAL-TIME)
+// ============================================
+function listenToUserData(userId) {
+    if (!userId || !db) return;
+
+    const userRef = db.collection('users').doc(userId);
+    return userRef.onSnapshot((doc) => {
+        if (doc.exists) {
+            const userData = doc.data();
+            // Balance ကို update လုပ်မယ်
+            window.gameState.balance = userData.balance || 0;
+            window.gameState.displayBalance = userData.displayBalance || userData.balance || 0;
+            updateBalanceDisplay();
+            console.log('🔄 Balance updated from Firebase:', window.gameState.balance);
+        }
+    }, (error) => {
+        console.error('Error listening to user data:', error);
+    });
+}
+
+ // ============================================
+// Jackpot anmation
+// ============================================
+
+function showJackpotAwardAnimation(amount) {
+    // ===== 1. Inject dynamic styles =====
+    if (!document.getElementById('jackpot-award-styles')) {
+        const style = document.createElement('style');
+        style.id = 'jackpot-award-styles';
+        style.innerHTML = `
+            @keyframes jpPopIn {
+                0% { transform: translate(-50%, -50%) scale(0) rotate(-180deg); opacity: 0; }
+                40% { transform: translate(-50%, -50%) scale(1.1) rotate(5deg); }
+                100% { transform: translate(-50%, -50%) scale(1) rotate(0); opacity: 1; }
+            }
+            @keyframes jpGlowPulse {
+                0% { box-shadow: 0 0 20px #ff00ff, 0 0 40px #00ffff; }
+                50% { box-shadow: 0 0 60px #ff44ff, 0 0 100px #44ffff; }
+                100% { box-shadow: 0 0 20px #ff00ff, 0 0 40px #00ffff; }
+            }
+            @keyframes coinFountainLandscape {
+                0% {
+                    bottom: 0%;
+                    transform: scale(0.6) rotate(0deg);
+                    opacity: 0;
+                }
+                10% { opacity: 1; }
+                35% {
+                    bottom: 40%;
+                    transform: scale(1.2) rotate(220deg);
+                }
+                55% {
+                    bottom: 55%;
+                    transform: scale(1.1) rotate(440deg);
+                }
+                75% {
+                    bottom: 30%;
+                    transform: scale(0.9) rotate(600deg);
+                }
+                100% {
+                    bottom: -15%;
+                    transform: scale(0.5) rotate(780deg);
+                    opacity: 0;
+                }
+            }
+            @keyframes jpNumberCount {
+                0% { transform: scale(0.5); opacity: 0; letter-spacing: 10px; }
+                100% { transform: scale(1); opacity: 1; letter-spacing: normal; }
+            }
+            @keyframes gradientShift {
+                0% { background-position: 0% 50%; }
+                100% { background-position: 100% 50%; }
+            }
+            @keyframes jpScreenFlash {
+                0% { background: radial-gradient(circle, transparent, transparent); }
+                50% { background: radial-gradient(circle, rgba(255,215,0,0.6), rgba(255,0,255,0.4)); }
+                100% { background: radial-gradient(circle, transparent, transparent); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // ===== 2. Screen Flash (ပိုသေးအောင်) =====
+    const flashOverlay = document.createElement('div');
+    flashOverlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle, rgba(255,215,0,0.5), rgba(255,0,255,0.3));
+        z-index: 9999990;
+        pointer-events: none;
+        animation: jpScreenFlash 0.4s ease-out forwards;
+    `;
+    document.body.appendChild(flashOverlay);
+    setTimeout(() => flashOverlay.remove(), 400);
+
+    // ===== 3. Main Container (Landscape အတွက် သေးအောင်) =====
+    const container = document.createElement('div');
+    container.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 10000000;
+        text-align: center;
+        pointer-events: none;
+        width: 70vw;
+        max-width: 600px;
+        animation: jpPopIn 0.6s cubic-bezier(0.34, 1.2, 0.64, 1);
+    `;
+
+    container.innerHTML = `
+        <div style="
+            background: linear-gradient(135deg, #1a0a2a, #2a0a3a);
+            border: 2px solid rgba(255,100,200,0.6);
+            border-radius: 50px;
+            padding: 20px 25px;
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        ">
+            <!-- JACKPOT Title (သေးအောင်) -->
+            <div style="
+                font-size: 42px;
+                font-weight: 900;
+                font-family: 'Bangers', 'Impact', cursive;
+                background: linear-gradient(135deg, #ffaa44, #ff44aa, #44aaff);
+                background-size: 200% auto;
+                -webkit-background-clip: text;
+                background-clip: text;
+                color: transparent;
+                animation: gradientShift 1s ease infinite;
+                letter-spacing: 4px;
+                margin-bottom: 10px;
+            ">
+                🎰 JACKPOT! 🎰
+            </div>
+            
+            <!-- Amount Display (သေးအောင်) -->
+            <div id="jpAmountDisplay" style="
+                font-size: 64px;
+                font-weight: 900;
+                font-family: 'Black Ops One', 'Impact', monospace;
+                background: linear-gradient(135deg, #ffaa44, #ff44aa, #44aaff);
+                -webkit-background-clip: text;
+                background-clip: text;
+                color: transparent;
+                margin: 15px 0;
+                animation: jpNumberCount 0.5s ease-out;
+            ">
+                0
+            </div>
+            
+            <!-- Message (သေးအောင်) -->
+            <div style="
+                background: rgba(0,0,0,0.6);
+                display: inline-block;
+                padding: 8px 25px;
+                border-radius: 40px;
+                font-size: 20px;
+                color: #ffd700;
+                font-weight: bold;
+                backdrop-filter: blur(5px);
+                border: 1px solid rgba(255,215,0,0.5);
+            ">
+                🎉 ဂုဏ်ယူပါသည်။ 🎉
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(container);
+
+    // ===== 4. Count-up Effect =====
+    const amountDisplay = document.getElementById('jpAmountDisplay');
+    const finalAmount = amount;
+    let current = 0;
+    const duration = 1800;
+    const stepTime = 20;
+    const steps = duration / stepTime;
+    const increment = finalAmount / steps;
+    let counter = 0;
+    
+    const timer = setInterval(() => {
+        counter++;
+        current = Math.min(finalAmount, Math.floor(increment * counter));
+        amountDisplay.textContent = formatNumber(current);
+        if (current >= finalAmount) {
+            clearInterval(timer);
+            amountDisplay.innerHTML = `<span style="animation: jpNumberCount 0.3s;">${formatNumber(finalAmount)}</span>`;
+        }
+    }, stepTime);
+
+    // ===== 5. Coin Fountain (Landscape အတွက် အနိမ့်ပိုင်းကနေ) =====
+    createCoinFountainLandscape();
+
+    // ===== 6. Screen Shake (နည်းနည်းသာ) =====
+    let shakes = 0;
+    const shakeInterval = setInterval(() => {
+        const x = (Math.random() - 0.5) * 8;
+        const y = (Math.random() - 0.5) * 5;
+        document.body.style.transform = `translate(${x}px, ${y}px)`;
+        shakes++;
+        if (shakes > 12) {
+            clearInterval(shakeInterval);
+            document.body.style.transform = '';
+        }
+    }, 40);
+
+    // ===== 7. Vibration =====
+    if (navigator.vibrate) {
+        navigator.vibrate([150, 80, 150, 80, 200]);
+    }
+      if (typeof SoundManager !== 'undefined') {
+        if (SoundManager.congratulations) SoundManager.congratulations();
+        if (SoundManager.coin) setTimeout(() => SoundManager.coin(), 300);
+        if (SoundManager.fireworks) setTimeout(() => SoundManager.fireworks(), 600);
+    }
+
+    // ===== 8. Remove after animation =====
+    setTimeout(() => {
+        container.style.transition = 'opacity 0.5s, transform 0.3s';
+        container.style.opacity = '0';
+        container.style.transform = 'translate(-50%, -50%) scale(0.8)';
+        setTimeout(() => {
+            container.remove();
+        }, 500);
+    }, 8500);
+}
+
+function createCoinFountainLandscape() {
+    const fountainContainer = document.createElement('div');
+    fountainContainer.style.cssText = `
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 9999995;  /* စာတန်းအောက်မှာ ထား */
+        overflow: visible;
+    `;
+    document.body.appendChild(fountainContainer);
+    
+    for (let i = 0; i < 100; i++) {
+        setTimeout(() => {
+            const coin = document.createElement('div');
+            const symbols = ['💰', '🪙', '💎', '⭐', '💫'];
+            coin.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+            
+            const startX = 15 + Math.random() * 70;
+            const duration = 1.8 + Math.random() * 1.2;
+            const delay = i * 20;
+            
+            coin.style.cssText = `
+                position: absolute;
+                bottom: 0%;
+                left: ${startX}%;
+                font-size: ${28 + Math.random() * 40}px;
+                filter: drop-shadow(0 0 10px gold);
+                color: ${['#ffaa44', '#ff66cc', '#44aaff', '#88ff88'][Math.floor(Math.random() * 4)]};
+                z-index: 9999996;
+                text-shadow: 0 0 5px currentColor;
+                animation: coinFountainLandscape ${duration}s ease-out ${delay}ms forwards;
+            `;
+            
+            fountainContainer.appendChild(coin);
+            setTimeout(() => coin.remove(), (delay + duration * 1000) + 500);
+        }, i * 20);
+    }
+    
+    setTimeout(() => {
+        fountainContainer.remove();
+    }, 9500);
+}
 // ============================================
 // 17. LEVEL UP FUNCTIONS
 // ============================================
@@ -2877,79 +3948,80 @@ function checkLevelUp() {
     }
 }
 
+
+// ===== UPDATE VIP DISPLAY =====
+function updateVIPDisplay() {
+    const vipLevel = window.gameState.vipLevel || 0;
+    const totalDeposit = window.gameState.totalDeposit || 0;
+    const config = VIP_CONFIG[vipLevel];
+    
+    // VIP Level ပြမယ်
+    const levelEl = document.getElementById('vipLevelDisplay');
+    if (levelEl) {
+        levelEl.textContent = vipLevel;
+    }
+    
+    // VIP Name ပြမယ်
+    const nameEl = document.getElementById('vipName');
+    if (nameEl) {
+        nameEl.textContent = config.name;
+        nameEl.style.color = getVIPColor(vipLevel);
+    }
+    
+    // နောက် VIP Level အတွက်လိုအပ်ချက်
+    const nextLevel = vipLevel + 1;
+    if (nextLevel <= 5) {
+        const required = VIP_CONFIG[nextLevel].requiredDeposit;
+        const need = required - totalDeposit;
+        
+        const nextEl = document.getElementById('vipNextDisplay');
+        if (nextEl) {
+            nextEl.textContent = `နောက် VIP: ${formatNumber(need)} ကျပ်`;
+        }
+        
+        // Progress bar
+        const progress = (totalDeposit / required) * 100;
+        const barEl = document.getElementById('vipProgressBar');
+        if (barEl) {
+            barEl.style.width = Math.min(progress, 100) + '%';
+        }
+    } else {
+        // Max VIP
+        const nextEl = document.getElementById('vipNextDisplay');
+        if (nextEl) {
+            nextEl.textContent = 'MAX VIP';
+        }
+        const barEl = document.getElementById('vipProgressBar');
+        if (barEl) {
+            barEl.style.width = '100%';
+        }
+    }
+}
+
 // ============================================
-// 18. FIREBASE FUNCTIONS
+// LOAD USER FROM FIREBASE (ဆက်သုံး)
 // ============================================
+
 async function loadUserFromFirebase() {
-    if (!db || !currentUser) return;
+    const user = firebase.auth().currentUser;
+    if (!user) return;
 
     try {
-        const userDoc = await db.collection('users').doc(currentUser.id).get();
+        const userDoc = await firebase.firestore().collection('users').doc(user.uid).get();
         if (userDoc.exists) {
-            const fbUser = userDoc.data();
-
-            window.gameState.balance = fbUser.balance || 10000;
-            window.gameState.userLevel = fbUser.level || 1;
-            window.gameState.vipLevel = fbUser.vip || 0;
-
-            currentUser.balance = fbUser.balance;
-            currentUser.level = fbUser.level;
-            currentUser.vip = fbUser.vip;
-            localStorage.setItem('currentUser', JSON.stringify(currentUser));
-            window.currentUser = currentUser;
-
+            const data = userDoc.data();
+            window.gameState.balance = data.balance || 0;
+            window.gameState.userLevel = data.level || 1;
+            window.gameState.vipLevel = data.vip || 0;
+            window.currentUser = { uid: user.uid, ...data };
+            localStorage.setItem('currentUser', JSON.stringify(window.currentUser));
             updateBalanceDisplay();
         }
     } catch (error) {
-        console.error('Error loading user from Firebase:', error);
+        console.error('Firebase load error:', error);
     }
 }
 
-// ============================================
-// 19. WIN ANIMATIONS
-// ============================================
-// ============================================
-// 20. UTILITY FUNCTIONS
-// ============================================
-function formatNumber(num) {
-    if (num === undefined || num === null) return '0';
-    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-}
-
-function showNotification(message, type = 'info') {
-    const notification = document.getElementById('notification');
-    const messageEl = document.getElementById('notificationMessage');
-    const iconEl = document.getElementById('notificationIcon');
-
-    if (notification && messageEl) {
-        messageEl.textContent = message;
-
-        if (type === 'success') {
-            iconEl.className = 'fas fa-check-circle';
-            iconEl.style.color = '#00c853';
-        } else if (type === 'error') {
-            iconEl.className = 'fas fa-exclamation-circle';
-            iconEl.style.color = '#ff5252';
-        } else {
-            iconEl.className = 'fas fa-info-circle';
-            iconEl.style.color = '#2196f3';
-        }
-
-        notification.classList.add('show');
-        notification.style.display = 'flex';
-
-        setTimeout(() => {
-            notification.classList.remove('show');
-            notification.style.display = 'none';
-        }, 3000);
-    }
-}
-
-function playButtonSound() {
-    if (typeof SoundManager !== 'undefined') {
-        SoundManager.button();
-    }
-}
 
 function playWinSounds(totalWin, winLines) {
     if (typeof SoundManager === 'undefined') return;
@@ -2960,7 +4032,6 @@ function playWinSounds(totalWin, winLines) {
         SoundManager.victory();
     }
 
-    // Buffalo Line တွေထဲက အများဆုံးအရေအတွက်ကိုရှာ
     let maxBuffaloCount = 0;
     let hasCoin = false;
     let hasJackpot = false;
@@ -2977,17 +4048,9 @@ function playWinSounds(totalWin, winLines) {
         }
     });
 
-    // Buffalo Sound ခေါ်မယ်
+    // Buffalo Sound ခေါ်မယ် (admin control မပါ)
     if (maxBuffaloCount > 0) {
-        if (adminControlMode) {
-            // Admin Mode: 4 ကောင်အထက်မှသာ
-            if (maxBuffaloCount >= 4) {
-                SoundManager.buffalo();
-            }
-        } else {
-            // Normal Mode: 3 ကောင်အထက်ဆို အကုန်
-            SoundManager.buffalo();
-        }
+        SoundManager.buffalo();
     }
 
     if (hasCoin) {
@@ -2999,64 +4062,6 @@ function playWinSounds(totalWin, winLines) {
         SoundManager.victory();
     }
 }
-
-function showWinLinesInfo(winLines) {
-    if (winLines.length === 0) return;
-
-    let message = ' အနိုင်ရလိုင်းများ:\n';
-    winLines.forEach(line => {
-        if (line.line === 'JACKPOT') {
-            message += ` 🎰 ${line.name}: ${formatNumber(line.win)} ကျပ်\n`;
-        } else {
-            message += ` ${getSymbolEmoji(line.symbol)} ${line.symbol} ${line.count} လုံး = ${formatNumber(line.win)} ကျပ် (${line.multiplier}x)\n`;
-        }
-    });
-
-    const winAmount = document.getElementById('winAmount');
-    if (winAmount) {
-        winAmount.setAttribute('title', message);
-    }
-}
-
-function getSymbolEmoji(symbol) {
-    const emojiMap = {
-        'seven': '7️⃣',
-        'lion': '🦁',
-        'buffalo': '🐃',
-        'ele': '🐘',
-        'tha': '🐅',
-        'zebra': '🦓',
-        'ayeaye': '👁️',
-        'bonus': '🎁',
-        'wild': '⭐',
-        'coin': '🪙'
-    };
-    return emojiMap[symbol] || '🎰';
-}
-
-function getElement(id) {
-    const el = document.getElementById(id);
-    if (!el) {
-        console.warn(`⚠️ Element "${id}" not found`);
-        return null;
-    }
-    return el;
-}
-
-function setStyle(id, property, value) {
-    const el = getElement(id);
-    if (el) {
-        el.style[property] = value;
-    }
-}
-
-function closeModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-        modal.style.display = 'none';
-    }
-}
-
 // ============================================
 // 21. ADD PREMIUM STYLES
 // ============================================
@@ -3194,7 +4199,52 @@ function addPremiumStyles() {
             0%,100% { transform: scale(1); color: #00d4ff; }
             50% { transform: scale(1.5); color: #ffd700; }
         }
+         @keyframes coinFountain {
+    0% {
+        bottom: 0%;
+        transform: scale(0.6) rotate(0deg);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    30% {
+        bottom: 50%;
+        transform: scale(1.2) rotate(180deg);
+    }
+    50% {
+        bottom: 65%;
+        transform: scale(1.1) rotate(360deg);
+    }
+    70% {
+        bottom: 40%;
+        transform: scale(0.9) rotate(480deg);
+    }
+    100% {
+        bottom: -10%;
+        transform: scale(0.5) rotate(720deg);
+        opacity: 0;
+    }
+}
 
+@keyframes sparkleRain {
+    0% {
+        transform: translateY(0) scale(0);
+        opacity: 0;
+    }
+    20% {
+        transform: translateY(-20px) scale(1);
+        opacity: 1;
+    }
+    80% {
+        transform: translateY(-60px) scale(0.8);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translateY(-100px) scale(0);
+        opacity: 0;
+    }
+}
         .stagger-spin {
             animation: staggeredSpin 0.15s linear infinite;
         }
@@ -3226,7 +4276,11 @@ function addPremiumStyles() {
             background: linear-gradient(145deg, #ff4444, #cc0000) !important;
             box-shadow: 0 10px 0 #880000 !important;
         }
-
+         @keyframes jackpotAwardPop {
+         0% { transform: translate(-50%, -50%) scale(0.1) rotate(-180deg); opacity: 0; }
+         60% { transform: translate(-50%, -50%) scale(1.1) rotate(5deg); }
+          100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; }
+        }
         /* Drop Animation */
         @keyframes dropFromSky {
             0% {
@@ -3320,569 +4374,8 @@ function addPremiumStyles() {
 
 
 // ============================================
-// WIN ANIMATIONS - BIG WIN, MEGA WIN, SUPER WIN
-// ============================================
-
-const WinAnimations = (function() {
-    
-    // ၁။ CSS ကို ထည့်မယ်
-    function addWinStyles() {
-        if (document.getElementById('win-animation-styles')) return;
-        
-        const style = document.createElement('style');
-        style.id = 'win-animation-styles';
-        style.textContent = `
-            /* ========== FONTS ========== */
-            @import url('https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Bangers&family=Rubik+Glitch&display=swap');
-
-            /* ========== BASE STYLES ========== */
-            .win-container {
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                text-align: center;
-                z-index: 999999;
-                width: 100%;
-                perspective: 1000px;
-                pointer-events: none;
-            }
-
-            /* ========== BIG WIN ========== */
-            .big-win-text {
-                font-size: 100px;
-                font-weight: 900;
-                text-transform: uppercase;
-                letter-spacing: 20px;
-                display: inline-block;
-                padding: 30px 60px;
-                font-family: 'Black Ops One', 'Bangers', cursive;
-                color: #ff6600;
-                text-shadow: 
-                    1px 1px 0 #993300,
-                    2px 2px 0 #993300,
-                    3px 3px 0 #993300,
-                    4px 4px 0 #993300,
-                    5px 5px 0 #993300,
-                    6px 6px 0 #993300,
-                    7px 7px 0 #993300,
-                    8px 8px 0 #993300,
-                    9px 9px 0 #993300,
-                    10px 10px 0 #993300,
-                    11px 11px 0 #993300,
-                    12px 12px 0 #993300,
-                    13px 13px 0 #663300,
-                    14px 14px 0 #663300,
-                    15px 15px 0 #663300,
-                    16px 16px 0 #663300,
-                    17px 17px 0 #663300,
-                    18px 18px 0 #663300,
-                    19px 19px 0 #663300,
-                    20px 20px 0 #663300,
-                    0 0 30px #ff6600,
-                    0 0 60px #ff3300,
-                    0 0 90px #ff0000;
-                animation: bigSpinAndStop 4s ease-in-out forwards;
-            }
-
-            @keyframes bigSpinAndStop {
-                0% { transform: rotate(0deg) scale(1); filter: brightness(1); }
-                10% { transform: rotate(360deg) scale(1.2); filter: brightness(1.5); }
-                20% { transform: rotate(720deg) scale(1.1); filter: brightness(1.3); }
-                30% { transform: rotate(1080deg) scale(1.2); filter: brightness(1.5); }
-                40% { transform: rotate(1440deg) scale(1.1); filter: brightness(1.3); }
-                50% { transform: rotate(1800deg) scale(1.2); filter: brightness(1.5); }
-                60% { transform: rotate(2160deg) scale(1.1); filter: brightness(1.3); }
-                70% { transform: rotate(2520deg) scale(1); filter: brightness(1); }
-                80%, 100% { transform: rotate(2520deg) scale(1); filter: brightness(1); }
-            }
-
-            /* ========== MEGA WIN ========== */
-            .mega-win-text {
-                font-size: 100px;
-                font-weight: 900;
-                text-transform: uppercase;
-                letter-spacing: 25px;
-                display: inline-block;
-                padding: 30px 60px;
-                font-family: 'Black Ops One', 'Bangers', cursive;
-                color: #00ffcc;
-                text-shadow: 
-                    1px 1px 0 #0088aa,
-                    2px 2px 0 #0088aa,
-                    3px 3px 0 #0088aa,
-                    4px 4px 0 #0088aa,
-                    5px 5px 0 #0088aa,
-                    6px 6px 0 #0088aa,
-                    7px 7px 0 #0088aa,
-                    8px 8px 0 #0088aa,
-                    9px 9px 0 #0088aa,
-                    10px 10px 0 #0088aa,
-                    11px 11px 0 #006688,
-                    12px 12px 0 #006688,
-                    13px 13px 0 #006688,
-                    14px 14px 0 #006688,
-                    15px 15px 0 #006688,
-                    16px 16px 0 #006688,
-                    17px 17px 0 #006688,
-                    18px 18px 0 #006688,
-                    19px 19px 0 #006688,
-                    20px 20px 0 #006688,
-                    21px 21px 0 #004466,
-                    22px 22px 0 #004466,
-                    23px 23px 0 #004466,
-                    24px 24px 0 #004466,
-                    25px 25px 0 #004466,
-                    26px 26px 0 #004466,
-                    27px 27px 0 #004466,
-                    28px 28px 0 #004466,
-                    29px 29px 0 #004466,
-                    30px 30px 0 #004466,
-                    0 0 30px #00ffff,
-                    0 0 60px #ff00ff,
-                    0 0 90px #00ffff,
-                    0 0 120px #ff00ff,
-                    0 0 150px #ffff00;
-                animation: megaColorChange 3s linear forwards, megaMove 0.2s ease-in-out 3, megaPulse 0.5s ease-in-out 3;
-            }
-
-            @keyframes megaColorChange {
-                0% { color: #00ffcc; }
-                20% { color: #ff00ff; }
-                40% { color: #ffff00; }
-                60% { color: #00ff00; }
-                80% { color: #ff6600; }
-                100% { color: #00ffcc; }
-            }
-
-            @keyframes megaMove {
-                0% { transform: translate(0, 0) rotate(0deg) scale(1); }
-                25% { transform: translate(2px, -2px) rotate(0.5deg) scale(1.02); }
-                50% { transform: translate(-2px, 2px) rotate(-0.5deg) scale(0.98); }
-                75% { transform: translate(2px, 2px) rotate(0.5deg) scale(1.01); }
-                100% { transform: translate(0, 0) rotate(0deg) scale(1); }
-            }
-
-            @keyframes megaPulse {
-                0%, 100% { filter: brightness(1) contrast(1); }
-                50% { filter: brightness(1.5) contrast(1.2); }
-            }
-
-            /* ========== SUPER WIN ========== */
-            .super-win-text {
-                font-size: 100px;
-                font-weight: 900;
-                text-transform: uppercase;
-                letter-spacing: 25px;
-                display: inline-block;
-                padding: 30px 60px;
-                font-family: 'Black Ops One', 'Bangers', cursive;
-                color: #00ffcc;
-                text-shadow: 
-                    1px 1px 0 #0088aa,
-                    2px 2px 0 #0088aa,
-                    3px 3px 0 #0088aa,
-                    4px 4px 0 #0088aa,
-                    5px 5px 0 #0088aa,
-                    6px 6px 0 #0088aa,
-                    7px 7px 0 #0088aa,
-                    8px 8px 0 #0088aa,
-                    9px 9px 0 #0088aa,
-                    10px 10px 0 #0088aa,
-                    11px 11px 0 #006688,
-                    12px 12px 0 #006688,
-                    13px 13px 0 #006688,
-                    14px 14px 0 #006688,
-                    15px 15px 0 #006688,
-                    16px 16px 0 #006688,
-                    17px 17px 0 #006688,
-                    18px 18px 0 #006688,
-                    19px 19px 0 #006688,
-                    20px 20px 0 #006688,
-                    21px 21px 0 #004466,
-                    22px 22px 0 #004466,
-                    23px 23px 0 #004466,
-                    24px 24px 0 #004466,
-                    25px 25px 0 #004466,
-                    26px 26px 0 #004466,
-                    27px 27px 0 #004466,
-                    28px 28px 0 #004466,
-                    29px 29px 0 #004466,
-                    30px 30px 0 #004466,
-                    0 0 30px #00ffff,
-                    0 0 60px #ff00ff,
-                    0 0 90px #00ffff,
-                    0 0 120px #ff00ff,
-                    0 0 150px #ffff00;
-                animation: superColorChange 2.5s linear forwards, superMove 0.15s ease-in-out 3, superPulse 0.4s ease-in-out 3;
-            }
-
-            @keyframes superColorChange {
-                0% { color: #00ffcc; }
-                20% { color: #ff00ff; }
-                40% { color: #ffff00; }
-                60% { color: #00ff00; }
-                80% { color: #ff6600; }
-                100% { color: #00ffcc; }
-            }
-
-            @keyframes superMove {
-                0% { transform: translate(0, 0) rotate(0deg) scale(1); }
-                25% { transform: translate(3px, -3px) rotate(0.8deg) scale(1.03); }
-                50% { transform: translate(-3px, 3px) rotate(-0.8deg) scale(0.97); }
-                75% { transform: translate(3px, 3px) rotate(0.8deg) scale(1.02); }
-                100% { transform: translate(0, 0) rotate(0deg) scale(1); }
-            }
-
-            @keyframes superPulse {
-                0%, 100% { filter: brightness(1) contrast(1); }
-                50% { filter: brightness(1.6) contrast(1.3); }
-            }
-
-            /* ========== COINS & PARTICLES ========== */
-            .coin-particle {
-                position: fixed;
-                top: -10vh;
-                font-size: 35px;
-                pointer-events: none;
-                z-index: 999998;
-                animation: coinFall linear forwards;
-                text-shadow: 0 0 20px currentColor, 0 0 40px currentColor, 0 0 60px currentColor;
-            }
-
-            @keyframes coinFall {
-                0% {
-                    transform: translateY(0) rotate(0deg) scale(1);
-                    opacity: 1;
-                }
-                100% {
-                    transform: translateY(110vh) rotate(1080deg) scale(0.1);
-                    opacity: 0;
-                }
-            }
-
-            /* ========== SPLASH EFFECT ========== */
-            .splash-effect {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                pointer-events: none;
-                z-index: 999997;
-            }
-
-            .splash {
-                position: absolute;
-                border-radius: 50%;
-                transform: scale(0);
-                animation: splashExpand 1.5s ease-out forwards;
-                filter: blur(15px);
-                mix-blend-mode: screen;
-            }
-
-            @keyframes splashExpand {
-                0% {
-                    transform: scale(0);
-                    opacity: 1;
-                }
-                100% {
-                    transform: scale(5);
-                    opacity: 0;
-                }
-            }
-
-            /* ========== DJ LIGHTS ========== */
-            .dj-lights {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                z-index: 999996;
-                pointer-events: none;
-            }
-
-            .light-beam {
-                position: absolute;
-                width: 30%;
-                height: 30%;
-                filter: blur(40px);
-                animation: beamMove 8s ease-in-out infinite;
-                opacity: 0.5;
-                mix-blend-mode: screen;
-            }
-
-            @keyframes beamMove {
-                0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 0.5; }
-                50% { transform: translate(10%, 10%) rotate(180deg) scale(1.3); opacity: 0.8; }
-            }
-                      /* ကိန်းဂဏန်းပြမည့် style */
-               .win-amount-counter {
-                display: block;
-                font-size: 100px; /* စာသားထက် နည်းနည်းသေးမယ် */
-                color: #fff;
-                font-family: 'Bangers', cursive;
-                text-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 2px 2px 5px #000;
-                margin-top: 20px;
-                animation: counterPulse 0.5s infinite alternate;
-           }
-
-             @keyframes counterPulse {
-             from { transform: scale(1); }
-             to { transform: scale(1.05); }
-         }
-
-        `;
-        
-        document.head.appendChild(style);
-        console.log('✅ Win animation CSS added');
-    }
-
-    // ၂။ Container ဖန်တီးမယ်
-    function createContainer() {
-        let container = document.getElementById('win-animation-container');
-        if (!container) {
-            container = document.createElement('div');
-            container.id = 'win-animation-container';
-            container.className = 'win-container';
-            document.body.appendChild(container);
-        }
-        return container;
-    }
-
-    // ၃။ ပိုက်ဆံပြားတွေ ဖန်တီးမယ်
-    function createCoins(count = 50) {
-        const symbols = ['🪙', '💰', '💎', '👑', '⭐', '✨', '💫', '🌟', '🔮', '🌀'];
-        const colors = ['#00ffcc', '#00ffff', '#ff00ff', '#ffff00', '#00ff00', '#ff6600', '#ff3388'];
-        
-        for (let i = 0; i < count; i++) {
-            setTimeout(() => {
-                const coin = document.createElement('div');
-                coin.className = 'coin-particle';
-                coin.textContent = symbols[Math.floor(Math.random() * symbols.length)];
-                coin.style.color = colors[Math.floor(Math.random() * colors.length)];
-                coin.style.left = Math.random() * 100 + '%';
-                coin.style.animationDuration = (Math.random() * 4 + 2) + 's';
-                coin.style.fontSize = (Math.random() * 40 + 20) + 'px';
-                coin.style.opacity = Math.random() * 0.9 + 0.1;
-                document.body.appendChild(coin);
-                
-                setTimeout(() => coin.remove(), 6000);
-            }, i * 30);
-        }
-    }
-
-    // ၄။ ရေပန်းပက်တာ ဖန်တီးမယ်
-    function createSplash(count = 30) {
-        let splashContainer = document.getElementById('splash-container');
-        if (!splashContainer) {
-            splashContainer = document.createElement('div');
-            splashContainer.id = 'splash-container';
-            splashContainer.className = 'splash-effect';
-            document.body.appendChild(splashContainer);
-        }
-        
-        const colors = [
-            'rgba(0, 255, 255, 0.9)',
-            'rgba(255, 0, 255, 0.9)',
-            'rgba(255, 255, 0, 0.9)',
-            'rgba(0, 255, 0, 0.9)',
-            'rgba(255, 102, 0, 0.9)',
-            'rgba(255, 51, 153, 0.9)'
-        ];
-        
-        for (let i = 0; i < count; i++) {
-            setTimeout(() => {
-                const splash = document.createElement('div');
-                splash.className = 'splash';
-                
-                const color = colors[Math.floor(Math.random() * colors.length)];
-                const x = Math.random() * window.innerWidth;
-                const y = Math.random() * window.innerHeight;
-                const size = Math.random() * 400 + 200;
-                
-                splash.style.background = `radial-gradient(circle, ${color} 0%, transparent 80%)`;
-                splash.style.left = x + 'px';
-                splash.style.top = y + 'px';
-                splash.style.width = size + 'px';
-                splash.style.height = size + 'px';
-                splash.style.marginLeft = -size/2 + 'px';
-                splash.style.marginTop = -size/2 + 'px';
-                
-                splashContainer.appendChild(splash);
-                
-                setTimeout(() => splash.remove(), 1500);
-            }, i * 40);
-        }
-    }
-
-    // ၅။ DJ မီးတန်းတွေ ဖန်တီးမယ်
-    function createDJLights() {
-        let lightsContainer = document.getElementById('dj-lights-container');
-        if (lightsContainer) {
-            lightsContainer.remove();
-        }
-        
-        lightsContainer = document.createElement('div');
-        lightsContainer.id = 'dj-lights-container';
-        lightsContainer.className = 'dj-lights';
-        document.body.appendChild(lightsContainer);
-        
-        const positions = [
-            { top: '10%', left: '10%', bg: 'rgba(0, 255, 255, 0.7), rgba(255, 0, 255, 0.4)' },
-            { top: '60%', right: '10%', bg: 'rgba(255, 0, 255, 0.7), rgba(0, 255, 255, 0.4)' },
-            { bottom: '20%', left: '20%', bg: 'rgba(255, 255, 0, 0.7), rgba(0, 255, 255, 0.4)' },
-            { top: '30%', right: '30%', bg: 'rgba(0, 255, 0, 0.7), rgba(255, 0, 255, 0.4)' },
-            { bottom: '40%', right: '40%', bg: 'rgba(255, 165, 0, 0.7), rgba(255, 0, 255, 0.4)' }
-        ];
-        
-        positions.forEach((pos, index) => {
-            const beam = document.createElement('div');
-            beam.className = 'light-beam';
-            beam.style.background = `radial-gradient(ellipse at center, ${pos.bg}, transparent 80%)`;
-            beam.style.animation = `beamMove ${8 + index * 2}s ease-in-out infinite`;
-            
-            Object.keys(pos).forEach(key => {
-                if (key !== 'bg') {
-                    beam.style[key] = pos[key];
-                }
-            });
-            
-            lightsContainer.appendChild(beam);
-        });
-    }
-
-    // ၆။ Container ကိုရှင်းမယ်
-    function clearAll() {
-        // Container ကိုဖျက်မယ်
-        const container = document.getElementById('win-animation-container');
-        if (container) {
-            container.remove();
-        }
-        
-        // Coins တွေကိုရှင်းမယ်
-        document.querySelectorAll('.coin-particle').forEach(el => el.remove());
-        
-        // Splash container ကိုဖျက်မယ်
-        const splashContainer = document.getElementById('splash-container');
-        if (splashContainer) {
-            splashContainer.remove();
-        }
-        
-        // DJ lights container ကိုဖျက်မယ်
-        const lightsContainer = document.getElementById('dj-lights-container');
-        if (lightsContainer) {
-            lightsContainer.remove();
-        }
-    }
-
-   function animateValue(obj, start, end, duration) {
-    if (!obj) {
-        console.log('animateValue: obj is null');
-        return;
-    }
-    console.log('animateValue: starting', start, end);
-    
-    let startTimestamp = null;
-    const step = (timestamp) => {
-        if (!startTimestamp) startTimestamp = timestamp;
-        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-        const currentVal = Math.floor(progress * (end - start) + start);
-        
-        obj.innerHTML = currentVal.toLocaleString() + ' KS';
-        console.log('animateValue step:', currentVal);
-        
-        if (progress < 1) {
-            window.requestAnimationFrame(step);
-        } else {
-            obj.innerHTML = end.toLocaleString() + ' KS';
-            console.log('animateValue done:', end);
-        }
-    };
-    window.requestAnimationFrame(step);
-}
-
-    // ၇။ BIG WIN
-    function showBigWin(amount = 0) {
-        addWinStyles();
-        clearAll();
-        const container = createContainer();
-        
-        const div = document.createElement('div');
-        div.className = 'big-win-text';
-        // HTML structure
-        div.innerHTML = `BIG WIN <div id="win-counter" class="win-amount-counter">0 KS</div>`;
-        container.appendChild(div);
-        
-        setTimeout(() => {
-            animateValue(document.getElementById('win-counter'), 0, amount, 2500);
-        }, 500);
-
-        createCoins(60);
-        createSplash(25);
-        setTimeout(() => clearAll(), 5000);
-    }
-
-    // ၈။ MEGA WIN
-    function showMegaWin(amount = 0) {
-        addWinStyles();
-        clearAll();
-        const container = createContainer();
-        
-        const div = document.createElement('div');
-        div.className = 'mega-win-text';
-        div.innerHTML = `MEGA WIN <div id="win-counter" class="win-amount-counter">0 KS</div>`;
-        container.appendChild(div);
-        
-        setTimeout(() => {
-            animateValue(document.getElementById('win-counter'), 0, amount, 3000);
-        }, 500);
-
-        createDJLights();
-        createCoins(80);
-        createSplash(30);
-        setTimeout(() => clearAll(), 6000);
-    }
-
-    // ၉။ SUPER WIN
-    function showSuperWin(amount = 0) {
-        addWinStyles();
-        clearAll();
-        const container = createContainer();
-        
-        const div = document.createElement('div');
-        div.className = 'super-win-text';
-        div.innerHTML = `SUPER WIN <div id="win-counter" class="win-amount-counter">0 KS</div>`;
-        container.appendChild(div);
-        
-        setTimeout(() => {
-            animateValue(document.getElementById('win-counter'), 0, amount, 3500);
-        }, 500);
-
-        createDJLights();
-        createCoins(100);
-        createSplash(40);
-        setTimeout(() => clearAll(), 7000);
-    }
-
-    return {
-        big: showBigWin,
-        mega: showMegaWin,
-        super: showSuperWin,
-        clear: clearAll
-    };
-})();
-
-
-
-
-// ============================================
 // 23. EXPORT GLOBALS
 // ============================================
-window.adminControlMode = adminControlMode;
-window.turnOnAdminMode = turnOnAdminMode;
-window.turnOffAdminMode = turnOffAdminMode;
 window.spin = spin;
 window.closeUserSurpriseModal = closeUserSurpriseModal;
 window.selectUserBox = selectUserBox;
@@ -3893,9 +4386,12 @@ window.closeModal = closeModal;
 window.stopAutoSpin = stopAutoSpin;
 window.startAutoSpin = startAutoSpin;
 window.WinAnimations = WinAnimations;
-window.premiumBuffaloStampede = premiumBuffaloStampede;
 window.buffaloStampede = buffaloStampede;
 window.highlightWinsPremium = highlightWinsPremium;
-window.WinAnimations = WinAnimations;
 console.log('✅ Game.js ULTIMATE VERSION fully loaded with all features!');
 
+// Ensure function is globally available
+if (typeof listenToLossPool !== 'function') {
+    window.listenToLossPool = listenToLossPool;
+    window.updateJackpotPoolDisplay = updateJackpotPoolDisplay;
+}
