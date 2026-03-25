@@ -149,7 +149,7 @@ const IMAGE_PATHS = {
     'ayeaye':  {3: 0.16, 4: 0.4, 5: 2.0}
 };
 
-
+window.PAYTABLE = PAYTABLE_ORIGINAL;
 
 
 // C MULTIPLIER
@@ -863,7 +863,7 @@ function loadCurrentUserData() {
 // ============================================
 // FIXED WIN CALCULATION (COMPLETE)
 // ============================================
-function calculateWinnings(result) {
+ function calculateWinnings(result) {
     // paytable ကိုသေချာအောင်လုပ်
     const paytable = window.PAYTABLE || PAYTABLE_ORIGINAL;
     const bet = window.gameState.betAmount;
@@ -892,20 +892,18 @@ function calculateWinnings(result) {
 
     // ===== Helper: get final multiplier based on symbol and count =====
     function getFinalMultiplier(symbol, count) {
-        // base multiplier from 5-match (or highest defined)
-        let baseMultiplier = paytable[symbol]?.[5];
-        if (!baseMultiplier) return 0;
-
+        // 3, 4, 5-match အတွက် multiplier ကို paytable ကနေယူ
+        const multiplier = paytable[symbol]?.[count];
+        if (!multiplier) return 0;
+        
         const highValueSymbols = ['buffalo', 'ele', 'lion'];
-
+        
         if (highValueSymbols.includes(symbol) && count > 5) {
-            // တစ်လုံးပိုတိုင်း multiplier 0.5 တိုး (စိတ်ကြိုက်ပြင်နိုင်)
             const extra = (count - 5) * 0.5;
-            return baseMultiplier * (1 + extra);
-        } else {
-            // သာမန်သင်္ကေတ ဒါမှမဟုတ် count <=5 ဆို base multiplier အတိုင်း
-            return baseMultiplier;
+            return multiplier * (1 + extra);
         }
+        
+        return multiplier;
     }
 
     // ===== 1024 ways win ရှာ =====
@@ -950,10 +948,10 @@ function calculateWinnings(result) {
                     }
                 }
 
-                // အနိုင်ရရင် ထည့် (NEW: use getFinalMultiplier)
-                if (paytable[symbol0] && paytable[symbol0][streak]) {
-                    const finalMultiplier = getFinalMultiplier(symbol0, streak);
-                    const winAmount = bet * finalMultiplier;
+                // အနိုင်ရရင် ထည့်
+                const finalMultiplier = getFinalMultiplier(symbol0, streak);
+                if (finalMultiplier > 0) {
+                    const winAmount = Math.floor(bet * finalMultiplier);
                     totalWin += winAmount;
 
                     winLines.push({
@@ -994,84 +992,84 @@ function calculateWinnings(result) {
 
     // ===== VIP အဆင့်အလိုက် အနိုင်ကန့်သတ်ချက် =====
     if (vipConfig && totalWin > 0) {
-    const maxWinMultiplier = vipConfig.maxWinMultiplier || 500;
-    const minMaxWin = vipConfig.minMaxWin || 3000;
-    const calculatedMaxWin = Math.max(bet * maxWinMultiplier, minMaxWin);
-    if (totalWin > calculatedMaxWin) {
-        console.log(`⚠️ VIP limit applied: ${totalWin} → ${calculatedMaxWin}`);
-        totalWin = calculatedMaxWin;
-    }
-  }
-
-    // ===== ဂျက်ပေါ့စစ် (ကျွဲ ၂၀ ကောင်နဲ့အထက်) =====
-   if (buffaloCount >= 20) {
-    totalWin += window.gameState.jackpot;
-    winLines.push({
-        symbol: 'buffalo',
-        name: 'Buffalo Jackpot',
-        win: window.gameState.jackpot
-    });
-    winIndices.push(...buffaloIndices);
-    console.log(`🎰 JACKPOT! Buffalo count: ${buffaloCount}, Prize: ${window.gameState.jackpot}`);
-}
-
-    // ===== Apply global max win cap (per deposit) =====
-const maxWinPerDeposit = window.gameState.maxWin || 50000;
-let cappedWin = Math.min(totalWin, maxWinPerDeposit);
-totalWin = cappedWin;   // use capped amount from here on
-
-// ===== UI updates (but don't modify displayBalance here if spin() already does) =====
-if (totalWin > 0) {
-    window.gameState.consecutiveWins++;
-    console.log('✅ Win! Consecutive wins:', window.gameState.consecutiveWins);
-
-    // REMOVED: displayBalance update – spin() will add totalWin to balance and displayBalance
-    window.gameState.winAmount = totalWin;
-
-    updateWinDisplay(totalWin);          // show win amount on screen
-    if (typeof addWinToHistory === 'function') addWinToHistory(totalWin);
-    if (typeof playWinSounds === 'function') playWinSounds(totalWin, winLines);
-    if (typeof showWinLinesInfo === 'function') showWinLinesInfo(winLines);
-
-    const winPercentage = (totalWin / bet) * 100;
-
-    // Win animations (same as before)
-    if (typeof WinAnimation !== 'undefined') {
-        if (winPercentage >= 1500) {
-            WinAnimation.mega(totalWin);
-            if (typeof SoundManager !== 'undefined') SoundManager.congratulations();
-            if (typeof SoundManager !== 'undefined') SoundManager.lion();
-            if (typeof SoundManager !== 'undefined') SoundManager.coin();
-        } else if (winPercentage >= 1000) {
-            WinAnimation.super(totalWin);
-            if (typeof SoundManager !== 'undefined') SoundManager.congratulations();
-            if (typeof SoundManager !== 'undefined') SoundManager.lion();
-            if (typeof SoundManager !== 'undefined') SoundManager.coin();
-        } else if (winPercentage >= 500) {
-            WinAnimation.big(totalWin);
-            if (typeof SoundManager !== 'undefined') SoundManager.congratulations();
-            if (typeof SoundManager !== 'undefined') SoundManager.lion();
-            if (typeof SoundManager !== 'undefined') SoundManager.coin();
+        const maxWinMultiplier = vipConfig.maxWinMultiplier || 500;
+        const minMaxWin = vipConfig.minMaxWin || 3000;
+        const calculatedMaxWin = Math.max(bet * maxWinMultiplier, minMaxWin);
+        if (totalWin > calculatedMaxWin) {
+            console.log(`⚠️ VIP limit applied: ${totalWin} → ${calculatedMaxWin}`);
+            totalWin = calculatedMaxWin;
         }
     }
 
-    if (typeof checkLevelUp === 'function') checkLevelUp();
+    // ===== ဂျက်ပေါ့စစ် (ကျွဲ ၂၀ ကောင်နဲ့အထက်) =====
+    if (buffaloCount >= 20) {
+        totalWin += window.gameState.jackpot;
+        winLines.push({
+            symbol: 'buffalo',
+            name: 'Buffalo Jackpot',
+            win: window.gameState.jackpot
+        });
+        winIndices.push(...buffaloIndices);
+        console.log(`🎰 JACKPOT! Buffalo count: ${buffaloCount}, Prize: ${window.gameState.jackpot}`);
+    }
 
-} else {
-    window.gameState.consecutiveWins = 0;
-    console.log('❌ No win');
+    // ===== Apply global max win cap (per deposit) =====
+    const maxWinPerDeposit = window.gameState.maxWin || 50000;
+    let cappedWin = Math.min(totalWin, maxWinPerDeposit);
+    totalWin = cappedWin;
+
+    // ===== UI updates =====
+    if (totalWin > 0) {
+        window.gameState.consecutiveWins++;
+        console.log('✅ Win! Consecutive wins:', window.gameState.consecutiveWins);
+
+        window.gameState.winAmount = totalWin;
+
+        updateWinDisplay(totalWin);
+        if (typeof addWinToHistory === 'function') addWinToHistory(totalWin);
+        if (typeof playWinSounds === 'function') playWinSounds(totalWin, winLines);
+        if (typeof showWinLinesInfo === 'function') showWinLinesInfo(winLines);
+
+        const winPercentage = (totalWin / bet) * 100;
+
+        // Win animations
+        if (typeof WinAnimation !== 'undefined') {
+            if (winPercentage >= 1500) {
+                WinAnimation.mega(totalWin);
+                if (typeof SoundManager !== 'undefined') SoundManager.congratulations();
+                if (typeof SoundManager !== 'undefined') SoundManager.lion();
+                if (typeof SoundManager !== 'undefined') SoundManager.coin();
+            } else if (winPercentage >= 1000) {
+                WinAnimation.super(totalWin);
+                if (typeof SoundManager !== 'undefined') SoundManager.congratulations();
+                if (typeof SoundManager !== 'undefined') SoundManager.lion();
+                if (typeof SoundManager !== 'undefined') SoundManager.coin();
+            } else if (winPercentage >= 500) {
+                WinAnimation.big(totalWin);
+                if (typeof SoundManager !== 'undefined') SoundManager.congratulations();
+                if (typeof SoundManager !== 'undefined') SoundManager.lion();
+                if (typeof SoundManager !== 'undefined') SoundManager.coin();
+            }
+        }
+
+        if (typeof checkLevelUp === 'function') checkLevelUp();
+
+    } else {
+        window.gameState.consecutiveWins = 0;
+        console.log('❌ No win');
+    }
+
+    // Remove duplicate indices
+    winIndices = [...new Set(winIndices)];
+
+    return {
+        totalWin: totalWin,
+        indices: winIndices,
+        buffaloIndices: buffaloIndices,
+        winLines: winLines
+    };
 }
 
-// Remove duplicate indices
-winIndices = [...new Set(winIndices)];
-
-return {
-    totalWin: totalWin,          // returns the capped win amount
-    indices: winIndices,
-    buffaloIndices: buffaloIndices,
-    winLines: winLines
-  };
-}
 // ============================================
 // GENERATE SPIN RESULT (REELS ကိုသုံး)
 // ============================================
@@ -3521,20 +3519,30 @@ function createBuffaloConfetti() {
 
 // ============================================
 // Loss Pool Jackpot Functions (defined early)
-// ============================================
+// ===========================================
 function listenToLossPool() {
     if (!firebase || !firebase.firestore) return;
+    const user = firebase.auth().currentUser;
+    if (!user) return;
+    
     const db = firebase.firestore();
     db.collection('admin').doc('lossPool').onSnapshot((doc) => {
         if (doc.exists) {
-            const total = doc.data().totalAmount || 0;  // ဒါက 20% (ဖြတ်ထားတဲ့ငွေ)
-            window.gameState.userLossPool = total;       // User ဘက်အတွက် 20%
-            window.gameState.adminLossPool = total / 0.2; // Admin ဘက်အတွက် All total
+            const data = doc.data();
+            const contributions = data.contributions || {};
+            const userContribution = contributions[user.uid] || 0;
+            
+            window.gameState.userLossPool = userContribution;  // User ရဲ့ကိုယ်ပိုင်
+            window.gameState.adminLossPool = data.totalAmount || 0;  // စုစုပေါင်း
         } else {
             window.gameState.userLossPool = 0;
             window.gameState.adminLossPool = 0;
         }
         updateJackpotPoolDisplay();
+        console.log('LossPool updated:', {
+            userContribution: window.gameState.userLossPool,
+            total: window.gameState.adminLossPool
+        });
     });
 }
 
@@ -3545,7 +3553,6 @@ function updateJackpotPoolDisplay() {
         jackpotEl.textContent = formatNumber(window.gameState.userLossPool || 0);
     }
 }
-
 // ============================================
 // 16. PENDING GIFT FUNCTIONS
 // ============================================
@@ -3623,6 +3630,8 @@ function listenForPendingJackpot(userId) {
         console.error('🔥 Error listening to notifications:', error);
     });
 }
+
+
 
 // ============================================
 // JACKPOT ပြီးဆုံးကြောင်း FIRESTORE မှာ သွားမှတ်မည့် FUNCTION
