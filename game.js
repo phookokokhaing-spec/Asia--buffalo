@@ -10,6 +10,8 @@
     displayBalance: 0,
     balance: 0,
     jackpotPool: 0,
+    userLossPool: 0,
+    adminLossPool: 0,
     maxWin: 0,
     vipLevel: 0,
     totalDeposit: 0,
@@ -3521,29 +3523,26 @@ function createBuffaloConfetti() {
 // Loss Pool Jackpot Functions (defined early)
 // ============================================
 function listenToLossPool() {
-    if (!firebase || !firebase.firestore) {
-        console.warn('Firebase not available for loss pool');
-        return;
-    }
+    if (!firebase || !firebase.firestore) return;
     const db = firebase.firestore();
     db.collection('admin').doc('lossPool').onSnapshot((doc) => {
         if (doc.exists) {
-            const total = doc.data().totalAmount || 0;
-            window.gameState.jackpotPool = total;
+            const total = doc.data().totalAmount || 0;  // ဒါက 20% (ဖြတ်ထားတဲ့ငွေ)
+            window.gameState.userLossPool = total;       // User ဘက်အတွက် 20%
+            window.gameState.adminLossPool = total / 0.2; // Admin ဘက်အတွက် All total
         } else {
-            window.gameState.jackpotPool = 0;
+            window.gameState.userLossPool = 0;
+            window.gameState.adminLossPool = 0;
         }
         updateJackpotPoolDisplay();
-        console.log('🔄 LossPool updated:', window.gameState.jackpotPool);
-    }, (err) => {
-        console.error('LossPool listener error:', err);
     });
 }
 
 function updateJackpotPoolDisplay() {
-    const jackpotEl = document.getElementById('jackpotPool');
-    if (jackpotEl) {
-        jackpotEl.textContent = formatNumber(window.gameState.jackpotPool || 0);
+    const jackpotEl = document.getElementById('jackpotPoolAmount');
+    if (jackpotEl && window.gameState) {
+        // User ဘက်မှာ 20% ပဲပြမယ်
+        jackpotEl.textContent = formatNumber(window.gameState.userLossPool || 0);
     }
 }
 

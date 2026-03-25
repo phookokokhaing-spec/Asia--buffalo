@@ -506,7 +506,7 @@ window.submitDeposit = async function() {
             'Admin မှ စစ်ဆေးပြီးပါက ငွေဖြည့်သွင်းပေးပါမည်။',
             [
                 'ငွေပမာဏ: ' + formatNumber(depositAmount) + ' ကျပ်',
-                'အမှန်တကယ်ရရှိမည့်ငွေ: ' + formatNumber(userCredit) + ' ကျပ် (80%)',
+                'Gameunitရရှိ‌ေငွ: ' + formatNumber(userCredit) + ' ကျပ် (80%)',
                 'ငွေလွှဲ ID: ' + txId,
                 'အခြေအနေ: စောင့်ဆိုင်းဆဲ'
             ]
