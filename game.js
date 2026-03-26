@@ -95,13 +95,13 @@ const REELS = [
    ['seven', 'jack', 'queen', 'nine',  'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'ten'],
     
     // Reel 3 (Column 2) - with wild
-    ['seven', 'jack', 'queen', 'nine',  'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'ten'],
+    ['seven', 'jack', 'queen', 'nine',  'tha', 'zebra', 'buffalo', 'coin', 'bonus', 'ten'],
     
     // Reel 4 (Column 3) - with wild
-   ['seven', 'jack', 'queen', 'nine', 'lion', 'wild', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'ten'],
+   ['seven', 'jack', 'queen', 'nine', 'lion', 'wild', 'ele', 'tha', 'buffalo', 'ayeaye', 'coin', 'bonus', 'ten'],
     
     // Reel 5 (Column 4) - with wild
-    ['seven', 'jack', 'queen', 'nine',  'wild', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'ten']
+    ['seven', 'jack', 'queen', 'nine',  'wild', 'tha', 'zebra', 'ayeaye', 'buffalo', 'bonus', 'ten']
 ];
 // ===== Free Spin Mode အထူး symbols =====
 const FREE_SPIN_SYMBOLS = {
