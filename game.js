@@ -309,7 +309,7 @@ function applyBuffaloMode(result, modeName) {
 
         await loadUserFromFirebase();
         await checkUserSurprise();
-
+        await loadLossPoolData();
         if (currentUser && currentUser.id) {
             console.log('🟢 Setting up listeners for user:', currentUser.id);
             listenForPendingJackpot(currentUser.id);
@@ -715,10 +715,11 @@ function loadCurrentUserData() {
         return;
     }
     
-      if (window.gameState.balance < window.gameState.betAmount) {
+  if (window.gameState.balance < window.gameState.betAmount) {
+    console.log('⚠️ Balance too low:', window.gameState.balance, '<', window.gameState.betAmount);
     showNotification('လက်ကျန်ငွေ မလုံလောက်ပါ', 'error');
     return;
-   }
+}
 
 
     // 2. Spin စတဲ့အချက်ပြမှုများ
@@ -859,6 +860,32 @@ function loadCurrentUserData() {
         }
     });
 }
+
+
+//============================================
+//  Show Notification
+//============================================
+
+function showNotification(msg, type = 'info') {
+    console.log('🔔 showNotification called:', msg);
+    const n = document.getElementById('notification');
+    if (!n) {
+        console.log('❌ Notification element not found!');
+        return;
+    }
+    const msgEl = n.querySelector('#notificationMessage');
+    if (!msgEl) {
+        console.log('❌ Notification message element not found!');
+        return;
+    }
+    msgEl.textContent = msg;
+    n.style.background = type === 'success' ? '#00c853' : type === 'error' ? '#ff5252' : '#2196f3';
+    n.classList.add('show');  // Add class instead of direct style
+    setTimeout(() => {
+        n.classList.remove('show');
+    }, 3000);
+}
+
 
 // ============================================
 // FIXED WIN CALCULATION (COMPLETE)
@@ -3519,38 +3546,48 @@ function createBuffaloConfetti() {
 
 // ============================================
 // Loss Pool Jackpot Functions (defined early)
-// ===========================================
-function listenToLossPool() {
+//============================================
+
+async function loadLossPoolData() {
     if (!firebase || !firebase.firestore) return;
     const user = firebase.auth().currentUser;
     if (!user) return;
     
-    const db = firebase.firestore();
-    db.collection('admin').doc('lossPool').onSnapshot((doc) => {
+    try {
+        const db = firebase.firestore();
+        const doc = await db.collection('admin').doc('lossPool').get();
+        
         if (doc.exists) {
             const data = doc.data();
             const contributions = data.contributions || {};
             const userContribution = contributions[user.uid] || 0;
             
-            window.gameState.userLossPool = userContribution;  // User ရဲ့ကိုယ်ပိုင်
-            window.gameState.adminLossPool = data.totalAmount || 0;  // စုစုပေါင်း
+            console.log('🎯 Loaded user contribution:', userContribution);
+            
+            window.gameState.userLossPool = userContribution;
+            window.gameState.totalLossPool = data.totalAmount || 0;
         } else {
             window.gameState.userLossPool = 0;
-            window.gameState.adminLossPool = 0;
+            window.gameState.totalLossPool = 0;
         }
+        
         updateJackpotPoolDisplay();
-        console.log('LossPool updated:', {
-            userContribution: window.gameState.userLossPool,
-            total: window.gameState.adminLossPool
-        });
-    });
+        
+    } catch (error) {
+        console.error('Error loading loss pool:', error);
+    }
 }
 
 function updateJackpotPoolDisplay() {
     const jackpotEl = document.getElementById('jackpotPoolAmount');
+    console.log('🎯 updateJackpotPoolDisplay called');
+    console.log('🎯 jackpotEl:', jackpotEl);
+    console.log('🎯 userLossPool:', window.gameState.userLossPool);
+    
     if (jackpotEl && window.gameState) {
-        // User ဘက်မှာ 20% ပဲပြမယ်
-        jackpotEl.textContent = formatNumber(window.gameState.userLossPool || 0);
+        const value = window.gameState.userLossPool || 0;
+        console.log('🎯 Setting to:', value);
+        jackpotEl.textContent = formatNumber(value);
     }
 }
 // ============================================
@@ -4009,12 +4046,11 @@ function updateVIPDisplay() {
 // ============================================
 // LOAD USER FROM FIREBASE (ဆက်သုံး)
 // ============================================
-
-async function loadUserFromFirebase() {
+ async function loadUserFromFirebase() {
     const user = firebase.auth().currentUser;
     if (!user) return;
-
-    try {
+        
+         try {
         const userDoc = await firebase.firestore().collection('users').doc(user.uid).get();
         if (userDoc.exists) {
             const data = userDoc.data();
@@ -4024,6 +4060,7 @@ async function loadUserFromFirebase() {
             window.currentUser = { uid: user.uid, ...data };
             localStorage.setItem('currentUser', JSON.stringify(window.currentUser));
             updateBalanceDisplay();
+            listenToLossPool();
         }
     } catch (error) {
         console.error('Firebase load error:', error);
