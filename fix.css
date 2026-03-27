@@ -1,3 +1,53 @@
+
+/* Disable all selection and context menu on everything inside game */
+.game-container *,
+.slot-grid *,
+.grid-cell *,
+.symbol-image,
+.win-container *,
+.balance-container *,
+.modal-content * {
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-touch-callout: none !important;
+    pointer-events: auto !important;
+}
+
+/* Disable image context menu */
+img {
+    pointer-events: none !important;
+    -webkit-user-drag: none !important;
+    -khtml-user-drag: none !important;
+    -moz-user-drag: none !important;
+    -o-user-drag: none !important;
+    user-drag: none !important;
+}
+.notification {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #2196f3;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 50px;
+    display: none;
+    align-items: center;
+    gap: 10px;
+    z-index: 100000;
+    font-size: 14px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.notification i {
+    font-size: 18px;
+}
+.notification.show {
+    display: flex !important;
+}
 @keyframes jackpotAwardPop {
     0% { transform: translate(-50%, -50%) scale(0.1) rotate(-180deg); opacity: 0; }
     60% { transform: translate(-50%, -50%) scale(1.1) rotate(5deg); }

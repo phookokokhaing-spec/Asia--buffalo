@@ -1,5 +1,48 @@
 
+// Completely disable context menu on entire page
+document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+}, false);
 
+// Disable drag and drop
+document.addEventListener('dragstart', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+}, false);
+
+// Disable selection
+document.addEventListener('selectstart', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+}, false);
+
+// Disable copy
+document.addEventListener('copy', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+}, false);
+
+// Disable long press menu (mobile)
+document.addEventListener('touchstart', function(e) {
+    if (e.target.closest('.game-container') || 
+        e.target.closest('.slot-grid') || 
+        e.target.closest('.grid-cell')) {
+        e.preventDefault();
+        e.stopPropagation();
+        // Simulate click after prevent default
+        const clickEvent = new MouseEvent('click', {
+            view: window,
+            bubbles: true,
+            cancelable: true
+        });
+        e.target.dispatchEvent(clickEvent);
+    }
+}, { passive: false, capture: true });
 
 // ===== LOADING SCREEN LOGIC =====
   document.addEventListener('DOMContentLoaded', function() {
