@@ -27,72 +27,71 @@ document.addEventListener('copy', function(e) {
     return false;
 }, false);
 
-// Disable long press menu (mobile)
-document.addEventListener('touchstart', function(e) {
-    if (e.target.closest('.game-container') || 
-        e.target.closest('.slot-grid') || 
-        e.target.closest('.grid-cell')) {
-        e.preventDefault();
-        e.stopPropagation();
-        // Simulate click after prevent default
-        const clickEvent = new MouseEvent('click', {
-            view: window,
-            bubbles: true,
-            cancelable: true
-        });
-        e.target.dispatchEvent(clickEvent);
-    }
-}, { passive: false, capture: true });
 
 // ===== LOADING SCREEN LOGIC =====
-  document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function() {
     const startBtn = document.getElementById('startBtn');
     const startWrapper = document.getElementById('startWrapper');
     const loadingContainer = document.getElementById('loadingContainer');
     const loadingTip = document.getElementById('loadingTip');
     const loginScreen = document.getElementById('loginScreen');
     const gameContainer = document.getElementById('gameContainer');
+    const loadingScreen = document.getElementById('loadingScreen');
 
     // Check if user already logged in
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    
+
     if (currentUser) {
         // User already logged in - skip login screen
-        document.getElementById('loadingScreen').style.display = 'none';
-        gameContainer.style.display = 'flex';
+        if (loadingScreen) loadingScreen.style.display = 'none';
+        if (gameContainer) gameContainer.style.display = 'flex';
         updateUserUI(currentUser);
-        if (typeof SoundManager !== 'undefined') {
+        if (typeof SoundManager !== 'undefined' && SoundManager.playBGM) {
             SoundManager.playBGM();
         }
         return;
     }
 
     // START button click
-    startBtn.addEventListener('click', function() {
-        // 1. Full screen
-        toggleFullScreen();
-        
-        // 2. Hide start button, show loading
-        startWrapper.style.opacity = '0';
-        setTimeout(() => {
-            startWrapper.style.display = 'none';
-            loadingContainer.style.display = 'block';
-            loadingTip.innerHTML = '<i class="fas fa-wifi"></i> Checking internet speed...';
-            
-            // 3. Play loading sound
-            if (typeof SoundManager !== 'undefined') {
-                SoundManager.loading(); // loading.mp3
+    if (startBtn) {
+        startBtn.addEventListener('click', function() {
+            // 1. Full screen (with error handling)
+            try {
+                toggleFullScreen();
+            } catch(e) {
+                console.warn('Fullscreen error:', e);
             }
-            
-            // 4. Start loading process
-            startInternetCheck();
-        }, 500);
-    });
+
+            // 2. Hide start button, show loading
+            startWrapper.style.opacity = '0';
+            setTimeout(() => {
+                startWrapper.style.display = 'none';
+                if (loadingContainer) loadingContainer.style.display = 'block';
+                if (loadingTip) {
+                    loadingTip.innerHTML = '<i class="fas fa-wifi"></i> Checking internet speed...';
+                }
+
+                // 3. Play loading sound (with safety check)
+                if (typeof SoundManager !== 'undefined' && SoundManager.loading) {
+                    SoundManager.loading(); // loading.mp3
+                }
+
+                // 4. Start loading process
+                startInternetCheck();
+            }, 500);
+        });
+    }
 });
 
 function toggleFullScreen() {
-    if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen();
+    try {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(err => {
+                console.warn('Fullscreen not allowed:', err.message);
+            });
+        }
+    } catch (err) {
+        console.warn('Fullscreen not supported');
     }
 }
 
@@ -103,6 +102,9 @@ function startInternetCheck() {
     const gameProgress = document.getElementById('gameProgress');
     const speedInfo = document.getElementById('speedInfo');
     const loadingTip = document.getElementById('loadingTip');
+    const loadingContainer = document.getElementById('loadingContainer');
+    const loadingScreen = document.getElementById('loadingScreen');
+    const loginScreen = document.getElementById('loginScreen');
 
     let internetPercent = 0;
     let gamePercent = 0;
@@ -136,31 +138,37 @@ function startInternetCheck() {
     }
 
     checkInternetSpeed().then(({ duration, speed }) => {
-        speedInfo.innerHTML = `<i class="fas fa-tachometer-alt"></i> Speed: ~${speed} Mbps`;
+        if (speedInfo) {
+            speedInfo.innerHTML = `<i class="fas fa-tachometer-alt"></i> Speed: ~${speed} Mbps`;
+        }
 
         const incrementTime = Math.max(150, Math.min(400, 400 - speed * 20));
         const stepAmount = Math.max(0.5, Math.min(3, speed / 10));
 
         const internetInterval = setInterval(() => {
             internetPercent += stepAmount;
-            
+
             if (internetPercent >= 100) {
                 internetPercent = 100;
                 clearInterval(internetInterval);
-                internetProgress.style.width = '100%';
+                if (internetProgress) internetProgress.style.width = '100%';
 
                 setTimeout(() => {
-                    step1.style.opacity = '0';
-                    setTimeout(() => {
-                        step1.style.display = 'none';
-                        step2.style.display = 'block';
-                        loadingTip.innerHTML = '<i class="fas fa-gamepad"></i> Loading game assets...';
-                        startGameLoading();
-                    }, 500);
+                    if (step1) {
+                        step1.style.opacity = '0';
+                        setTimeout(() => {
+                            if (step1) step1.style.display = 'none';
+                            if (step2) step2.style.display = 'block';
+                            if (loadingTip) {
+                                loadingTip.innerHTML = '<i class="fas fa-gamepad"></i> Loading game assets...';
+                            }
+                            startGameLoading();
+                        }, 500);
+                    }
                 }, 800);
             }
-            
-            internetProgress.style.width = internetPercent + '%';
+
+            if (internetProgress) internetProgress.style.width = internetPercent + '%';
         }, incrementTime);
     });
 
@@ -168,47 +176,42 @@ function startInternetCheck() {
     function startGameLoading() {
         const gameInterval = setInterval(() => {
             gamePercent += Math.random() * 1.5 + 0.5;
-            
+
             if (gamePercent >= 100) {
                 gamePercent = 100;
                 clearInterval(gameInterval);
-                gameProgress.style.width = '100%';
+                if (gameProgress) gameProgress.style.width = '100%';
 
                 setTimeout(() => {
-                    document.getElementById('loadingScreen').style.opacity = '0';
+                    if (loadingScreen) loadingScreen.style.opacity = '0';
                     setTimeout(() => {
-                        document.getElementById('loadingScreen').style.display = 'none';
-                        
+                        if (loadingScreen) loadingScreen.style.display = 'none';
+
                         // Show login screen instead of game
-                        document.getElementById('loginScreen').style.display = 'flex';
-                        
+                        if (loginScreen) loginScreen.style.display = 'flex';
+
                         // Stop loading sound
-                        if (typeof SoundManager !== 'undefined') {
+                        if (typeof SoundManager !== 'undefined' && SoundManager.stop) {
                             SoundManager.stop('loadingSound');
                         }
-                        
+
                     }, 500);
                 }, 800);
             }
-            
-            gameProgress.style.width = gamePercent + '%';
+
+            if (gameProgress) gameProgress.style.width = gamePercent + '%';
         }, 200);
     }
 
     // Update tips every 3 seconds
     let tipIndex = 0;
     setInterval(() => {
-        if (loadingContainer.style.display !== 'none') {
+        if (loadingContainer && loadingContainer.style.display !== 'none' && loadingTip) {
             tipIndex = (tipIndex + 1) % tips.length;
             loadingTip.innerHTML = `<i class="fas fa-lightbulb"></i> ${tips[tipIndex]}`;
         }
     }, 3000);
 }
-
-
- // ============================================
-// SETTINGS MENU (FIXED)
-// ============================================
 
 // ============================================
 // SETTINGS (SIMPLE & STABLE)
