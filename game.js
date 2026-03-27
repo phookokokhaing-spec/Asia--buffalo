@@ -1369,11 +1369,12 @@ document.addEventListener('DOMContentLoaded', function() {
 // ============================================
 // 13. STAGGERED ANIMATION WITH DROP EFFECT
 // ============================================
+
 function animateReelsStaggered(finalResult) {
     const cells = document.querySelectorAll('.grid-cell');
     if (cells.length === 0) return;
 
-    console.log('🎰 Real slot machine animation started (falling symbols)');
+    console.log('🎰 Real slot machine animation started (falling from top)');
 
     // Animation class အဟောင်းတွေ ဖြုတ်
     cells.forEach(cell => {
@@ -1391,56 +1392,53 @@ function animateReelsStaggered(finalResult) {
     for (let col = 0; col < 5; col++) {
         const reelCells = Array.from(cells).filter(cell => parseInt(cell.dataset.col) === col);
         
-        // Reel တစ်ခုလုံး လှည့်နေတဲ့ပုံ
+        // Reel တစ်ခုလုံး လှည့်နေတဲ့ပုံ (မလိုတော့ဘူး၊ ဖယ်လိုက်တယ်)
+        // ဒါပေမယ့် နည်းနည်းတုန်အောင် ထားလို့ရတယ်
         reelCells.forEach(cell => {
-            cell.classList.add('reel-shake');
-            const img = cell.querySelector('img');
-            if (img) {
-                img.classList.add('reel-spin');
-            }
+            cell.classList.add('reel-shake'); // အနည်းငယ် တုန်တယ်
         });
 
         // Reel အလိုက် ရပ်မယ်
         setTimeout(() => {
-            // Reel တစ်ခုလုံးကို အပေါ်ကနေ ကျအောင် (row အလိုက်စီ)
             reelCells.forEach((cell, row) => {
                 const img = cell.querySelector('img');
                 if (!img) return;
                 
-                // လှည့်တာ ရပ်
+                // တုန်တာရပ်
                 cell.classList.remove('reel-shake');
-                img.classList.remove('reel-spin');
                 
                 const symbol = finalResult[col][row];
                 
                 if (symbol) {
-                    // မကျခင် အနေအထား
+                    // ပြုတ်ကျဖို့ ကြိုတင်ပြင်ဆင်
                     img.style.transition = 'none';
-                    img.style.transform = 'translateY(-60px)';
+                    // အပေါ်ကနေ အမြင့်ဆုံးကနေ စကျ
+                    img.style.transform = 'translateY(-200px)';
                     img.style.opacity = '0';
                     
                     // symbol အသစ်
                     img.src = `images/${symbol}.png`;
                     
-                    // ကျလာမယ် (row အလိုက် နောက်ကျကျ)
+                    // ပြုတ်ကျမယ် (row အလိုက် နောက်ကျကျ)
                     setTimeout(() => {
-                        img.style.transition = 'transform 0.3s cubic-bezier(0.34, 1.2, 0.64, 1), opacity 0.2s';
+                        // မြန်မြန်ကျဖို့ 0.2s
+                        img.style.transition = 'transform 0.2s cubic-bezier(0.25, 0.1, 0.25, 1), opacity 0.1s';
                         img.style.transform = 'translateY(0)';
                         img.style.opacity = '1';
                         
-                        // bounce effect
+                        // bounce effect (အနည်းငယ်)
                         setTimeout(() => {
                             img.classList.add('symbol-bounce');
                             setTimeout(() => {
                                 img.classList.remove('symbol-bounce');
-                            }, 200);
-                        }, 300);
+                            }, 150);
+                        }, 200);
                         
                         // transition ဖြုတ်
                         setTimeout(() => {
                             img.style.transition = '';
-                        }, 600);
-                    }, row * 100); // အပေါ်ဆုံးက စကျ
+                        }, 400);
+                    }, row * 60); // row အလိုက် နောက်ကျမှု နည်းနည်းလျှော့ (ပိုမြန်အောင်)
                 }
                 cell.dataset.symbol = symbol;
             });
@@ -1449,10 +1447,10 @@ function animateReelsStaggered(finalResult) {
             if (col === 4) {
                 setTimeout(() => {
                     document.dispatchEvent(new CustomEvent('animationComplete'));
-                    console.log('✅ All reels stopped with falling animation');
-                }, 800);
+                    console.log('✅ All reels stopped with falling animation (faster)');
+                }, 600);
             }
-        }, 400 + (col * 180));
+        }, 300 + (col * 120)); // reel တစ်ခုချင်း ရပ်တဲ့ကြားကာလ နည်းနည်းတိုး
     }
 }
 
@@ -3353,38 +3351,31 @@ function updateSelectionDisplay() {
 }
 
 // ===== 7. CONFIRM SELECTION – start sequential reveal =====
-async function claimUserSurprise() {
+  async function claimUserSurprise() {
     if (selectedBoxIndices.length !== MAX_SELECTIONS || isRevealing) return;
     isRevealing = true;
-
     const thankyouMessage = pendingBoxSet?.docData?.thankyouMessage || 'ကျေးဇူးတင်ပါတယ်။';
-
     const confirmBtn = document.getElementById('claimUserSurpriseBtn');
     if (confirmBtn) confirmBtn.disabled = true;
-
     const grid = document.getElementById('userBoxGrid');
     if (grid) grid.style.pointerEvents = 'none';
 
-    // ၁. ရွေးထားတဲ့ box ၅ ခုကို တစ်ခုချင်း ဖွင့်
+    // Reveal selected boxes (isSelected = true)
     for (let i = 0; i < selectedBoxIndices.length; i++) {
         const idx = selectedBoxIndices[i];
-        await revealSingleBox(idx, i * 800, thankyouMessage);
+        await revealSingleBox(idx, i * 800, thankyouMessage, true);
     }
 
-    // ၂. ကျန်တဲ့ box ၁၅ ခုကို ဖွင့်
+    // Reveal remaining boxes (isSelected = false)
     const allIndices = Array.from({ length: currentBoxSet.length }, (_, i) => i);
     const remainingIndices = allIndices.filter(idx => !selectedBoxIndices.includes(idx));
     for (let i = 0; i < remainingIndices.length; i++) {
-        await revealSingleBox(remainingIndices[i], (selectedBoxIndices.length + i) * 300, thankyouMessage);
+        await revealSingleBox(remainingIndices[i], (selectedBoxIndices.length + i) * 300, thankyouMessage, false);
     }
 
-    // ၃. ဆုကြေးတွက်ချက်
+    // Calculate rewards
     const selectedBoxes = selectedBoxIndices.map(i => currentBoxSet[i]);
-    let totalCredits = 0;
-    let totalSpins = 0;
-    let vipUpgrade = 0;
-    let thankyouCount = 0;
-
+    let totalCredits = 0, totalSpins = 0, vipUpgrade = 0, thankyouCount = 0;
     selectedBoxes.forEach(box => {
         if (box.type === 'credit') totalCredits += box.value;
         else if (box.type === 'freespin') totalSpins += box.value;
@@ -3392,22 +3383,29 @@ async function claimUserSurprise() {
         else if (box.type === 'thankyou') thankyouCount++;
     });
 
-    // ၄. ငွေနဲ့ VIP ကို ချက်ချင်းထည့်
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    // ✅ Use the global currentUser (don't redeclare)
+    currentUser = JSON.parse(localStorage.getItem('currentUser'));
     if (currentUser) {
         if (totalCredits > 0) {
             currentUser.balance = (currentUser.balance || 0) + totalCredits;
             currentUser.displayBalance = (currentUser.displayBalance || 0) + totalCredits;
         }
+        if (totalSpins > 0) {
+            currentUser.freeSpins = (currentUser.freeSpins || 0) + totalSpins;
+        }
         if (vipUpgrade > 0) {
             currentUser.vip = (currentUser.vip || 0) + vipUpgrade;
+            console.log(`👑 VIP upgraded: +${vipUpgrade}, new VIP level: ${currentUser.vip}`);
         }
+
         localStorage.setItem('currentUser', JSON.stringify(currentUser));
         window.gameState.balance = currentUser.balance;
         window.gameState.displayBalance = currentUser.displayBalance;
         window.gameState.vipLevel = currentUser.vip;
+        window.gameState.freeSpins = currentUser.freeSpins;
         updateBalanceDisplay();
         if (typeof updateVIPDisplay === 'function') updateVIPDisplay();
+        if (window.gameState.freeSpins > 0 && typeof updateFreeSpinIndicator === 'function') updateFreeSpinIndicator();
     }
 
     // ၅. ငွေဆုအတွက် Win Animation (free spin မစခင်)
@@ -3419,7 +3417,49 @@ async function claimUserSurprise() {
 
     // ၆. Celebration notification ပြ
     showCelebrationNotification(totalCredits, totalSpins, vipUpgrade, thankyouCount);
-
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    if (currentUser) {
+    if (totalCredits > 0) {
+        currentUser.balance = (currentUser.balance || 0) + totalCredits;
+        currentUser.displayBalance = (currentUser.displayBalance || 0) + totalCredits;
+    }
+    if (totalSpins > 0) {
+        currentUser.freeSpins = (currentUser.freeSpins || 0) + totalSpins;
+    }
+    if (vipUpgrade > 0) {
+        currentUser.vip = (currentUser.vip || 0) + vipUpgrade;
+        console.log(`👑 VIP upgraded: +${vipUpgrade}, new VIP level: ${currentUser.vip}`);
+    }
+    
+    // Save to localStorage
+    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    
+    // Update gameState
+    window.gameState.balance = currentUser.balance;
+    window.gameState.displayBalance = currentUser.displayBalance;
+    window.gameState.vipLevel = currentUser.vip;
+    window.gameState.freeSpins = currentUser.freeSpins;
+    
+    // Update UI
+    updateBalanceDisplay();
+    if (typeof updateVIPDisplay === 'function') updateVIPDisplay();
+    if (window.gameState.freeSpins > 0 && typeof updateFreeSpinIndicator === 'function') updateFreeSpinIndicator();
+   }
+   // ✅ Also update user document in Firestore
+   if (currentUser && currentUser.id) {
+    try {
+        const userRef = db.collection('users').doc(currentUser.id);
+        await userRef.update({
+            balance: currentUser.balance,
+            vip: currentUser.vip,
+            freeSpins: currentUser.freeSpins,
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        console.log('✅ User document updated with VIP:', currentUser.vip);
+    } catch (err) {
+        console.error('Error updating user document:', err);
+      }
+    }
     // ၇. Firestore update (retry mechanism)
     let updateSuccess = false;
     let retryCount = 0;
@@ -3467,7 +3507,8 @@ async function claimUserSurprise() {
             }
         }
     }
-
+    
+    
     // ၈. Modal ကိုပိတ်ပြီး UI ကိုရှင်း (even if update failed, we clear local to avoid re-showing immediately)
     closeUserSurpriseModal();
     isRevealing = false;
@@ -3494,7 +3535,8 @@ async function claimUserSurprise() {
 }
 
 // ===== 8. REVEAL SINGLE BOX (with animation) =====
-function revealSingleBox(index, delay, thankyouMessage) {
+
+function revealSingleBox(index, delay, thankyouMessage, isSelected = false) {
     return new Promise((resolve) => {
         setTimeout(() => {
             const box = currentBoxSet[index];
@@ -3504,53 +3546,75 @@ function revealSingleBox(index, delay, thankyouMessage) {
             if (!cells[index]) return resolve();
 
             const cell = cells[index];
-            const boxData = box;
             let icon = 'fa-gift';
             let iconColor = '#ffd700';
             let valueText = '';
             let bgColor = '#2a3a2a';
             let borderColor = '#ffd700';
 
-            if (boxData.type === 'credit') {
+            // Base styles based on box type
+            if (box.type === 'credit') {
                 icon = 'fa-coins';
                 iconColor = '#00c853';
-                valueText = formatNumber(boxData.value) + ' ကျပ်';
+                valueText = formatNumber(box.value) + ' ကျပ်';
                 bgColor = '#00c85320';
-            } else if (boxData.type === 'vip') {
+                borderColor = '#00c853';
+            } else if (box.type === 'vip') {
                 icon = 'fa-crown';
                 iconColor = '#ffd700';
-                valueText = 'VIP Level +' + boxData.value;
+                valueText = 'VIP Level +' + box.value;
                 bgColor = '#ffd70020';
-            } else if (boxData.type === 'freespin') {
+                borderColor = '#ffd700';
+            } else if (box.type === 'freespin') {
                 icon = 'fa-play-circle';
                 iconColor = '#2196f3';
-                valueText = boxData.value + ' Spins';
+                valueText = box.value + ' Spins';
                 bgColor = '#2196f320';
-            } else if (boxData.type === 'thankyou') {
+                borderColor = '#2196f3';
+            } else if (box.type === 'thankyou') {
                 icon = 'fa-smile';
                 iconColor = '#9e9e9e';
-                valueText = thankyouMessage || 'ကျေးဇူးတင်ပါတယ်';
+                valueText = thankyouMessage;
                 bgColor = '#9e9e9e20';
+                borderColor = '#9e9e9e';
             }
 
-            // flip animation
+            // ✅ Selected boxes get special glowing gold border
+            if (isSelected) {
+                borderColor = '#ffd700';
+                // Add extra glow for selected
+                cell.style.boxShadow = '0 0 15px rgba(255,215,0,0.8)';
+                // Optionally make background slightly brighter
+                bgColor = bgColor.replace('20', '40'); // increase opacity a bit
+            } else {
+                // Auto-revealed boxes get a dimmer border
+                borderColor = '#555';
+                cell.style.boxShadow = 'none';
+            }
+
+            // Flip animation
             cell.style.transition = 'transform 0.4s';
             cell.style.transform = 'rotateY(90deg)';
             setTimeout(() => {
                 cell.style.background = bgColor;
-                cell.style.border = `2px solid ${iconColor}`;
+                cell.style.border = `2px solid ${borderColor}`;
                 cell.innerHTML = `
                     <i class="fas ${icon}" style="color: ${iconColor}; font-size: 32px;"></i>
                     <div style="color: white; font-size: 12px; margin-top: 5px;">Box ${index + 1}</div>
                     <div style="color: ${iconColor}; font-size: 11px; margin-top: 3px;">${valueText}</div>
                 `;
                 cell.style.transform = 'rotateY(0deg)';
+
+                // Play sound
+                if (typeof SoundManager !== 'undefined') {
+                    if (SoundManager.reveal) SoundManager.reveal();
+                    else if (SoundManager.coin) SoundManager.coin();
+                }
                 resolve();
             }, 200);
         }, delay);
     });
 }
-
 // ===== 9. CELEBRATION NOTIFICATION =====
 function showCelebrationNotification(credits, spins, vip, thankyouCount) {
     const notification = document.getElementById('celebrationNotification');
