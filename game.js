@@ -63,7 +63,8 @@ window.gameState = window.gameState || {
 };
 
 // Firebase
-let currentUser = null;
+
+  let currentUser = null;
 
 // ============================================
 // 2. UPDATED SYMBOL CONFIGURATION
@@ -3180,13 +3181,130 @@ function stopAutoSpin(reason = 'manual') {
 // ============================================
 
 let surpriseListener = null;
-let pendingBoxSet = null;            // stores the incoming box set before spins completed
+let pendingBoxSet = null;          
 let selectedBoxIndices = [];
-let currentBoxSet = null;            // the 20 boxes data for current selection
-let isRevealing = false;             // prevent double clicks during reveal
+let currentBoxSet = null;   
+let isRevealing = false;            
 let revealTimeout = null;
 const MAX_SELECTIONS = 5;
 const TOTAL_BOXES = 20;
+
+// ===== GSAP + CANVAS PARTICLE SYSTEM =====
+let particleSystem = null;
+
+class ParticleEffectSystem {
+    constructor() {
+        this.canvas = null;
+        this.ctx = null;
+        this.particles = [];
+    }
+    
+    init() {
+        this.canvas = document.createElement('canvas');
+        this.canvas.style.position = 'fixed';
+        this.canvas.style.top = '0';
+        this.canvas.style.left = '0';
+        this.canvas.style.width = '100%';
+        this.canvas.style.height = '100%';
+        this.canvas.style.pointerEvents = 'none';
+        this.canvas.style.zIndex = '99999';
+        document.body.appendChild(this.canvas);
+        this.ctx = this.canvas.getContext('2d');
+        this.resize();
+        window.addEventListener('resize', () => this.resize());
+        this.animate();
+    }
+    
+    resize() {
+        if (!this.canvas) return;
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
+    }
+    
+    animate() {
+        if (!this.ctx || !this.canvas) return;
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+            const p = this.particles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += p.gravity || 0.2;
+            p.life -= 0.02;
+            p.rotation += p.rotationSpeed || 0.05;
+            
+            if (p.life <= 0 || p.y > this.canvas.height + 100) {
+                this.particles.splice(i, 1);
+                continue;
+            }
+            
+            this.ctx.save();
+            this.ctx.globalAlpha = p.life;
+            this.ctx.translate(p.x, p.y);
+            this.ctx.rotate(p.rotation);
+            this.ctx.font = `${p.size}px "Segoe UI Emoji"`;
+            
+            if (p.type === 'coin') {
+                this.ctx.fillStyle = '#ffd700';
+                this.ctx.fillText('💰', -p.size/2, p.size/2);
+            } else if (p.type === 'crown') {
+                this.ctx.fillStyle = '#ffd700';
+                this.ctx.fillText('👑', -p.size/2, p.size/2);
+            } else if (p.type === 'spin') {
+                this.ctx.fillStyle = '#2196f3';
+                this.ctx.fillText('🔄', -p.size/2, p.size/2);
+            } else if (p.type === 'heart') {
+                this.ctx.fillStyle = '#ff69b4';
+                this.ctx.fillText('❤️', -p.size/2, p.size/2);
+            } else if (p.type === 'star') {
+                this.ctx.fillStyle = `hsl(${p.hue || 50}, 100%, 60%)`;
+                this.ctx.fillText('✨', -p.size/2, p.size/2);
+            }
+            
+            this.ctx.restore();
+        }
+        
+        requestAnimationFrame(() => this.animate());
+    }
+    
+    burst(type, x, y, count = 30) {
+        for (let i = 0; i < count; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 8 + 4;
+            this.particles.push({
+                type: type,
+                x: x,
+                y: y,
+                vx: Math.cos(angle) * speed * (Math.random() - 0.5),
+                vy: Math.sin(angle) * speed * (Math.random() - 0.8) - 5,
+                gravity: 0.3,
+                size: Math.random() * 28 + 18,
+                life: 1,
+                rotation: Math.random() * Math.PI * 2,
+                rotationSpeed: (Math.random() - 0.5) * 0.1,
+                hue: Math.random() * 360
+            });
+        }
+    }
+    
+    sparkleAround(x, y) {
+        for (let i = 0; i < 40; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const dist = Math.random() * 60;
+            this.particles.push({
+                type: 'star',
+                x: x + Math.cos(angle) * dist,
+                y: y + Math.sin(angle) * dist,
+                vx: (Math.random() - 0.5) * 2,
+                vy: (Math.random() - 0.5) * 2 - 3,
+                gravity: 0.1,
+                size: Math.random() * 18 + 12,
+                life: 0.8,
+                hue: Math.random() * 360
+            });
+        }
+    }
+}
 
 // ===== 1. LISTEN FOR SURPRISE BOX FROM FIRESTORE =====
 function listenForSurpriseBox(userId) {
@@ -3232,8 +3350,6 @@ function checkPendingBoxSetOnSpin() {
     pendingBoxSet.spinsLeft--;
     if (pendingBoxSet.spinsLeft <= 0) {
         showSurpriseModal();
-        // Do not clear pendingBoxSet yet; it's still needed for reveal
-        // pendingBoxSet will be cleared after successful claim
     } else {
         savePendingBoxSetToLocal();
         if (pendingBoxSet.spinsLeft <= 3) {
@@ -3246,13 +3362,12 @@ function checkPendingBoxSetOnSpin() {
 function showSurpriseModal() {
     if (!pendingBoxSet) return;
 
-    currentBoxSet = JSON.parse(JSON.stringify(pendingBoxSet.boxes)); // deep copy
+    currentBoxSet = JSON.parse(JSON.stringify(pendingBoxSet.boxes));
     selectedBoxIndices = [];
 
     const modal = document.getElementById('userSurpriseModal');
     if (!modal) return;
 
-    // Reset UI
     const resultDiv = document.getElementById('userSurpriseResult');
     if (resultDiv) resultDiv.style.display = 'none';
     const selectedContainer = document.getElementById('userSelectedBoxes');
@@ -3261,15 +3376,13 @@ function showSurpriseModal() {
     const claimBtn = document.getElementById('claimUserSurpriseBtn');
     if (claimBtn) claimBtn.disabled = true;
 
-    // Render grid with hidden content
     renderHiddenBoxGrid();
-
     updateSelectionDisplay();
 
     modal.style.display = 'flex';
 }
 
-// ===== 4. RENDER HIDDEN BOX GRID (no prize details) =====
+// ===== 4. RENDER HIDDEN BOX GRID (with color coding) =====
 function renderHiddenBoxGrid() {
     const grid = document.getElementById('userBoxGrid');
     if (!grid || !currentBoxSet) return;
@@ -3277,37 +3390,117 @@ function renderHiddenBoxGrid() {
     grid.innerHTML = '';
     currentBoxSet.forEach((box, index) => {
         const isSelected = selectedBoxIndices.includes(index);
-
-        let bgColor = '#2a3a2a';
-        let borderColor = '#9e9e9e';
-        let icon = 'fa-gift';
-        let iconColor = '#ffd700';
+        
+        // ✅ Box color logic:
+        // - Selected boxes: GOLD (#ffd700)
+        // - Unselected boxes: RED (#d32f2f)
+        // - After confirm (isRevealing), keep colors
+        let bgColor, borderColor, shadowStyle;
+        
+        if (isSelected) {
+            bgColor = '#ffd70020';      // Gold background
+            borderColor = '#ffd700';     // Gold border
+            shadowStyle = 'box-shadow: 0 0 15px #ffd700; transform: scale(1.05);';
+        } else {
+            bgColor = '#d32f2f20';       // Red background
+            borderColor = '#d32f2f';      // Red border
+            shadowStyle = '';
+        }
 
         const boxDiv = document.createElement('div');
         boxDiv.style.cssText = `
             background: ${bgColor};
-            border: 2px solid ${isSelected ? '#ffd700' : borderColor};
+            border: 2px solid ${borderColor};
             border-radius: 12px;
             padding: 10px 5px;
             text-align: center;
-            cursor: pointer;
+            cursor: ${isRevealing ? 'not-allowed' : 'pointer'};
             transition: all 0.2s;
-            ${isSelected ? 'box-shadow: 0 0 15px #ffd700; transform: scale(1.05);' : ''}
+            ${shadowStyle}
         `;
-        boxDiv.onclick = () => toggleSelection(index);
+        boxDiv.onclick = () => {
+            if (!isRevealing) toggleSelection(index);
+        };
 
+        // Show different icons for selected vs unselected
+        const icon = isSelected ? 'fa-gift' : 'fa-box';
+        const iconColor = isSelected ? '#ffd700' : '#ff8a8a';
+        
         boxDiv.innerHTML = `
             <i class="fas ${icon}" style="color: ${iconColor}; font-size: 32px;"></i>
             <div style="color: white; font-size: 12px; margin-top: 5px;">Box ${index + 1}</div>
-            ${isSelected ? '<div style="color: #ffd700; font-size: 10px;">✓ ရွေးပြီး</div>' : ''}
+            ${isSelected ? '<div style="color: #ffd700; font-size: 10px;">✓ ရွေးပြီး</div>' : '<div style="color: #ff8a8a; font-size: 10px;">မရွေးရသေး</div>'}
         `;
         grid.appendChild(boxDiv);
     });
+    
+    // ✅ Update selection counter with color indicator
+    updateSelectionDisplay();
 }
 
-// ===== 5. TOGGLE SELECTION =====
+// ===== UPDATE SELECTION DISPLAY with better UI =====
+function updateSelectionDisplay() {
+    const remaining = MAX_SELECTIONS - selectedBoxIndices.length;
+    const countEl = document.getElementById('userSelectionCount');
+    const progressEl = document.getElementById('selectionProgress');
+    const selectedContainer = document.getElementById('userSelectedBoxes');
+
+    if (countEl) {
+        countEl.textContent = `ကျန် ${remaining} ခု`;
+        // Change color based on remaining
+        if (remaining === 0) {
+            countEl.style.color = '#ffd700';
+        } else if (remaining <= 2) {
+            countEl.style.color = '#ff9800';
+        } else {
+            countEl.style.color = 'white';
+        }
+    }
+    
+    if (progressEl) {
+        const percent = (selectedBoxIndices.length / MAX_SELECTIONS) * 100;
+        progressEl.style.width = percent + '%';
+        // Progress bar color changes
+        if (percent === 100) {
+            progressEl.style.background = '#ffd700';
+        } else if (percent >= 60) {
+            progressEl.style.background = '#ff9800';
+        } else {
+            progressEl.style.background = '#4caf50';
+        }
+    }
+
+    if (selectedContainer) {
+        if (selectedBoxIndices.length === 0) {
+            selectedContainer.innerHTML = '<span style="color: rgba(255,255,255,0.5);">📦 Box မရွေးရသေးပါ။ အဝါရောင် Box 5 ခုရွေးပါ။</span>';
+        } else {
+            let html = '<div style="display: flex; flex-wrap: wrap; gap: 8px;">';
+            selectedBoxIndices.forEach(idx => {
+                html += `<span style="background: #ffd70020; border:2px solid #ffd700; border-radius:20px; padding:6px 14px; color:#ffd700; font-weight:bold;">🎁 Box ${idx + 1}</span>`;
+            });
+            html += '</div>';
+            selectedContainer.innerHTML = html;
+        }
+    }
+
+    const claimBtn = document.getElementById('claimUserSurpriseBtn');
+    if (claimBtn) {
+        claimBtn.disabled = selectedBoxIndices.length !== MAX_SELECTIONS;
+        if (selectedBoxIndices.length === MAX_SELECTIONS) {
+            claimBtn.style.background = 'linear-gradient(135deg, #ffd700, #ffb347)';
+            claimBtn.style.animation = 'pulse 0.5s infinite';
+        } else {
+            claimBtn.style.background = '';
+            claimBtn.style.animation = '';
+        }
+    }
+}
+// ===== 5. TOGGLE SELECTION (ONLY ONE VERSION) =====
 function toggleSelection(index) {
     if (isRevealing) return;
+      if (typeof SoundManager !== 'undefined' && SoundManager.playButtonSound) {
+        SoundManager.playButtonSound();
+    }
     if (selectedBoxIndices.includes(index)) {
         selectedBoxIndices = selectedBoxIndices.filter(i => i !== index);
     } else {
@@ -3321,221 +3514,8 @@ function toggleSelection(index) {
     updateSelectionDisplay();
 }
 
-// ===== 6. UPDATE SELECTION DISPLAY =====
-function updateSelectionDisplay() {
-    const remaining = MAX_SELECTIONS - selectedBoxIndices.length;
-    const countEl = document.getElementById('userSelectionCount');
-    const progressEl = document.getElementById('selectionProgress');
-    const selectedContainer = document.getElementById('userSelectedBoxes');
 
-    if (countEl) countEl.textContent = `ကျန် ${remaining} ခု`;
-    if (progressEl) {
-        const percent = (selectedBoxIndices.length / MAX_SELECTIONS) * 100;
-        progressEl.style.width = percent + '%';
-    }
-
-    if (selectedContainer) {
-        if (selectedBoxIndices.length === 0) {
-            selectedContainer.innerHTML = '<span style="color: rgba(255,255,255,0.5);">Box မရွေးရသေးပါ။</span>';
-        } else {
-            let html = '';
-            selectedBoxIndices.forEach(idx => {
-                html += `<span style="background: #ffd70020; border:1px solid #ffd700; border-radius:15px; padding:5px 12px;">Box ${idx + 1}</span>`;
-            });
-            selectedContainer.innerHTML = html;
-        }
-    }
-
-    const claimBtn = document.getElementById('claimUserSurpriseBtn');
-    if (claimBtn) claimBtn.disabled = selectedBoxIndices.length !== MAX_SELECTIONS;
-}
-
-// ===== 7. CONFIRM SELECTION – start sequential reveal =====
-  async function claimUserSurprise() {
-    if (selectedBoxIndices.length !== MAX_SELECTIONS || isRevealing) return;
-    isRevealing = true;
-    const thankyouMessage = pendingBoxSet?.docData?.thankyouMessage || 'ကျေးဇူးတင်ပါတယ်။';
-    const confirmBtn = document.getElementById('claimUserSurpriseBtn');
-    if (confirmBtn) confirmBtn.disabled = true;
-    const grid = document.getElementById('userBoxGrid');
-    if (grid) grid.style.pointerEvents = 'none';
-
-    // Reveal selected boxes (isSelected = true)
-    for (let i = 0; i < selectedBoxIndices.length; i++) {
-        const idx = selectedBoxIndices[i];
-        await revealSingleBox(idx, i * 800, thankyouMessage, true);
-    }
-
-    // Reveal remaining boxes (isSelected = false)
-    const allIndices = Array.from({ length: currentBoxSet.length }, (_, i) => i);
-    const remainingIndices = allIndices.filter(idx => !selectedBoxIndices.includes(idx));
-    for (let i = 0; i < remainingIndices.length; i++) {
-        await revealSingleBox(remainingIndices[i], (selectedBoxIndices.length + i) * 300, thankyouMessage, false);
-    }
-
-    // Calculate rewards
-    const selectedBoxes = selectedBoxIndices.map(i => currentBoxSet[i]);
-    let totalCredits = 0, totalSpins = 0, vipUpgrade = 0, thankyouCount = 0;
-    selectedBoxes.forEach(box => {
-        if (box.type === 'credit') totalCredits += box.value;
-        else if (box.type === 'freespin') totalSpins += box.value;
-        else if (box.type === 'vip') vipUpgrade += box.value;
-        else if (box.type === 'thankyou') thankyouCount++;
-    });
-
-    // ✅ Use the global currentUser (don't redeclare)
-    currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    if (currentUser) {
-        if (totalCredits > 0) {
-            currentUser.balance = (currentUser.balance || 0) + totalCredits;
-            currentUser.displayBalance = (currentUser.displayBalance || 0) + totalCredits;
-        }
-        if (totalSpins > 0) {
-            currentUser.freeSpins = (currentUser.freeSpins || 0) + totalSpins;
-        }
-        if (vipUpgrade > 0) {
-            currentUser.vip = (currentUser.vip || 0) + vipUpgrade;
-            console.log(`👑 VIP upgraded: +${vipUpgrade}, new VIP level: ${currentUser.vip}`);
-        }
-
-        localStorage.setItem('currentUser', JSON.stringify(currentUser));
-        window.gameState.balance = currentUser.balance;
-        window.gameState.displayBalance = currentUser.displayBalance;
-        window.gameState.vipLevel = currentUser.vip;
-        window.gameState.freeSpins = currentUser.freeSpins;
-        updateBalanceDisplay();
-        if (typeof updateVIPDisplay === 'function') updateVIPDisplay();
-        if (window.gameState.freeSpins > 0 && typeof updateFreeSpinIndicator === 'function') updateFreeSpinIndicator();
-    }
-
-    // ၅. ငွေဆုအတွက် Win Animation (free spin မစခင်)
-    if (totalCredits > 0 && typeof WinAnimation !== 'undefined') {
-        if (totalCredits >= 50000) WinAnimation.mega(totalCredits);
-        else if (totalCredits >= 15000) WinAnimation.super(totalCredits);
-        else if (totalCredits >= 5000) WinAnimation.big(totalCredits);
-    }
-
-    // ၆. Celebration notification ပြ
-    showCelebrationNotification(totalCredits, totalSpins, vipUpgrade, thankyouCount);
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    if (currentUser) {
-    if (totalCredits > 0) {
-        currentUser.balance = (currentUser.balance || 0) + totalCredits;
-        currentUser.displayBalance = (currentUser.displayBalance || 0) + totalCredits;
-    }
-    if (totalSpins > 0) {
-        currentUser.freeSpins = (currentUser.freeSpins || 0) + totalSpins;
-    }
-    if (vipUpgrade > 0) {
-        currentUser.vip = (currentUser.vip || 0) + vipUpgrade;
-        console.log(`👑 VIP upgraded: +${vipUpgrade}, new VIP level: ${currentUser.vip}`);
-    }
-    
-    // Save to localStorage
-    localStorage.setItem('currentUser', JSON.stringify(currentUser));
-    
-    // Update gameState
-    window.gameState.balance = currentUser.balance;
-    window.gameState.displayBalance = currentUser.displayBalance;
-    window.gameState.vipLevel = currentUser.vip;
-    window.gameState.freeSpins = currentUser.freeSpins;
-    
-    // Update UI
-    updateBalanceDisplay();
-    if (typeof updateVIPDisplay === 'function') updateVIPDisplay();
-    if (window.gameState.freeSpins > 0 && typeof updateFreeSpinIndicator === 'function') updateFreeSpinIndicator();
-   }
-   // ✅ Also update user document in Firestore
-   if (currentUser && currentUser.id) {
-    try {
-        const userRef = db.collection('users').doc(currentUser.id);
-        await userRef.update({
-            balance: currentUser.balance,
-            vip: currentUser.vip,
-            freeSpins: currentUser.freeSpins,
-            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        console.log('✅ User document updated with VIP:', currentUser.vip);
-    } catch (err) {
-        console.error('Error updating user document:', err);
-      }
-    }
-    // ၇. Firestore update (retry mechanism)
-    let updateSuccess = false;
-    let retryCount = 0;
-    const maxRetries = 3;
-    const db = firebase.firestore();
-    const docRef = db.collection('sentBoxes').doc(pendingBoxSet.id);
-
-    while (!updateSuccess && retryCount < maxRetries) {
-        try {
-            const docSnap = await docRef.get();
-            if (docSnap.exists) {
-                const currentData = docSnap.data();
-                const boxes = currentData.boxes ? [...currentData.boxes] : [];
-
-                // Mark selected boxes as opened
-                selectedBoxIndices.forEach(idx => {
-                    if (boxes[idx] && !boxes[idx].opened) {
-                        boxes[idx].opened = true;
-                    }
-                });
-
-                // Update document: set opened=true, update boxes array, and increment counters
-                await docRef.update({
-                    boxes: boxes,
-                    opened: true,
-                    openedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    openedCount: firebase.firestore.FieldValue.increment(1),
-                    totalSelectors: firebase.firestore.FieldValue.increment(1)
-                });
-
-                updateSuccess = true;
-                console.log('✅ Firestore updated: opened=true');
-            } else {
-                console.error('Document does not exist!');
-                break;
-            }
-        } catch (err) {
-            console.error(`Firestore update attempt ${retryCount + 1} failed:`, err);
-            retryCount++;
-            if (retryCount < maxRetries) {
-                await new Promise(r => setTimeout(r, 1000)); // wait 1 sec before retry
-            } else {
-                console.error('All retries failed. Firestore not updated.');
-                showNotification('ဆုကို သိမ်းဆည်းရာတွင် ချို့ယွင်းမှုရှိသည်။ ကျေးဇူးပြု၍ စာမျက်နှာကို ပြန်လည်စတင်ပါ။', 'error');
-            }
-        }
-    }
-    
-    
-    // ၈. Modal ကိုပိတ်ပြီး UI ကိုရှင်း (even if update failed, we clear local to avoid re-showing immediately)
-    closeUserSurpriseModal();
-    isRevealing = false;
-    pendingBoxSet = null;
-    currentBoxSet = null;
-    selectedBoxIndices = [];
-    removePendingBoxSetFromLocal();
-    if (grid) grid.style.pointerEvents = 'auto';
-
-    // ၉. Free spin ကို နောက်ဆုံးမှ စတယ် (modal ပိတ်ပြီးမှ)
-    if (totalSpins > 0) {
-        // Add free spins to user
-        if (currentUser) {
-            currentUser.freeSpins = (currentUser.freeSpins || 0) + totalSpins;
-            localStorage.setItem('currentUser', JSON.stringify(currentUser));
-            window.gameState.freeSpins = currentUser.freeSpins;
-            if (typeof updateFreeSpinIndicator === 'function') updateFreeSpinIndicator();
-        }
-        // Start free spin mode
-        if (typeof startFreeSpins === 'function') {
-            startFreeSpins(totalSpins);
-        }
-    }
-}
-
-// ===== 8. REVEAL SINGLE BOX (with animation) =====
-
+ // ===== 7. REVEAL SINGLE BOX (UPGRADED WITH GSAP) =====
 function revealSingleBox(index, delay, thankyouMessage, isSelected = false) {
     return new Promise((resolve) => {
         setTimeout(() => {
@@ -3546,13 +3526,17 @@ function revealSingleBox(index, delay, thankyouMessage, isSelected = false) {
             if (!cells[index]) return resolve();
 
             const cell = cells[index];
+            const rect = cell.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
             let icon = 'fa-gift';
             let iconColor = '#ffd700';
             let valueText = '';
             let bgColor = '#2a3a2a';
             let borderColor = '#ffd700';
+            let prizeType = box.type;
 
-            // Base styles based on box type
             if (box.type === 'credit') {
                 icon = 'fa-coins';
                 iconColor = '#00c853';
@@ -3579,43 +3563,300 @@ function revealSingleBox(index, delay, thankyouMessage, isSelected = false) {
                 borderColor = '#9e9e9e';
             }
 
-            // ✅ Selected boxes get special glowing gold border
+            // ✅ If selected, keep gold border; if not, use prize color
             if (isSelected) {
                 borderColor = '#ffd700';
-                // Add extra glow for selected
-                cell.style.boxShadow = '0 0 15px rgba(255,215,0,0.8)';
-                // Optionally make background slightly brighter
-                bgColor = bgColor.replace('20', '40'); // increase opacity a bit
-            } else {
-                // Auto-revealed boxes get a dimmer border
-                borderColor = '#555';
-                cell.style.boxShadow = 'none';
             }
 
-            // Flip animation
-            cell.style.transition = 'transform 0.4s';
-            cell.style.transform = 'rotateY(90deg)';
-            setTimeout(() => {
-                cell.style.background = bgColor;
-                cell.style.border = `2px solid ${borderColor}`;
-                cell.innerHTML = `
-                    <i class="fas ${icon}" style="color: ${iconColor}; font-size: 32px;"></i>
-                    <div style="color: white; font-size: 12px; margin-top: 5px;">Box ${index + 1}</div>
-                    <div style="color: ${iconColor}; font-size: 11px; margin-top: 3px;">${valueText}</div>
-                `;
-                cell.style.transform = 'rotateY(0deg)';
-
-                // Play sound
-                if (typeof SoundManager !== 'undefined') {
-                    if (SoundManager.reveal) SoundManager.reveal();
-                    else if (SoundManager.coin) SoundManager.coin();
+            // GSAP Float Up
+            gsap.to(cell, {
+                y: -30,
+                duration: 0.4,
+                ease: "back.out(1)",
+                onComplete: () => {
+                    // Play sound based on prize type
+                    if (typeof SoundManager !== 'undefined') {
+                        if (prizeType === 'credit' && SoundManager.coin) SoundManager.coin();
+                        else if (prizeType === 'vip' && SoundManager.congratulations) SoundManager.congratulations();
+                        else if (prizeType === 'freespin' && SoundManager.spin) SoundManager.spin();
+                        else if (prizeType === 'thankyou' && SoundManager.congratulations) SoundManager.congratulations();
+                        else if (SoundManager.reveal) SoundManager.reveal();
+                    }
+                    
+                    // Particle effect
+                    if (window.particleSystem) {
+                        if (prizeType === 'credit') window.particleSystem.burst('coin', centerX, centerY, 30);
+                        else if (prizeType === 'vip') window.particleSystem.burst('crown', centerX, centerY, 25);
+                        else if (prizeType === 'freespin') window.particleSystem.burst('spin', centerX, centerY, 25);
+                        else if (prizeType === 'thankyou') window.particleSystem.burst('heart', centerX, centerY, 30);
+                        window.particleSystem.sparkleAround(centerX, centerY);
+                    }
                 }
-                resolve();
-            }, 200);
+            });
+            
+            gsap.to(cell, {
+                y: 0,
+                duration: 0.3,
+                ease: "bounce.out",
+                delay: 0.1
+            });
+
+            // Flip animation with GSAP
+            gsap.to(cell, {
+                rotationY: 90,
+                duration: 0.2,
+                ease: "power2.in",
+                onComplete: () => {
+                    cell.style.background = bgColor;
+                    cell.style.border = `2px solid ${borderColor}`;
+                    cell.innerHTML = `
+                        <i class="fas ${icon}" style="color: ${iconColor}; font-size: 32px;"></i>
+                        <div style="color: white; font-size: 12px; margin-top: 5px;">Box ${index + 1}</div>
+                        <div style="color: ${iconColor}; font-size: 11px; margin-top: 3px; font-weight: bold;">${valueText}</div>
+                    `;
+                    
+                    gsap.to(cell, {
+                        rotationY: 0,
+                        duration: 0.3,
+                        ease: "back.out(0.6)",
+                        onComplete: () => {
+                            // ✅ Add glow effect based on prize type
+                            gsap.to(cell, {
+                                boxShadow: `0 0 20px ${borderColor}`,
+                                duration: 0.3,
+                                repeat: 2,
+                                yoyo: true
+                            });
+                            resolve();
+                        }
+                    });
+                }
+            });
         }, delay);
     });
 }
-// ===== 9. CELEBRATION NOTIFICATION =====
+
+// ===== 8. CONFIRM SELECTION – start sequential reveal =====
+async function claimUserSurprise() {
+    if (selectedBoxIndices.length !== MAX_SELECTIONS || isRevealing) return;
+    isRevealing = true;
+    
+    // ✅ Disable all buttons when revealing starts
+    disableAllButtons(true);
+    
+    const thankyouMessage = pendingBoxSet?.docData?.thankyouMessage || 'ကျေးဇူးတင်ပါတယ်။';
+    const confirmBtn = document.getElementById('claimUserSurpriseBtn');
+    if (confirmBtn) confirmBtn.disabled = true;
+    const grid = document.getElementById('userBoxGrid');
+    if (grid) grid.style.pointerEvents = 'none';
+
+    // Reveal selected boxes
+    for (let i = 0; i < selectedBoxIndices.length; i++) {
+        const idx = selectedBoxIndices[i];
+        await revealSingleBox(idx, i * 800, thankyouMessage, true);
+    }
+
+    // Reveal remaining boxes
+    const allIndices = Array.from({ length: currentBoxSet.length }, (_, i) => i);
+    const remainingIndices = allIndices.filter(idx => !selectedBoxIndices.includes(idx));
+    for (let i = 0; i < remainingIndices.length; i++) {
+        await revealSingleBox(remainingIndices[i], (selectedBoxIndices.length + i) * 300, thankyouMessage, false);
+    }
+
+    // Calculate rewards
+    const selectedBoxes = selectedBoxIndices.map(i => currentBoxSet[i]);
+    let totalCredits = 0, totalSpins = 0, vipUpgrade = 0, thankyouCount = 0;
+    selectedBoxes.forEach(box => {
+        if (box.type === 'credit') totalCredits += box.value;
+        else if (box.type === 'freespin') totalSpins += box.value;
+        else if (box.type === 'vip') vipUpgrade += box.value;
+        else if (box.type === 'thankyou') thankyouCount++;
+    });
+
+    // Get currentUser
+    let currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    
+    if (currentUser) {
+        if (totalCredits > 0) {
+            currentUser.balance = (currentUser.balance || 0) + totalCredits;
+            currentUser.displayBalance = (currentUser.displayBalance || 0) + totalCredits;
+        }
+        if (totalSpins > 0) {
+            currentUser.freeSpins = (currentUser.freeSpins || 0) + totalSpins;
+        }
+        if (vipUpgrade > 0) {
+            currentUser.vip = (currentUser.vip || 0) + vipUpgrade;
+            console.log(`👑 VIP upgraded: +${vipUpgrade}, new VIP level: ${currentUser.vip}`);
+        }
+
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        window.gameState.balance = currentUser.balance;
+        window.gameState.displayBalance = currentUser.displayBalance;
+        window.gameState.vipLevel = currentUser.vip;
+        window.gameState.freeSpins = currentUser.freeSpins;
+        updateBalanceDisplay();
+        if (typeof updateVIPDisplay === 'function') updateVIPDisplay();
+        if (window.gameState.freeSpins > 0 && typeof updateFreeSpinIndicator === 'function') updateFreeSpinIndicator();
+    }
+
+    // ✅ Store totalSpins for later use (before WinAnimation)
+    const pendingFreeSpins = totalSpins;
+    
+    // ✅ Win Animation - WAIT for it to complete before starting free spins
+    if (totalCredits > 0 && typeof WinAnimation !== 'undefined') {
+        // Create a promise that resolves when WinAnimation is done
+        await new Promise((resolve) => {
+            if (totalCredits >= 50000) {
+                WinAnimation.mega(totalCredits, resolve);
+                 SoundManager.congratulations();
+                   SoundManager.coin();
+            } else if (totalCredits >= 15000) {
+                WinAnimation.super(totalCredits, resolve);
+                 SoundManager.congratulations();
+            } else if (totalCredits >= 5000) {
+                WinAnimation.big(totalCredits, resolve);
+                     SoundManager.lion();
+                      
+            } else {
+                // Small win - no special animation, just resolve
+                resolve();
+            }
+        });
+    }
+    
+    // ✅ Small delay to ensure WinAnimation visual effects are complete
+    await new Promise(r => setTimeout(r, 500));
+
+    // Celebration notification
+    showCelebrationNotification(totalCredits, totalSpins, vipUpgrade, thankyouCount);
+
+    // Firestore update
+    let updateSuccess = false;
+    let retryCount = 0;
+    const maxRetries = 3;
+    const db = firebase.firestore();
+    const docRef = db.collection('sentBoxes').doc(pendingBoxSet.id);
+
+    while (!updateSuccess && retryCount < maxRetries) {
+        try {
+            const docSnap = await docRef.get();
+            if (docSnap.exists) {
+                const currentData = docSnap.data();
+                const boxes = currentData.boxes ? [...currentData.boxes] : [];
+
+                selectedBoxIndices.forEach(idx => {
+                    if (boxes[idx] && !boxes[idx].opened) {
+                        boxes[idx].opened = true;
+                    }
+                });
+
+                await docRef.update({
+                    boxes: boxes,
+                    opened: true,
+                    openedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    openedCount: firebase.firestore.FieldValue.increment(1),
+                    totalSelectors: firebase.firestore.FieldValue.increment(1)
+                });
+
+                updateSuccess = true;
+                console.log('✅ Firestore updated: opened=true');
+            } else {
+                console.error('Document does not exist!');
+                break;
+            }
+        } catch (err) {
+            console.error(`Firestore update attempt ${retryCount + 1} failed:`, err);
+            retryCount++;
+            if (retryCount < maxRetries) {
+                await new Promise(r => setTimeout(r, 1000));
+            } else {
+                console.error('All retries failed.');
+                showNotification('ဆုကို သိမ်းဆည်းရာတွင် ချို့ယွင်းမှုရှိသည်။', 'error');
+            }
+        }
+    }
+
+    // Update user document in Firestore
+    if (currentUser && currentUser.id) {
+        try {
+            const userRef = db.collection('users').doc(currentUser.id);
+            await userRef.update({
+                balance: currentUser.balance,
+                vip: currentUser.vip,
+                freeSpins: currentUser.freeSpins,
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            console.log('✅ User document updated');
+        } catch (err) {
+            console.error('Error updating user document:', err);
+        }
+    }
+
+    // Close modal and cleanup
+    closeUserSurpriseModal();
+    isRevealing = false;
+    pendingBoxSet = null;
+    currentBoxSet = null;
+    selectedBoxIndices = [];
+    removePendingBoxSetFromLocal();
+    if (grid) grid.style.pointerEvents = 'auto';
+
+    // ✅ Start free spins ONLY AFTER WinAnimation is complete
+    if (pendingFreeSpins > 0) {
+        if (currentUser) {
+            currentUser.freeSpins = (currentUser.freeSpins || 0) + pendingFreeSpins;
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            window.gameState.freeSpins = currentUser.freeSpins;
+            if (typeof updateFreeSpinIndicator === 'function') updateFreeSpinIndicator();
+        }
+        
+        // ✅ Start free spins with callback to re-enable buttons when done
+        if (typeof startFreeSpins === 'function') {
+            // Pass a callback to re-enable buttons after free spins complete
+            startFreeSpins(pendingFreeSpins, () => {
+                console.log('✅ Free spins completed, re-enabling buttons');
+                disableAllButtons(false);
+            });
+        } else {
+            // If no startFreeSpins function, just re-enable buttons
+            disableAllButtons(false);
+        }
+    } else {
+        // No free spins, re-enable buttons immediately
+        disableAllButtons(false);
+    }
+}
+
+// ===== DISABLE ALL BUTTONS FUNCTION =====
+function disableAllButtons(disabled) {
+    // Disable/enable all game buttons
+    const buttons = document.querySelectorAll('button, .spin-btn, .bet-btn, .game-btn, [onclick]');
+    buttons.forEach(btn => {
+        if (disabled) {
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+            btn.style.cursor = 'not-allowed';
+        } else {
+            btn.disabled = false;
+            btn.style.opacity = '1';
+            btn.style.cursor = 'pointer';
+        }
+    });
+    
+    // Also disable any clickable elements
+    const clickables = document.querySelectorAll('[onclick], .clickable');
+    clickables.forEach(el => {
+        if (disabled) {
+            el.style.pointerEvents = 'none';
+        } else {
+            el.style.pointerEvents = 'auto';
+        }
+    });
+    
+    console.log(`🟢 Buttons ${disabled ? 'DISABLED' : 'ENABLED'}`);
+}
+
+// ===== 9. CELEBRATION NOTIFICATION (UPGRADED) =====
 function showCelebrationNotification(credits, spins, vip, thankyouCount) {
     const notification = document.getElementById('celebrationNotification');
     if (!notification) return;
@@ -3623,7 +3864,6 @@ function showCelebrationNotification(credits, spins, vip, thankyouCount) {
     const titleEl = document.getElementById('celebrationTitle');
     const messageEl = document.getElementById('celebrationMessage');
     const amountEl = document.getElementById('celebrationAmount');
-    const iconEl = document.getElementById('celebrationIcon');
 
     let message = '';
     if (credits > 0) message += `💰 ${credits.toLocaleString()} ကျပ် `;
@@ -3631,14 +3871,45 @@ function showCelebrationNotification(credits, spins, vip, thankyouCount) {
     if (vip > 0) message += `👑 VIP +${vip} `;
     if (thankyouCount > 0) message += `🙏 ကျေးဇူးတင်ပါတယ် `;
 
-    titleEl.textContent = 'Surprise Box ဆုလက်ဆောင်';
+    titleEl.textContent = '🎁 Surprise Box ဆုလက်ဆောင် 🎁';
     messageEl.textContent = message;
-    amountEl.textContent = (credits > 0 ? credits.toLocaleString() + ' ကျပ်' : '');
-    iconEl.innerHTML = '<i class="fas fa-gift"></i>';
+    if (amountEl) amountEl.textContent = (credits > 0 ? credits.toLocaleString() + ' ကျပ်' : '');
 
-    notification.classList.add('show');
+    // GSAP animation for notification
+    gsap.set(notification, { scale: 0, opacity: 0, display: 'flex' });
+    gsap.to(notification, {
+        scale: 1,
+        opacity: 1,
+        duration: 0.4,
+        ease: "back.out(0.8)"
+    });
+
+    // Particle celebration
+    if (window.particleSystem && (credits > 0 || vip > 0)) {
+        const centerX = window.innerWidth / 2;
+        const centerY = window.innerHeight / 2;
+        if (credits >= 50000) {
+            window.particleSystem.burst('coin', centerX, centerY, 80);
+        } else if (credits >= 15000) {
+            window.particleSystem.burst('coin', centerX, centerY, 50);
+        } else if (credits > 0) {
+            window.particleSystem.burst('coin', centerX, centerY, 30);
+        }
+        if (vip > 0) {
+            window.particleSystem.burst('crown', centerX, centerY, 40);
+        }
+    }
+
     setTimeout(() => {
-        notification.classList.remove('show');
+        gsap.to(notification, {
+            scale: 0,
+            opacity: 0,
+            duration: 0.3,
+            ease: "back.in",
+            onComplete: () => {
+                notification.style.display = 'none';
+            }
+        });
     }, 5000);
 }
 
@@ -3678,8 +3949,119 @@ function removePendingBoxSetFromLocal() {
     localStorage.removeItem(key);
 }
 
-// ===== 12. INIT =====
+// ===== 12. SURPRISE BOX ANIMATION (UPGRADED) =====
+function showSurpriseBoxAnimation(boxType, boxValue) {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.85);
+        z-index: 10000000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    `;
+
+    let icon = 'fa-gift';
+    let color = '#ffd700';
+    let title = '🎁 SURPRISE BOX! 🎁';
+    let message = '';
+
+    if (boxType === 'credit') {
+        icon = 'fa-coins';
+        color = '#00c853';
+        title = '💰 CREDIT REWARD! 💰';
+        message = `${formatNumber(boxValue)} ကျပ်`;
+    } else if (boxType === 'vip') {
+        icon = 'fa-crown';
+        color = '#ffd700';
+        title = '👑 VIP UPGRADE! 👑';
+        message = `VIP Level ${boxValue}`;
+    } else if (boxType === 'freespin') {
+        icon = 'fa-play-circle';
+        color = '#2196f3';
+        title = '🎰 FREE SPINS! 🎰';
+        message = `${boxValue} Spins`;
+    }
+
+    const card = document.createElement('div');
+    card.style.cssText = `
+        background: linear-gradient(145deg, #1a1a2e, #16213e);
+        border: 3px solid ${color};
+        border-radius: 40px;
+        padding: 50px;
+        text-align: center;
+        box-shadow: 0 0 30px ${color};
+    `;
+    
+    card.innerHTML = `
+        <div style="font-size: 100px; margin-bottom: 20px;">
+            <i class="fas ${icon}" style="color: ${color};"></i>
+        </div>
+        <h2 style="font-size: 42px; font-weight: 900; color: ${color}; margin-bottom: 20px; text-shadow: 0 0 20px ${color};">
+            ${title}
+        </h2>
+        <div style="font-size: 56px; font-weight: bold; color: white; margin-bottom: 20px;">
+            ${message}
+        </div>
+        <div style="font-size: 20px; color: #aaa;">
+            🎉 ဂုဏ်ယူပါသည်။ 🎉
+        </div>
+    `;
+    
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+    
+    // GSAP Animation
+    gsap.set(card, { scale: 0, rotation: -180, opacity: 0 });
+    gsap.to(card, {
+        scale: 1,
+        rotation: 0,
+        opacity: 1,
+        duration: 0.5,
+        ease: "elastic.out(1, 0.5)"
+    });
+    
+    // Particle burst
+    if (window.particleSystem) {
+        const centerX = window.innerWidth / 2;
+        const centerY = window.innerHeight / 2;
+        if (boxType === 'credit') {
+            window.particleSystem.burst('coin', centerX, centerY, 60);
+        } else if (boxType === 'vip') {
+            window.particleSystem.burst('crown', centerX, centerY, 50);
+            window.particleSystem.burst('star', centerX, centerY, 40);
+        } else if (boxType === 'freespin') {
+            window.particleSystem.burst('spin', centerX, centerY, 50);
+        }
+    }
+    
+    setTimeout(() => {
+        gsap.to(card, {
+            scale: 0,
+            opacity: 0,
+            duration: 0.3,
+            ease: "back.in"
+        });
+        gsap.to(overlay, {
+            opacity: 0,
+            duration: 0.3,
+            onComplete: () => overlay.remove()
+        });
+    }, 5000);
+}
+
+// ===== 13. INIT =====
 function initSurpriseListener() {
+    // Initialize particle system
+    if (!window.particleSystem) {
+        window.particleSystem = new ParticleEffectSystem();
+        window.particleSystem.init();
+    }
+    
     if (!firebase.auth) return;
     firebase.auth().onAuthStateChanged((user) => {
         if (user) {
@@ -3694,110 +4076,7 @@ window.initSurpriseListener = initSurpriseListener;
 window.checkPendingBoxSetOnSpin = checkPendingBoxSetOnSpin;
 window.claimUserSurprise = claimUserSurprise;
 window.closeUserSurpriseModal = closeUserSurpriseModal;
-// ===== SURPRISE BOX ANIMATION =====
-function showSurpriseBoxAnimation(boxType, boxValue) {
-    const overlay = document.createElement('div');
-    overlay.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.9);
-        z-index: 10000000;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        animation: fadeIn 0.3s;
-    `;
-
-    let icon = 'fa-gift';
-    let color = '#ffd700';
-    let title = 'SURPRISE BOX!';
-    let message = '';
-
-    if (boxType === 'credit') {
-        icon = 'fa-coins';
-        color = '#00c853';
-        title = 'CREDIT REWARD!';
-        message = `${formatNumber(boxValue)} ကျပ်`;
-    } else if (boxType === 'vip') {
-        icon = 'fa-crown';
-        color = '#ffd700';
-        title = 'VIP UPGRADE!';
-        message = `VIP Level ${boxValue}`;
-    } else if (boxType === 'freespin') {
-        icon = 'fa-play-circle';
-        color = '#2196f3';
-        title = 'FREE SPINS!';
-        message = `${boxValue} Spins`;
-    }
-
-    overlay.innerHTML = `
-        <div style="
-            background: linear-gradient(145deg, #1a1a2e, #16213e);
-            border: 3px solid ${color};
-            border-radius: 30px;
-            padding: 40px;
-            text-align: center;
-            animation: popIn 0.5s cubic-bezier(0.34, 1.2, 0.64, 1);
-            box-shadow: 0 0 50px ${color};
-        ">
-            <div style="font-size: 80px; margin-bottom: 20px;">
-                <i class="fas ${icon}" style="color: ${color};"></i>
-            </div>
-            <h2 style="
-                font-size: 40px;
-                font-weight: 900;
-                color: ${color};
-                margin-bottom: 20px;
-                text-shadow: 0 0 20px ${color};
-            ">
-                ${title}
-            </h2>
-            <div style="
-                font-size: 48px;
-                font-weight: bold;
-                color: white;
-                margin-bottom: 20px;
-            ">
-                ${message}
-            </div>
-            <div style="font-size: 20px; color: #aaa;">
-                ဂုဏ်ယူပါသည်။
-            </div>
-        </div>
-    `;
-
-    document.body.appendChild(overlay);
-
-    for (let i = 0; i < 50; i++) {
-        setTimeout(() => {
-            const particle = document.createElement('div');
-            particle.style.cssText = `
-                position: fixed;
-                top: ${Math.random() * 100}%;
-                left: ${Math.random() * 100}%;
-                width: ${10 + Math.random() * 20}px;
-                height: ${10 + Math.random() * 20}px;
-                background: ${color};
-                border-radius: 50%;
-                filter: blur(3px);
-                animation: fadeOut 1s ease-out forwards;
-                pointer-events: none;
-                z-index: 10000001;
-            `;
-            document.body.appendChild(particle);
-            setTimeout(() => particle.remove(), 1000);
-        }, i * 50);
-    }
-
-    setTimeout(() => {
-        overlay.style.animation = 'fadeOut 0.5s';
-        setTimeout(() => overlay.remove(), 500);
-    }, 7000);
-}
-
+window.showSurpriseBoxAnimation = showSurpriseBoxAnimation;
 // ============================================
 // 22. BALANCE & JACKPOT FUNCTIONS
 // ============================================
