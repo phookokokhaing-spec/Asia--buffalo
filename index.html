@@ -64,14 +64,13 @@
     </div>
 
     
-    <!-- All Game Sounds (with jackpotspin) -->
+<!-- All Game Sounds (Complete) -->
 <audio id="bgm" loop preload="auto"></audio>
 <audio id="loadingSound" preload="auto"></audio>
 <audio id="allbuttonSound" preload="auto"></audio>
 <audio id="clickSound" preload="auto"></audio>
 <audio id="popbuttonSound" preload="auto"></audio>
-<audio id="backSound" preload="auto"></audio>
-<audio id="spinSound" preload="auto"></audio>
+<audio id="backSound" preload="auto"></audio>                                      <audio id="spinSound" preload="auto"></audio>
 <audio id="winlineSound" preload="auto"></audio>
 <audio id="nowinSound" preload="auto"></audio>
 <audio id="buffaloSound" preload="auto"></audio>
@@ -80,7 +79,7 @@
 <audio id="coinrainSound" preload="auto"></audio>
 <audio id="sixcoinSound" preload="auto"></audio>
 <audio id="jackpotspinSound" preload="auto"></audio>
-<audio id="jackpotSound" preload="auto"></audio>   
+<audio id="jackpotSound" preload="auto"></audio>
 <audio id="congratulationsSound" preload="auto"></audio>
 <audio id="congratsSound" preload="auto"></audio>
 <audio id="notiSound" preload="auto"></audio>
@@ -88,6 +87,8 @@
 <audio id="adminSound" preload="auto"></audio>
 <audio id="paymentreseiveSound" preload="auto"></audio>
 <audio id="withdrawSound" preload="auto"></audio>
+<audio id="thankyouboxSound" preload="auto"></audio>
+<audio id="coinboxSound" preload="auto"></audio>                                   <audio id="boxbgSound" loop preload="auto"></audio>                                
 
     
     <!-- LOADING SCREEN -->
@@ -447,45 +448,55 @@
     <!-- Floating numbers animation container -->
     <div id="floatingNumbers" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10000;"></div>
 
-    <!-- USER SURPRISE BOX MODAL -->
-    <div class="modal" id="userSurpriseModal">
-        <div class="modal-content" style="max-width: 650px; background: linear-gradient(145deg, #1a1a2e, #16213e);">
-            <div class="modal-header">
-                <h3 style="color: #ffd700;"><i class="fas fa-gift"></i> Surprise Box ရွေးချယ်ရန်</h3>
-                <button class="close-btn" onclick="closeUserSurpriseModal()">×</button>
+<!-- USER SURPRISE BOX MODAL - COMPACT HEADER -->
+<div class="modal" id="userSurpriseModal">
+    <div class="modal-content surprise-modal-content">
+        <!-- Header: Title + Progress + Close in one row -->
+        <div class="modal-header-compact">
+            <div class="modal-title">
+                <i class="fas fa-gift"></i> Surprise Box ရွေးချယ်ရန်
             </div>
-            <div class="modal-body">
-                <div style="text-align: center; margin-bottom: 20px; background: rgba(255,215,0,0.1); padding: 15px; border-radius: 15px;">
-                    <p style="color: white; margin-bottom: 5px;" id="userSelectionCount">သင်ရွေးချယ်ရန် ကျန် ၅ ခု</p>
-                    <div style="width: 100%; background: #333; height: 5px; border-radius: 5px;">
-                        <div id="selectionProgress" style="width: 0%; background: #ffd700; height: 5px; border-radius: 5px; transition: width 0.3s;"></div>
-                    </div>
+            <div class="selection-progress-compact">
+                <span id="userSelectionCount">ကျန် ၅ ခု</span>
+                <div class="progress-bar-small">
+                    <div id="selectionProgress" class="progress-fill"></div>
                 </div>
-                <div style="background: rgba(0,0,0,0.3); border-radius: 20px; padding: 15px; margin-bottom: 20px;">
-                    <div id="userBoxGrid" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;"></div>
+            </div>
+            <button class="close-btn" onclick="closeUserSurpriseModal()">×</button>
+        </div>
+
+        <!-- Body content -->
+        <div class="modal-body surprise-modal-body">
+            <!-- Box Grid Container -->
+            <div class="box-grid-container">
+                <div id="userBoxGrid" class="surprise-box-grid"></div>
+            </div>
+
+            <!-- Selected Boxes Display -->
+            <div class="selected-boxes-container">
+                <h4><i class="fas fa-check-circle"></i> သင်ရွေးချယ်ထားသော Box များ</h4>
+                <div id="userSelectedBoxes" class="selected-boxes-list">
+                    <span>Box မရွေးရသေးပါ။</span>
                 </div>
-                <div style="background: rgba(255,255,255,0.03); border-radius: 15px; padding: 15px; margin-bottom: 20px;">
-                    <h4 style="color: white; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
-                        <i class="fas fa-check-circle" style="color: #00c853;"></i> သင်ရွေးချယ်ထားသော Box များ
-                    </h4>
-                    <div id="userSelectedBoxes" style="display: flex; flex-wrap: wrap; gap: 8px; min-height: 40px;">
-                        <span style="color: rgba(255,255,255,0.5);">Box မရွေးရသေးပါ။</span>
-                    </div>
-                </div>
-                <div id="userSurpriseResult" style="display: none; text-align: center; padding: 20px; background: rgba(255,215,0,0.1); border-radius: 15px; margin-bottom: 20px;">
-                    <i id="resultIcon" class="fas fa-gift" style="font-size: 40px; color: #ffd700;"></i>
-                    <h3 id="resultTitle" style="color: white; margin: 10px 0;"></h3>
-                    <p id="resultMessage" style="color: #ffd700; font-size: 24px; font-weight: 700;"></p>
-                </div>
-                <div style="display: flex; gap: 15px;">
-                    <button id="claimUserSurpriseBtn" class="primary-btn" onclick="claimUserSurprise()" style="flex: 2; background: linear-gradient(145deg, #ffd700, #ffaa00);" disabled>
-                        <i class="fas fa-check-circle"></i> ရွေးချယ်မှုအတည်ပြုမည်
-                    </button>
-                    <button onclick="closeUserSurpriseModal()" class="secondary-btn" style="flex: 1;">ပိတ်မည်</button>
-                </div>
+            </div>
+
+            <!-- Result Area (initially hidden) -->
+            <div id="userSurpriseResult" class="surprise-result" style="display: none;">
+                <i id="resultIcon" class="fas fa-gift"></i>
+                <h3 id="resultTitle"></h3>
+                <p id="resultMessage"></p>
+            </div>
+
+            <!-- Buttons -->
+            <div class="surprise-buttons">
+                <button id="claimUserSurpriseBtn" class="primary-btn" onclick="claimUserSurprise()" disabled>
+                    <i class="fas fa-check-circle"></i> ရွေးချယ်မှုအတည်ပြုမည်
+                </button>
+                <button onclick="closeUserSurpriseModal()" class="secondary-btn">ပိတ်မည်</button>
             </div>
         </div>
     </div>
+</div>
 
     <!-- Core Libraries & Helpers -->
     <script src="sound-manager.js"></script>
@@ -500,3 +511,4 @@
 
 </body>
 </html> 
+
