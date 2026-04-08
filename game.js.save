@@ -5,6 +5,7 @@
 // ============================================
 // 1. GAME STATE & CONFIGURATION
 // ============================================
+
 window.gameState = window.gameState || {
     displayBalance: 0,
     balance: 0,
@@ -28,7 +29,7 @@ window.gameState = window.gameState || {
     isSpinning: false,
     autoSpin: false,
     autoSpinActive: false,
-    jackpot: 100000,
+    jackpot: 0,
     userLevel: 1,
     pendingGift: null,
     pendingGiftList: [],
@@ -50,6 +51,10 @@ window.gameState = window.gameState || {
     pendingJackpotSpinsLeft: 0,
     pendingJackpotAmount: 0,
     waitingForJackpotComplete: false,
+      // ===== SUSPENSE MODE =====
+    suspenseMode: false,
+    suspenseColumn: -1,
+    suspenseColumnSymbols: null, 
     // ===== AUTO NO-WIN CYCLE =====
     autoNoWinCycle: {
         enabled: true,
@@ -83,15 +88,23 @@ window.symbolsWithoutWild = ['seven', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 
 
 // Wild ပါတဲ့ symbol pool
 window.symbolsWithWild = [...ALL_SYMBOLS.normal, ...ALL_SYMBOLS.wild];
-
 // ============================================
-// 3. REEL STRIPS CONFIGURATION
+// 3. REEL STRIPS CONFIGURATION (WITH BABA)
 // ============================================
 const REELS = [
+    // Reel 1 (Column 0) - with BABA ⭐
     ['seven', 'jack', 'queen', 'nine', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'ten', 'baba'],
+    
+    // Reel 2 (Column 1) - with BABA ⭐
     ['seven', 'jack', 'queen', 'nine', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'ten', 'baba'],
+    
+    // Reel 3 (Column 2) - with wild + BABA ⭐
     ['seven', 'jack', 'queen', 'nine', 'tha', 'zebra', 'buffalo', 'coin', 'bonus', 'ten', 'wild', 'baba'],
+    
+    // Reel 4 (Column 3) - with wild + BABA ⭐
     ['seven', 'jack', 'queen', 'nine', 'lion', 'wild', 'ele', 'tha', 'buffalo', 'ayeaye', 'coin', 'bonus', 'ten', 'baba'],
+    
+    // Reel 5 (Column 4) - with wild + BABA ⭐ (Jackpot decision column)
     ['seven', 'jack', 'queen', 'nine', 'wild', 'tha', 'zebra', 'ayeaye', 'buffalo', 'bonus', 'ten', 'baba']
 ];
 
@@ -478,6 +491,7 @@ function createPremiumCell(index) {
         align-items: center;
         justify-content: center;
         z-index: 3;
+         object-fit: contain;
         transform-style: preserve-3d;
         transition: transform 0.3s;
     `;
@@ -709,45 +723,37 @@ function loadCurrentUserData() {
     if (savedUser) {
         currentUser = JSON.parse(savedUser);
         window.gameState.balance = currentUser.balance || 0;
-       window.gameState.displayBalance = currentUser.displayBalance || currentUser.balance || 0;
+        window.gameState.displayBalance = currentUser.displayBalance || currentUser.balance || 0;
         window.gameState.userLevel = currentUser.level || 1;
         window.gameState.vipLevel = currentUser.vip || 0;
         updateBalanceDisplay();
     }
 }
 
-
 // ============================================
 // 9. MAIN SPIN FUNCTION
 // ============================================
+
 function spin() {
     console.log('🔥 spin() called');
 
-    if (!checkUserCanPlay()) {
-        return;
-    }
-    if (window.gameState.isSpinning) {
-        console.log('⚠️ Already spinning');
-        return;
-    }
-
+    if (!checkUserCanPlay()) return;
+    if (window.gameState.isSpinning) return;
     if (window.gameState.balance < window.gameState.betAmount) {
-        console.log('⚠️ Balance too low:', window.gameState.balance, '<', window.gameState.betAmount);
         showNotification('လက်ကျန်ငွေ မလုံလောက်ပါ', 'error');
         return;
     }
-
+    
     console.log('🎰 Spinning...');
     window.gameState.isSpinning = true;
 
+    // UI & Sound Reset
     const winEl = document.getElementById('winAmount');
     if (winEl) winEl.textContent = '0';
-
     clearAllWinHighlights();
-
-    // အသံဖွင့်
     if (typeof SoundManager !== 'undefined') SoundManager.spin();
 
+    // Balance Deduction
     if (!window.gameState.isFreeSpinning) {
         window.gameState.balance -= window.gameState.betAmount;
         addJackpotContribution(window.gameState.betAmount);
@@ -757,85 +763,121 @@ function spin() {
     window.gameState.spinCounter = (window.gameState.spinCounter || 0) + 1;
     updateBalanceDisplay();
 
-    // ===== BABA JACKPOT MODE COUNTER =====
-    if (window.gameState.babaJackpotMode && window.gameState.babaJackpotMode.enabled) {
-        window.gameState.babaJackpotMode.currentSpinCount++;
-        console.log(`🎯 Baba Jackpot Counter: ${window.gameState.babaJackpotMode.currentSpinCount} / ${window.gameState.babaJackpotMode.targetSpins}`);
-        
-        if (window.gameState.babaJackpotMode.currentSpinCount >= window.gameState.babaJackpotMode.targetSpins) {
-            window.gameState.babaJackpotMode.isReady = true;
-            console.log('🎯 BABA JACKPOT IS READY!');
-        }
-    }
-
-    // ရှိပြီးသား pendingJackpotSpinsLeft ကိုလည်း ထိန်းထားမယ်
-    if (window.gameState.pendingJackpotSpinsLeft > 0) {
-        window.gameState.pendingJackpotSpinsLeft--;
-        console.log(`🎯 Jackpot pending spins left: ${window.gameState.pendingJackpotSpinsLeft}`);
-    }
-
     const result = generateSpinResult();
     console.log('Final Result:', result);
 
+    // 2. Suspense Logic စစ်ဆေးခြင်း
+    const suspenseInfo = detectSuspenseMode(result);
+    if (suspenseInfo.isSuspense) {
+        window.gameState.suspenseMode = true;
+        window.gameState.suspenseColumn = suspenseInfo.startFromCol;
+        window.gameState.suspenseColumnSymbols = result[suspenseInfo.startFromCol];
+    } else {
+        window.gameState.suspenseMode = false;
+        window.gameState.suspenseColumn = -1;
+    }
+
+    // 3. Animation စတင်ခြင်း
     animateReelsStaggered(result);
 
+    // 4. Animation ပြီးဆုံးချိန်တွင် အနိုင်တွက်ချက်ခြင်းနှင့် Jackpot Handling
     document.addEventListener('animationComplete', function onAnimationComplete() {
         document.removeEventListener('animationComplete', onAnimationComplete);
-
         console.log('💰 Calculating winnings...');
+
+        window.gameState.suspenseMode = false;
+        window.gameState.suspenseColumn = -1;
+        window.gameState.suspenseColumnSymbols = null;
+
+        // --- (A) ပုံမှန် Win Calculation ---
         const winResult = calculateWinnings(result);
         const totalWin = winResult.totalWin || 0;
 
-        // ===== WIN HANDLING =====
         if (totalWin > 0) {
             if (window.gameState.isFreeSpinning) {
-                // Free Spin အတွင်း - စုထားမယ်
                 window.gameState.freeSpinTotalWin = (window.gameState.freeSpinTotalWin || 0) + totalWin;
-                console.log(`🎰 Free Spin win accumulated: ${window.gameState.freeSpinTotalWin}`);
-                
                 updateWinDisplay(window.gameState.freeSpinTotalWin);
                 
-                // Win highlight ပြမယ်
-                if (winResult.indices && winResult.indices.length > 0) {
+                if (winResult.indices) {
                     highlightWinsPremium(winResult.indices, winResult.buffaloIndices || []);
                     showWinWithRise(totalWin, winResult.indices);
                 }
-                
+
                 window.gameState.waitingForWinAnimation = true;
-                
-                // Win Animation ပြီးရင် ခေါ်မယ်
                 setTimeout(() => {
                     window.gameState.waitingForWinAnimation = false;
                     continueFreeSpinAfterWin();
                 }, 2000);
-                
             } else {
                 window.gameState.balance += totalWin;
                 window.gameState.displayBalance += totalWin;
                 updateBalanceDisplay();
                 updateWinDisplay(totalWin);
-                
-                if (winResult.indices && winResult.indices.length > 0) {
+
+                if (winResult.indices) {
                     highlightWinsPremium(winResult.indices, winResult.buffaloIndices || []);
                     showWinWithRise(totalWin, winResult.indices);
                 }
-
-                window.gameState.waitingForWinAnimation = false;
             }
         }
 
         updateUserBalanceInStorage();
-
         checkScatter(result);
 
-        const buffaloCount = countBuffalo(result);
-        if (buffaloCount >= 20) {
-            if (typeof premiumBuffaloStampede !== 'undefined') {
-                premiumBuffaloStampede.startStampede(window.gameState.jackpot, buffaloCount);
-            } else if (typeof buffaloStampede !== 'undefined') {
-                buffaloStampede.startStampede(window.gameState.jackpot, buffaloCount);
+        // --- (B) 🎯 JACKPOT HANDLING (ဒီနေရာမှာ အကုန်စုထားတယ်) ---
+        if (window.gameState.pendingJackpotAmount > 0 && window.gameState.pendingJackpotSpinsLeft !== undefined) {
+            
+            // Spin တစ်ချက်လျှော့မယ် (generateSpinResult ထဲမှာ မလျှော့ဘဲ ဒီမှာပဲ လျှော့မယ်)
+            window.gameState.pendingJackpotSpinsLeft--;
+            console.log(`🎯 Jackpot pending spins left: ${window.gameState.pendingJackpotSpinsLeft}`);
+
+            // Jackpot ပေးရမည့် အချိန်ရောက်ပြီလား (Counter သုည ဖြစ်သွားချိန်)
+            if (window.gameState.pendingJackpotSpinsLeft <= 0) {
+                const jackpotAmount = window.gameState.pendingJackpotAmount || 0;
+
+                // ၁။ ပိုက်ဆံပေါင်းထည့်ခြင်း
+                if (jackpotAmount > 0) {
+                    window.gameState.balance += jackpotAmount;
+                    window.gameState.displayBalance += jackpotAmount;
+                    updateBalanceDisplay();
+                    updateUserBalanceInStorage();
+                }
+
+                finalizeJackpot();
+
+                // ၃။ Jackpot Animations (Neon Baba + Coin Fountain)
+                if (typeof showJackpotAwardAnimation === 'function') {
+                    showJackpotAwardAnimation(jackpotAmount);
+                }
+
+                if (typeof JackpotFX !== 'undefined') {
+                    document.querySelectorAll('canvas').forEach(c => c.remove());
+                    JackpotFX.show(jackpotAmount);
+                }
+
+                // ၄။ Sound Effects (60 sec sequence)
+                if (typeof SoundManager !== 'undefined') {
+                    SoundManager.jackpotSpin();
+                    SoundManager.jackpot();
+                    SoundManager.congratulations();
+                    SoundManager.coinRain();
+                    SoundManager.sixCoin();
+                }
+
+                showNotification(`🎉 ဂျက်ပေါ့ဆုကြေး ${formatNumber(jackpotAmount)} ကျပ် ရရှိပါသည်။`, 'success');
+
+                // ၅။ Game Lock - 60 sec
+                window.gameState.waitingForJackpotComplete = true;
+                setTimeout(() => {
+                    window.gameState.waitingForJackpotComplete = false;
+                    console.log('✅ Jackpot process fully completed');
+                }, 60000);
+
+                // ၆။ Reset Jackpot States
+                window.gameState.pendingJackpotAmount = 0;
+                window.gameState.Lucky_Money = 0;
+                window.gameState.pendingJackpotSpinsLeft = 0;
             }
-            showBuffaloJackpot(window.gameState.jackpot, buffaloCount);
         }
 
         window.gameState.isSpinning = false;
@@ -847,7 +889,6 @@ function spin() {
         if (window.gameState.isFreeSpinning && window.gameState.freeSpins > 0) {
             window.gameState.freeSpins--;
             updateFreeSpinIndicator();
-
             if (window.gameState.freeSpins > 0) {
                 setTimeout(() => spin(), 2000);
             } else {
@@ -858,76 +899,6 @@ function spin() {
         // Auto Spin Handling
         if (window.gameState.autoSpinActive) {
             handleAutoSpinComplete(totalWin);
-        }
-
-        // ===== BABA JACKPOT MODE RESET (Jackpot ကျပြီးရင်) =====
-        if (window.gameState.babaJackpotTriggered) {
-            // Firebase notification ကို read: true လုပ်မယ်
-            if (window.gameState.babaJackpotMode && window.gameState.babaJackpotMode.notifId) {
-                try {
-                    const db = firebase.firestore();
-                    db.collection('notifications').doc(window.gameState.babaJackpotMode.notifId).update({
-                        read: true,
-                        completedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                } catch(e) { console.log('Firebase update error:', e); }
-            }
-            
-            // Baba mode ကို reset လုပ်မယ်
-            window.gameState.babaJackpotMode = {
-                enabled: false,
-                targetSpins: 0,
-                currentSpinCount: 0,
-                isReady: false,
-                jackpotAmount: 0,
-                notifId: null
-            };
-            window.gameState.babaJackpotTriggered = false;
-            window.gameState.pendingJackpotAmount = 0;
-            window.gameState.pendingJackpotSpinsLeft = 0;
-            
-            console.log('✅ BABA JACKPOT MODE RESET COMPLETED');
-        }
-
-        // ===== ရှိပြီးသား JACKPOT HANDLING (backward compatibility) =====
-        if (window.gameState.pendingJackpotSpinsLeft === 0 && window.gameState.pendingJackpotAmount > 0) {
-            const jackpotAmount = window.gameState.pendingJackpotAmount || 0;
-
-            if (jackpotAmount > 0) {
-                window.gameState.balance += jackpotAmount;
-                window.gameState.displayBalance += jackpotAmount;
-                updateBalanceDisplay();
-                updateUserBalanceInStorage();
-            }
-
-            finalizeJackpot();
-
-            if (typeof JackpotFX !== 'undefined') {
-                document.querySelectorAll('canvas').forEach(c => c.remove());
-                JackpotFX.show(jackpotAmount);
-            }
-
-            // Sound (60 sec)
-            if (typeof SoundManager !== 'undefined') {
-                SoundManager.jackpotSpin();
-                SoundManager.jackpot();
-                SoundManager.lion();
-                SoundManager.congratulations();
-                SoundManager.coin();
-                SoundManager.coinRain();
-                SoundManager.sixCoin();
-            }
-
-            showNotification(`🎉 ဂျက်ပေါ့ဆုကြေး ${formatNumber(jackpotAmount)} ကျပ် ရရှိပါသည်။`, 'success');
-            window.gameState.waitingForJackpotComplete = true;
-
-            setTimeout(() => {
-                window.gameState.waitingForJackpotComplete = false;
-                console.log('✅ Jackpot completed (60 sec)');
-            }, 60000);
-            
-            window.gameState.pendingJackpotAmount = 0;
-            window.gameState.Lucky_Money = 0;
         }
     });
 }
@@ -955,324 +926,8 @@ function showNotification(msg, type = 'info') {
     }, 3000);
 }
 
-
 // ============================================
-// DetectSuspense  FUNCTIONS
-// ============================================
-function detectSuspenseMode(result) {
-    var babaLocations = [];
-    var babaColumns = [];
-
-    // result က array အစစ် ဟုတ်၊ မဟုတ် အရင်စစ်
-    if (!result || !Array.isArray(result)) return { isSuspense: false, babaCount: 0 };
-
-    for (var col = 0; col < 5; col++) {
-        var foundInCol = false;
-        for (var row = 0; row < 4; row++) {
-            // 🔥 တိတိကျကျ စစ်မယ် - စာလုံးအသေး 'baba' အစစ်ဖြစ်ရမယ်
-            if (result[col] && result[col][row] === 'baba') {
-                console.log(`🎯 Found REAL Baba at Col: ${col}, Row: ${row}`);
-                babaLocations.push({ col: col, row: row });
-                foundInCol = true;
-            }
-        }
-        if (foundInCol) {
-            babaColumns.push(col);
-        }
-    }
-
-    if (babaColumns.length >= 3) {
-        var columnsToCheck = [];
-        for (var i = 0; i < 5; i++) {
-            if (babaColumns.indexOf(i) === -1) {
-                columnsToCheck.push(i);
-            }
-        }
-        return {
-            isSuspense: true,
-            babaCount: babaColumns.length,
-            babaLocations: babaLocations,
-            columnsToCheck: columnsToCheck
-        };
-    }
-
-    return { isSuspense: false, babaCount: 0, babaLocations: [], columnsToCheck: [] };
-}
-
-
-// ============================================
-// COLOR BORDER FUNCTIONS
-// ============================================
-
-// Glow Effect ထည့်ခြင်း
-function addRedBorderToColumn(col) {
-    var cells = getColumnCells(col);
-    for (var i = 0; i < cells.length; i++) {
-        // အနီရောင် Border အစား မီးတောက် effect class ကို သုံးမယ်
-        cells[i].classList.add('suspense-glow');
-    }
-}
-
-// Glow Effect ဖျက်ခြင်း
-function removeRedBorderFromColumn(col) {
-    var cells = getColumnCells(col);
-    for (var i = 0; i < cells.length; i++) {
-        cells[i].classList.remove('suspense-glow');
-     }
-  }
-function addYellowBorderToBabaImg(cell) {
-    var img = cell.querySelector('img');
-    if (!img) return;
-
-    // 🔥 Image src ထဲမှာ baba.png ဆိုတဲ့ နာမည် အတိအကျ ပါမှ ဝိုင်းမယ်
-    var filename = img.src.split('/').pop().toLowerCase();
-    
-    if (filename === 'baba.png' || filename === 'baba') {
-        img.style.borderRadius = '50%';
-        img.style.boxShadow = '0 0 0 4px #ffd700, 0 0 25px #ffd700';
-        img.style.padding = '4px';
-        img.style.backgroundColor = 'rgba(255, 215, 0, 0.3)';
-        cell.style.backgroundColor = 'rgba(255, 215, 0, 0.1)';
-        cell.dataset.symbol = 'baba';
-    } else {
-        // Baba မဟုတ်တဲ့ ဘယ်ပုံကိုမဆို (Buffalo, 7, etc.) border အကုန်ဖြုတ်
-        img.style.boxShadow = 'none';
-        img.style.backgroundColor = 'transparent';
-        cell.style.backgroundColor = 'transparent';
-        console.log(`🚫 Refused to border: ${filename}`); // Baba မဟုတ်တာကို ဝိုင်းဖို့ကြိုးစားရင် သိရအောင်
-    }
-}
-
-
-function startSuspenseAnimation(finalResult, suspenseInfo) {
-    console.log('🎬 SUSPENSE MODE ACTIVATED!');
-
-    // ၁။ ရှိပြီးသား Baba ၃ ပုံကို Radius ဝါရောင် ချက်ချင်းဝိုင်းပြီး Lock လုပ်ထားမယ်
-    if (suspenseInfo.babaLocations && suspenseInfo.babaLocations.length > 0) {
-        suspenseInfo.babaLocations.forEach(loc => {
-            var cell = document.querySelector(`.grid-cell[data-col="${loc.col}"][data-row="${loc.row}"]`);
-            if (cell) {
-                var img = cell.querySelector('img');
-                if (img) {
-                    // လမ်းကြောင်းကို images/baba.png (small case) အသေပေးလိုက်မယ်
-                    img.src = 'images/baba.png';
-                    img.style.opacity = '1';
-                    addYellowBorderToBabaImg(cell); // Radius ဝိုင်းမယ်
-                }
-            }
-        });
-    }
-
-    // ၂။ Baba မပါတဲ့တိုင် (columnsToCheck) ကိုပဲ ဆက်စစ်မယ်
-    if (suspenseInfo.columnsToCheck.length > 0) {
-        // ပထမဆုံး စစ်ရမယ့်တိုင်ကို စတင်မယ်
-        checkNextSuspenseColumn(finalResult, suspenseInfo.columnsToCheck, 0);
-    } else {
-        setTimeout(finishSuspense, 500);
-    }
-}
-
-
-// ============================================
-// 2. CHECK NEXT COLUMN (The Core Sequence)
-// ============================================
-function checkNextSuspenseColumn(finalResult, columnsToCheck, index) {
-    // အဆုံးထိရောက်ရင် ရပ်မယ်
-    if (index >= columnsToCheck.length) {
-        setTimeout(finishSuspense, 500);
-        return;
-    }
-
-    var col = columnsToCheck[index];
-    var targetSymbols = finalResult[col];
-
-    // ဒီတိုင်မှာ baba ပါနေလား စစ်မယ်
-    var hasBabaInThisCol = targetSymbols.some(function(s) {
-        return s === 'baba';
-    });
-
-    if (hasBabaInThisCol) {
-        // ✨ Baba ပါနေရင် ကျော်မယ်
-        console.log("⏩ Col " + col + " has Baba, skipping suspense...");
-        revealColumnInstantly(col, targetSymbols);
-
-        setTimeout(function() {
-            checkNextSuspenseColumn(finalResult, columnsToCheck, index + 1);
-        }, 400);
-    } else {
-        // 🔥 အသံထည့်တဲ့နေရာ (SoundManager ရှိမှ ခေါ်မယ်)
-       SoundManager.lion();
-      SoundManager.boom();
-
-
-        // ✨ Baba မပါရင် ၆ စက္ကန့် စစ်မယ်
-        console.log("🔍 Col " + col + " is empty, checking for Baba (6s)...");
-
-        addRedBorderToColumn(col);
-        var cells = getColumnCells(col);
-        cells.forEach(function(cell) {
-            cell.classList.add('rise-column');
-        });
-
-        // Spin Logic
-        fastRandomSpin(col, 6000, function() {
-            // Spin ပြီးရင် ပုံဖော်မယ်
-            slowRevealColumn(col, targetSymbols, function() {
-                removeRedBorderFromColumn(col);
-                var currentCells = getColumnCells(col);
-                currentCells.forEach(function(c) {
-                    c.classList.remove('rise-column');
-                });
-
-                // နောက်တစ်တိုင်ကို သွားမယ်
-                setTimeout(function() {
-                    checkNextSuspenseColumn(finalResult, columnsToCheck, index + 1);
-                }, 500);
-            });
-        }); 
-    } 
-}
-
-function revealColumnInstantly(col, targetSymbols) {
-    var cells = getColumnCells(col);
-    cells.forEach(function(cell, row) {
-        var img = cell.querySelector('img');
-        var symbol = targetSymbols[row];
-        if (img && symbol) {
-            img.src = 'images/' + symbol + '.png';
-            img.style.opacity = '1';
-            cell.dataset.symbol = symbol;
-            if (symbol === 'baba') {
-                addYellowBorderToBabaImg(cell);
-            }
-        }
-    });
-}
-
-
-// ============================================
-// 3. SLOW REVEAL (တစ်ခုချင်းစီ ဖြည်းဖြည်းကျလာအောင်)
-// ============================================
-function fastRandomSpin(col, duration, onComplete) {
-    var cells = getColumnCells(col);
-    var symbols = ['seven', 'jack', 'queen', 'nine', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'ten'];
-    var startTime = Date.now();
-
-    function spin() {
-        var elapsed = Date.now() - startTime;
-
-        if (elapsed >= duration) {
-            // အချိန်စေ့ရင် ရပ်မယ်
-            onComplete();
-            return;
-        }
-
-        // Random ပုံတွေ ပြောင်းမယ်
-        for (var i = 0; i < cells.length; i++) {
-            var img = cells[i].querySelector('img');
-            if (img) {
-                var rand = symbols[Math.floor(Math.random() * symbols.length)];
-                img.src = 'images/' + rand + '.png';
-            }
-        }
-
-        // လှည့်တဲ့အရှိန်ကို ပိုမြန်ချင်ရင် 50ms ထားပါ၊ နည်းနည်းနှေးချင်ရင် 80ms ထားပါ
-        setTimeout(spin, 60); 
-    }
-
-    spin();
-}
-
-
-function slowRevealColumn(col, targetSymbols, onComplete) {
-    var colCells = getColumnCells(col);
-    var rowIndex = 0;
-    var hasBabaInThisCol = false;
-
-    function revealNextRow() {
-        if (rowIndex >= colCells.length) {
-            setTimeout(function() {
-                if (onComplete) onComplete(hasBabaInThisCol);
-            }, 300);
-            return;
-        }
-
-        var cell = colCells[rowIndex];
-        var img = cell.querySelector('img');
-        var symbol = targetSymbols[rowIndex];
-
-        if (img && symbol) {
-            img.src = 'images/' + symbol + '.png';
-            img.style.transition = 'none';
-            img.style.opacity = '0';
-            img.style.transform = 'translateY(-50px) scale(0.8)';
-
-            (function(targetImg, targetCell, targetSymbol) {
-                setTimeout(function() {
-                    targetImg.style.transition = 'all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-                    targetImg.style.opacity = '1';
-                    targetImg.style.transform = 'translateY(0) scale(1)';
-                    targetCell.dataset.symbol = targetSymbol;
-
-                    // 🔥 ဒီနေရာမှာ အသံထည့်မယ်
-                    if (targetSymbol === 'baba') {
-                        hasBabaInThisCol = true;
-                        addYellowBorderToBabaImg(targetCell);
-                        
-                        // Baba ပုံလေး ကျလာတာနဲ့ 'ဘုန်း' ဆိုပြီး မြည်သွားမယ်
-                        if (typeof SoundManager !== 'undefined') {
-                            if (SoundManager.boom) {
-                                SoundManager.boom();
-                            } else if (SoundManager.shortcuts && SoundManager.shortcuts.boom) {
-                                SoundManager.shortcuts.boom();
-                            }
-                        }
-                    }
-                }, 50);
-            })(img, cell, symbol);
-        }
-
-        rowIndex++;
-        setTimeout(revealNextRow, 150);
-    }
-
-    revealNextRow();
-}
-
-function finishSuspense() {
-    console.log('✅ Suspense Mode Finished');
-    removeAllBorders();
-    document.dispatchEvent(new CustomEvent('animationComplete'));
-}
-
-
-// အားလုံးဖျက်
-function removeAllBorders() {
-    var cells = document.querySelectorAll('.grid-cell');
-    for (var i = 0; i < cells.length; i++) {
-        var cell = cells[i];
-        var img = cell.querySelector('img');
-        
-        cell.style.borderRadius = '';
-        cell.style.boxShadow = '';
-        cell.style.transform = '';
-        cell.style.transition = '';
-        cell.style.backgroundColor = '';
-        cell.classList.remove('red-border-line', 'yellow-border-line');
-        
-        if (img) {
-            img.style.borderRadius = '';
-            img.style.boxShadow = '';
-            img.style.padding = '';
-            img.style.backgroundColor = '';
-            img.style.transform = '';
-            img.style.opacity = '';
-        }
-    }
-}
-
-// ============================================
-// 11. FIXED WIN CALCULATION (COMPLETE WITH BABA 5 JACKPOT)
+// 11. FIXED WIN CALCULATION (WITH BABA JACKPOT)
 // ============================================
 function calculateWinnings(result) {
     // paytable ကိုသေချာအောင်လုပ်
@@ -1291,7 +946,7 @@ function calculateWinnings(result) {
 
     console.log('🔍 Paytable:', paytable);
 
-    // ===== 🎯 BABA 5 JACKPOT DETECTION (PENDING JACKPOT) =====
+    // 🎯🎯🎯 BABA JACKPOT CHECK (NEW) 🎯🎯🎯
     let babaCount = 0;
     let babaIndices = [];
     
@@ -1306,20 +961,20 @@ function calculateWinnings(result) {
     
     console.log(`🎯 BABA count: ${babaCount}/5`);
     
-    // BABA 5 ပုံ နဲ့ Pending Jackpot Mode ရှိရင် Jackpot ပေးမယ်
-    if (babaCount === 5 && window.gameState.babaJackpotMode && window.gameState.babaJackpotMode.isReady) {
-        const jackpotAmount = window.gameState.babaJackpotMode.jackpotAmount || 
-                              window.gameState.pendingJackpotAmount || 
-                              100000;
-
-        console.log(`🎉🎉🎉 BABA 5 JACKPOT! Amount: ${jackpotAmount}`);
+    // BABA 5 ပုံ ရှိလား (Natural or Forced)
+    if (babaCount === 5) {
+        // Check if this is admin-controlled BABA jackpot
+        const isAdminJackpot = window.gameState.isBabaJackpotSpin;
+        const jackpotAmount = window.gameState.pendingJackpotAmount || 
+                              window.gameState.userLossPool || 
+                              100000; // default fallback
         
-        // Jackpot ကျပြီးဆိုတဲ့ flag ထားမယ်
-        window.gameState.babaJackpotTriggered = true;
+        console.log(`🎉🎉🎉 BABA JACKPOT x5! Admin: ${isAdminJackpot}, Amount: ${jackpotAmount}`);
         
+        // Return immediately with BABA jackpot
         return {
             totalWin: jackpotAmount,
-            indices: babaIndices,
+            indices: babaIndices, // All BABA positions
             buffaloIndices: [],
             winLines: [{
                 symbol: 'baba',
@@ -1457,17 +1112,6 @@ function calculateWinnings(result) {
         }
     }
 
-    // ===== ဂျက်ပေါ့စစ် (ကျွဲ ၂၀ ကောင်နဲ့အထက်) =====
-    if (buffaloCount >= 20) {
-        totalWin += window.gameState.jackpot;
-        winLines.push({
-            symbol: 'buffalo',
-            name: 'Buffalo Jackpot',
-            win: window.gameState.jackpot
-        });
-        winIndices.push(...buffaloIndices);
-        console.log(`🎰 JACKPOT! Buffalo count: ${buffaloCount}, Prize: ${window.gameState.jackpot}`);
-    }
 
     // ===== Apply global max win cap (per deposit) =====
     const maxWinPerDeposit = window.gameState.maxWin || 500000;
@@ -1501,10 +1145,12 @@ function calculateWinnings(result) {
                 if (typeof SoundManager !== 'undefined') SoundManager.lion();
                 if (typeof SoundManager !== 'undefined') SoundManager.coin();
             } else if (winPercentage >= 500) {
-                WinAnimation.big(totalWin);
+                 WinAnimation.big(totalWin);
                 if (typeof SoundManager !== 'undefined') SoundManager.congratulations();
                 if (typeof SoundManager !== 'undefined') SoundManager.lion();
                 if (typeof SoundManager !== 'undefined') SoundManager.coin();
+               if (typeof SoundManager !== 'undefined') SoundManager.wheel();
+              if (typeof SoundManager !== 'undefined') SoundManager.baba();
             }
         }
 
@@ -1521,124 +1167,121 @@ function calculateWinnings(result) {
     return {
         totalWin: totalWin,
         indices: winIndices,
-        buffaloIndices: buffaloIndices,
-        winLines: winLines
+        winLines: winLines,
+        isBabaJackpot: false
     };
 }
 
+//=====================baba check=======
+function detectSuspenseMode(result) {
+    let babaIndices = [];
+    for (let col = 0; col < 5; col++) {
+        if (result[col].some(symbol => symbol === 'baba')) {
+            babaIndices.push(col);
+        }
+    }
+    
+    if (babaIndices.length >= 2) {
+        // ဒုတိယ baba ရဲ့ နောက်တစ်တိုင်ကနေ suspense စမယ်
+        let secondBabaCol = babaIndices[1];
+        let startFromCol = secondBabaCol + 1;
+        
+        if (startFromCol < 5) {
+            console.log(`✨ SUSPENSE: babas at ${babaIndices[0]} & ${secondBabaCol}, start from col ${startFromCol}`);
+            return { isSuspense: true, startFromCol: startFromCol };
+        }
+    }
+    
+    return { isSuspense: false, startFromCol: -1 };
+}
+
 // ============================================
-// 12. GENERATE SPIN RESULT (REELS ကိုသုံး - FIXED COLUMN 5 BLOCK)
-// ===========================================
+// 12. GENERATE SPIN RESULT (NATURAL, NO RIGGING)
+// ============================================
+
 function generateSpinResult() {
     let result = [[], [], [], [], []];
 
-    // ===== 1. 🎯 BABA JACKPOT MODE CHECK =====
-    if (window.gameState.babaJackpotMode &&
-        window.gameState.babaJackpotMode.enabled &&
-        window.gameState.babaJackpotMode.isReady) {
+    const isJackpotTime = (window.gameState.pendingJackpotAmount > 0 &&
+                          window.gameState.pendingJackpotSpinsLeft <= 0);
 
-        console.log('🎰 BABA 5 JACKPOT TRIGGERED!');
+    if (isJackpotTime) {
+        console.log("💎 TARGET REACHED: Generating BABA 5 JACKPOT!");
         result = generateBabaJackpotResult();
-    }
-    else {
-        // ===== 2. NORMAL သို့မဟုတ် FREE SPIN ရလဒ် ထုတ်မယ် =====
+    } else {
         const currentReels = window.gameState.isFreeSpinning ? FREE_SPIN_REELS : REELS;
 
         for (let col = 0; col < 5; col++) {
             const reel = currentReels[col];
             const startPos = Math.floor(Math.random() * reel.length);
-            
             for (let row = 0; row < 4; row++) {
                 let symbol = reel[(startPos + row) % reel.length];
-
-                // 🔥 [FIX] Column 5 (index 4) မှာ Baba မကျအောင် Admin Control နဲ့ ပိတ်မယ်
-                if (col === 4 && symbol === 'baba') {
-                    // Admin Control 2 က Jackpot ပေးဖို့ ခွင့်မပြုထားရင်
-                    const isAdminAllowed = window.adminControl2 && window.adminControl2.jackpotTrigger;
-                    
-                    if (!isAdminAllowed) {
-                        // Baba အစား တခြား Symbol တစ်ခုခုကို Reel ထဲကနေပဲ ပြန်ရှာယူမယ် (Baba မဟုတ်တာ သေချာအောင်)
-                        let safeSymbol = symbol;
-                        let safetyNet = 0;
-                        while ((safeSymbol === 'baba' || safeSymbol === 'bonus') && safetyNet < 10) {
-                            safeSymbol = reel[Math.floor(Math.random() * reel.length)];
-                            safetyNet++;
-                        }
-                        symbol = safeSymbol; 
-                        console.log("🛡️ Column 5 Baba blocked by Admin Control");
-                    }
-                }
+                // ✅ No replacement – baba can appear naturally anywhere
                 result[col][row] = symbol;
             }
         }
 
-        // ===== 3. NO-WIN logic (သေချာစစ်ဆေးခြင်း) =====
-        let shouldApplyNoWin = false;
-        if (window.gameState.autoNoWinCycle && window.gameState.autoNoWinCycle.enabled) {
-            const cycle = window.gameState.autoNoWinCycle;
-            if (cycle.currentPhase === 'nowin') {
-                shouldApplyNoWin = true;
-                cycle.noWinSpins++;
-                if (cycle.noWinSpins >= cycle.noWinPhaseLength) {
-                    cycle.currentPhase = 'normal';
-                    cycle.normalSpins = 0; cycle.noWinSpins = 0;
-                }
-            } else {
-                cycle.normalSpins++;
-                if (cycle.normalSpins >= cycle.normalPhaseLength) {
-                    cycle.currentPhase = 'nowin';
-                    cycle.normalSpins = 0; cycle.noWinSpins = 0;
-                }
+        // Admin Jackpot Counter – only counts down when jackpot is pending
+        if (window.gameState.pendingJackpotAmount > 0) {
+            window.gameState.pendingJackpotSpinsLeft--;
+            console.log(`🎰 Jackpot Spins Left: ${window.gameState.pendingJackpotSpinsLeft}`);
+        }
+    }
+
+    // ===== AUTO NO-WIN CYCLE =====
+    let shouldApplyNoWin = false;
+    if (window.gameState.autoNoWinCycle && window.gameState.autoNoWinCycle.enabled) {
+        const cycle = window.gameState.autoNoWinCycle;
+        if (cycle.currentPhase === 'nowin') {
+            shouldApplyNoWin = true;
+            cycle.noWinSpins++;
+            if (cycle.noWinSpins >= cycle.noWinPhaseLength) {
+                cycle.currentPhase = 'normal';
+                cycle.normalSpins = 0;
+                cycle.noWinSpins = 0;
             }
         } else {
-            const adminCtrl2 = window.adminControl2 || { enabled: false };
-            shouldApplyNoWin = adminCtrl2.enabled && adminCtrl2.mode === 'always_different';
-        }
-
-        if (shouldApplyNoWin) {
-            if (window.gameState.autoNoWinCycle && window.gameState.autoNoWinCycle.enabled) {
-                forceNoWinByColumns(result);
-            } else {
-                result = applyAdminControl2(result);
+            shouldApplyNoWin = false;
+            cycle.normalSpins++;
+            if (cycle.normalSpins >= cycle.normalPhaseLength) {
+                cycle.currentPhase = 'nowin';
+                cycle.normalSpins = 0;
+                cycle.noWinSpins = 0;
             }
         }
+    } else {
+        const adminCtrl2 = window.adminControl2 || { enabled: false };
+        shouldApplyNoWin = adminCtrl2.enabled && adminCtrl2.mode === 'always_different';
+    }
 
-        // ===== 4. ✅ ADMIN CONTROL 1: BUFFALO MODE =====
-        const adminCtrl1 = window.adminControl1 || { enabled: false, mode: null };
-        if (!window.gameState.isFreeSpinning && adminCtrl1.enabled && adminCtrl1.mode && BUFFALO_MODE_CONFIG[adminCtrl1.mode]) {
-            applyBuffaloMode(result, adminCtrl1.mode);
+    if (shouldApplyNoWin) {
+        if (window.gameState.autoNoWinCycle && window.gameState.autoNoWinCycle.enabled) {
+            forceNoWinByColumns(result);
+        } else {
+            applyAdminControl2(result);
         }
     }
 
-    // ===== 5. 🔍 SUSPENSE MODE DETECTION =====
+    // ===== REMOVE WILD FROM COL 0 & COL 1 (extra safety) =====
+    for (let row = 0; row < 4; row++) {
+        if (result[0][row] === 'wild') {
+            result[0][row] = window.symbolsWithoutWild[Math.floor(Math.random() * window.symbolsWithoutWild.length)];
+        }
+        if (result[1][row] === 'wild') {
+            result[1][row] = window.symbolsWithoutWild[Math.floor(Math.random() * window.symbolsWithoutWild.length)];
+        }
+    }
+
+    // ===== ADMIN CONTROL 1: BUFFALO MODE =====
+    const adminCtrl1 = window.adminControl1 || { enabled: false, mode: null };
+    if (!window.gameState.isFreeSpinning && adminCtrl1.enabled && adminCtrl1.mode && BUFFALO_MODE_CONFIG[adminCtrl1.mode]) {
+        applyBuffaloMode(result, adminCtrl1.mode);
+    }
+
     const suspenseInfo = detectSuspenseMode(result);
     window.gameState.suspenseMode = suspenseInfo.isSuspense;
-    window.gameState.suspenseColumn = suspenseInfo.isSuspense ? suspenseInfo.columnsToCheck[0] : -1;
+    window.gameState.suspenseColumn = suspenseInfo.startFromCol;
 
-    console.log("✅ Final Result Ready. Suspense:", window.gameState.suspenseMode);
-    return result;
-}
-
-
-// ===== BABA 5 JACKPOT RESULT GENERATOR =====
-function generateBabaJackpotResult() {
-    const result = [[], [], [], [], []];
-    const otherSymbols = ['seven', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'jack', 'queen', 'nine', 'ten'];
-
-    // Column တိုင်းမှာ Baba 1 လုံးစီ (စုစုပေါင်း 5)
-    for (let col = 0; col < 5; col++) {
-        const babaRow = Math.floor(Math.random() * 4);
-        for (let row = 0; row < 4; row++) {
-            if (row === babaRow) {
-                result[col][row] = 'baba';
-                  SoundManager.boom();
-            } else {
-                result[col][row] = otherSymbols[Math.floor(Math.random() * otherSymbols.length)];
-            }
-        }
-    }
-    
-    console.log('🎰 BABA 5 JACKPOT RESULT GENERATED!');
     return result;
 }
 
@@ -1667,6 +1310,33 @@ function forceNoWinByColumns(result) {
 
     console.log('🔧 forceNoWinByColumns: col0 and col1 symbol sets are disjoint → guaranteed no win');
 }
+
+// 🎯 BABA JACKPOT RESULT GENERATOR (FIXED: exactly 5 baba)
+function generateBabaJackpotResult() {
+    const result = [[], [], [], [], []];
+    const otherSymbols = ['seven', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'jack', 'queen', 'nine', 'ten'];
+
+    // ပထမ 4 တိုင်: တစ်တိုင်မှာ baba 1 လုံးနှုန်း (စုစုပေါင်း 4)
+    for (let col = 0; col < 4; col++) {
+        const babaRow = Math.floor(Math.random() * 4);
+        for (let row = 0; row < 4; row++) {
+            if (row === babaRow) {
+                result[col][row] = 'baba';
+            } else {
+                result[col][row] = otherSymbols[Math.floor(Math.random() * otherSymbols.length)];
+            }
+        }
+    }
+
+    // နောက်ဆုံးတိုင်: baba 1 လုံးပဲထည့် (စုစုပေါင်း 5)
+    const babaRow = Math.floor(Math.random() * 4);
+    for (let row = 0; row < 4; row++) {
+        result[4][row] = (row === babaRow) ? 'baba' : otherSymbols[Math.floor(Math.random() * otherSymbols.length)];
+    }
+
+    return result;
+}
+
 // ===== ADMIN CONTROL 2 - NOWIN CONTROL =====
 window.adminControl2 = {
     enabled: false,
@@ -1709,37 +1379,34 @@ function listenToAdminControl2() {
             console.error('❌ Error listening to admin control 2:', error);
         });
 }
-
 function applyAdminControl2(result) {
     const adminCtrl = window.adminControl2 || { enabled: false, mode: 'normal' };
-
-    if (!adminCtrl.enabled || adminCtrl.mode !== 'always_different') {
-        return result;
-    }
+    if (!adminCtrl.enabled || adminCtrl.mode !== 'always_different') return result;
 
     console.log('🎯 Admin Control 2 ACTIVE: Making Col 0 and Col 1 different');
-    
-    // ✅ global symbolsWithoutWild ကိုသုံးမယ်
-    const symbols = window.symbolsWithoutWild;
+
+    const symbols = window.symbolsWithoutWild; // wild မပါတဲ့ symbol pool
     let pool = [...symbols];
     let selectedCol0 = [];
     let selectedCol1 = [];
 
+    // Col 0 အတွက် 4 different symbols
     for (let i = 0; i < 4; i++) {
         if (pool.length === 0) pool = [...symbols];
-        let randomIndex = Math.floor(Math.random() * pool.length);
-        selectedCol0.push(pool[randomIndex]);
-        pool.splice(randomIndex, 1);
+        const rand = Math.floor(Math.random() * pool.length);
+        selectedCol0.push(pool[rand]);
+        pool.splice(rand, 1);
     }
 
+    // Col 1 အတွက် symbols (Col 0 နဲ့ မထပ်အောင်)
     for (let i = 0; i < 4; i++) {
         if (pool.length === 0) {
             const remaining = symbols.filter(s => !selectedCol0.includes(s));
             pool = remaining.length > 0 ? [...remaining] : [...symbols];
         }
-        let randomIndex = Math.floor(Math.random() * pool.length);
-        selectedCol1.push(pool[randomIndex]);
-        pool.splice(randomIndex, 1);
+        const rand = Math.floor(Math.random() * pool.length);
+        selectedCol1.push(pool[rand]);
+        pool.splice(rand, 1);
     }
 
     for (let row = 0; row < 4; row++) {
@@ -1747,16 +1414,13 @@ function applyAdminControl2(result) {
         result[1][row] = selectedCol1[row];
     }
 
+    // wild ကျန်ခဲ့ရင် ပြန်ပြင်တာ (မလိုအပ်ပေမယ့် အာမခံချက်)
     for (let row = 0; row < 4; row++) {
-        if (result[0][row] === 'wild') {
-            result[0][row] = symbols[Math.floor(Math.random() * symbols.length)];
-        }
-        if (result[1][row] === 'wild') {
-            result[1][row] = symbols[Math.floor(Math.random() * symbols.length)];
-        }
+        if (result[0][row] === 'wild') result[0][row] = symbols[Math.floor(Math.random() * symbols.length)];
+        if (result[1][row] === 'wild') result[1][row] = symbols[Math.floor(Math.random() * symbols.length)];
     }
 
-    console.log('🎯 Admin Control 2 Applied - Sample:',
+    console.log('🎯 Admin Control 2 Applied - Sample:', 
         result[0].map((v,i) => `${v}-${result[1][i]}`).join(', '));
 
     return result;
@@ -1765,256 +1429,1314 @@ function applyAdminControl2(result) {
 document.addEventListener('DOMContentLoaded', function() {
     listenToAdminControl2();
     console.log('🎮 Admin Control 2 listener started');
-  });
+});
+
 
 // ============================================
-// STAGGERED ANIMATION WITH SUSPENSE (FIXED)
+// 13. animateReelsStaggered (COMPLETE VERSION)
 // ============================================
+
 function animateReelsStaggered(finalResult) {
-    var cells = document.querySelectorAll('.grid-cell');
+    const cells = document.querySelectorAll('.grid-cell');
     if (cells.length === 0) return;
 
-    console.log('🎰 Real slot machine animation started');
+    // Check for 5 Baba (MEGA JACKPOT)
+    const hasFiveBaba = checkFiveBaba(finalResult);
+    if (hasFiveBaba) {
+    startPremiumJackpot(finalResult);
+    return;
+   }
 
-    // Reset all cells
-    for (var i = 0; i < cells.length; i++) {
-        var cell = cells[i];
-        var img = cell.querySelector('img');
-        if (img) {
-            img.style.transition = '';
-            img.style.transform = '';
-            img.style.opacity = '';
-            img.style.filter = '';
-        }
-        cell.classList.remove('reel-shake', 'baba-glow', 'rise-column', 'fall-column', 'red-border-line', 'yellow-border-line', 'spin-column');
-        cell.style.boxShadow = '';
-        cell.style.borderRadius = '';
-    }
-
-    // Check for suspense mode
-    var suspenseInfo = detectSuspenseMode(finalResult);
-    
-    if (suspenseInfo.isSuspense && suspenseInfo.babaCount >= 3) {
-        console.log('🎬 SUSPENSE MODE ACTIVATED! Baba count: ' + suspenseInfo.babaCount);
-        // Start suspense animation - it will dispatch animationComplete when done
-        startSuspenseAnimation(finalResult, suspenseInfo);
-    } else {
-        // Normal animation
-        startNormalAnimation(finalResult);
-    }
-}
-// ===== NORMAL ANIMATION =====
-function startNormalAnimation(finalResult) {
-    const cells = document.querySelectorAll('.grid-cell');
- 
-    // Reel တစ်ခုစီအတွက် သီးခြား animation
-    for (let col = 0; col < 5; col++) {
-        const reelCells = Array.from(cells).filter(cell => parseInt(cell.dataset.col) === col);
-
-        reelCells.forEach(cell => {
-            cell.classList.add('reel-shake');
-        });
-
-        setTimeout(() => {
-            reelCells.forEach((cell, row) => {
-                const img = cell.querySelector('img');
-                if (!img) return;
-
-                cell.classList.remove('reel-shake');
-
-                const symbol = finalResult[col][row];
-                if (symbol) {
-                    img.style.transition = 'none';
-                    img.style.transform = 'translateY(-200px)';
-                    img.style.opacity = '0';
-                    img.src = `images/${symbol}.png`;
-
-                    setTimeout(() => {
-                        img.style.transition = 'transform 0.2s cubic-bezier(0.25, 0.1, 0.25, 1), opacity 0.1s';
-                        img.style.transform = 'translateY(0)';
-                        img.style.opacity = '1';
-
-                        setTimeout(() => {
-                            img.classList.add('symbol-bounce');
-                            setTimeout(() => {
-                                img.classList.remove('symbol-bounce');
-                            }, 150);
-                        }, 200);
-
-                        setTimeout(() => {
-                            img.style.transition = '';
-                        }, 400);
-                    }, row * 60);
-                }
-                cell.dataset.symbol = symbol;
-            });
-
-            if (col === 4) {
-                setTimeout(() => {
-                    document.dispatchEvent(new CustomEvent('animationComplete'));
-                    console.log('✅ All reels stopped with falling animation');
-                }, 600);
-            }
-        }, 300 + (col * 120));
-    }
-}
-// ===== CELEBRATE BABA IN COLUMN =====
-function celebrateBabaInColumn(col) {
-    const colCells = getColumnCells(col);
-    
-    colCells.forEach(cell => {
+    // Reset all styles
+    cells.forEach(cell => {
         const img = cell.querySelector('img');
-        if (img && img.src && img.src.includes('baba')) {
-            cell.classList.add('baba-glow');
-            
-            // Sparkle effects
-            const rect = cell.getBoundingClientRect();
-            for (let i = 0; i < 8; i++) {
-                const sparkle = document.createElement('div');
-                sparkle.textContent = '✨';
-                sparkle.style.cssText = `
-                    position: fixed;
-                    left: ${rect.left + rect.width/2 + (Math.random() - 0.5) * 40}px;
-                    top: ${rect.top + rect.height/2 + (Math.random() - 0.5) * 40}px;
-                    font-size: ${16 + Math.random() * 12}px;
-                    animation: sparklePop 0.5s ease-out forwards;
-                    pointer-events: none;
-                    z-index: 99998;
-                `;
-                document.body.appendChild(sparkle);
-                setTimeout(() => sparkle.remove(), 500);
+        if (img) {
+            img.classList.remove('symbol-drop', 'symbol-glow', 'reel-spin', 'suspense-col', 'radius-active', 'baba-win-glow');
+            img.style.transform = '';
+            img.style.transition = '';
+            img.style.filter = '';
+            img.style.opacity = '';
+        }
+        cell.classList.remove('reel-shake', 'suspense-col', 'radius-active', 'col-rise');
+        cell.style.zIndex = '';
+        cell.style.transform = '';
+    });
+
+    // Normal suspense mode
+    if (window.gameState.suspenseMode && window.gameState.suspenseColumn >= 0) {
+        const startSCol = window.gameState.suspenseColumn;
+        
+        animateNormalColumnsFast(finalResult, startSCol, () => {
+            playSuspenseSequence(finalResult, startSCol);
+        });
+    } else {
+        // No suspense
+        animateNormalColumnsFast(finalResult, 5, () => {
+            document.dispatchEvent(new CustomEvent('animationComplete'));
+        });
+    }
+}
+
+// 🆕 NEW: Check for 5 Baba (MEGA JACKPOT
+function checkFiveBaba(finalResult) {
+    let babaCount = 0;
+    for (let col = 0; col < 5; col++) {
+        for (let row = 0; row < 4; row++) {  // ← 3 ကို 4 ပြောင်း
+            if (finalResult[col] && finalResult[col][row] === 'baba') {
+                babaCount++;
             }
+        }
+    }
+    return babaCount === 5;
+}
+
+// 🆕 NEW: Fast animation for normal columns (animateColumnsStaggered အစား)
+function animateNormalColumnsFast(finalResult, endCol, onComplete) {
+    let currentCol = 0;
+    const allSymbols = ['seven', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'jack', 'queen', 'nine', 'ten', 'wild', 'baba'];
+    
+    function playNextCol() {
+        if (currentCol >= endCol) {
+            if (onComplete) onComplete();
+            return;
+        }
+
+        const colCells = getColCells(currentCol);
+        const colSymbols = finalResult[currentCol];
+        
+        // Fast spin effect
+        let spinCount = 0;
+        const maxSpins = 20;
+        
+        const spinInterval = setInterval(() => {
+            colCells.forEach(cell => {
+                const img = cell.querySelector('img');
+                if (img) {
+                    const randomSym = allSymbols[Math.floor(Math.random() * allSymbols.length)];
+                    img.src = `images/${randomSym}.png`;
+                }
+            });
+            spinCount++;
+            
+            if (spinCount >= maxSpins) {
+                clearInterval(spinInterval);
+                
+                // Reveal final symbols
+                colCells.forEach((cell, idx) => {
+                    const img = cell.querySelector('img');
+                    if (img) {
+                        img.src = `images/${colSymbols[idx]}.png`;
+                        cell.dataset.symbol = colSymbols[idx];
+                    }
+                });
+                
+                currentCol++;
+                setTimeout(playNextCol, 200); // Stagger delay
+            }
+        }, 50);
+    }
+
+    playNextCol();
+}
+
+// ============================================
+// 🎬 Suspense Sequence with Radius Animation
+// ============================================
+
+function playSuspenseSequence(finalResult, startCol) {
+    let currentCol = startCol;
+
+    function playNextCol() {
+        if (currentCol > 4) {
+            document.dispatchEvent(new CustomEvent('animationComplete'));
+            return;
+        }
+
+        const targetSymbols = finalResult[currentCol];
+        const hasBaba = targetSymbols && targetSymbols.some(sym => sym === 'baba');
+
+        if (hasBaba) {
+            // 🌟 BABA COLUMN: Instant reveal with special effects
+            revealBabaColumn(targetSymbols, currentCol, () => {
+                currentCol++;
+                setTimeout(playNextCol, 300);
+            });
+        } else {
+            // 🎰 NORMAL SUSPENSE: Full animation V2
+            animateSuspenseColumnV2(targetSymbols, currentCol, () => {
+                currentCol++;
+                setTimeout(playNextCol, 200);
+            });
+        }
+    }
+
+    playNextCol();
+}
+
+// 👳‍♂️ Reveal Baba Column (Instant with effects)
+function revealBabaColumn(symbols, col, onComplete) {
+    const colCells = getColCells(col);
+
+    // Rise up animation
+    colCells.forEach((cell, idx) => {
+        cell.classList.add('col-rise');
+        const img = cell.querySelector('img');
+        if (img) {
+            img.style.transition = 'none';
+            img.style.transform = 'translateY(50px)';
+            img.style.opacity = '0';
+            img.src = `images/${symbols[idx]}.png`;
+            cell.dataset.symbol = symbols[idx];
+
+            // Slide up
+            setTimeout(() => {
+                img.style.transition = 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                img.style.transform = 'translateY(0)';
+                img.style.opacity = '1';
+            }, idx * 100);
         }
     });
-    
-    // ဂုဏ်ပြုအသံ
-    if (typeof SoundManager !== 'undefined') {
-        SoundManager.lion();
-       SoundManager.boom();
-    }
+
+    // Remove rise effect
+    setTimeout(() => {
+        colCells.forEach(cell => cell.classList.remove('col-rise'));
+        if (onComplete) onComplete();
+    }, 600);
 }
 
-// ===== GET COLUMN CELLS HELPER =====
-function getColumnCells(col) {
+// 🎡 NEW: Improved Suspense Column Animation
+function animateSuspenseColumnV2(symbols, col, onComplete) {
+    const colCells = getColCells(col);
+    const allSymbols = ['seven', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'jack', 'queen', 'nine', 'ten', 'wild', 'baba'];
+
+    // 🌟 STEP 1: Rise column up with radius effect
+    colCells.forEach(cell => {
+        cell.classList.add('radius-active', 'col-rise');
+    });
+
+    // 🎵 Play sound
+    if (typeof SoundManager !== 'undefined' && SoundManager.lion) {
+        SoundManager.lion().catch(e => console.log('sound error:', e));
+    }
+
+    // 🚀 STEP 2: FAST SPIN (20 calls, smooth animation)
+    let spinCount = 0;
+    const maxSpins = 20;
+    let lastTime = 0;
+    const spinDuration = 2000; // 2 seconds total
+
+    function fastSpin(timestamp) {
+        if (!lastTime) lastTime = timestamp;
+        const elapsed = timestamp - lastTime;
+
+        // Calculate progress (0 to 1)
+        const progress = Math.min(elapsed / spinDuration, 1);
+
+        // 🐌 Slow down curve (ease-out)
+        const speed = progress < 0.7 ? 50 : 50 + (progress - 0.7) * 200;
+
+        if (elapsed - (spinCount * speed) >= speed && spinCount < maxSpins) {
+            // Update symbols
+            colCells.forEach(cell => {
+                const img = cell.querySelector('img');
+                if (img) {
+                    const randomSymbol = allSymbols[Math.floor(Math.random() * allSymbols.length)];
+                    img.src = `images/${randomSymbol}.png`;
+                    img.style.opacity = '0.8';
+                    // Slight blur for speed effect
+                    img.style.filter = 'blur(1px)';
+                }
+            });
+            spinCount++;
+        }
+
+        if (progress < 1) {
+            requestAnimationFrame(fastSpin);
+        } else {
+            // Stop blur
+            colCells.forEach(cell => {
+                const img = cell.querySelector('img');
+                if (img) img.style.filter = 'none';
+            });
+            revealFinal(symbols, colCells, onComplete);
+        }
+    }
+
+    requestAnimationFrame(fastSpin);
+}
+
+// 🎯 Reveal Final Symbols with Baba Jump (UPDATED)
+function revealFinal(symbols, colCells, onComplete) {
+    let rowIndex = 0;
+
+    function showNext() {
+        if (rowIndex >= colCells.length) {
+            // Cleanup - radius-active က cell မှာ မဟုတ်တော့ပါ
+            setTimeout(() => {
+                colCells.forEach(cell => {
+                    cell.classList.remove('col-rise');
+                    // baba-win-glow က img မှာပဲ ရှိမယ်
+                });
+                if (onComplete) onComplete();
+            }, 1000);
+            return;
+        }
+
+        const cell = colCells[rowIndex];
+        const img = cell.querySelector('img');
+        const finalSymbol = symbols[rowIndex];
+
+        if (img && finalSymbol) {
+            // 🛑 STOP with bounce effect
+            img.style.transition = 'none';
+            img.style.transform = 'translateY(-30px) scale(1.2)';
+            img.style.opacity = '0';
+            img.src = `images/${finalSymbol}.png`;
+            cell.dataset.symbol = finalSymbol;
+
+            // Drop in with bounce
+            setTimeout(() => {
+                img.style.transition = 'all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+                img.style.transform = 'translateY(0) scale(1)';
+                img.style.opacity = '1';
+
+                // 🦘 BABA JUMP (2-3 hops) + radius on baba images
+                if (finalSymbol === 'baba') {
+                    // ✅ Baba image ကို radius ပေး (cell မဟုတ်)
+                    img.classList.add('baba-radius');
+                    
+                    setTimeout(() => {
+                        animateBabaJump(img, 0);
+                    }, 500);
+                }
+            }, 50);
+        }
+
+        rowIndex++;
+        setTimeout(showNext, 200);
+    }
+
+    showNext();
+}
+
+// 🦘 Baba Jump Animation (UPDATED - radius on image)
+function animateBabaJump(img, hopCount) {
+    const maxHops = 3;
+    if (hopCount >= maxHops) {
+        // Final glow + radius on baba image
+        img.classList.add('baba-win-glow');
+        return;
+    }
+
+    // Hop up
+    img.style.transition = 'transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+    img.style.transform = `translateY(-${15 + hopCount * 5}px) scale(${1.1 + hopCount * 0.05})`;
+
+    // Hop down
+    setTimeout(() => {
+        img.style.transition = 'transform 0.12s cubic-bezier(0.6, -0.28, 0.735, 0.045)';
+        img.style.transform = 'translateY(0) scale(1)';
+
+        // Next hop
+        setTimeout(() => {
+            animateBabaJump(img, hopCount + 1);
+        }, 150);
+    }, 150);
+}
+
+// 🔧 Helper: Get column cells
+function getColCells(col) {
     return Array.from(document.querySelectorAll('.grid-cell'))
         .filter(cell => parseInt(cell.dataset.col) === col);
 }
 
-// ===== CHECK THREE MATCH RATE =====
+// 🎨 UPDATED CSS - radius on baba images, not cells
+const cssToAdd = `
+/* 🌟 Radius Active - COLUMN (cell) မှာ ပဲပြစေ */
+.radius-active {
+    border: 3px solid #ffd700 !important;
+    box-shadow:
+        0 0 30px rgba(255,215,0,0.5),
+        inset 0 0 30px rgba(255,215,0,0.2) !important;
+    animation: radiusPulse 0.8s ease-in-out infinite !important;
+    z-index: 10;
+}
+
+/* 🆕 NEW: Baba Image Radius - baba 2ပုံကျရင် image မှာ radius */
+.baba-radius {
+    border: 3px solid #ff4444 !important;
+    border-radius: 50% !important;
+    box-shadow:
+        0 0 20px rgba(255,68,68,0.8),
+        0 0 40px rgba(255,68,68,0.5),
+        0 0 60px rgba(255,68,68,0.3) !important;
+    animation: babaRadiusPulse 0.6s ease-in-out infinite !important;
+    z-index: 20;
+}
+
+@keyframes babaRadiusPulse {
+    0%, 100% {
+        box-shadow: 0 0 15px rgba(255,68,68,0.6), 0 0 30px rgba(255,68,68,0.3);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 0 30px rgba(255,68,68,1), 0 0 60px rgba(255,68,68,0.6);
+        transform: scale(1.05);
+    }
+}
+
+/* ⬆️ Column Rise Effect - cell မှာ */
+.col-rise {
+    animation: colRise 0.4s ease-out forwards !important;
+}
+
+@keyframes colRise {
+    0% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-20px) scale(1.02); }
+    100% { transform: translateY(-10px) scale(1.01); }
+}
+
+/* 🦘 Baba Win Glow - image မှာ */
+.baba-win-glow {
+    animation: babaGlow 1s ease-in-out infinite alternate !important;
+    filter: drop-shadow(0 0 20px gold) !important;
+}
+
+@keyframes babaGlow {
+    from {
+        filter: drop-shadow(0 0 10px gold) drop-shadow(0 0 20px orange);
+        transform: scale(1);
+    }
+    to {
+        filter: drop-shadow(0 0 30px gold) drop-shadow(0 0 50px red);
+        transform: scale(1.05);
+    }
+}
+
+/* 🎰 Smooth Symbol Transition */
+.grid-cell img {
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+}
+`;
+
+// Inject CSS
+const styleSheet = document.createElement('style');
+styleSheet.textContent = cssToAdd;
+document.head.appendChild(styleSheet);
+
+
 function checkThreeMatchRate() {
     const state = window.gameState;
-    const expectedCount = Math.floor(state.checkInterval * state.targetThreeMatchRate);
+    const expectedCount = Math.floor(state.checkInterval * state.targetThreeMatchRate); // 10 * 0.2 = 2
 
     console.log(`🎯 Three-match check: ${state.threeMatchCount}/${expectedCount} in last ${state.checkInterval} spins`);
 
     if (state.threeMatchCount > expectedCount) {
+        // သတ်မှတ်ချက်ထက် ပိုနေရင် နောက် spin တွေမှာ ၃ ကောင်တူတာကို လျှော့ချမယ်
         state.reduceThreeMatch = true;
         console.log('⚠️ Reducing three-match probability for next spins');
     } else {
         state.reduceThreeMatch = false;
     }
 
+    // Counter တွေကို ပြန် Reset လုပ်မယ်
     state.threeMatchCount = 0;
     state.totalSpinsSinceReset = 0;
 }
 
-const suspenseStyles = document.createElement('style');
-suspenseStyles.textContent = `
-    @keyframes columnShake {
-        0%, 100% { transform: translateX(0); }
-        25% { transform: translateX(-5px); }
-        75% { transform: translateX(5px); }
-    }
-    @keyframes sparklePop {
-        0% { transform: scale(0) rotate(0deg); opacity: 1; }
-        100% { transform: scale(1.5) rotate(180deg); opacity: 0; }
-    }
-    @keyframes babaHop {
-        0% { transform: translateY(0) scale(1); }
-        30% { transform: translateY(-15px) scale(1.2); }
-        60% { transform: translateY(5px) scale(1.05); }
-        100% { transform: translateY(0) scale(1); }
-    }
-    @keyframes colRise {
-        0% { transform: translateY(0); }
-        100% { transform: translateY(-20px); }
-    }
-    @keyframes babaJackpotPop {
-        0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
-        100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-    }
-    @keyframes babaWave {
-        0% { transform: translateY(0); }
-        100% { transform: translateY(-20px); }
-    }
-    
-    /* မီးလောင်နေတဲ့ Glow Effect */
-.suspense-glow {
-    box-shadow: 0 0 15px #ff4500, 0 0 30px #ff8c00, inset 0 0 15px #ff4500 !important;
-    border: 3px solid #ffd700 !important;
-    border-radius: 15px;
-    animation: fireGlow 1.5s infinite alternate;
-    z-index: 10;
-}
 
-@keyframes fireGlow {
-    0% {
-        box-shadow: 0 0 10px #ff4500, 0 0 20px #ff8c00;
-        filter: brightness(1);
-    }
-    100% {
-        box-shadow: 0 0 25px #ff0000, 0 0 50px #ff4500, 0 0 10px #ffff00;
-        filter: brightness(1.3);
+// ============================================
+// 🎉 MEGA JACKPOT PREMIUM ANIMATION (သင့်ကုဒ်ကနေ)
+// ============================================
+
+function applyFinalResultToGrid(finalResult) {
+    for (let col = 0; col < 5; col++) {
+        for (let row = 0; row < 4; row++) {
+            const cell = document.querySelector(`.grid-cell[data-col="${col}"][data-row="${row}"]`);
+            if (cell) {
+                const img = cell.querySelector('img');
+                const symbol = finalResult[col][row];
+                if (img && symbol) {
+                    img.src = `images/${symbol}.png`;
+                }
+                cell.dataset.symbol = symbol;
+            }
+        }
     }
 }
-
-/* Column ကြွတက်တဲ့အခါ ပိုလှအောင် */
-.rise-column {
-    transform: translateY(-20px) scale(1.05);
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+async function startPremiumJackpot(finalResult) {
+    // Step 0: Show jackpot result on grid
+    applyFinalResultToGrid(finalResult);
+    
+    // Step 1: Lightning flash + Baba escape
+    await lightningEscape();
+    
+    // Step 2: Orbit with trails
+    await orbitWithTrails();
+    
+    // Step 3: Gather and implode
+    await gatherAndImplode();
+    
+    // Step 4: MEGA EXPLOSION
+    await megaExplosion();
+    
+    // Step 5: Show MEGA JACKPOT
+    showMegaJackpot();
+    
+    // Dispatch complete event
+    setTimeout(() => {
+        document.dispatchEvent(new CustomEvent('animationComplete'));
+    }, 8000);
 }
 
+// ⚡ Step 1: Lightning + Escape
+  function lightningEscape() {
+    return new Promise(resolve => {
+        const lightning = document.getElementById('lightning');
+        if (lightning) lightning.classList.add('active');
+
+        
+        setTimeout(() => {
+            if (lightning) lightning.classList.remove('active');
+        }, 200);
+        
+        // Screen shake
+        document.body.style.animation = 'shake 0.5s ease-out';
+        
+        // Get baba cells from grid
+        const babaCells = document.querySelectorAll('.grid-cell[data-symbol="baba"], .slot-cell.baba');
+        
+        babaCells.forEach((cell, index) => {
+            const rect = cell.getBoundingClientRect();
+            
+            const flyingBaba = document.createElement('div');
+            flyingBaba.className = 'flying-baba';
+            flyingBaba.innerHTML = '<div class="baba-inner">‍♂️</div>';
+            flyingBaba.style.left = rect.left + 'px';
+            flyingBaba.style.top = rect.top + 'px';
+            document.body.appendChild(flyingBaba);
+            
+            // Hide original
+            cell.style.transition = 'all 0.3s';
+            cell.style.transform = 'scale(1.5)';
+            cell.style.opacity = '0';
+            
+            // Orbit position
+            const angle = (index * 72) * (Math.PI / 180);
+            const radius = 220;
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+            
+            const targetX = centerX + Math.cos(angle) * radius - 50;
+            const targetY = centerY + Math.sin(angle) * radius - 50;
+            
+            setTimeout(() => {
+                flyingBaba.style.left = targetX + 'px';
+                flyingBaba.style.top = targetY + 'px';
+                flyingBaba.classList.add('spinning');
+            }, 300 + index * 100);
+        });
+        
+        setTimeout(resolve, 1500);
+    });
+}
+
+//  Step 2: Orbit with Rainbow Trails
+function orbitWithTrails() {
+    return new Promise(resolve => {
+        const babas = document.querySelectorAll('.flying-baba');
+        const colors = ['#ff0000', '#ff7f00', '#ffff00', '#00ff00', '#0000ff'];
+        
+        const trailInterval = setInterval(() => {
+            babas.forEach((baba, index) => {
+                const rect = baba.getBoundingClientRect();
+                const trail = document.createElement('div');
+                trail.className = 'baba-trail';
+                trail.textContent = '‍♂️';
+                trail.style.left = rect.left + 'px';
+                trail.style.top = rect.top + 'px';
+                trail.style.color = colors[index];
+                trail.style.filter = `drop-shadow(0 0 10px ${colors[index]})`;
+                document.body.appendChild(trail);
+                
+                setTimeout(() => trail.remove(), 500);
+            });
+        }, 100);
+        
+        setTimeout(() => {
+            clearInterval(trailInterval);
+            resolve();
+        }, 2500);
+    });
+}
+
+//  Step 3: Gather with Implosion
+function gatherAndImplode() {
+    return new Promise(resolve => {
+        const babas = document.querySelectorAll('.flying-baba');
+        const centerX = window.innerWidth / 2 - 50;
+        const centerY = window.innerHeight / 2 - 50;
+        
+        babas.forEach(baba => baba.classList.add('trail'));
+        
+        babas.forEach((baba, index) => {
+            baba.style.transition = 'all 0.8s cubic-bezier(0.6, -0.28, 0.735, 0.045)';
+            
+            const spiralX = centerX + (Math.random() - 0.5) * 30;
+            const spiralY = centerY + (Math.random() - 0.5) * 30;
+            
+            setTimeout(() => {
+                baba.style.left = spiralX + 'px';
+                baba.style.top = spiralY + 'px';
+                baba.style.transform = 'scale(2) rotate(720deg)';
+            }, index * 150);
+        });
+        
+        setTimeout(resolve, 1200);
+    });
+}
+
+//  Step 4: MEGA EXPLOSION
+function megaExplosion() {
+    return new Promise(resolve => {
+        const centerX = window.innerWidth / 2;
+        const centerY = window.innerHeight / 2;
+        
+        const lightning = document.getElementById('lightning');
+        if (lightning) lightning.classList.add('active');
+        
+        // Multiple shockwaves
+        for (let i = 0; i < 3; i++) {
+            setTimeout(() => {
+                const wave = document.createElement('div');
+                wave.className = 'shockwave-multi active';
+                wave.style.animationDelay = (i * 0.3) + 's';
+                document.body.appendChild(wave);
+                setTimeout(() => wave.remove(), 2000);
+            }, i * 200);
+        }
+        
+        // Explosion ring
+        const ring = document.getElementById('explosionRing');
+        if (ring) ring.classList.add('active');
+        
+        // Remove babas
+        document.querySelectorAll('.flying-baba').forEach((baba, i) => {
+            setTimeout(() => {
+                baba.style.transform = 'scale(4)';
+                baba.style.opacity = '0';
+                setTimeout(() => baba.remove(), 300);
+            }, i * 50);
+        });
+        
+        // Create effects
+        create3DCoins(centerX, centerY);
+        createGems(centerX, centerY);
+        createFireParticles(centerX, centerY);
+        createStreamers(centerX, centerY);
+        
+        setTimeout(() => {
+            if (lightning) lightning.classList.remove('active');
+            if (ring) ring.classList.remove('active');
+            resolve();
+        }, 1500);
+    });
+}
+
+//  Step 5: Show MEGA JACKPOT
+function showMegaJackpot() {
+    const container = document.getElementById('megaJackpot');
+    const soundBars = document.getElementById('soundBars');
     
-    .yellow-border-line {
-        box-shadow: 0 0 0 3px #ffd700, 0 0 20px #ffd700 !important;
-        border-radius: 50%;
-        transition: all 0.2s;
+    if (container) container.classList.add('active');
+    if (soundBars) soundBars.classList.add('active');
+    
+    createPremiumConfetti();
+    createEpicFireworks();
+    
+    // Auto close
+    setTimeout(() => {
+        if (container) container.classList.remove('active');
+        if (soundBars) soundBars.classList.remove('active');
+        resetPremium();
+    }, 8000);
+}
+
+// ============================================
+// 🎉 EFFECT FUNCTIONS (သင့်ကုဒ်ကနေ)
+// ============================================
+
+function create3DCoins(x, y) {
+    for (let i = 0; i < 100; i++) {
+        setTimeout(() => {
+            const coin = document.createElement('div');
+            coin.className = 'coin-3d';
+            
+            const angle = Math.random() * Math.PI * 2;
+            const velocity = 200 + Math.random() * 400;
+            const tx = Math.cos(angle) * velocity;
+            const ty = Math.sin(angle) * velocity + 300;
+            
+            coin.style.left = (x - 20) + 'px';
+            coin.style.top = (y - 20) + 'px';
+            coin.style.setProperty('--tx', tx + 'px');
+            coin.style.setProperty('--ty', ty + 'px');
+            
+            document.body.appendChild(coin);
+            setTimeout(() => coin.remove(), 2000);
+        }, i * 15);
     }
+}
+
+function createGems(x, y) {
+    const gemColors = ['', '', '', ''];
     
-    .fall-column {
-        animation: colRiseReverse 0.3s ease-in forwards !important;
+    for (let i = 0; i < 50; i++) {
+        const gem = document.createElement('div');
+        gem.className = 'gem-particle';
+        gem.textContent = gemColors[Math.floor(Math.random() * gemColors.length)];
+        
+        const angle = Math.random() * Math.PI * 2;
+        const velocity = 150 + Math.random() * 300;
+        
+        gem.style.left = x + 'px';
+        gem.style.top = y + 'px';
+        gem.style.setProperty('--tx', Math.cos(angle) * velocity + 'px');
+        gem.style.setProperty('--ty', Math.sin(angle) * velocity + 'px');
+        
+        document.body.appendChild(gem);
+        setTimeout(() => gem.remove(), 1500);
     }
-    
-    @keyframes colRiseReverse {
-        0% { transform: translateY(-20px); }
-        100% { transform: translateY(0); }
+}
+
+function createFireParticles(x, y) {
+    for (let i = 0; i < 40; i++) {
+        const fire = document.createElement('div');
+        fire.className = 'fire-particle';
+        
+        const angle = Math.random() * Math.PI * 2;
+        const velocity = 100 + Math.random() * 200;
+        
+        fire.style.left = x + 'px';
+        fire.style.top = y + 'px';
+        fire.style.setProperty('--tx', Math.cos(angle) * velocity + 'px');
+        fire.style.setProperty('--ty', Math.sin(angle) * velocity + 'px');
+        
+        document.body.appendChild(fire);
+        setTimeout(() => fire.remove(), 1200);
     }
+}
+
+function createStreamers(x, y) {
+    const colors = ['#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24'];
     
-    .spin-column {
-        animation: columnSpin 0.15s linear infinite !important;
+    for (let i = 0; i < 30; i++) {
+        const streamer = document.createElement('div');
+        streamer.className = 'streamer';
+        streamer.style.background = `linear-gradient(to bottom, ${colors[i % colors.length]}, transparent)`;
+        
+        const angle = (Math.PI * 2 * i) / 30;
+        const distance = 300 + Math.random() * 200;
+        
+        streamer.style.left = x + 'px';
+        streamer.style.top = y + 'px';
+        streamer.style.setProperty('--sx', Math.cos(angle) * distance + 'px');
+        streamer.style.setProperty('--sy', Math.sin(angle) * distance + 'px');
+        
+        document.body.appendChild(streamer);
+        setTimeout(() => streamer.remove(), 2000);
     }
+}
+
+function createPremiumConfetti() {
+    const types = ['ribbon', 'star', 'coin'];
+    const colors = [
+        ['#ffd700', '#ffed4e'],
+        ['#ff6b6b', '#ff8e8e'],
+        ['#4ecdc4', '#7eddd8'],
+        ['#45b7d1', '#74c5e0'],
+        ['#f9ca24', '#f0b90b']
+    ];
     
-    @keyframes columnSpin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
+    for (let i = 0; i < 200; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            const type = types[Math.floor(Math.random() * types.length)];
+            const colorPair = colors[Math.floor(Math.random() * colors.length)];
+            
+            confetti.className = `premium-confetti confetti-${type}`;
+            confetti.style.left = Math.random() * 100 + 'vw';
+            confetti.style.setProperty('--color1', colorPair[0]);
+            confetti.style.setProperty('--color2', colorPair[1]);
+            confetti.style.animationDuration = (3 + Math.random() * 2) + 's';
+            confetti.style.animationDelay = Math.random() + 's';
+            
+            document.body.appendChild(confetti);
+            setTimeout(() => confetti.remove(), 5000);
+        }, i * 25);
     }
+}
+
+function createEpicFireworks() {
+    const colors = ['#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#ff00ff'];
     
-    .radius-active {
-        border-radius: 20px !important;
-        border: 2px solid #ffd700 !important;
-        box-shadow: 0 0 30px rgba(255, 215, 0, 0.5) !important;
+    for (let burst = 0; burst < 8; burst++) {
+        setTimeout(() => {
+            const x = 10 + Math.random() * 80;
+            const y = 10 + Math.random() * 40;
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            
+            const core = document.createElement('div');
+            core.className = 'epic-firework firework-core';
+            core.style.left = x + '%';
+            core.style.top = y + '%';
+            core.style.background = color;
+            core.style.boxShadow = `0 0 50px ${color}`;
+            document.body.appendChild(core);
+            setTimeout(() => core.remove(), 500);
+            
+            for (let i = 0; i < 36; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'epic-firework';
+                particle.style.left = (x * window.innerWidth / 100) + 'px';
+                particle.style.top = (y * window.innerHeight / 100) + 'px';
+                particle.style.background = color;
+                particle.style.boxShadow = `0 0 10px ${color}`;
+                
+                const angle = (Math.PI * 2 * i) / 36;
+                const velocity = 80 + Math.random() * 40;
+                
+                particle.animate([
+                    { transform: 'translate(0,0) scale(1)', opacity: 1 },
+                    { transform: `translate(${Math.cos(angle) * velocity}px, ${Math.sin(angle) * velocity}px) scale(0)`, opacity: 0 }
+                ], {
+                    duration: 1000,
+                    easing: 'ease-out'
+                });
+                
+                document.body.appendChild(particle);
+                setTimeout(() => particle.remove(), 1000);
+            }
+        }, burst * 600);
     }
+}
+
+function resetPremium() {
+    document.querySelectorAll('.flying-baba, .baba-trail, .coin-3d, .gem-particle, .fire-particle, .streamer, .premium-confetti, .epic-firework, .shockwave-multi').forEach(el => el.remove());
     
-    .col-rise {
-        animation: colRise 0.3s ease-out forwards !important;
-    }
+    const megaJackpot = document.getElementById('megaJackpot');
+    const soundBars = document.getElementById('soundBars');
+    if (megaJackpot) megaJackpot.classList.remove('active');
+    if (soundBars) soundBars.classList.remove('active');
     
-    .baba-radius {
-        border-radius: 50% !important;
-        box-shadow: 0 0 20px rgba(255, 68, 68, 0.8) !important;
+    document.querySelectorAll('.grid-cell, .slot-cell').forEach(cell => {
+        cell.style.opacity = '1';
+        cell.style.transform = 'scale(1)';
+    });
+}
+
+// Screen shake animation
+const shakeStyle = document.createElement('style');
+shakeStyle.textContent = `
+    @keyframes shake {
+        0%, 100% { transform: translate(0, 0); }
+        10% { transform: translate(-5px, -5px); }
+        20% { transform: translate(5px, 5px); }
+        30% { transform: translate(-8px, 0); }
+        40% { transform: translate(8px, 0); }
+        50% { transform: translate(-5px, 5px); }
+        60% { transform: translate(5px, -5px); }
+        70% { transform: translate(-3px, 0); }
+        80% { transform: translate(3px, 0); }
+        90% { transform: translate(0, 3px); }
     }
 `;
-document.head.appendChild(suspenseStyles);
+document.head.appendChild(shakeStyle);
+// ============================================
+// 14. WIN ANIMATIONS - BIG WIN, MEGA WIN, SUPER WIN
+// ============================================
+  /* const WinAnimation = (function() {
+    
+    // ========== PRIVATE VARIABLES ==========
+    let canvas = null;
+    let ctx = null;
+    let animationId = null;
+    let isActive = false;
+    let currentType = 'mega';
+    let currentAmount = 0;
+    
+    let particles = [];
+    let rotatingLights = [];
+    let time = 0;
+    let lightAngleOffset = 0;
+    let scaleBig = 0;
+    let glowIntensity = 0;
+    let wobbleX = 0, wobbleY = 0;
+    let amountScale = 0;
+    let displayAmount = "";
+    let digitIndex = 0;
+    let burstInterval = null;
+    let shakeOffset = { x: 0, y: 0 };
+    let shakeTimer = null;
+    let backgroundStars = [];
+    
+    const WIDTH = 800;
+    const HEIGHT = 450;
+    const LIGHT_COUNT = 16;
+    
+    // ========== PARTICLE CLASS (optimized) ==========
+    class Particle {
+        constructor(x, y, vx, vy, size, color, life, shape = 'circle') {
+            this.x = x;
+            this.y = y;
+            this.vx = vx;
+            this.vy = vy;
+            this.size = size;
+            this.color = color;
+            this.life = life;
+            this.maxLife = life;
+            this.shape = shape;
+        }
+        update() {
+            this.x += this.vx;
+            this.y += this.vy;
+            this.vy += 0.05;
+            this.vx *= 0.99;
+            this.life -= 2;
+            return this.life > 0;
+        }
+        draw(ctx) {
+            const alpha = Math.min(1, this.life / this.maxLife);
+            ctx.save();
+            ctx.globalAlpha = alpha * 0.9;
+            if (this.shape === 'star') {
+                ctx.font = `${this.size * 1.5}px "Segoe UI Emoji", "Apple Color Emoji"`;
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                const starEmoji = Math.random() > 0.6 ? "✨" : "⭐";
+                ctx.fillStyle = this.color;
+                ctx.fillText(starEmoji, this.x, this.y);
+            } 
+            else if (this.shape === 'coin') {
+                ctx.font = `${this.size * 1.4}px "Segoe UI Emoji", "Apple Color Emoji"`;
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillStyle = this.color;
+                ctx.fillText("🪙", this.x, this.y);
+            } 
+            else {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+    }
+    
+    // ========== ROTATING LIGHTS ==========
+    function initRotatingLights() {
+        rotatingLights = [];
+        const colors = ['#ff0040', '#ff8000', '#ffff00', '#80ff00', '#00ff80', '#00ffff', '#0080ff', '#ff00ff', '#ff0080', '#ff4400', '#ff66cc', '#ffaa33', '#33ffaa', '#ff3366', '#ff99cc', '#ffcc33'];
+        for (let i = 0; i < LIGHT_COUNT; i++) {
+            rotatingLights.push({
+                angle: (i / LIGHT_COUNT) * Math.PI * 2,
+                radius: 170 + Math.random() * 20,
+                color: colors[i % colors.length],
+                size: 5 + Math.random() * 4,
+                speed: 0.008 + Math.random() * 0.003,
+                pulse: 0
+            });
+        }
+    }
+    
+    function updateRotatingLights() {
+        lightAngleOffset += 0.01;
+        for (let i = 0; i < rotatingLights.length; i++) {
+            const light = rotatingLights[i];
+            light.angle += light.speed;
+            light.pulse = 0.6 + Math.sin(time * 0.01 + i) * 0.4;
+        }
+    }
+    
+    function drawRotatingLights(centerX, centerY) {
+        ctx.save();
+        ctx.globalAlpha = 0.25;
+        for (const light of rotatingLights) {
+            const x = centerX + Math.cos(light.angle + lightAngleOffset) * light.radius;
+            const y = centerY + Math.sin(light.angle + lightAngleOffset) * light.radius;
+            ctx.beginPath();
+            ctx.arc(x, y, light.size * light.pulse, 0, Math.PI * 2);
+            ctx.fillStyle = light.color;
+            ctx.fill();
+        }
+        ctx.restore();
+    }
+    
+    function drawLightRays(centerX, centerY, intensity) {
+        ctx.save();
+        ctx.globalAlpha = 0.1;
+        for (let i = 0; i < 16; i++) {
+            const angle = (i / 16) * Math.PI * 2 + time * 0.005;
+            const x1 = centerX + Math.cos(angle) * 25;
+            const y1 = centerY + Math.sin(angle) * 25;
+            const x2 = centerX + Math.cos(angle) * 170;
+            const y2 = centerY + Math.sin(angle) * 170;
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.lineWidth = 6;
+            ctx.strokeStyle = `rgba(255, 200, 80, 0.4)`;
+            ctx.stroke();
+        }
+        ctx.restore();
+    }
+    
+    // ========== 3D TEXT ==========
+    function draw3DWinText(x, y, scale, wobbleX, wobbleY, glowIntensity) {
+        const text = currentType === 'big' ? "BIG WIN" : (currentType === 'super' ? "SUPER WIN" : "MEGA WIN");
+        const fontSize = 72 * (0.7 + scale * 0.6);
+        ctx.save();
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.font = `900 ${fontSize}px "Poppins", "Arial Black", "Impact"`;
+        
+        const offsetX = Math.sin(wobbleX) * 2.5;
+        const offsetY = Math.sin(wobbleY) * 2;
+        
+        const depths = [
+            { dx: 8, dy: 8, color: '#2a1a00', blur: 0 },
+            { dx: 6, dy: 6, color: '#3a2800', blur: 1 },
+            { dx: 4, dy: 4, color: '#4a2a00', blur: 2 },
+            { dx: 3, dy: 2.5, color: '#5a3a00', blur: 3 },
+            { dx: 1.5, dy: 1, color: '#7a5200', blur: 4 }
+        ];
+        for (let i = 0; i < depths.length; i++) {
+            const d = depths[i];
+            ctx.shadowBlur = d.blur;
+            ctx.shadowColor = 'rgba(0,0,0,0.4)';
+            ctx.fillStyle = d.color;
+            ctx.fillText(text, x + d.dx + offsetX, y + d.dy + offsetY);
+        }
+        
+        const grad = ctx.createLinearGradient(x - 90, y - 35, x + 90, y + 35);
+        const gradPos = (time * 0.012) % 1;
+        grad.addColorStop(gradPos, '#FDB827');
+        grad.addColorStop(gradPos + 0.2, '#FFE484');
+        grad.addColorStop(gradPos + 0.4, '#FFD966');
+        grad.addColorStop(gradPos + 0.6, '#F79F1A');
+        ctx.fillStyle = grad;
+        ctx.shadowBlur = 24 * (1 + glowIntensity);
+        ctx.shadowColor = `rgba(255, 180, 30, ${0.5 + glowIntensity * 0.6})`;
+        ctx.fillText(text, x + offsetX, y + offsetY);
+        
+        ctx.shadowBlur = 0;
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#FFEAA0';
+        ctx.strokeText(text, x + offsetX, y + offsetY);
+        
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.fillStyle = 'rgba(255, 255, 220, 0.3)';
+        ctx.fillText(text, x + offsetX - 2, y + offsetY - 2);
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.restore();
+    }
+    
+    function draw3DAmount(amountStr, x, y, scale, glowIntensity) {
+        ctx.save();
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        const fontSize = 52 * (0.8 + scale * 0.4);
+        ctx.font = `bold ${fontSize}px "Poppins", "Arial Black", monospace`;
+        
+        ctx.fillStyle = '#3a2800';
+        ctx.fillText(amountStr, x + 3, y + 3);
+        ctx.fillStyle = '#5a3c00';
+        ctx.fillText(amountStr, x + 2, y + 2);
+        ctx.fillStyle = '#7a5200';
+        ctx.fillText(amountStr, x + 1, y + 1);
+        
+        const grad = ctx.createLinearGradient(x - 60, y - 20, x + 60, y + 20);
+        grad.addColorStop(0, '#FFB347');
+        grad.addColorStop(0.5, '#FFD966');
+        grad.addColorStop(1, '#FFA500');
+        ctx.fillStyle = grad;
+        ctx.shadowBlur = 16 * (1 + glowIntensity);
+        ctx.shadowColor = `rgba(255, 100, 0, ${0.5 + glowIntensity * 0.5})`;
+        ctx.fillText(amountStr, x, y);
+        
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.fillStyle = 'rgba(255,255,200,0.2)';
+        ctx.fillText(amountStr, x - 1, y - 1);
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.restore();
+    }
+    
+    // ========== BURST – 360° all directions ==========
+    function doBurst() {
+        const centerX = WIDTH / 2;
+        const centerY = HEIGHT / 2 - 20;
+        
+        const colorsGold = ['#FFD966', '#FFB347', '#FFA500', '#FFD700', '#FF6B35', '#F4C542'];
+        const colorsStar = ['#FF3366', '#33FF66', '#FF33CC', '#FF6600', '#00FFFF', '#FF00FF'];
+        
+        // main burst: 170 particles, all directions
+        for (let i = 0; i < 170; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 6 + 3;
+            const vx = Math.cos(angle) * speed * (Math.random() * 1.2);
+            const vy = Math.sin(angle) * speed * (Math.random() * 1.1);
+            const size = Math.random() * 7 + 2.5;
+            
+            let color, shape;
+            const typeRand = Math.random();
+            if (typeRand < 0.5) {
+                shape = 'coin';
+                color = `hsl(${45 + Math.random() * 20}, 100%, 60%)`;
+            } else if (typeRand < 0.8) {
+                shape = 'star';
+                color = colorsStar[Math.floor(Math.random() * colorsStar.length)];
+            } else {
+                shape = 'circle';
+                color = colorsGold[Math.floor(Math.random() * colorsGold.length)];
+            }
+            
+            const life = Math.random() * 120 + 80;
+            particles.push(new Particle(centerX, centerY, vx, vy, size, color, life, shape));
+        }
+        
+        // floating particles around the text (random positions near text)
+        for (let i = 0; i < 60; i++) {
+            const randX = centerX + (Math.random() - 0.5) * 180;
+            const randY = centerY + (Math.random() - 0.5) * 120;
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 3 + 1;
+            const vx = Math.cos(angle) * speed;
+            const vy = Math.sin(angle) * speed;
+            const size = Math.random() * 4 + 1.5;
+            const color = colorsStar[Math.floor(Math.random() * colorsStar.length)];
+            particles.push(new Particle(randX, randY, vx, vy, size, color, 70 + Math.random() * 50, Math.random() > 0.6 ? 'star' : 'circle'));
+        }
+    }
+    
+    // ========== COIN RAIN – spread widely above text ==========
+    function startCoinRain() {
+        const centerX = WIDTH / 2;
+        const centerY = HEIGHT / 2 - 20;
+        for (let i = 0; i < 70; i++) {
+            setTimeout(() => {
+                const x = centerX + (Math.random() - 0.5) * 220;   // wide spread
+                const y = centerY - 50 + Math.random() * 50;
+                const vx = (Math.random() - 0.5) * 2.2;
+                const vy = Math.random() * 5 + 3;
+                const size = Math.random() * 7 + 4;
+                const color = `hsl(${45 + Math.random() * 20}, 100%, 60%)`;
+                particles.push(new Particle(x, y, vx, vy, size, color, 130, 'coin'));
+            }, i * 30);
+        }
+    }
+    
+    // ========== SCREEN SHAKE ==========
+    function startScreenShake() {
+        if (shakeTimer) clearTimeout(shakeTimer);
+        const duration = 350;
+        const startTime = performance.now();
+        function shake() {
+            const elapsed = performance.now() - startTime;
+            if (elapsed >= duration) {
+                shakeOffset = { x: 0, y: 0 };
+                if (canvas) canvas.style.transform = `translate(-50%, -50%)`;
+                return;
+            }
+            const intensity = (1 - elapsed / duration) * 6;
+            shakeOffset.x = (Math.random() - 0.5) * intensity;
+            shakeOffset.y = (Math.random() - 0.5) * intensity;
+            if (canvas) canvas.style.transform = `translate(calc(-50% + ${shakeOffset.x}px), calc(-50% + ${shakeOffset.y}px))`;
+            requestAnimationFrame(shake);
+        }
+        shake();
+    }
+    
+    // ========== CANVAS SETUP ==========
+    function setupCanvas() {
+        if (canvas && canvas.parentNode) canvas.parentNode.removeChild(canvas);
+        canvas = document.createElement('canvas');
+        canvas.id = 'win-animation-canvas';
+        canvas.width = WIDTH;
+        canvas.height = HEIGHT;
+        canvas.style.position = 'fixed';
+        canvas.style.top = '50%';
+        canvas.style.left = '50%';
+        canvas.style.transform = 'translate(-50%, -50%)';
+        canvas.style.zIndex = '999995';
+        canvas.style.borderRadius = '16px';
+        canvas.style.boxShadow = '0 0 30px rgba(0,0,0,0.8)';
+        canvas.style.cursor = 'pointer';
+        document.body.appendChild(canvas);
+        ctx = canvas.getContext('2d');
+        canvas.onclick = () => { if (isActive) resetAndStart(currentAmount); };
+        
+        // pre‑generate background stars
+        backgroundStars = [];
+        for (let i = 0; i < 80; i++) {
+            backgroundStars.push({
+                x: Math.random() * WIDTH,
+                y: Math.random() * HEIGHT,
+                size: Math.random() * 1.5 + 0.5,
+                alpha: Math.random() * 0.5 + 0.2
+            });
+        }
+    }
+    
+    function drawBackground() {
+        if (!ctx) return;
+        const grad = ctx.createLinearGradient(0, 0, WIDTH, HEIGHT);
+        grad.addColorStop(0, '#0a0a1a');
+        grad.addColorStop(0.5, '#12122a');
+        grad.addColorStop(1, '#1a1a2e');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        
+        for (let s of backgroundStars) {
+            ctx.fillStyle = `rgba(255,200,100,${s.alpha})`;
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    function drawParticlesAndUpdate() {
+        for (let i = 0; i < particles.length; i++) {
+            const alive = particles[i].update();
+            if (alive) particles[i].draw(ctx);
+            else { particles.splice(i, 1); i--; }
+        }
+    }
+    
+    // ========== RESET & START ==========
+    function resetAndStart(amount) {
+        if (animationId) cancelAnimationFrame(animationId);
+        if (burstInterval) clearInterval(burstInterval);
+        
+        isActive = true;
+        currentAmount = amount;
+        
+        scaleBig = 0;
+        amountScale = 0;
+        glowIntensity = 0;
+        digitIndex = 0;
+        particles = [];
+        time = 0;
+        
+        const amountStr = amount.toLocaleString();
+        displayAmount = "";
+        const animateDigits = () => {
+            if (digitIndex <= amountStr.length) {
+                displayAmount = amountStr.substring(0, digitIndex);
+                digitIndex++;
+                setTimeout(animateDigits, 80);
+            }
+        };
+        animateDigits();
+        
+        if (typeof gsap !== 'undefined') {
+            const tl = gsap.timeline();
+            tl.to({val:0}, {val:1, duration:0.5, ease:"backOut(1.2)", onUpdate:function(){ scaleBig = this.targets()[0].val; }})
+              .to({val:0}, {val:1, duration:0.8, delay:0.2, ease:"elastic.out(1,0.4)", onUpdate:function(){ amountScale = this.targets()[0].val; }}, "<")
+              .to({g:0}, {g:1, duration:0.7, repeat:3, yoyo:true, ease:"power1.inOut", onUpdate:function(){ glowIntensity = this.targets()[0].g; }}, "<0.2")
+              .to({x:0}, {x:Math.PI*2, duration:2.5, repeat:-1, ease:"none", onUpdate:function(){ wobbleX = this.targets()[0].x; }})
+              .to({y:0}, {y:Math.PI*2, duration:3, repeat:-1, ease:"none", onUpdate:function(){ wobbleY = this.targets()[0].y; }}, "<");
+        } else {
+            scaleBig = 1; amountScale = 1; glowIntensity = 1;
+        }
+        
+        doBurst();
+        startCoinRain();
+        startScreenShake();
+        
+        let burstTimes = 0;
+        burstInterval = setInterval(() => {
+            burstTimes++;
+            if (burstTimes < 3) doBurst();
+            else { clearInterval(burstInterval); burstInterval = null; }
+        }, 600);
+        
+        setTimeout(() => {
+            if (isActive) {
+                if (typeof gsap !== 'undefined') {
+                    gsap.to({val:scaleBig}, {val:0, duration:0.6, ease:"power2.in", onUpdate:function(){ scaleBig = this.targets()[0].val; amountScale = this.targets()[0].val; }, onComplete:()=>{ isActive=false; clearCanvas(); }});
+                } else {
+                    isActive = false;
+                    clearCanvas();
+                }
+            }
+        }, 5500);
+        
+        function animateLoop() {
+            if (!ctx) {   // if context lost, stop animation
+                if (animationId) cancelAnimationFrame(animationId);
+                animationId = null;
+                return;
+            }
+            if (!isActive && particles.length === 0) { animationId = null; return; }
+            drawBackground();
+            updateRotatingLights();
+            if (isActive) {
+                const cx = WIDTH/2, cy = HEIGHT/2 - 20;
+                drawRotatingLights(cx, cy);
+                drawLightRays(cx, cy, glowIntensity);
+                draw3DWinText(cx, cy, scaleBig, wobbleX, wobbleY, glowIntensity);
+                if (displayAmount) draw3DAmount(displayAmount, cx, cy + 68, amountScale, glowIntensity);
+                drawParticlesAndUpdate();
+            } else {
+                drawParticlesAndUpdate();
+            }
+            time++;
+            animationId = requestAnimationFrame(animateLoop);
+        }
+        animateLoop();
+    }
+    
+    function clearCanvas() {
+        if (canvas && canvas.parentNode) canvas.parentNode.removeChild(canvas);
+        canvas = null; ctx = null;
+        if (shakeTimer) clearTimeout(shakeTimer);
+        shakeOffset = { x: 0, y: 0 };
+    }
+    
+    // ========== PUBLIC API ==========
+    function showMegaWin(amount = 0) {
+        setupCanvas();
+        currentType = 'mega';
+        resetAndStart(amount);
+    }
+    function showBigWin(amount = 0) {
+        setupCanvas();
+        currentType = 'big';
+        resetAndStart(amount);
+    }
+    function showSuperWin(amount = 0) {
+        setupCanvas();
+        currentType = 'super';
+        resetAndStart(amount);
+    }
+    function clear() {
+        if (animationId) cancelAnimationFrame(animationId);
+        if (burstInterval) clearInterval(burstInterval);
+        isActive = false;
+        clearCanvas();
+        const container = document.getElementById('win-animation-container');
+        if (container) container.remove();
+        const canvasEl = document.getElementById('win-animation-canvas');
+        if (canvasEl) canvasEl.remove();
+    }
+    
+    initRotatingLights();
+    
+    return { mega: showMegaWin, big: showBigWin, super: showSuperWin, clear: clear };
+})();
+  */
 // ============================================
 // 15. CLEAR ALL WIN HIGHLIGHTS
 // ============================================
@@ -3559,327 +4281,6 @@ if (!document.querySelector('#free-spin-animation-styles')) {
 }
 
 // ============================================
-// 19. ULTIMATE PREMIUM BUFFALO STAMPEDE (V3)
-// ============================================
-class UltimatePremiumBuffaloStampede {
-    constructor() {
-        this.container = null;
-        this.stampedeCount = 0;
-        this.maxStampedes = 3;
-        this.interval = null;
-        this.imageBasePath = '/images/'; // မင်းရဲ့ image folder လမ်းကြောင်း
-        this.setupStyles();
-        this.createContainer();
-    }
-
-    setupStyles() {
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes buffaloRun {
-                0% {
-                    transform: translate(-50%, -50%) translateZ(-800px) scale(0.3);
-                    opacity: 0;
-                }
-                20% {
-                    opacity: 1;
-                }
-                100% {
-                    transform: translate(-50%, -50%) translateZ(400px) scale(2);
-                    opacity: 0;
-                }
-            }
-            @keyframes dustRise {
-                0% { transform: translateY(0) scale(1); opacity: 0.5; }
-                100% { transform: translateY(-150px) scale(3); opacity: 0; }
-            }
-            @keyframes sparklePop {
-                0% { transform: scale(0); opacity: 1; }
-                100% { transform: scale(2); opacity: 0; }
-            }
-            @keyframes groundShake {
-                0%, 100% { transform: translateX(0); }
-                25% { transform: translateX(-15px); }
-                75% { transform: translateX(15px); }
-            }
-            @keyframes messagePop {
-                0% { transform: translate(-50%, -50%) scale(0.2); opacity: 0; }
-                50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
-                100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-            }
-            @keyframes buffaloEnter {
-                0% { transform: translateX(-100%) scale(0.5); opacity: 0; }
-                100% { transform: translateX(0) scale(1); opacity: 1; }
-            }
-        `;
-        document.head.appendChild(style);
-    }
-
-    createContainer() {
-        this.container = document.createElement('div');
-        this.container.id = 'ultimatePremiumBuffaloStampede';
-        this.container.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 150%;
-            height: 150%;
-            z-index: 999999;
-            pointer-events: none;
-            display: none;
-            overflow: hidden;
-            perspective: 1200px;
-            transform-style: preserve-3d;
-        `;
-        document.body.appendChild(this.container);
-    }
-
-    startStampede(winAmount, baseCount) {
-        this.stop();
-        this.stampedeCount = 0;
-        this.winAmount = winAmount;
-        this.baseCount = baseCount;
-        
-        const triggerCycle = () => {
-            this.runCycle();
-            this.stampedeCount++;
-            
-            if (this.stampedeCount < this.maxStampedes) {
-                this.interval = setTimeout(triggerCycle, 2800);
-            }
-        };
-        triggerCycle();
-    }
-
-    runCycle() {
-        this.container.innerHTML = '';
-        this.container.style.display = 'block';
-
-        const count = this.baseCount + (this.stampedeCount * 5);
-        const isFinal = (this.stampedeCount === 2);
-
-        // 1. ဖုန်မှုန့်များ
-        for (let i = 0; i < 25; i++) {
-            this.createDustCloud();
-        }
-
-        // 2. ကျွဲအုပ်စု (Layers ၃ ထပ်)
-        const layerCounts = [
-            Math.floor(count * 0.3), // အနောက် - ၃၀%
-            Math.floor(count * 0.4), // အလယ် - ၄၀%
-            Math.floor(count * 0.3)  // အရှေ့ - ၃၀%
-        ];
-
-        this.spawnBuffaloLayer(layerCounts[2], 30, 1.2, 6.0); // အရှေ့ဆုံး
-        this.spawnBuffaloLayer(layerCounts[1], 20, 0.9, 8.0); // အလယ်
-        this.spawnBuffaloLayer(layerCounts[0], 10, 0.6, 10.0); // အနောက်ဆုံး
-
-        // 3. ရွှေရောင်အမှုန်များ
-        if (isFinal) {
-            for (let i = 0; i < 40; i++) {
-                this.createSparkle();
-            }
-            
-            if (navigator.vibrate) {
-                navigator.vibrate([300, 100, 300, 100, 300]);
-            }
-        } else {
-            if (navigator.vibrate) {
-                navigator.vibrate([200, 100, 200]);
-            }
-        }
-
-        // 4. မြေငလျင်
-        this.createGroundShake();
-
-        // 5. Message ပြမယ်
-        this.showMessage(isFinal);
-
-        // 6. Sound Effects
-        this.playSounds(isFinal);
-    }
-
-    spawnBuffaloLayer(count, zIndex, scale, speed) {
-        for (let i = 0; i < count; i++) {
-            this.createBuffaloImage(zIndex, scale, speed);
-        }
-    }
-
-    createBuffaloImage(zIndex, scale, speed) {
-        const buffalo = document.createElement('div');
-        const buffaloType = Math.floor(Math.random() * 3) + 1;
-        const imageUrl = `${this.imageBasePath}running_bull${buffaloType}.png`;
-        
-        buffalo.style.cssText = `
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: ${120 * scale}px;
-            height: ${80 * scale}px;
-            margin-left: -${60 * scale}px;
-            margin-top: -${40 * scale}px;
-            z-index: ${zIndex};
-            background-image: url('${imageUrl}');
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            animation: buffaloRun ${speed}s ease-out forwards;
-            filter: drop-shadow(0 0 20px rgba(255,215,0,0.3));
-            transform-style: preserve-3d;
-            will-change: transform;
-        `;
-
-        this.container.appendChild(buffalo);
-    }
-
-    createDustCloud() {
-        const dust = document.createElement('div');
-        const size = 30 + Math.random() * 80;
-        const left = Math.random() * 100;
-        const duration = 2 + Math.random() * 2;
-        const delay = Math.random() * 1;
-
-        dust.style.cssText = `
-            position: absolute;
-            left: ${left}%;
-            bottom: 30px;
-            width: ${size}px;
-            height: ${size * 0.5}px;
-            background: rgba(139, 69, 19, ${0.2 + Math.random() * 0.5});
-            border-radius: 50%;
-            filter: blur(${5 + Math.random() * 15}px);
-            animation: dustRise ${duration}s ease-out ${delay}s forwards;
-            transform: scale(${0.5 + Math.random()});
-        `;
-        this.container.appendChild(dust);
-    }
-
-    createSparkle() {
-        const sparkle = document.createElement('div');
-        const size = 10 + Math.random() * 30;
-        const left = Math.random() * 100;
-        const top = 20 + Math.random() * 60;
-
-        sparkle.style.cssText = `
-            position: absolute;
-            left: ${left}%;
-            top: ${top}%;
-            width: ${size}px;
-            height: ${size}px;
-            background: #FFD700;
-            border-radius: 50%;
-            filter: blur(2px);
-            animation: sparklePop 1.5s ease-out forwards;
-            box-shadow: 0 0 20px #FFA500;
-        `;
-        this.container.appendChild(sparkle);
-    }
-
-    createGroundShake() {
-        const gameContainer = document.querySelector('.game-container');
-        if (gameContainer) {
-            gameContainer.style.animation = 'groundShake 0.3s linear';
-            setTimeout(() => {
-                gameContainer.style.animation = '';
-            }, 2000);
-        }
-
-        const body = document.body;
-        body.style.transition = 'transform 0.1s';
-        let shakes = 0;
-        const shakeIntensity = 10 + (this.stampedeCount * 5);
-        const interval = setInterval(() => {
-            const x = (Math.random() - 0.5) * shakeIntensity;
-            const y = (Math.random() - 0.5) * shakeIntensity;
-            body.style.transform = `translate(${x}px, ${y}px)`;
-            shakes++;
-            if (shakes > 12) {
-                clearInterval(interval);
-                body.style.transform = '';
-            }
-        }, 40);
-    }
-
-    showMessage(isFinal) {
-        const message = document.createElement('div');
-        message.style.cssText = `
-            position: absolute;
-            top: 30%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            z-index: 100001;
-            animation: messagePop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            text-shadow: 3px 3px 0 #000, 5px 5px 0 #444;
-        `;
-
-        const stampedeNumber = this.stampedeCount + 1;
-        const stampedeText = ['FIRST WAVE', 'MEGA RUSH', 'ULTIMATE STAMPEDE'][stampedeNumber - 1];
-        const stampedeMyan = ['၁ ကြိမ်', '၂ ကြိမ်', '၃ ကြိမ်'][stampedeNumber - 1];
-        const color = isFinal ? '#FFD700' : (stampedeNumber === 2 ? '#FFA500' : '#FFF');
-
-        message.innerHTML = `
-            <div style="font-size: ${isFinal ? 90 : 70}px; font-weight: 900; color: ${color}; 
-                        text-shadow: 0 0 30px #ffaa00, 0 0 60px #ff5500;
-                        margin-bottom: 10px;">
-                ${stampedeText}!
-            </div>
-            <div style="font-size: 60px; font-weight: 700; color: white; margin-bottom: 15px;">
-                ${stampedeMyan}
-            </div>
-            <div style="font-size: 50px; color: #00ff00; text-shadow: 0 0 20px #00ff00;">
-                +${this.winAmount.toLocaleString()} ကျပ်
-            </div>
-        `;
-        this.container.appendChild(message);
-        setTimeout(() => {
-            if (message && message.parentNode) {
-                message.style.transition = 'opacity 0.5s';
-                message.style.opacity = '0';
-                setTimeout(() => {
-                    if (message && message.parentNode) {
-                        message.parentNode.removeChild(message);
-                    }
-                }, 500);
-            }
-        }, 2000);
-    }
-
-    playSounds(isFinal) {
-        if (typeof SoundManager === 'undefined') return;
-
-        if (SoundManager.buffalo) SoundManager.buffalo();
-
-        if (this.stampedeCount === 1 && SoundManager.coinRain) {
-            SoundManager.coinRain();
-        }
-
-        if (isFinal) {
-            if (SoundManager.victory) SoundManager.victory();
-            if (SoundManager.sixCoin) SoundManager.sixCoin();
-            if (SoundManager.congratulations) SoundManager.congratulations();
-        }
-    }
-
-    stop() {
-        clearTimeout(this.interval);
-        if (this.container) {
-            this.container.style.display = 'none';
-            this.container.innerHTML = '';
-        }
-        
-        const gameContainer = document.querySelector('.game-container');
-        if (gameContainer) {
-            gameContainer.style.animation = '';
-        }
-        
-        document.body.style.transform = '';
-    }
-}
-
-// Global instance ဆောက်မယ်
-const buffaloStampede = new UltimatePremiumBuffaloStampede();
-
-// ============================================
 // 20. AUTO SPIN (LONG PRESS) WITH INDICATOR
 // ============================================
 let pressTimer;
@@ -4254,88 +4655,6 @@ function updateJackpotStats(winAmount) {
     }
 }
 
-function showBuffaloJackpot(amount, count) {
-    const overlay = document.createElement('div');
-    overlay.className = 'jackpot-overlay';
-    overlay.id = 'buffaloJackpotOverlay';
-    overlay.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(45deg, #000000dd, #8B4513aa);
-        z-index: 1000000;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        animation: fadeIn 0.5s;
-    `;
-
-    overlay.innerHTML = `
-        <div class="jackpot-content" style="text-align: center; animation: popIn 0.8s;">
-            <div style="font-size: 80px; margin-bottom: 20px;">🐃</div>
-            <h2 style="font-size: 60px; color: #ffd700; margin-bottom: 20px;">JACKPOT!</h2>
-            <div class="jackpot-buffaloes" style="font-size: 40px; margin-bottom: 20px;">🐃🐃🐃</div>
-            <div class="jackpot-amount" style="font-size: 80px; font-weight: 900; color: #00ff00; margin-bottom: 20px;">${formatNumber(amount)} ကျပ်</div>
-            <div class="jackpot-message" style="font-size: 30px; color: white; margin-bottom: 30px;">ကျွဲ ${count} ကောင် ဆုကြီးရရှိပါသည်။</div>
-            <button class="jackpot-button" onclick="closeBuffaloJackpot()" style="padding: 15px 40px; font-size: 20px; background: #ffd700; border: none; border-radius: 50px; cursor: pointer;">ဝမ်းသာပါတယ်</button>
-        </div>
-    `;
-
-    document.body.appendChild(overlay);
-    createBuffaloConfetti();
-}
-
-function closeBuffaloJackpot() {
-    const overlay = document.getElementById('buffaloJackpotOverlay');
-    if (overlay) {
-        overlay.classList.add('hide');
-        setTimeout(() => {
-            overlay.remove();
-        }, 500);
-    }
-}
-
-function createBuffaloConfetti() {
-    const container = document.createElement('div');
-    container.className = 'confetti-explosion';
-    container.id = 'buffaloConfetti';
-    container.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-        z-index: 999999;
-    `;
-
-    for (let i = 0; i < 100; i++) {
-        const confetti = document.createElement('div');
-        confetti.className = 'confetti-piece-buffalo';
-        confetti.style.cssText = `
-            position: absolute;
-            top: -10px;
-            left: ${Math.random() * 100}%;
-            width: ${10 + Math.random() * 15}px;
-            height: ${10 + Math.random() * 15}px;
-            background: ${['#8B4513', '#DAA520', '#FFD700', '#CD853F'][Math.floor(Math.random() * 4)]};
-            transform: rotate(${Math.random() * 360}deg);
-            animation: buffaloConfettiFall ${3 + Math.random() * 4}s linear forwards;
-            opacity: 0.8;
-        `;
-        container.appendChild(confetti);
-    }
-
-    document.body.appendChild(container);
-
-    setTimeout(() => {
-        const confettiEl = document.getElementById('buffaloConfetti');
-        if (confettiEl) confettiEl.remove();
-    }, 5000);
-}
-
 // ============================================
 // 23. Loss Pool Jackpot Functions
 // ============================================
@@ -4382,29 +4701,6 @@ function updateJackpotPoolDisplay() {
     }
 }
 
-// ===== listenToLossPool - loss pool data နားထောင်ရန် =====
-function listenToLossPool() {
-    if (!firebase || !firebase.firestore) return;
-    const db = firebase.firestore();
-    const user = firebase.auth().currentUser;
-    if (!user) return;
-
-    // Loss pool အတွက် real-time listener
-    const lossPoolRef = db.collection('admin').doc('lossPool');
-    return lossPoolRef.onSnapshot((doc) => {
-        if (doc.exists) {
-            const data = doc.data();
-            const contributions = data.contributions || {};
-            const userContribution = contributions[user.uid] || 0;
-            window.gameState.userLossPool = userContribution;
-            window.gameState.totalLossPool = data.totalAmount || 0;
-            updateJackpotPoolDisplay();
-            console.log('🔄 Loss pool updated:', userContribution);
-        }
-    }, (error) => {
-        console.error('Error listening to loss pool:', error);
-    });
-}
 
 // ============================================
 // 24. PENDING GIFT FUNCTIONS
@@ -4444,7 +4740,7 @@ function checkPendingGiftOnSpin() {
 }
 
 // ============================================
-// 25. LISTEN FOR PENDING JACKPOT (WITH BABA MODE)
+// 25. LISTEN FOR PENDING JACKPOT (SAFE VERSION)
 // ============================================
 function listenForPendingJackpot(userId) {
     if (!userId || !db) {
@@ -4464,30 +4760,16 @@ function listenForPendingJackpot(userId) {
                 const data = change.doc.data();
                 const amount = data.amount || 0;
                 const spinReq = data.spinRequirement || 10;
-                const docId = change.doc.id;
+                const docId = change.doc.id; 
 
                 if (amount > 0) {
-                    // ===== ပုံမှန် Pending Jackpot State =====
                     window.gameState.pendingJackpotAmount = amount;
                     window.gameState.pendingJackpotSpinsLeft = spinReq;
                     window.gameState.Lucky_Money = amount;
                     window.gameState.Lucky_MoneySpinReq = spinReq;
-                    window.gameState.currentNotifId = docId;
+                    window.gameState.currentNotifId = docId; 
 
-                    // ===== ✅ BABA JACKPOT MODE ကို ACTIVATE လုပ်မယ် =====
-                    window.gameState.babaJackpotMode = {
-                        enabled: true,
-                        targetSpins: spinReq,
-                        currentSpinCount: 0,
-                        isReady: false,
-                        jackpotAmount: amount,
-                        notifId: docId
-                    };
-                    
-                    // Jackpot trigger flag ကို false ထားမယ်
-                    window.gameState.babaJackpotTriggered = false;
-
-                    console.log(`🎉 BABA JACKPOT MODE ACTIVATED! Amount: ${amount}, Required Spins: ${spinReq}`);
+                    console.log(`🎉 Jackpot Loaded: ${amount} (${spinReq} spins left)`);
                 }
             }
         });
@@ -4509,16 +4791,10 @@ async function finalizeJackpot() {
             completedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
         console.log('✅ Jackpot notification marked as read.');
-
+        
         window.gameState.currentNotifId = null;
         window.gameState.pendingJackpotAmount = 0;
         window.gameState.pendingJackpotSpinsLeft = 0;
-        
-        // Baba mode ကိုလည်း သေချာ reset လုပ်မယ်
-        if (window.gameState.babaJackpotMode) {
-            window.gameState.babaJackpotMode.enabled = false;
-            window.gameState.babaJackpotMode.isReady = false;
-        }
     } catch (err) {
         console.error('❌ Error finalizing jackpot noti:', err);
     }
@@ -4543,6 +4819,7 @@ function listenToUserData(userId) {
         console.error('Error listening to user data:', error);
     });
 }
+
 // ============================================
 // 28. JACKPOT ANIMATION
 // ============================================
@@ -5139,11 +5416,7 @@ function addPremiumStyles() {
             background: linear-gradient(145deg, #ff4444, #cc0000) !important;
             box-shadow: 0 10px 0 #880000 !important;
         }
-        @keyframes jackpotAwardPop {
-            0% { transform: translate(-50%, -50%) scale(0.1) rotate(-180deg); opacity: 0; }
-            60% { transform: translate(-50%, -50%) scale(1.1) rotate(5deg); }
-            100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; }
-        }
+
         /* Drop Animation */
         @keyframes dropFromSky {
             0% {
@@ -5239,12 +5512,10 @@ function addPremiumStyles() {
 // 32. EXPORT GLOBALS
 // ============================================
 window.spin = spin;
-window.closeBuffaloJackpot = closeBuffaloJackpot;
 window.closeModal = closeModal;
 window.startFreeSpins = startFreeSpins;
 window.endFreeSpins = endFreeSpins;
 window.stopAutoSpin = stopAutoSpin;
 window.startAutoSpin = startAutoSpin;
-window.buffaloStampede = buffaloStampede;
 window.highlightWinsPremium = highlightWinsPremium;
 console.log('✅ Game.js ULTIMATE VERSION fully loaded with all features!');

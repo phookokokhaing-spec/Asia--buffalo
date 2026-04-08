@@ -16,7 +16,6 @@ const SoundManager = (function() {
         allbuttonSound: { src: 'sounds/allbutton.mp3', volume: 0.3, loop: false },
         clickSound: { src: 'sounds/click.mp3', volume: 0.3, loop: false },
         popbuttonSound: { src: 'sounds/popbutton.mp3', volume: 0.35, loop: false },
-        backSound: { src: 'sounds/back.mp3', volume: 0.3, loop: false },
         
         // Spin & Win
         spinSound: { src: 'sounds/spin.mp3', volume: 0.4, loop: false },
@@ -26,7 +25,7 @@ const SoundManager = (function() {
         // Animal sounds
         buffaloSound: { src: 'sounds/buffalo.mp3', volume: 0.5, loop: false },
         lionSound: { src: 'sounds/lion.mp3', volume: 0.5, loop: false },
-        
+        boomSound: { src: 'sounds/boom.mp3', volume: 0.5, loop: false },
         // Coin & Money
         coinSound: { src: 'sounds/coin.mp3', volume: 0.4, loop: false },
         coinrainSound: { src: 'sounds/coinrain.mp3', volume: 0.5, loop: false },
@@ -40,10 +39,12 @@ const SoundManager = (function() {
         congratulationsSound: { src: 'sounds/congratulations.mp3', volume: 0.6, loop: false },
         congratsSound: { src: 'sounds/congrats.mp3', volume: 0.6, loop: false },
         victorySound: { src: 'sounds/victory.mp3', volume: 0.7, loop: false },
+       babaSound: { src: 'sounds/baba.mp3', volume: 0.6, loop: false },
         
         // Notifications
         notiSound: { src: 'sounds/noti.mp3', volume: 0.4, loop: false },
         notificationSound: { src: 'sounds/notification.mp3', volume: 0.4, loop: false },
+       wheelSound: { src: 'sounds/wheel.mp3', volume: 0.7, loop: false },
         
         // Admin & Payment
         adminSound: { src: 'sounds/admin.mp3', volume: 0.5, loop: false },
@@ -268,86 +269,77 @@ const SoundManager = (function() {
     }
     
     // ===== Shortcut methods for specific sounds =====
+        // ===== Shortcut methods for specific sounds =====
     const shortcuts = {
         // Basic
-        button: () => play('allbuttonSound'),
-        click: () => play('clickSound'),
-        pop: () => play('popbuttonSound'),
-        back: () => play('backSound'),
-        
+        button: function() { return play('allbuttonSound'); },
+        click: function() { return play('clickSound'); },
+        pop: function() { return play('popbuttonSound'); },
+
         // Spin & Win
-        spin: () => play('spinSound'),
-        win: () => play('winlineSound'),
-        nowin: () => play('nowinSound'),
-        victory: () => play('victorySound'),
-        
+        spin: function() { return play('spinSound'); },
+        win: function() { return play('winlineSound'); },
+        nowin: function() { return play('nowinSound'); },
+        victory: function() { return play('victorySound'); },
+
         // Animals
-        buffalo: () => play('buffaloSound'),
-        lion: () => play('lionSound'),
-        
+        buffalo: function() { return play('buffaloSound'); },
+        lion: function() { return play('lionSound'); },
+        boom: function() { return play('boomSound'); }, // 🔥 ဒီနေရာကို သေချာစစ်ပါ
+
         // Coin
-        coin: () => play('coinSound'),
-        coinRain: () => play('coinrainSound'),
-        sixCoin: () => play('sixcoinSound'),
-        
+        coin: function() { return play('coinSound'); },
+        coinRain: function() { return play('coinrainSound'); },
+        sixCoin: function() { return play('sixcoinSound'); },
+
         // Jackpot
-        jackpotSpin: () => play('jackpotspinSound'),
-        jackpot: () => play('jackpotSound'),
-        
+        jackpotSpin: function() { return play('jackpotspinSound'); },
+        jackpot: function() { return play('jackpotSound'); },
+        baba: function() { return play('babaSound'); },
+        wheel: function() { return play('wheelSound'); },
+
         // Congrats
-        congratulations: () => play('congratulationsSound'),
-        congrats: () => play('congratsSound'),
-        
+        congratulations: function() { return play('congratulationsSound'); },
+        congrats: function() { return play('congratsSound'); },
+
         // Notifications
-        noti: () => play('notiSound'),
-        notification: () => play('notificationSound'),
-        
-        // Admin & Payment
-        admin: () => play('adminSound'),
-        payment: () => play('paymentreseiveSound'),
-        withdraw: () => play('withdrawSound'),
-        
-        // Box
-        thankyouBox: () => play('thankyouboxSound'),
-        coinBox: () => play('coinboxSound'),
-        boxBG: () => play('boxbgSound'),
-        
-        // Loading
-        loading: () => play('loadingSound'),
-        
-        // Additional
-        reveal: () => play('revealSound'),
-        fanfare: () => play('fanfareSound'),
-        chime: () => play('chimeSound'),
-        error: () => play('errorSound')
+        noti: function() { return play('notiSound'); },
+        notification: function() { return play('notificationSound'); }
     };
-    
+
     // ===== Public API =====
-    return {
-        // Core functions
-        init,
-        play,
-        stop,
-        playWithRetry,
-        
-        // BGM control
-        playBGM,
-        playBoxBGM,
-        stopBGM,
-        
-        // Master control
-        toggle,
-        setVolume,
-        setMasterVolume,
-        stopAll,
-        preloadAll,
-        isEnabled,
-        updateSoundButton,
-        
-        // Shortcut methods
-        ...shortcuts
+    const api = {
+        init: init,
+        play: play,
+        stop: stop,
+        playWithRetry: playWithRetry,
+        playBGM: playBGM,
+        playBoxBGM: playBoxBGM,
+        stopBGM: stopBGM,
+        toggle: toggle,
+        setVolume: setVolume,
+        setMasterVolume: setMasterVolume,
+        stopAll: stopAll,
+        preloadAll: preloadAll,
+        isEnabled: isEnabled,
+        updateSoundButton: updateSoundButton
     };
-})();
+
+    // Shortcut အားလုံးကို api ထဲ အသေအချာ ပေါင်းထည့်မယ်
+    Object.keys(shortcuts).forEach(function(key) {
+        api[key] = shortcuts[key];
+    });
+
+    return api;
+})(); // SoundManager အပိတ်
+
+// SoundManager အပြင်ဘက်ကနေ boom ကို အတင်းထည့်ပေးမယ်
+if (window.SoundManager) {
+    window.SoundManager.boom = function() {
+        return this.play('boomSound');
+    };
+    console.log("🚀 Boom function manually injected into SoundManager!");
+}
 
 // ===== Make it global =====
 window.SoundManager = SoundManager;

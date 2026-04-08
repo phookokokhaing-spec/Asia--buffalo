@@ -7,6 +7,9 @@
      <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
      <link rel="stylesheet" href="fix.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Myanmar:wght@400;500;700&display=swap">
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -69,12 +72,13 @@
 <audio id="loadingSound" preload="auto"></audio>
 <audio id="allbuttonSound" preload="auto"></audio>
 <audio id="clickSound" preload="auto"></audio>
-<audio id="popbuttonSound" preload="auto"></audio>
-<audio id="backSound" preload="auto"></audio>                                      <audio id="spinSound" preload="auto"></audio>
+<audio id="popbuttonSound" preload="auto"></audio> 
+ <audio id="spinSound" preload="auto"></audio>
 <audio id="winlineSound" preload="auto"></audio>
 <audio id="nowinSound" preload="auto"></audio>
 <audio id="buffaloSound" preload="auto"></audio>
 <audio id="lionSound" preload="auto"></audio>
+<audio id="boomSound" preload="auto"></audio>
 <audio id="coinSound" preload="auto"></audio>
 <audio id="coinrainSound" preload="auto"></audio>
 <audio id="sixcoinSound" preload="auto"></audio>
@@ -88,8 +92,10 @@
 <audio id="paymentreseiveSound" preload="auto"></audio>
 <audio id="withdrawSound" preload="auto"></audio>
 <audio id="thankyouboxSound" preload="auto"></audio>
-<audio id="coinboxSound" preload="auto"></audio>                                   <audio id="boxbgSound" loop preload="auto"></audio>                                
-
+<audio id="coinboxSound" preload="auto"></audio> 
+ <audio id="boxbgSound" loop preload="auto"></audio>                                
+<audio id="babaSound" preload="auto"></audio>
+<audio id="wheelSound" preload="auto"></audio>
     
     <!-- LOADING SCREEN -->
 <div id="loadingScreen">
@@ -498,9 +504,50 @@
     </div>
 </div>
 
+   <!-- Win Animation Container -->
+<div id="win-animation-container">
+    <canvas id="animCanvas"></canvas>
+    <div id="ui-layer">
+        <div class="casino-text-group">
+            <div id="win-text">MEGA WIN</div>
+            <div id="amount-text">$0</div>
+            <div id="sub-text">Congratulations!</div>
+        </div>
+    </div>
+</div>
+
+ <!-- ⭐ Background Stars -->
+    <div class="stars" id="stars"></div>
+
+    <!-- ⚡ Lightning Flash -->
+    <div class="lightning" id="lightning"></div>
+
+    <!-- 💥 Explosion Rings -->
+    <div class="explosion-ring" id="explosionRing"></div>
+    <div class="shockwave-multi" id="shockwaveMulti"></div>
+
+    <!-- 🏆 MEGA JACKPOT Display -->
+    <div class="mega-jackpot-container" id="megaJackpot">
+        <div class="crown" style="top: 15%; left: 20%;">👑</div>
+        <div class="crown" style="top: 15%; right: 20%;">👑</div>
+        <div class="mega-text">MEGA</div>
+        <div class="jackpot-subtext">JACKPOT</div>
+        <div class="win-amount-mega" id="megaWinAmount">$10,000,000</div>
+        
+        <!-- Sound Visualization Bars -->
+        <div class="sound-bars" id="soundBars">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </div>
+    </div>
+        
     <!-- Core Libraries & Helpers -->
     <script src="sound-manager.js"></script>
 <!-- Jackpot Animation -->
+<script src="win-anmation.js"></script>
 <script src="JackpotAnimation.js"></script>
  <script src="jackpot-fx.js"></script>   
     <script src="login.js"></script>
@@ -508,7 +555,6 @@
     <script src="game.js"></script>
     <script src="script.js"></script>
     <script src="userchat.js"></script>
-
 </body>
 </html> 
 
