@@ -90,8 +90,8 @@ window.symbolsWithWild = [...ALL_SYMBOLS.normal, ...ALL_SYMBOLS.wild];
 const REELS = [
     ['seven', 'jack', 'queen', 'nine', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'ten', 'baba'],
     ['seven', 'jack', 'queen', 'nine', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'ten', 'baba'],
-    ['seven', 'jack', 'queen', 'nine', 'tha', 'zebra', 'buffalo', 'baba', 'bonus', 'ten', 'wild', 'buffalo'],
-    ['seven', 'jack', 'queen', 'nine', 'lion', 'wild', 'ele', 'tha', 'buffalo', 'ayeaye', 'coin', 'bonus', 'baba', 'lion'],
+    ['seven', 'jack', 'queen', 'nine', 'tha', 'zebra', 'buffalo', 'coin', 'bonus', 'ten', 'wild', 'baba'],
+    ['seven', 'jack', 'queen', 'nine', 'lion', 'wild', 'ele', 'tha', 'buffalo', 'ayeaye', 'coin', 'bonus', 'ten', 'baba'],
     ['seven', 'jack', 'queen', 'nine', 'wild', 'tha', 'zebra', 'ayeaye', 'buffalo', 'bonus', 'ten', 'baba']
 ];
 
@@ -339,6 +339,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
         }
     }
+
     initSlotGrid();
     initBetControls();
     initEventListeners();
@@ -347,7 +348,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     updateBalanceDisplay();
     updateJackpotDisplay();
     loadJackpotFromAdmin();
-  
     addPremiumStyles();
 });
 
@@ -388,8 +388,7 @@ function initSlotGrid() {
         left: -50%;
         width: 200%;
         height: 200%;
-        background: radial-gradient(circle at 30% 30%,
-        rgba(255,215,0,0.15), transparent 70%);
+        background: radial-gradient(circle at 30% 30%, rgba(255,215,0,0.15), transparent 70%);
         animation: ambientRotate 20s linear infinite;
         pointer-events: none;
         z-index: 0;
@@ -717,68 +716,21 @@ function loadCurrentUserData() {
     }
 }
 
+
 // ============================================
-// BA BA Control Mode Function
-// ============================================
- const BABA_MODE_CONFIG = {
-   
-    modeA: { 
-        cols: [0, 1, 2, 3, 4],
-        countPerCol: 1, 
-        distribution: 'random' 
-    },
-
-   
-    modeB: {
-  cols: [1, 2, 3],
-  countPerCol: 1,
-  distribution: 'alternating' 
-    },
- 
-    modeC: {
-
-  cols: [0, 2, 4,5],
-
-  countPerCol: 1,
-
-  distribution: 'random'
-
-  }
-};
-
-function generateBabaJackpotResult() {
-    let result = [[], [], [], [], []];
-    const otherSymbols = ['seven', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'jack', 'queen', 'nine', 'ten'];
-
-    for (let col = 0; col < 5; col++) {
-        const babaRow = Math.floor(Math.random() * 4);
-        const columnSymbols = [];
-        
-        for (let row = 0; row < 4; row++) {
-            if (row === babaRow) {
-                columnSymbols.push('baba');
-                if (typeof SoundManager !== 'undefined') SoundManager.boom();
-            } else {
-                columnSymbols.push(otherSymbols[Math.floor(Math.random() * otherSymbols.length)]);
-            }
-        }
-        result[col] = columnSymbols;
-    }
-
-    console.log('🎰 BABA 5 JACKPOT RESULT GENERATED!');
-    return result;
-}
-// ============================================
-// 9. MAIN SPIN FUNCTION (CLEAN VERSION)
+// 9. MAIN SPIN FUNCTION
 // ============================================
 function spin() {
     console.log('🔥 spin() called');
 
-    if (!checkUserCanPlay()) return;
+    if (!checkUserCanPlay()) {
+        return;
+    }
     if (window.gameState.isSpinning) {
         console.log('⚠️ Already spinning');
         return;
     }
+
     if (window.gameState.balance < window.gameState.betAmount) {
         console.log('⚠️ Balance too low:', window.gameState.balance, '<', window.gameState.betAmount);
         showNotification('လက်ကျန်ငွေ မလုံလောက်ပါ', 'error');
@@ -792,6 +744,8 @@ function spin() {
     if (winEl) winEl.textContent = '0';
 
     clearAllWinHighlights();
+
+    // အသံဖွင့်
     if (typeof SoundManager !== 'undefined') SoundManager.spin();
 
     if (!window.gameState.isFreeSpinning) {
@@ -803,25 +757,23 @@ function spin() {
     window.gameState.spinCounter = (window.gameState.spinCounter || 0) + 1;
     updateBalanceDisplay();
 
-    // ===== BABA JACKPOT MODE COUNTER (if enabled) =====
-    if (window.gameState.babaJackpotMode?.enabled) {
+    // ===== BABA JACKPOT MODE COUNTER =====
+    if (window.gameState.babaJackpotMode && window.gameState.babaJackpotMode.enabled) {
         window.gameState.babaJackpotMode.currentSpinCount++;
         console.log(`🎯 Baba Jackpot Counter: ${window.gameState.babaJackpotMode.currentSpinCount} / ${window.gameState.babaJackpotMode.targetSpins}`);
-
+        
         if (window.gameState.babaJackpotMode.currentSpinCount >= window.gameState.babaJackpotMode.targetSpins) {
             window.gameState.babaJackpotMode.isReady = true;
-            window.gameState.babaJackpotMode.forceJackpot = true;   // next spin will force jackpot
             console.log('🎯 BABA JACKPOT IS READY!');
         }
     }
 
-    // Legacy pending jackpot spins (if any)
+    // ရှိပြီးသား pendingJackpotSpinsLeft ကိုလည်း ထိန်းထားမယ်
     if (window.gameState.pendingJackpotSpinsLeft > 0) {
         window.gameState.pendingJackpotSpinsLeft--;
         console.log(`🎯 Jackpot pending spins left: ${window.gameState.pendingJackpotSpinsLeft}`);
     }
 
-    // Generate result (forceJackpot will be used inside generateSpinResult)
     const result = generateSpinResult();
     console.log('Final Result:', result);
 
@@ -837,34 +789,43 @@ function spin() {
         // ===== WIN HANDLING =====
         if (totalWin > 0) {
             if (window.gameState.isFreeSpinning) {
+                // Free Spin အတွင်း - စုထားမယ်
                 window.gameState.freeSpinTotalWin = (window.gameState.freeSpinTotalWin || 0) + totalWin;
                 console.log(`🎰 Free Spin win accumulated: ${window.gameState.freeSpinTotalWin}`);
+                
                 updateWinDisplay(window.gameState.freeSpinTotalWin);
-
-                if (winResult.indices?.length > 0) {
+                
+                // Win highlight ပြမယ်
+                if (winResult.indices && winResult.indices.length > 0) {
                     highlightWinsPremium(winResult.indices, winResult.buffaloIndices || []);
                     showWinWithRise(totalWin, winResult.indices);
                 }
+                
                 window.gameState.waitingForWinAnimation = true;
+                
+                // Win Animation ပြီးရင် ခေါ်မယ်
                 setTimeout(() => {
                     window.gameState.waitingForWinAnimation = false;
                     continueFreeSpinAfterWin();
                 }, 2000);
+                
             } else {
                 window.gameState.balance += totalWin;
                 window.gameState.displayBalance += totalWin;
                 updateBalanceDisplay();
                 updateWinDisplay(totalWin);
-
-                if (winResult.indices?.length > 0) {
+                
+                if (winResult.indices && winResult.indices.length > 0) {
                     highlightWinsPremium(winResult.indices, winResult.buffaloIndices || []);
                     showWinWithRise(totalWin, winResult.indices);
                 }
+
                 window.gameState.waitingForWinAnimation = false;
             }
         }
 
         updateUserBalanceInStorage();
+
         checkScatter(result);
 
         const buffaloCount = countBuffalo(result);
@@ -886,6 +847,7 @@ function spin() {
         if (window.gameState.isFreeSpinning && window.gameState.freeSpins > 0) {
             window.gameState.freeSpins--;
             updateFreeSpinIndicator();
+
             if (window.gameState.freeSpins > 0) {
                 setTimeout(() => spin(), 2000);
             } else {
@@ -898,9 +860,10 @@ function spin() {
             handleAutoSpinComplete(totalWin);
         }
 
-        // ===== BABA JACKPOT MODE RESET (after trigger) =====
+        // ===== BABA JACKPOT MODE RESET (Jackpot ကျပြီးရင်) =====
         if (window.gameState.babaJackpotTriggered) {
-            if (window.gameState.babaJackpotMode?.notifId) {
+            // Firebase notification ကို read: true လုပ်မယ်
+            if (window.gameState.babaJackpotMode && window.gameState.babaJackpotMode.notifId) {
                 try {
                     const db = firebase.firestore();
                     db.collection('notifications').doc(window.gameState.babaJackpotMode.notifId).update({
@@ -909,7 +872,8 @@ function spin() {
                     });
                 } catch(e) { console.log('Firebase update error:', e); }
             }
-            // Reset Baba mode
+            
+            // Baba mode ကို reset လုပ်မယ်
             window.gameState.babaJackpotMode = {
                 enabled: false,
                 targetSpins: 0,
@@ -921,12 +885,14 @@ function spin() {
             window.gameState.babaJackpotTriggered = false;
             window.gameState.pendingJackpotAmount = 0;
             window.gameState.pendingJackpotSpinsLeft = 0;
+            
             console.log('✅ BABA JACKPOT MODE RESET COMPLETED');
         }
 
-        // ===== NORMAL JACKPOT HANDLING (pendingJackpotSpinsLeft === 0) =====
+        // ===== ရှိပြီးသား JACKPOT HANDLING (backward compatibility) =====
         if (window.gameState.pendingJackpotSpinsLeft === 0 && window.gameState.pendingJackpotAmount > 0) {
-            const jackpotAmount = window.gameState.pendingJackpotAmount;
+            const jackpotAmount = window.gameState.pendingJackpotAmount || 0;
+
             if (jackpotAmount > 0) {
                 window.gameState.balance += jackpotAmount;
                 window.gameState.displayBalance += jackpotAmount;
@@ -938,12 +904,12 @@ function spin() {
 
             if (typeof JackpotFX !== 'undefined') {
                 document.querySelectorAll('canvas').forEach(c => c.remove());
+               
                 JackpotFX.show(jackpotAmount);
-                showJackpotAnimation();
-                if (typeof GlobalTopManager !== 'undefined') {
-                    GlobalTopManager.submitWin(jackpotAmount);
-                }
-            }
+                 
+                    GlobalTopManager.submitWin(winAmount);
+              }
+            // Sound (60 sec)
             if (typeof SoundManager !== 'undefined') {
                 SoundManager.jackpotSpin();
                 SoundManager.jackpot();
@@ -957,16 +923,18 @@ function spin() {
 
             showNotification(`🎉 ဂျက်ပေါ့ဆုကြေး ${formatNumber(jackpotAmount)} ကျပ် ရရှိပါသည်။`, 'success');
             window.gameState.waitingForJackpotComplete = true;
+
             setTimeout(() => {
                 window.gameState.waitingForJackpotComplete = false;
-                console.log('✅ Jackpot completed');
+                console.log('✅ Jackpot completed (60 sec)');
             }, 60000);
-
+            
             window.gameState.pendingJackpotAmount = 0;
             window.gameState.Lucky_Money = 0;
         }
     });
 }
+
 // ============================================
 // 10. SHOW NOTIFICATION
 // ============================================
@@ -1039,9 +1007,11 @@ function detectSuspenseMode(result) {
 // COLOR BORDER FUNCTIONS
 // ============================================
 
+// Glow Effect ထည့်ခြင်း
 function addRedBorderToColumn(col) {
     var cells = getColumnCells(col);
     for (var i = 0; i < cells.length; i++) {
+        // အနီရောင် Border အစား မီးတောက် effect class ကို သုံးမယ်
         cells[i].classList.add('suspense-glow');
     }
 }
@@ -1057,6 +1027,7 @@ function addYellowBorderToBabaImg(cell) {
     var img = cell.querySelector('img');
     if (!img) return;
 
+    // 🔥 Image src ထဲမှာ baba.png ဆိုတဲ့ နာမည် အတိအကျ ပါမှ ဝိုင်းမယ်
     var filename = img.src.split('/').pop().toLowerCase();
     
     if (filename === 'baba.png' || filename === 'baba') {
@@ -1067,75 +1038,29 @@ function addYellowBorderToBabaImg(cell) {
         cell.style.backgroundColor = 'rgba(255, 215, 0, 0.1)';
         cell.dataset.symbol = 'baba';
     } else {
+        // Baba မဟုတ်တဲ့ ဘယ်ပုံကိုမဆို (Buffalo, 7, etc.) border အကုန်ဖြုတ်
         img.style.boxShadow = 'none';
         img.style.backgroundColor = 'transparent';
         cell.style.backgroundColor = 'transparent';
-        console.log(`🚫 Refused to border: ${filename}`); 
+        console.log(`🚫 Refused to border: ${filename}`); // Baba မဟုတ်တာကို ဝိုင်းဖို့ကြိုးစားရင် သိရအောင်
     }
 }
+
+
 function startSuspenseAnimation(finalResult, suspenseInfo) {
     console.log('🎬 SUSPENSE MODE ACTIVATED!');
-    
-    // ============================================
-    // ⭐⭐⭐ အသစ်ထည့်ရန်: 5 BaBa စစ်ဆေးခြင်း ⭐⭐⭐
-    // ============================================
-    var babaCount = suspenseInfo.babaCount || 0;
-    
-    // suspenseInfo မှာ babaCount မပါရင် finalResult ကနေ ပြန်ရေတွက်
-    if (!babaCount && finalResult) {
-        babaCount = 0;
-        for (var col = 0; col < finalResult.length; col++) {
-            var hasBaba = finalResult[col].some(function(s) { 
-                return s === 'baba'; 
-            });
-            if (hasBaba) babaCount++;
-        }
-    }
-    
-    console.log(`📊 BaBa Column Count: ${babaCount}`);
-    
-    // 5 BaBa ဆိုရင် Jackpot Sequence ကို ခေါ်မယ်
-    if (babaCount === 5) {
-        console.log("🎰🎰🎰 5 BABA JACKPOT DETECTED! Switching to Jackpot Sequence...");
-        
-        // BaBa Columns နဲ့ Non-BaBa Columns ခွဲမယ်
-        var babaColumns = [];
-        var nonBabaColumns = [];
-        
-        for (var col = 0; col < finalResult.length; col++) {
-            var hasBaba = finalResult[col].some(function(s) { 
-                return s === 'baba'; 
-            });
-            if (hasBaba) {
-                babaColumns.push(col);
-            } else {
-                nonBabaColumns.push(col);
-            }
-        }
-        
-        // Jackpot Sequence ကို ခေါ်မယ်
-        if (typeof startJackpotSequence === 'function') {
-            startJackpotSequence(finalResult, babaColumns, nonBabaColumns);
-        } else {
-            console.error("❌ startJackpotSequence function not found!");
-        }
-        
-        return; // ⭐ မူရင်း Suspense ကို ဆက်မလုပ်တော့ဘူး
-    }
 
-// ============================================
-    // အောက်က မင်းရဲ့ မူရင်း Code (3-4 BaBa အတွက်)
-    // ============================================
-
+    // ၁။ ရှိပြီးသား Baba ၃ ပုံကို Radius ဝါရောင် ချက်ချင်းဝိုင်းပြီး Lock လုပ်ထားမယ်
     if (suspenseInfo.babaLocations && suspenseInfo.babaLocations.length > 0) {
         suspenseInfo.babaLocations.forEach(loc => {
             var cell = document.querySelector(`.grid-cell[data-col="${loc.col}"][data-row="${loc.row}"]`);
             if (cell) {
                 var img = cell.querySelector('img');
                 if (img) {
+                    // လမ်းကြောင်းကို images/baba.png (small case) အသေပေးလိုက်မယ်
                     img.src = 'images/baba.png';
                     img.style.opacity = '1';
-                    addYellowBorderToBabaImg(cell);
+                    addYellowBorderToBabaImg(cell); // Radius ဝိုင်းမယ်
                 }
             }
         });
@@ -1150,10 +1075,12 @@ function startSuspenseAnimation(finalResult, suspenseInfo) {
     }
 }
 
+
 // ============================================
 // 2. CHECK NEXT COLUMN (The Core Sequence)
 // ============================================
 function checkNextSuspenseColumn(finalResult, columnsToCheck, index) {
+    // အဆုံးထိရောက်ရင် ရပ်မယ်
     if (index >= columnsToCheck.length) {
         setTimeout(finishSuspense, 500);
         return;
@@ -1162,6 +1089,7 @@ function checkNextSuspenseColumn(finalResult, columnsToCheck, index) {
     var col = columnsToCheck[index];
     var targetSymbols = finalResult[col];
 
+    // ဒီတိုင်မှာ baba ပါနေလား စစ်မယ်
     var hasBabaInThisCol = targetSymbols.some(function(s) {
         return s === 'baba';
     });
@@ -1199,7 +1127,7 @@ function checkNextSuspenseColumn(finalResult, columnsToCheck, index) {
                     c.classList.remove('rise-column');
                 });
 
-                // Next one 
+                // နောက်တစ်တိုင်ကို သွားမယ်
                 setTimeout(function() {
                     checkNextSuspenseColumn(finalResult, columnsToCheck, index + 1);
                 }, 500);
@@ -1226,23 +1154,23 @@ function revealColumnInstantly(col, targetSymbols) {
 
 
 // ============================================
-// 3. SLOW REVEAL
+// 3. SLOW REVEAL (တစ်ခုချင်းစီ ဖြည်းဖြည်းကျလာအောင်)
 // ============================================
 function fastRandomSpin(col, duration, onComplete) {
     var cells = getColumnCells(col);
-    var symbols = ['seven', 'jack', 'queen', 'nine', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'baba'];
+    var symbols = ['seven', 'jack', 'queen', 'nine', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'ten'];
     var startTime = Date.now();
 
     function spin() {
         var elapsed = Date.now() - startTime;
 
         if (elapsed >= duration) {
-            
+            // အချိန်စေ့ရင် ရပ်မယ်
             onComplete();
             return;
         }
 
-        // Random 
+        // Random ပုံတွေ ပြောင်းမယ်
         for (var i = 0; i < cells.length; i++) {
             var img = cells[i].querySelector('img');
             if (img) {
@@ -1251,7 +1179,8 @@ function fastRandomSpin(col, duration, onComplete) {
             }
         }
 
-        setTimeout(spin, 50); 
+        // လှည့်တဲ့အရှိန်ကို ပိုမြန်ချင်ရင် 50ms ထားပါ၊ နည်းနည်းနှေးချင်ရင် 80ms ထားပါ
+        setTimeout(spin, 60); 
     }
 
     spin();
@@ -1288,10 +1217,12 @@ function slowRevealColumn(col, targetSymbols, onComplete) {
                     targetImg.style.transform = 'translateY(0) scale(1)';
                     targetCell.dataset.symbol = targetSymbol;
 
+                    // 🔥 ဒီနေရာမှာ အသံထည့်မယ်
                     if (targetSymbol === 'baba') {
                         hasBabaInThisCol = true;
                         addYellowBorderToBabaImg(targetCell);
                         
+                        // Baba ပုံလေး ကျလာတာနဲ့ 'ဘုန်း' ဆိုပြီး မြည်သွားမယ်
                         if (typeof SoundManager !== 'undefined') {
                             if (SoundManager.boom) {
                                 SoundManager.boom();
@@ -1317,383 +1248,6 @@ function finishSuspense() {
     document.dispatchEvent(new CustomEvent('animationComplete'));
 }
 
-// ============================================
-// LOCK & REVEAL JACKPOT SEQUENCE (REAL CHECK)
-// ============================================
-
-let lockedColumns = [];
-let pendingColumns = [];
-let jackpotFinalResult = null;
-let isJackpotMode = false;
-
-// ============================================
-// MAIN ENTRY: Spin Result ရလာတဲ့အခါ ခေါ်မယ်
-// ============================================
-function processSpinResult(finalResult) {
-   
-    var babaColumns = [];
-    var nonBabaColumns = [];
-    
-    for (var col = 0; col < finalResult.length; col++) {
-        var hasBaba = finalResult[col].some(function(symbol) {
-            return symbol === 'baba';
-        });
-        
-        if (hasBaba) {
-            babaColumns.push(col);
-        } else {
-            nonBabaColumns.push(col);
-        }
-    }
-    
-    var babaCount = babaColumns.length;
-    
-    console.log(`📊 BaBa Columns: ${babaColumns} (Total: ${babaCount})`);
-    console.log(`📊 Non-BaBa Columns: ${nonBabaColumns}`);
-    
-    // 2. BaBa Count အလိုက် ဆုံးဖြတ်မယ်
-    if (babaCount === 5) {
-        // 5 Column လုံး BaBa ပါရင် -> Jackpot Mode
-        startJackpotSequence(finalResult, babaColumns, nonBabaColumns);
-    } else if (babaCount >= 3) {
-        // 3-4 BaBa ဆိုရင် Suspense Mode (မင်းရဲ့ မူရင်း Logic)
-        startSuspenseAnimation(finalResult, {
-            babaLocations: getBabaLocations(finalResult),
-            columnsToCheck: nonBabaColumns
-        });
-    } else {
-        // 2 BaBa အောက်ဆိုရင် ပုံမှန် Reveal
-        revealAllColumnsInstantly(finalResult);
-    }
-}
-
-// ============================================
-// Get BaBa Locations (Row, Col)
-// ============================================
-function getBabaLocations(finalResult) {
-    var locations = [];
-    for (var col = 0; col < finalResult.length; col++) {
-        for (var row = 0; row < finalResult[col].length; row++) {
-            if (finalResult[col][row] === 'baba') {
-                locations.push({ col: col, row: row });
-            }
-        }
-    }
-    return locations;
-}
-
-// ============================================
-// JACKPOT SEQUENCE (5 Columns have BaBa)
-// ============================================
-function startJackpotSequence(finalResult, babaColumns, nonBabaColumns) {
-    isJackpotMode = true;
-    lockedColumns = [];
-    jackpotFinalResult = finalResult;
-    
-    console.log("🎰🎰🎰 JACKPOT SEQUENCE STARTED! 🎰🎰🎰");
-    
-
-    var firstThreeBabaColumns = babaColumns.slice(0, 3);
-    
-    firstThreeBabaColumns.forEach(function(col) {
-        lockAndRevealColumnWithResult(col, finalResult[col]);
-    });
-    
-  
-    pendingColumns = babaColumns.slice(3); // Index 3,4 (4th and 5th BaBa columns)
-    
-    // အဆင့် ၃: ပထမဆုံး Pending Column ကို စစ်မယ်
-    processNextPendingColumn();
-}
-
-// ============================================
-// Column တစ်ခုကို Result နဲ့ Lock ချပြီး Reveal လုပ်မယ်
-// ============================================
-function lockAndRevealColumnWithResult(col, targetSymbols) {
-    lockedColumns.push(col);
-    
-    var cells = getColumnCells(col);
-    
-    // Row တစ်ခုချင်းစီကို သူ့ Symbol အတိုင်း ပြမယ်
-    cells.forEach(function(cell, row) {
-        var img = cell.querySelector('img');
-        var symbol = targetSymbols[row];
-        
-        if (img && symbol) {
-            img.src = 'images/' + symbol + '.png';
-            img.style.opacity = '1';
-            img.style.transition = 'all 0.3s ease';
-            cell.dataset.symbol = symbol;
-            
-            // BaBa ဆိုရင် Yellow Border
-            if (symbol === 'baba') {
-                addYellowBorderToBabaImg(cell);
-                // BaBa အတွက် Boom အသံ
-                if (typeof SoundManager !== 'undefined' && SoundManager.boom) {
-                    SoundManager.boom();
-                }
-            }
-        }
-    });
-    
-    // Locked Column Visual Effect
-    cells.forEach(function(cell) {
-        cell.classList.add('locked-column');
-        cell.style.opacity = '0.9';
-        cell.style.filter = 'brightness(1.1)';
-    });
-    
-    console.log(`🔒 Column ${col} LOCKED with: ${targetSymbols.join(', ')}`);
-}
-
-// ============================================
-// နောက်ထပ် Pending Column တစ်ခုကို Suspense နဲ့ စစ်မယ်
-// ============================================
-function processNextPendingColumn() {
-    if (pendingColumns.length === 0) {
-        // အကုန်ပြီးပြီ - Jackpot ပေါက်ပြီ
-        finishJackpotSequence();
-        return;
-    }
-    
-    var col = pendingColumns.shift();
-    var isLastColumn = (pendingColumns.length === 0);
-    var targetSymbols = jackpotFinalResult[col];
-    
-    console.log(`🔍 Suspense for Column ${col} ${isLastColumn ? '(FINAL COLUMN!)' : ''}`);
-    console.log(`   Target symbols: ${targetSymbols.join(', ')}`);
-    
-    // Sound Effect
-    if (typeof SoundManager !== 'undefined') {
-        SoundManager.lion();
-        SoundManager.boom();
-    }
-    
-    // Visual Effects
-    addRedBorderToColumn(col);
-    var cells = getColumnCells(col);
-    cells.forEach(function(cell) {
-        cell.classList.add('rise-column');
-    });
-    
-    // Spin Duration (နောက်ဆုံး Column ဆိုရင် ပိုကြာမယ်)
-    var spinDuration = isLastColumn ? 8000 : 5000;
-    
-    // Fast Spin လုပ်မယ် (Random Symbols)
-    fastRandomSpin(col, spinDuration, function() {
-        // Spin ပြီးရင် Slow Reveal
-        slowRevealColumnWithResult(col, targetSymbols, function() {
-            // Reveal ပြီးသွားပြီ
-            removeRedBorderFromColumn(col);
-            cells.forEach(function(c) {
-                c.classList.remove('rise-column');
-            });
-            
-            // Lock ချမယ်
-            lockedColumns.push(col);
-            cells.forEach(function(cell) {
-                cell.classList.add('locked-column');
-                cell.style.opacity = '0.9';
-                cell.style.filter = 'brightness(1.1)';
-            });
-            
-            console.log(`🔒 Column ${col} LOCKED after suspense`);
-            
-            // နောက် Column ကို ဆက်စစ်မယ်
-            setTimeout(function() {
-                processNextPendingColumn();
-            }, isLastColumn ? 1000 : 600);
-        });
-    });
-}
-
-// ============================================
-// Slow Reveal (Result အတိုင်း အတိအကျ ပြမယ်)
-// ============================================
-function slowRevealColumnWithResult(col, targetSymbols, onComplete) {
-    var colCells = getColumnCells(col);
-    var rowIndex = 0;
-    var isLastColumn = (pendingColumns.length === 0);
-
-    function revealNextRow() {
-        if (rowIndex >= colCells.length) {
-            setTimeout(function() {
-                if (onComplete) onComplete();
-            }, 300);
-            return;
-        }
-
-        var cell = colCells[rowIndex];
-        var img = cell.querySelector('img');
-        var symbol = targetSymbols[rowIndex];
-
-        if (img && symbol) {
-            img.src = 'images/' + symbol + '.png';
-            img.style.transition = 'none';
-            img.style.opacity = '0';
-            img.style.transform = 'translateY(-50px) scale(0.8)';
-
-            (function(targetImg, targetCell, targetSymbol, rowIdx) {
-                setTimeout(function() {
-                    targetImg.style.transition = 'all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-                    targetImg.style.opacity = '1';
-                    targetImg.style.transform = 'translateY(0) scale(1)';
-                    targetCell.dataset.symbol = targetSymbol;
-                    
-                    // BaBa ဆိုရင် Yellow Border + Boom
-                    if (targetSymbol === 'baba') {
-                        addYellowBorderToBabaImg(targetCell);
-                        if (typeof SoundManager !== 'undefined' && SoundManager.boom) {
-                            SoundManager.boom();
-                        }
-                    }
-                    
-                    // နောက်ဆုံး Column ရဲ့ နောက်ဆုံး Row မှာ Special Effect
-                    if (isLastColumn && rowIdx === colCells.length - 1) {
-                        document.body.classList.add('jackpot-flash');
-                        setTimeout(function() {
-                            document.body.classList.remove('jackpot-flash');
-                        }, 500);
-                        
-                        if (typeof SoundManager !== 'undefined' && SoundManager.lion) {
-                            SoundManager.lion();
-                        }
-                    }
-                }, 50);
-            })(img, cell, symbol, rowIndex);
-        }
-
-        rowIndex++;
-        var rowDelay = isLastColumn ? 300 : 200;
-        setTimeout(revealNextRow, rowDelay);
-    }
-
-    revealNextRow();
-}
-// ============================================
-// Jackpot Sequence ပြီးဆုံးချိန်
-// ============================================
-function finishJackpotSequence() {
-    console.log("🎉🎉🎉 BABA 5 JACKPOT COMPLETE! 🎉🎉🎉");
-
-    const jackpotAmount = window.gameState?.babaJackpotMode?.jackpotAmount ||
-                          window.gameState?.pendingJackpotAmount ||
-                          800000;
-
-    console.log(`💰 Jackpot Amount: ${jackpotAmount}`);
-
-    // Animation & Sound
-    if (typeof showJackpotAnimation === 'function') {
-        showJackpotAnimation(jackpotAmount, jackpotFinalResult);
-    }
-
-    if (typeof GlobalTopManager !== 'undefined') {
-        GlobalTopManager.submitWin(jackpotAmount, 'jackpot');
-    }
-
-    if (typeof SoundManager !== 'undefined') {
-        SoundManager.jackpot();
-        SoundManager.lion();
-        SoundManager.congratulations();
-        SoundManager.coin();
-        SoundManager.coinRain();
-        SoundManager.sixCoin();
-        SoundManager.boom();
-    }
-
-    // ============================================
-    // 🔥🔥🔥 SPIN FUNCTION ထဲက RESET အတိုင်း လုပ်မယ် 🔥🔥🔥
-    // ============================================
-
-    // 1. Firebase Update (လိုအပ်ရင်)
-    if (window.gameState.babaJackpotMode?.notifId) {
-        try {
-            const db = firebase.firestore();
-            db.collection('notifications').doc(window.gameState.babaJackpotMode.notifId).update({
-                read: true,
-                completedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-        } catch(e) {
-            console.log('Firebase update error:', e);
-        }
-    }
-
-    // 2. Reset Baba mode
-    window.gameState.babaJackpotMode = {
-        enabled: false,
-        targetSpins: 0,
-        currentSpinCount: 0,
-        isReady: false,
-        jackpotAmount: 0,
-        notifId: null
-    };
-    window.gameState.babaJackpotTriggered = false;
-    window.gameState.pendingJackpotAmount = 0;
-    window.gameState.pendingJackpotSpinsLeft = 0;
-
-    // 3. ⭐ အရေးကြီးဆုံး - isSpinning ကို false လုပ်
-    window.gameState.isSpinning = false;
-    window.gameState.waitingForJackpotComplete = false;
-
-    // 4. Internal Flags
-    isJackpotMode = false;
-    lockedColumns = [];
-    pendingColumns = [];
-    jackpotFinalResult = null;
-
-    // 5. Ready State
-    if (typeof ready !== 'undefined') ready = true;
-    if (typeof canSpin !== 'undefined') canSpin = true;
-    if (typeof spinLock !== 'undefined') spinLock = false;
-
-    // ============================================
-    // 🧹 UI Cleanup
-    // ============================================
-    console.log("🧹 Cleaning up UI locks...");
-
-    // Column တွေရဲ့ Lock Styles ရှင်း
-    for (var col = 0; col < 5; col++) {
-        var cells = getColumnCells(col);
-        cells.forEach(function(cell) {
-            cell.classList.remove('locked-column', 'rise-column', 'suspense-glow');
-            cell.style.opacity = '';
-            cell.style.filter = '';
-            cell.style.boxShadow = '';
-            cell.style.border = '';
-            
-            var img = cell.querySelector('img');
-            if (img) {
-                img.style.borderRadius = '';
-                img.style.boxShadow = '';
-                img.style.padding = '';
-                img.style.backgroundColor = '';
-            }
-        });
-        
-        if (typeof removeRedBorderFromColumn === 'function') {
-            removeRedBorderFromColumn(col);
-        }
-    }
-
-    // Borders အကုန်ဖျက်
-    removeAllBorders();  // ⭐ ခေါ်ဖို့ မမေ့နဲ့
-
-    // Body Classes
-    document.body.classList.remove('jackpot-flash', 'jackpot-active', 'spin-locked');
-
-    // Spin Button Enable
-    var spinButton = document.querySelector('#spin-button, .spin-btn, [data-action="spin"], button.spin');
-    if (spinButton) {
-        spinButton.disabled = false;
-        spinButton.style.opacity = '1';
-        spinButton.style.pointerEvents = 'auto';
-        spinButton.classList.remove('disabled', 'locked');
-        console.log("✅ Spin button enabled");
-    }
-
-    console.log('✅ BABA JACKPOT MODE RESET COMPLETED from finishJackpotSequence');
-    console.log("✅✅✅ READY FOR NEXT SPIN! ✅✅✅");
-}
 
 // အားလုံးဖျက်
 function removeAllBorders() {
@@ -1701,14 +1255,14 @@ function removeAllBorders() {
     for (var i = 0; i < cells.length; i++) {
         var cell = cells[i];
         var img = cell.querySelector('img');
-
+        
         cell.style.borderRadius = '';
         cell.style.boxShadow = '';
         cell.style.transform = '';
         cell.style.transition = '';
         cell.style.backgroundColor = '';
-        cell.classList.remove('red-border-line', 'yellow-border-line', 'locked-column', 'rise-column');
-
+        cell.classList.remove('red-border-line', 'yellow-border-line');
+        
         if (img) {
             img.style.borderRadius = '';
             img.style.boxShadow = '';
@@ -1719,10 +1273,12 @@ function removeAllBorders() {
         }
     }
 }
+
 // ============================================
 // 11. FIXED WIN CALCULATION (COMPLETE WITH BABA 5 JACKPOT)
 // ============================================
 function calculateWinnings(result) {
+    // paytable ကိုသေချာအောင်လုပ်
     const paytable = window.PAYTABLE || PAYTABLE_ORIGINAL;
     const bet = window.gameState.betAmount;
     const vipLevel = window.gameState.vipLevel || 0;
@@ -1738,46 +1294,36 @@ function calculateWinnings(result) {
 
     console.log('🔍 Paytable:', paytable);
 
-    // ===== 🎯 BABA 5 JACKPOT DETECTION =====
-    let babaCount = 0;
-    let babaIndices = [];
+    // ===== 🎯 BABA 5 JACKPOT DETECTION (PENDING JACKPOT) =====
+let babaCount = 0;
+let babaIndices = [];
 
-    for (let c = 0; c < cols; c++) {
-        for (let r = 0; r < rows; r++) {
-            if (result[c] && result[c][r] === 'baba') {
-                babaCount++;
-                babaIndices.push(r * cols + c);
+for (let c = 0; c < cols; c++) {
+    for (let r = 0; r < rows; r++) {
+        if (result[c] && result[c][r] === 'baba') {
+            babaCount++;
+            babaIndices.push(r * cols + c);
+            
+            // 🔥🔥🔥 BABA တစ်ကောင်တွေ့တိုင်း BOOM အသံမြည်မယ် 🔥🔥🔥
+            if (typeof SoundManager !== 'undefined') {
+                SoundManager.boom();
             }
         }
     }
-
+}
     console.log(`🎯 BABA count: ${babaCount}/5`);
+    
+    // BABA 5 ပုံ နဲ့ Pending Jackpot Mode ရှိရင် Jackpot ပေးမယ်
+    if (babaCount === 5 && window.gameState.babaJackpotMode && window.gameState.babaJackpotMode.isReady) {
+        const jackpotAmount = window.gameState.babaJackpotMode.jackpotAmount || 
+                              window.gameState.pendingJackpotAmount || 
+                              100000;
 
-    // 🔥 Boom အသံ - Jackpot မဟုတ်တဲ့အခါမှသာ မြည်မယ် (သို့) ဖြုတ်ထားလို့ရတယ်
-    if (babaCount >= 2 && babaCount < 5) {
-        if (typeof SoundManager !== 'undefined') {
-            SoundManager.boom();
-        }
-    }
-
-     if (babaCount === 5) {
-        // Admin က သတ်မှတ်ထားတဲ့ Jackpot Amount ကို ဦးစားပေးယူမယ်
-        const jackpotAmount = window.gameState?.babaJackpotMode?.jackpotAmount ||
-                              window.gameState.pendingJackpotAmount ||
-                              0;
-
-        console.log(` BABA 5 JACKPOT! Amount: ${jackpotAmount}`);
-
-        // Premium Animation + Global Top + Sound
-        showJackpotAnimation(jackpotAmount, result);
-        GlobalTopManager.submitWin(jackpotAmount, 'jackpot');
-
-        if (typeof SoundManager !== 'undefined') {
-            SoundManager.play('jackpotSound'); // Jackpot အတွက် သီးသန့်အသံ
-        }
-
+        console.log(`🎉🎉🎉 BABA 5 JACKPOT! Amount: ${jackpotAmount}`);
+         startPremiumJackpot();
+        // Jackpot ကျပြီးဆိုတဲ့ flag ထားမယ်
         window.gameState.babaJackpotTriggered = true;
-
+        
         return {
             totalWin: jackpotAmount,
             indices: babaIndices,
@@ -1791,6 +1337,12 @@ function calculateWinnings(result) {
             isBabaJackpot: true
         };
     }
+    
+    // BABA 4 ပုံ (Near miss - for logging only)
+    if (babaCount === 4) {
+        console.log('😰 SO CLOSE! BABA x4 (Near Miss)');
+    }
+
     // ===== ကျွဲရေတွက် =====
     for (let c = 0; c < cols; c++) {
         for (let r = 0; r < rows; r++) {
@@ -1803,14 +1355,17 @@ function calculateWinnings(result) {
 
     // ===== Helper: get final multiplier based on symbol and count =====
     function getFinalMultiplier(symbol, count) {
+        // 3, 4, 5-match အတွက် multiplier ကို paytable ကနေယူ
         const multiplier = paytable[symbol]?.[count];
         if (!multiplier) return 0;
 
         const highValueSymbols = ['buffalo', 'ele', 'lion'];
+
         if (highValueSymbols.includes(symbol) && count > 5) {
             const extra = (count - 5) * 0.5;
             return multiplier * (1 + extra);
         }
+
         return multiplier;
     }
 
@@ -1834,6 +1389,7 @@ function calculateWinnings(result) {
                     r2 * cols + 2
                 ];
 
+                // ကော်လံ ၃ စစ်
                 for (let r3 = 0; r3 < rows; r3++) {
                     const sym3 = result[3][r3];
                     if (sym3 === symbol0 || sym3 === 'wild') {
@@ -1843,6 +1399,7 @@ function calculateWinnings(result) {
                     }
                 }
 
+                // ကော်လံ ၄ စစ်
                 if (streak === 4) {
                     for (let r4 = 0; r4 < rows; r4++) {
                         const sym4 = result[4][r4];
@@ -1854,6 +1411,7 @@ function calculateWinnings(result) {
                     }
                 }
 
+                // အနိုင်ရရင် ထည့်
                 const finalMultiplier = getFinalMultiplier(symbol0, streak);
                 if (finalMultiplier > 0) {
                     const winAmount = Math.floor(bet * finalMultiplier);
@@ -1867,7 +1425,10 @@ function calculateWinnings(result) {
                     });
 
                     winIndices.push(...winRowIndices);
-                    console.log(`✅ Win found: ${symbol0} x${streak} = ${winAmount}`);
+
+                    console.log(`✅ Win found: ${symbol0} x${streak} = ${winAmount} (multiplier ${finalMultiplier})`);
+                } else {
+                    console.log(`❌ No paytable entry for ${symbol0} x${streak}`);
                 }
             }
         }
@@ -1878,12 +1439,14 @@ function calculateWinnings(result) {
     winLines.forEach(line => {
         if (line.count === 3) threeMatchWinCount++;
     });
+    console.log(`📊 threeMatchWinCount: ${threeMatchWinCount}`);
 
     if (window.gameState && window.gameState.threeMatchControl) {
         window.gameState.threeMatchCount += threeMatchWinCount;
         window.gameState.totalSpinsSinceReset++;
 
         if (window.gameState.totalSpinsSinceReset >= window.gameState.checkInterval) {
+            console.log('⏰ Check interval reached! Calling checkThreeMatchRate...');
             if (typeof checkThreeMatchRate === 'function') {
                 checkThreeMatchRate();
             }
@@ -1901,7 +1464,7 @@ function calculateWinnings(result) {
         }
     }
 
-    // ===== ကျွဲ ၂၀ ကောင်နဲ့အထက် Jackpot =====
+    // ===== ဂျက်ပေါ့စစ် (ကျွဲ ၂၀ ကောင်နဲ့အထက်) =====
     if (buffaloCount >= 20) {
         totalWin += window.gameState.jackpot;
         winLines.push({
@@ -1910,17 +1473,19 @@ function calculateWinnings(result) {
             win: window.gameState.jackpot
         });
         winIndices.push(...buffaloIndices);
-        console.log(`🎰 Buffalo Jackpot! Count: ${buffaloCount}, Prize: ${window.gameState.jackpot}`);
+        console.log(`🎰 JACKPOT! Buffalo count: ${buffaloCount}, Prize: ${window.gameState.jackpot}`);
     }
 
-    // ===== Global max win cap =====
+    // ===== Apply global max win cap (per deposit) =====
     const maxWinPerDeposit = window.gameState.maxWin || 500000;
     let cappedWin = Math.min(totalWin, maxWinPerDeposit);
     totalWin = cappedWin;
 
-    // ===== UI updates =====
+    // ===== UI updates (NO BALANCE UPDATE HERE - spin() handles it) =====
     if (totalWin > 0) {
         window.gameState.consecutiveWins++;
+        console.log('✅ Win! Consecutive wins:', window.gameState.consecutiveWins);
+
         window.gameState.winAmount = totalWin;
 
         updateWinDisplay(totalWin);
@@ -1930,36 +1495,31 @@ function calculateWinnings(result) {
 
         const winPercentage = (totalWin / bet) * 100;
 
-        // Win animations & Global Top
+        // Win animations
         if (typeof WinAnimation !== 'undefined') {
             if (winPercentage >= 1500) {
                 WinAnimation.mega(totalWin);
-                GlobalTopManager.submitWin(totalWin, 'mega');
-                if (typeof SoundManager !== 'undefined') {
-                    SoundManager.congratulations();
-                    SoundManager.lion();
-                    SoundManager.coin();
-                }
+                GlobalTopManager.submitWin(winAmount);
+                if (typeof SoundManager !== 'undefined') SoundManager.congratulations();
+                if (typeof SoundManager !== 'undefined') SoundManager.lion();
+                if (typeof SoundManager !== 'undefined') SoundManager.coin();
             } else if (winPercentage >= 1000) {
                 WinAnimation.super(totalWin);
-                GlobalTopManager.submitWin(totalWin, 'super');
-                if (typeof SoundManager !== 'undefined') {
-                    SoundManager.congratulations();
-                    SoundManager.lion();
-                    SoundManager.coin();
-                }
+                GlobalTopManager.submitWin(winAmount);
+                if (typeof SoundManager !== 'undefined') SoundManager.congratulations();
+                if (typeof SoundManager !== 'undefined') SoundManager.lion();
+                if (typeof SoundManager !== 'undefined') SoundManager.coin();
             } else if (winPercentage >= 500) {
                 WinAnimation.big(totalWin);
-                GlobalTopManager.submitWin(totalWin, 'big');
-                if (typeof SoundManager !== 'undefined') {
-                    SoundManager.congratulations();
-                    SoundManager.lion();
-                    SoundManager.coin();
-                }
+                GlobalTopManager.submitWin(winAmount);
+                if (typeof SoundManager !== 'undefined') SoundManager.congratulations();
+                if (typeof SoundManager !== 'undefined') SoundManager.lion();
+                if (typeof SoundManager !== 'undefined') SoundManager.coin();
             }
         }
 
         if (typeof checkLevelUp === 'function') checkLevelUp();
+
     } else {
         window.gameState.consecutiveWins = 0;
         console.log('❌ No win');
@@ -1976,83 +1536,88 @@ function calculateWinnings(result) {
     };
 }
 
- // ============================================
-// 12. GENERATE SPIN RESULT (REELS ကိုသုံး - FIXED COLUMN 5 BLOCK)
 // ============================================
+// 12. GENERATE SPIN RESULT (REELS ကိုသုံး - FIXED COLUMN 5 BLOCK)
+// ===========================================
 function generateSpinResult() {
     let result = [[], [], [], [], []];
 
     // ===== 1. 🎯 BABA JACKPOT MODE CHECK =====
-    // generateSpinResult ထဲက BABA JACKPOT MODE CHECK အပိုင်း
-if (window.gameState.babaJackpotMode?.forceJackpot) {
-    const mode = window.gameState.babaJackpotMode.babaMode || 'modeA';
-    console.log(`🎰 FORCE BABA JACKPOT! Mode: ${mode}`);
-    
-    // 🔥 suspense-ready result ထုတ်မယ် (3 baba + 2 suspense columns)
-    result = generateBabaJackpotResult();
-    
-    window.gameState.babaJackpotMode.forceJackpot = false;
-    
-    // detectSuspenseMode က columnsWithBaba = [0,1,2] နဲ့ columnsToCheck = [3,4] ကို ပြန်ပေးမယ်
-    const suspenseInfo = detectSuspenseMode(result);
-    window.gameState.suspenseMode = suspenseInfo.isSuspense;
-    window.gameState.suspenseColumn = suspenseInfo.isSuspense ? suspenseInfo.columnsToCheck[0] : -1;
-    
-    console.log('Suspense Info for Baba Jackpot:', suspenseInfo);
-    return result;
-}
+    if (window.gameState.babaJackpotMode &&
+        window.gameState.babaJackpotMode.enabled &&
+        window.gameState.babaJackpotMode.isReady) {
 
-    // ===== 2. NORMAL သို့မဟုတ် FREE SPIN ရလဒ် ထုတ်မယ် =====
-    const currentReels = window.gameState.isFreeSpinning ? FREE_SPIN_REELS : REELS;
-
-    for (let col = 0; col < 5; col++) {
-        const reel = currentReels[col];
-        const startPos = Math.floor(Math.random() * reel.length);
-
-        for (let row = 0; row < 4; row++) {
-            let symbol = reel[(startPos + row) % reel.length];
-            result[col].push(symbol);
-        }
+        console.log('🎰 BABA 5 JACKPOT TRIGGERED!');
+        result = generateBabaJackpotResult();
     }
+    else {
+        // ===== 2. NORMAL သို့မဟုတ် FREE SPIN ရလဒ် ထုတ်မယ် =====
+        const currentReels = window.gameState.isFreeSpinning ? FREE_SPIN_REELS : REELS;
 
-    // ===== 3. NO-WIN logic =====
-    let shouldApplyNoWin = false;
+        for (let col = 0; col < 5; col++) {
+            const reel = currentReels[col];
+            const startPos = Math.floor(Math.random() * reel.length);
+            
+            for (let row = 0; row < 4; row++) {
+                let symbol = reel[(startPos + row) % reel.length];
 
-    if (window.gameState.autoNoWinCycle && window.gameState.autoNoWinCycle.enabled) {
-        const cycle = window.gameState.autoNoWinCycle;
-        if (cycle.currentPhase === 'nowin') {
-            shouldApplyNoWin = true;
-            cycle.noWinSpins++;
-            if (cycle.noWinSpins >= cycle.noWinPhaseLength) {
-                cycle.currentPhase = 'normal';
-                cycle.normalSpins = 0;
-                cycle.noWinSpins = 0;
-            }
-        } else {
-            cycle.normalSpins++;
-            if (cycle.normalSpins >= cycle.normalPhaseLength) {
-                cycle.currentPhase = 'nowin';
-                cycle.normalSpins = 0;
-                cycle.noWinSpins = 0;
+                // 🔥 [FIX] Column 5 (index 4) မှာ Baba မကျအောင် Admin Control နဲ့ ပိတ်မယ်
+                if (col === 4 && symbol === 'baba') {
+                    // Admin Control 2 က Jackpot ပေးဖို့ ခွင့်မပြုထားရင်
+                    const isAdminAllowed = window.adminControl2 && window.adminControl2.jackpotTrigger;
+                    
+                    if (!isAdminAllowed) {
+                        // Baba အစား တခြား Symbol တစ်ခုခုကို Reel ထဲကနေပဲ ပြန်ရှာယူမယ် (Baba မဟုတ်တာ သေချာအောင်)
+                        let safeSymbol = symbol;
+                        let safetyNet = 0;
+                        while ((safeSymbol === 'baba' || safeSymbol === 'bonus') && safetyNet < 10) {
+                            safeSymbol = reel[Math.floor(Math.random() * reel.length)];
+                            safetyNet++;
+                        }
+                        symbol = safeSymbol; 
+                        console.log("🛡️ Column 5 Baba blocked by Admin Control");
+                    }
+                }
+                result[col][row] = symbol;
             }
         }
-    } else {
-        const adminCtrl2 = window.adminControl2 || { enabled: false };
-        shouldApplyNoWin = adminCtrl2.enabled && adminCtrl2.mode === 'always_different';
-    }
 
-    if (shouldApplyNoWin) {
+        // ===== 3. NO-WIN logic (သေချာစစ်ဆေးခြင်း) =====
+        let shouldApplyNoWin = false;
         if (window.gameState.autoNoWinCycle && window.gameState.autoNoWinCycle.enabled) {
-            forceNoWinByColumns(result);
+            const cycle = window.gameState.autoNoWinCycle;
+            if (cycle.currentPhase === 'nowin') {
+                shouldApplyNoWin = true;
+                cycle.noWinSpins++;
+                if (cycle.noWinSpins >= cycle.noWinPhaseLength) {
+                    cycle.currentPhase = 'normal';
+                    cycle.normalSpins = 0; cycle.noWinSpins = 0;
+                }
+            } else {
+                cycle.normalSpins++;
+                if (cycle.normalSpins >= cycle.normalPhaseLength) {
+                    cycle.currentPhase = 'nowin';
+                    cycle.normalSpins = 0; cycle.noWinSpins = 0;
+                }
+            }
         } else {
-            result = applyAdminControl2(result);
+            const adminCtrl2 = window.adminControl2 || { enabled: false };
+            shouldApplyNoWin = adminCtrl2.enabled && adminCtrl2.mode === 'always_different';
         }
-    }
 
-    // ===== 4. ✅ ADMIN CONTROL 1: BUFFALO MODE =====
-    const adminCtrl1 = window.adminControl1 || { enabled: false, mode: null };
-    if (!window.gameState.isFreeSpinning && adminCtrl1.enabled && adminCtrl1.mode && BUFFALO_MODE_CONFIG[adminCtrl1.mode]) {
-        applyBuffaloMode(result, adminCtrl1.mode);
+        if (shouldApplyNoWin) {
+            if (window.gameState.autoNoWinCycle && window.gameState.autoNoWinCycle.enabled) {
+                forceNoWinByColumns(result);
+            } else {
+                result = applyAdminControl2(result);
+            }
+        }
+
+        // ===== 4. ✅ ADMIN CONTROL 1: BUFFALO MODE =====
+        const adminCtrl1 = window.adminControl1 || { enabled: false, mode: null };
+        if (!window.gameState.isFreeSpinning && adminCtrl1.enabled && adminCtrl1.mode && BUFFALO_MODE_CONFIG[adminCtrl1.mode]) {
+            applyBuffaloMode(result, adminCtrl1.mode);
+        }
     }
 
     // ===== 5. 🔍 SUSPENSE MODE DETECTION =====
@@ -2063,37 +1628,29 @@ if (window.gameState.babaJackpotMode?.forceJackpot) {
     console.log("✅ Final Result Ready. Suspense:", window.gameState.suspenseMode);
     return result;
 }
-function generateNormalResult() {
+
+
+// ===== BABA 5 JACKPOT RESULT GENERATOR =====
+function generateBabaJackpotResult() {
     const result = [[], [], [], [], []];
-    const currentReels = window.gameState.isFreeSpinning ? FREE_SPIN_REELS : REELS;
+    const otherSymbols = ['seven', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'jack', 'queen', 'nine', 'ten'];
 
+    // Column တိုင်းမှာ Baba 1 လုံးစီ (စုစုပေါင်း 5)
     for (let col = 0; col < 5; col++) {
-        const reel = currentReels[col];
-        const startPos = Math.floor(Math.random() * reel.length);
-
+        const babaRow = Math.floor(Math.random() * 4);
         for (let row = 0; row < 4; row++) {
-            let symbol = reel[(startPos + row) % reel.length];
-            
-            // Admin Control 2 ရဲ့ Column 5 Block ကို ဒီမှာ ထည့်လို့ရတယ် (လိုအပ်ရင်)
-            if (col === 4 && symbol === 'baba') {
-                const isAdminAllowed = window.adminControl2 && window.adminControl2.jackpotTrigger;
-                if (!isAdminAllowed) {
-                    let safeSymbol = symbol;
-                    let safetyNet = 0;
-                    while ((safeSymbol === 'baba' || safeSymbol === 'bonus') && safetyNet < 10) {
-                        safeSymbol = reel[Math.floor(Math.random() * reel.length)];
-                        safetyNet++;
-                    }
-                    symbol = safeSymbol;
-                }
+            if (row === babaRow) {
+                result[col][row] = 'baba';
+                  SoundManager.boom();
+            } else {
+                result[col][row] = otherSymbols[Math.floor(Math.random() * otherSymbols.length)];
             }
-            
-            result[col][row] = symbol;
         }
     }
+    
+    console.log('🎰 BABA 5 JACKPOT RESULT GENERATED!');
     return result;
 }
-
 
 function forceNoWinByColumns(result) {
     const allSymbols = ['seven', 'jack', 'queen', 'nine', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'ten'];
@@ -2253,74 +1810,62 @@ function animateReelsStaggered(finalResult) {
         startSuspenseAnimation(finalResult, suspenseInfo);
     } else {
         // Normal animation
-        startGravityDropAnimation(finalResult);
+        startNormalAnimation(finalResult);
     }
 }
-
-
-
-function startGravityDropAnimation(finalResult) {
+// ===== NORMAL ANIMATION =====
+function startNormalAnimation(finalResult) {
     const cells = document.querySelectorAll('.grid-cell');
-    const cols = 5;
-    const rows = 4;
-    
-    // ===== အချိန်သတ်မှတ်ချက်များ (မြန်ဆန်စေရန် လျှော့ထားသည်) =====
-    const colDelay = 60;
-    const rowDelay = 30;
-    const dropDuration = 350;
-    // ============================================
-    
-    cells.forEach(cell => {
-        const img = cell.querySelector('img');
-        if (img) {
-            img.style.transition = '';
-            img.style.transform = '';
-            img.style.opacity = '';
-        }
-        cell.classList.remove('reel-shake', 'baba-glow');
-    });
-    
-    for (let col = 0; col < cols; col++) {
-        const columnCells = Array.from(cells).filter(cell => parseInt(cell.dataset.col) === col);
-        
+ 
+    // Reel တစ်ခုစီအတွက် သီးခြား animation
+    for (let col = 0; col < 5; col++) {
+        const reelCells = Array.from(cells).filter(cell => parseInt(cell.dataset.col) === col);
+
+        reelCells.forEach(cell => {
+            cell.classList.add('reel-shake');
+        });
+
         setTimeout(() => {
-            columnCells.forEach((cell, row) => {
+            reelCells.forEach((cell, row) => {
                 const img = cell.querySelector('img');
                 if (!img) return;
-                
+
+                cell.classList.remove('reel-shake');
+
                 const symbol = finalResult[col][row];
-                if (!symbol) return;
-                
-                img.src = `images/${symbol}.png`;
-                cell.dataset.symbol = symbol;
-                
-                img.style.transition = 'none';
-                img.style.transform = 'translateY(-250px)';
-                img.style.opacity = '0';
-                
-                setTimeout(() => {
-                    // 🔥 Gravity Curve (cubic-bezier) - အရှိန်နဲ့ကျပြီး အောက်မှာ နည်းနည်းခုန်တဲ့ Effect
-                    img.style.transition = `transform ${dropDuration}ms cubic-bezier(0.25, 0.1, 0.25, 1.2), opacity 150ms`;
-                    img.style.transform = 'translateY(0)';
-                    img.style.opacity = '1';
-                    
+                if (symbol) {
+                    img.style.transition = 'none';
+                    img.style.transform = 'translateY(-200px)';
+                    img.style.opacity = '0';
+                    img.src = `images/${symbol}.png`;
+
                     setTimeout(() => {
-                        img.style.transition = '';
-                        if (symbol === 'baba') {
-                            cell.classList.add('baba-glow');
-                        }
-                    }, dropDuration + 20);
-                }, row * rowDelay);
+                        img.style.transition = 'transform 0.2s cubic-bezier(0.25, 0.1, 0.25, 1), opacity 0.1s';
+                        img.style.transform = 'translateY(0)';
+                        img.style.opacity = '1';
+
+                        setTimeout(() => {
+                            img.classList.add('symbol-bounce');
+                            setTimeout(() => {
+                                img.classList.remove('symbol-bounce');
+                            }, 150);
+                        }, 200);
+
+                        setTimeout(() => {
+                            img.style.transition = '';
+                        }, 400);
+                    }, row * 60);
+                }
+                cell.dataset.symbol = symbol;
             });
-            
-            if (col === cols - 1) {
-                const totalDelay = (rows - 1) * rowDelay + dropDuration + 50;
+
+            if (col === 4) {
                 setTimeout(() => {
                     document.dispatchEvent(new CustomEvent('animationComplete'));
-                    console.log('✅ Gravity Drop Animation Complete (Fast)');
-                }, totalDelay);
+                    console.log('✅ All reels stopped with falling animation');
+                }, 600);
             }
-        }, col * colDelay);
+        }, 300 + (col * 120));
     }
 }
 // ===== CELEBRATE BABA IN COLUMN =====
@@ -2641,594 +2186,469 @@ function createFloatingWinNumbers(amount, indices) {
     });
 }
 
- 
-// ============================================
-// 17. BABA ANIMATIONS
-// ============================================
-function showJackpotAnimation(winAmount = 5000000, finalResult = null) {
-    
 
-    const styleId = 'premium-jackpot-animation-styles';
-    if (!document.getElementById(styleId)) {
-        const styleEl = document.createElement('style');
-        styleEl.id = styleId;
-        styleEl.textContent = `
-            /* ===== PREMIUM JACKPOT ANIMATION CSS ===== */
-            .pja-stars {
-                position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9990;
-            }
-            .pja-star {
-                position: absolute; background: white; border-radius: 50%;
-                animation: pja-twinkle 3s ease-in-out infinite;
-            }
-            @keyframes pja-twinkle {
-                0%, 100% { opacity: 0.3; transform: scale(1); }
-                50% { opacity: 1; transform: scale(1.5); }
-            }
-            .pja-lightning {
-                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-                background: rgba(255,255,255,0.8); opacity: 0; pointer-events: none; z-index: 10000;
-            }
-            .pja-lightning.active {
-                animation: pja-flash 0.2s ease-out;
-            }
-            @keyframes pja-flash {
-                0%, 100% { opacity: 0; }
-                10%, 30%, 50% { opacity: 0.8; }
-                20%, 40% { opacity: 0.3; }
-            }
-            .pja-flying-baba {
-                position: fixed; width: 100px; height: 100px; z-index: 9999;
-                transition: all 1s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-                filter: drop-shadow(0 0 30px rgba(255,215,0,0.9));
-                display: flex; align-items: center; justify-content: center;
-            }
-            .pja-baba-inner {
-                font-size: 70px;
-                animation: pja-babaGlow 1s ease-in-out infinite alternate;
-            }
-            @keyframes pja-babaGlow {
-                from { filter: drop-shadow(0 0 20px gold) drop-shadow(0 0 40px orange); }
-                to { filter: drop-shadow(0 0 40px gold) drop-shadow(0 0 80px red) drop-shadow(0 0 120px purple); }
-            }
-            .pja-flying-baba.spinning {
-                animation: pja-orbit 2.5s linear infinite;
-            }
-            @keyframes pja-orbit {
-                0% { transform: rotate(0deg) translateX(180px) rotate(0deg) scale(1); }
-                25% { transform: rotate(90deg) translateX(180px) rotate(-90deg) scale(1.2); }
-                50% { transform: rotate(180deg) translateX(180px) rotate(-180deg) scale(1); }
-                75% { transform: rotate(270deg) translateX(180px) rotate(-270deg) scale(1.2); }
-                100% { transform: rotate(360deg) translateX(180px) rotate(-360deg) scale(1); }
-            }
-            .pja-baba-trail {
-                position: fixed; width: 100px; height: 100px; font-size: 70px;
-                display: flex; align-items: center; justify-content: center;
-                opacity: 0.3; filter: blur(2px); pointer-events: none; z-index: 9998;
-            }
-            .pja-explosion-ring {
-                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                border-radius: 50%; border: 8px solid transparent; opacity: 0; pointer-events: none; z-index: 9995;
-            }
-            .pja-explosion-ring.active {
-                animation: pja-ringExpand 1.5s ease-out forwards;
-            }
-            @keyframes pja-ringExpand {
-                0% { width: 0; height: 0; opacity: 1; border-color: #ffd700; box-shadow: 0 0 50px #ffd700; }
-                50% { border-color: #ff6b6b; box-shadow: 0 0 100px #ff6b6b; }
-                100% { width: 150vw; height: 150vw; opacity: 0; border-color: #4ecdc4; }
-            }
-            .pja-shockwave-multi {
-                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                border-radius: 50%; border: 5px solid; opacity: 0; pointer-events: none; z-index: 9994;
-            }
-            .pja-shockwave-multi.active {
-                animation: pja-multiWave 2s ease-out forwards;
-            }
-            @keyframes pja-multiWave {
-                0% { width: 0; height: 0; opacity: 1; border-color: #ffd700; box-shadow: 0 0 50px #ffd700; }
-                100% { width: 200vw; height: 200vw; opacity: 0; border-color: transparent; }
-            }
-            .pja-coin-3d {
-                position: fixed; width: 40px; height: 40px; z-index: 9997;
-                transform-style: preserve-3d;
-                animation: pja-coinFlip 0.5s linear infinite, pja-coinFly 2s ease-out forwards;
-            }
-            .pja-coin-3d::before, .pja-coin-3d::after {
-                content: '$'; position: absolute; width: 100%; height: 100%; border-radius: 50%;
-                background: radial-gradient(circle at 30% 30%, #ffed4e, #ffd700, #b8860b);
-                display: flex; align-items: center; justify-content: center;
-                font-weight: bold; color: #8b6914; font-size: 20px;
-                border: 3px solid #b8860b; backface-visibility: hidden;
-            }
-            .pja-coin-3d::after { transform: rotateY(180deg); background: radial-gradient(circle at 30% 30%, #b8860b, #8b6914); }
-            @keyframes pja-coinFlip { 0% { transform: rotateY(0deg); } 100% { transform: rotateY(360deg); } }
-            @keyframes pja-coinFly {
-                0% { transform: translate(0, 0) scale(1); opacity: 1; }
-                100% { transform: translate(var(--tx), var(--ty)) scale(0.5); opacity: 0; }
-            }
-            .pja-gem-particle {
-                position: fixed; width: 25px; height: 25px; z-index: 9996;
-                animation: pja-gemFly 1.5s ease-out forwards;
-            }
-            @keyframes pja-gemFly {
-                0% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; }
-                100% { transform: translate(var(--tx), var(--ty)) rotate(720deg) scale(0); opacity: 0; }
-            }
-            .pja-fire-particle {
-                position: fixed; width: 30px; height: 30px; z-index: 9995;
-                animation: pja-fireFly 1.2s ease-out forwards;
-            }
-            @keyframes pja-fireFly {
-                0% { transform: translate(0, 0) scale(1); opacity: 1; }
-                100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
-            }
-            .pja-streamer {
-                position: fixed; width: 8px; height: 200px; z-index: 9994;
-                animation: pja-streamerWave 2s ease-out forwards;
-            }
-            @keyframes pja-streamerWave {
-                0% { transform: translate(0, 0) scaleY(0); opacity: 1; }
-                100% { transform: translate(var(--sx), var(--sy)) scaleY(1); opacity: 0; }
-            }
-            .pja-mega-jackpot-container {
-                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-                display: none; justify-content: center; align-items: center; flex-direction: column;
-                z-index: 10001; background: radial-gradient(ellipse at center, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.95) 100%);
-                perspective: 1000px;
-            }
-            .pja-mega-jackpot-container.active {
-                display: flex;
-                animation: pja-containerEntry 1s ease-out;
-            }
-            @keyframes pja-containerEntry {
-                0% { opacity: 0; transform: scale(0.3) rotateX(45deg); }
-                60% { transform: scale(1.1) rotateX(-10deg); }
-                100% { opacity: 1; transform: scale(1) rotateX(0); }
-            }
-            .pja-mega-text {
-                font-size: 90px; font-weight: 900; text-transform: uppercase; letter-spacing: 15px;
-                position: relative; transform-style: preserve-3d;
-                animation: pja-megaFloat 3s ease-in-out infinite;
-            }
-            .pja-mega-text::before {
-                content: 'MEGA'; position: absolute; top: 0; left: 0;
-                background: linear-gradient(45deg, #ffd700, #ff6b6b, #ffd700, #4ecdc4, #ffd700);
-                background-size: 400% 400%; -webkit-background-clip: text; background-clip: text;
-                -webkit-text-fill-color: transparent;
-                animation: pja-gradientShift 2s ease infinite;
-                filter: drop-shadow(0 0 30px rgba(255,215,0,0.8));
-            }
-            .pja-mega-text::after {
-                content: 'MEGA'; position: absolute; top: 5px; left: 5px;
-                background: linear-gradient(45deg, #b8860b, #8b4513);
-                -webkit-background-clip: text; background-clip: text;
-                -webkit-text-fill-color: transparent; z-index: -1; filter: blur(2px);
-            }
-            @keyframes pja-megaFloat {
-                0%, 100% { transform: translateY(0) rotateY(0deg); }
-                50% { transform: translateY(-20px) rotateY(5deg); }
-            }
-            @keyframes pja-gradientShift {
-                0%, 100% { background-position: 0% 50%; }
-                50% { background-position: 100% 50%; }
-            }
-            .pja-jackpot-subtext {
-                font-size: 60px; font-weight: bold;
-                background: linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3);
-                background-size: 400% 400%; -webkit-background-clip: text; background-clip: text;
-                -webkit-text-fill-color: transparent;
-                animation: pja-rainbowShift 3s linear infinite;
-                margin-top: 10px; text-shadow: 0 0 50px rgba(255,255,255,0.5);
-            }
-            @keyframes pja-rainbowShift {
-                0% { background-position: 0% 50%; }
-                100% { background-position: 400% 50%; }
-            }
-            .pja-win-amount-mega {
-                font-size: 50px; color: #ffd700; margin-top: 30px; font-weight: bold;
-                text-shadow: 0 0 10px #ffd700, 0 0 20px #ffd700, 0 0 40px #ff6b6b, 0 0 80px #ff6b6b;
-                animation: pja-amountPulse 1s ease-in-out infinite;
-            }
-            @keyframes pja-amountPulse {
-                0%, 100% { transform: scale(1); text-shadow: 0 0 20px #ffd700; }
-                50% { transform: scale(1.1); text-shadow: 0 0 40px #ffd700, 0 0 80px #ff6b6b; }
-            }
-            .pja-premium-confetti {
-                position: fixed; z-index: 10000; animation: pja-confettiFall 4s ease-out forwards;
-            }
-            @keyframes pja-confettiFall {
-                0% { transform: translateY(-100px) rotate(0deg) scale(1); opacity: 1; }
-                100% { transform: translateY(100vh) rotate(1080deg) scale(0.5); opacity: 0; }
-            }
-            .pja-epic-firework {
-                position: fixed; width: 10px; height: 10px; border-radius: 50%; z-index: 9999;
-            }
-            .pja-sound-bars {
-                position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
-                display: flex; gap: 8px; z-index: 10002; opacity: 0;
-            }
-            .pja-sound-bars.active {
-                opacity: 1; animation: pja-barsAppear 0.5s ease-out;
-            }
-            @keyframes pja-barsAppear {
-                from { transform: translateX(-50%) translateY(50px); opacity: 0; }
-                to { transform: translateX(-50%) translateY(0); opacity: 1; }
-            }
-            .pja-bar {
-                width: 12px; background: linear-gradient(to top, #ffd700, #ff6b6b, #4ecdc4);
-                border-radius: 6px; animation: pja-barDance 0.5s ease-in-out infinite;
-            }
-            .pja-bar:nth-child(1) { height: 40px; animation-delay: 0s; }
-            .pja-bar:nth-child(2) { height: 70px; animation-delay: 0.1s; }
-            .pja-bar:nth-child(3) { height: 100px; animation-delay: 0.2s; }
-            .pja-bar:nth-child(4) { height: 70px; animation-delay: 0.3s; }
-            .pja-bar:nth-child(5) { height: 40px; animation-delay: 0.4s; }
-            @keyframes pja-barDance {
-                0%, 100% { transform: scaleY(1); }
-                50% { transform: scaleY(1.3); }
-            }
-            @keyframes pja-shake {
-                0%, 100% { transform: translate(0, 0); }
-                10% { transform: translate(-5px, -5px); }
-                20% { transform: translate(5px, 5px); }
-                30% { transform: translate(-8px, 0); }
-                40% { transform: translate(8px, 0); }
-                50% { transform: translate(-5px, 5px); }
-                60% { transform: translate(5px, -5px); }
-                70% { transform: translate(-3px, 0); }
-                80% { transform: translate(3px, 0); }
-                90% { transform: translate(0, 3px); }
-            }
-        `;
-        document.head.appendChild(styleEl);
-    }
-    
-    // ===== 2. HTML Element တွေ Dynamic ဖန်တီးမယ် =====
-    function createElements() {
-        const elements = {};
-        
-        // Stars Container
-        elements.stars = document.createElement('div');
-        elements.stars.className = 'pja-stars';
-        
-        // Lightning
-        elements.lightning = document.createElement('div');
-        elements.lightning.className = 'pja-lightning';
-        
-        // Explosion Ring
-        elements.explosionRing = document.createElement('div');
-        elements.explosionRing.className = 'pja-explosion-ring';
-        
-        // Mega Jackpot Container
-        elements.megaJackpot = document.createElement('div');
-        elements.megaJackpot.className = 'pja-mega-jackpot-container';
-        elements.megaJackpot.innerHTML = `
-            <div class="pja-mega-text"></div>
-            <div class="pja-jackpot-subtext">JACKPOT</div>
-            <div class="pja-win-amount-mega">$${winAmount.toLocaleString()}</div>
-        `;
-        
-        // Sound Bars
-        elements.soundBars = document.createElement('div');
-        elements.soundBars.className = 'pja-sound-bars';
-        for (let i = 0; i < 5; i++) {
-            elements.soundBars.appendChild(document.createElement('div')).className = 'pja-bar';
-        }
-        
-        // Append to body
-        document.body.appendChild(elements.stars);
-        document.body.appendChild(elements.lightning);
-        document.body.appendChild(elements.explosionRing);
-        document.body.appendChild(elements.megaJackpot);
-        document.body.appendChild(elements.soundBars);
-        
-        return elements;
-    }
-    const elements = createElements();
-    
-    // ===== 3. Stars ဖန်တီးမယ် =====
-    function createStars() {
-        for (let i = 0; i < 100; i++) {
-            const star = document.createElement('div');
-            star.className = 'pja-star';
-            star.style.left = Math.random() * 100 + '%';
-            star.style.top = Math.random() * 100 + '%';
-            star.style.animationDelay = Math.random() * 3 + 's';
-            star.style.width = (Math.random() * 3 + 1) + 'px';
-            star.style.height = star.style.width;
-            elements.stars.appendChild(star);
-        }
-    }
+// ============================================
+//    jackpot ANIMATIONS
+// ============================================
+
+
+  window.startPremiumJackpot = async function() {
     createStars();
-    // ===== 4. Baba Cell  =====
-    function getBabaCells() {
-        return document.querySelectorAll('.grid-cell[data-symbol="baba"], .slot-cell.baba');
-    }
-    async function runAnimation() {
-    // Step 1: Lightning Escape (2 seconds)
-await new Promise(resolve => {
-    elements.lightning.classList.add('active');
-    setTimeout(() => elements.lightning.classList.remove('active'), 200);
-    document.body.style.animation = 'pja-shake 0.5s ease-out';
-    
-    const babas = getBabaCells();
-    babas.forEach((cell, index) => {
-        const rect = cell.getBoundingClientRect();
+    await lightningEscape();
+    await orbitWithTrails();
+    await gatherAndImplode();
+    await megaExplosion();
+    showMegaJackpot();
+     };
+         // ⭐ Create Background Stars
+        function createStars() {
+            const container = document.getElementById('stars');
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                star.style.width = (Math.random() * 3 + 1) + 'px';
+                star.style.height = star.style.width;
+                container.appendChild(star);
+            }
+        }
         
-        // Flying Baba ဖန်တီးခြင်း
-        const flyingBaba = document.createElement('div');
-        flyingBaba.className = 'pja-flying-baba';
-        flyingBaba.style.zIndex = '99999';
-        
-        // 🔥🔥🔥 Grid Cell ထဲက Baba ပုံကို ရှာပြီး အတိအကျ ကူးယူမယ် 🔥🔥🔥
-        const originalImg = cell.querySelector('img');
-        
-        if (originalImg) {
-            // ပုံကို Clone လုပ်ပြီး သုံးမယ်
-            const clonedImg = originalImg.cloneNode(true);
-            clonedImg.style.width = '100%';
-            clonedImg.style.height = '100%';
-            clonedImg.style.objectFit = 'contain';
-            clonedImg.style.filter = 'drop-shadow(0 0 20px gold)';
-            flyingBaba.appendChild(clonedImg);
-        } else {
-            // ပုံမရှိရင် IMAGE_PATHS ထဲက လမ်းကြောင်းကို သုံးပြီး ဖန်တီးမယ် (အာမခံချက်)
-            console.warn('⚠️ No img found in Baba cell, using IMAGE_PATHS fallback');
+
+        // ⚡ Step 1: Lightning + Escape
+        function lightningEscape() {
+            return new Promise(resolve => {
+                // Lightning flash
+                const lightning = document.getElementById('lightning');
+                lightning.classList.add('active');
+                setTimeout(() => lightning.classList.remove('active'), 200);
+                
+                // Screen shake effect
+                document.body.style.animation = 'none';
+                document.body.offsetHeight;
+                document.body.style.animation = 'shake 0.5s ease-out';
+                
+               const babaCells = document.querySelectorAll('.girt-cell');
+                const babas = [];
+               babaCells.forEach(cell => {
+            // Baba ဟုတ်မဟုတ် စစ်မယ်
+            if (cell.textContent.includes('baba') || 
+                cell.querySelector('.baba') || 
+                cell.dataset.symbol === 'baba') {
+                babas.push(cell);
+              }
+           });
+                    
+                    // Create premium flying baba
+                    const flyingBaba = document.createElement('div');
+            flyingBaba.className = 'flying-baba';
+            
+            // Emoji အစား Image သုံးမယ်
             const babaImg = document.createElement('img');
-            babaImg.src = 'images/baba.png'; // IMAGE_PATHS['baba'] အတိုင်း
+            babaImg.src = 'images/baba.png'; // မင်းရဲ့ baba ပုံလမ်းကြောင်း
             babaImg.alt = 'BABA';
             babaImg.style.width = '100%';
             babaImg.style.height = '100%';
             babaImg.style.objectFit = 'contain';
-            babaImg.style.filter = 'drop-shadow(0 0 20px gold)';
-            
-            // Image မပေါ်ရင် Emoji ပြဖို့ Fallback
-            babaImg.onerror = () => {
-                babaImg.remove();
-                flyingBaba.innerHTML = '<div class="pja-baba-inner" style="font-size:70px; color: gold;">👳</div>';
-            };
-            
             flyingBaba.appendChild(babaImg);
-        }
-        
-        flyingBaba.style.left = rect.left + 'px';
-        flyingBaba.style.top = rect.top + 'px';
-        document.body.appendChild(flyingBaba);
-        
-        cell.style.transition = 'all 0.3s';
-        cell.style.transform = 'scale(1.5)';
-        cell.style.opacity = '0';
-        
-        const angle = (index * 72) * (Math.PI / 180);
-        const radius = 220;
-        const centerX = window.innerWidth / 2;
-        const centerY = window.innerHeight / 2;
-        const targetX = centerX + Math.cos(angle) * radius - 50;
-        const targetY = centerY + Math.sin(angle) * radius - 50;
-        
-        setTimeout(() => {
-            flyingBaba.style.left = targetX + 'px';
-            flyingBaba.style.top = targetY + 'px';
-            flyingBaba.classList.add('spinning');
-        }, 300 + index * 150);
-    });
-    setTimeout(resolve, 3000);
-});
-        // Step 2: Orbit with Trails (8 seconds)
-        await new Promise(resolve => {
-            const babas = document.querySelectorAll('.pja-flying-baba');
-            const colors = ['#ff0000', '#ff7f00', '#ffff00', '#00ff00', '#0000ff'];
-            const trailInterval = setInterval(() => {
-                babas.forEach((baba, index) => {
-                    const rect = baba.getBoundingClientRect();
-                    const trail = document.createElement('div');
-                    trail.className = 'pja-baba-trail';
-                    trail.textContent = '👳';
-                    trail.style.left = rect.left + 'px';
-                    trail.style.top = rect.top + 'px';
-                    trail.style.color = colors[index];
-                    trail.style.filter = `drop-shadow(0 0 10px ${colors[index]})`;
-                    document.body.appendChild(trail);
-                    setTimeout(() => trail.remove(), 900);
-                });
-            }, 150);
             
-            setTimeout(() => { 
-                clearInterval(trailInterval); 
-                resolve(); 
-            }, 9000);
-        });
-        
-        // Step 3: Gather and Implode (3 seconds)
-        await new Promise(resolve => {
-            const babas = document.querySelectorAll('.pja-flying-baba');
-            const centerX = window.innerWidth / 2 - 50;
-            const centerY = window.innerHeight / 2 - 50;
-            babas.forEach(baba => baba.classList.add('trail'));
-            babas.forEach((baba, index) => {
-                baba.style.transition = 'all 1.2s cubic-bezier(0.6, -0.28, 0.735, 0.045)';
-                const spiralX = centerX + (Math.random() - 0.5) * 30;
-                const spiralY = centerY + (Math.random() - 0.5) * 30;
-                setTimeout(() => {
-                    baba.style.left = spiralX + 'px';
-                    baba.style.top = spiralY + 'px';
-                    baba.style.transform = 'scale(2) rotate(720deg)';
-                }, index * 200);
-            });
-            setTimeout(resolve, 4000);
-        });
-        
-        // Step 4: Mega Explosion (4 seconds)
-        await new Promise(resolve => {
+            flyingBaba.style.left = rect.left + 'px';
+            flyingBaba.style.top = rect.top + 'px';
+            flyingBaba.style.width = '60px';  // အရွယ်အစား သတ်မှတ်
+            flyingBaba.style.height = '60px';
+            document.body.appendChild(flyingBaba);
+            
+            // Hide original with flash
+            cell.style.transition = 'all 0.3s';
+            cell.style.transform = 'scale(1.5)';
+            cell.style.opacity = '0';
+            
+            // Calculate orbit position
+            const angle = (index * 72) * (Math.PI / 180);
+            const radius = 220;
             const centerX = window.innerWidth / 2;
             const centerY = window.innerHeight / 2;
             
-            elements.lightning.classList.add('active');
-            
-            // Shockwaves
-            for (let i = 0; i < 5; i++) {
-                setTimeout(() => {
-                    const wave = document.createElement('div');
-                    wave.className = 'pja-shockwave-multi active';
-                    wave.style.animationDelay = (i * 0.4) + 's';
-                    document.body.appendChild(wave);
-                    setTimeout(() => wave.remove(), 3000);
-                }, i * 300);
-            }
-            
-            elements.explosionRing.classList.add('active');
-            
-            document.querySelectorAll('.pja-flying-baba').forEach((baba, i) => {
-                setTimeout(() => {
-                    baba.style.transform = 'scale(4)';
-                    baba.style.opacity = '0';
-                    setTimeout(() => baba.remove(), 500);
-                }, i * 80);
-            });
-            
-            // Helper functions
-            const createCoins = () => {
-                for (let i = 0; i < 100; i++) {
-                    setTimeout(() => {
-                        const coin = document.createElement('div');
-                        coin.className = 'pja-coin-3d';
-                        const angle = Math.random() * Math.PI * 2;
-                        const velocity = 200 + Math.random() * 400;
-                        coin.style.left = (centerX - 20) + 'px';
-                        coin.style.top = (centerY - 20) + 'px';
-                        coin.style.setProperty('--tx', Math.cos(angle) * velocity + 'px');
-                        coin.style.setProperty('--ty', Math.sin(angle) * velocity + 300 + 'px');
-                        document.body.appendChild(coin);
-                        setTimeout(() => coin.remove(), 2000);
-                    }, i * 15);
-                }
-            };
-            const createGems = () => {
-                const gems = ['💎', '🔮', '💍', '👑', '⭐', '✨'];
-                for (let i = 0; i < 50; i++) {
-                    const gem = document.createElement('div');
-                    gem.className = 'pja-gem-particle';
-                    gem.textContent = gems[Math.floor(Math.random() * gems.length)];
-                    const angle = Math.random() * Math.PI * 2;
-                    const velocity = 150 + Math.random() * 300;
-                    gem.style.left = centerX + 'px';
-                    gem.style.top = centerY + 'px';
-                    gem.style.setProperty('--tx', Math.cos(angle) * velocity + 'px');
-                    gem.style.setProperty('--ty', Math.sin(angle) * velocity + 'px');
-                    document.body.appendChild(gem);
-                    setTimeout(() => gem.remove(), 1500);
-                }
-            };
-            const createFire = () => {
-                for (let i = 0; i < 40; i++) {
-                    const fire = document.createElement('div');
-                    fire.className = 'pja-fire-particle';
-                    fire.textContent = '🔥';
-                    const angle = Math.random() * Math.PI * 2;
-                    const velocity = 100 + Math.random() * 200;
-                    fire.style.left = centerX + 'px';
-                    fire.style.top = centerY + 'px';
-                    fire.style.setProperty('--tx', Math.cos(angle) * velocity + 'px');
-                    fire.style.setProperty('--ty', Math.sin(angle) * velocity + 'px');
-                    document.body.appendChild(fire);
-                    setTimeout(() => fire.remove(), 1200);
-                }
-            };
-            const createStreamers = () => {
-                const colors = ['#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24'];
-                for (let i = 0; i < 30; i++) {
-                    const streamer = document.createElement('div');
-                    streamer.className = 'pja-streamer';
-                    streamer.style.background = `linear-gradient(to bottom, ${colors[i % colors.length]}, transparent)`;
-                    const angle = (Math.PI * 2 * i) / 30;
-                    const distance = 300 + Math.random() * 200;
-                    streamer.style.left = centerX + 'px';
-                    streamer.style.top = centerY + 'px';
-                    streamer.style.setProperty('--sx', Math.cos(angle) * distance + 'px');
-                    streamer.style.setProperty('--sy', Math.sin(angle) * distance + 'px');
-                    document.body.appendChild(streamer);
-                    setTimeout(() => streamer.remove(), 2000);
-                }
-            };
-            
-            createCoins(); 
-            createGems(); 
-            createFire(); 
-            createStreamers();
+            const targetX = centerX + Math.cos(angle) * radius - 30;
+            const targetY = centerY + Math.sin(angle) * radius - 30;
             
             setTimeout(() => {
-                elements.lightning.classList.remove('active');
-                elements.explosionRing.classList.remove('active');
-                resolve();
-            }, 4000);
+                flyingBaba.style.left = targetX + 'px';
+                flyingBaba.style.top = targetY + 'px';
+                flyingBaba.classList.add('spinning');
+            }, 300 + index * 100);
         });
         
-        // Step 5: Show Mega Jackpot
-        elements.megaJackpot.classList.add('active');
-        elements.soundBars.classList.add('active');
+        setTimeout(resolve, 1500);
+    });
+}
+        //  Step 2: Orbit with Rainbow Trails
+        // 💫 Step 2: Orbit with Rainbow Trails
+function orbitWithTrails() {
+    return new Promise(resolve => {
+        const babas = document.querySelectorAll('.flying-baba');
+        const colors = ['#ff0000', '#ff7f00', '#ffff00', '#00ff00', '#0000ff'];
         
-        // Confetti & Fireworks
-        (function confetti() {
+        // Create trails
+        const trailInterval = setInterval(() => {
+            babas.forEach((baba, index) => {
+                const rect = baba.getBoundingClientRect();
+                const trail = document.createElement('div');
+                trail.className = 'baba-trail';
+                
+                // 🔥 Trail မှာလည်း Image ထည့်မယ်
+                const trailImg = document.createElement('img');
+                trailImg.src = 'images/baba.png';
+                trailImg.alt = 'BABA';
+                trailImg.style.width = '100%';
+                trailImg.style.height = '100%';
+                trailImg.style.objectFit = 'contain';
+                trail.appendChild(trailImg);
+                
+                trail.style.left = rect.left + 'px';
+                trail.style.top = rect.top + 'px';
+                trail.style.width = '40px';
+                trail.style.height = '40px';
+                trail.style.filter = `drop-shadow(0 0 10px ${colors[index]})`;
+                document.body.appendChild(trail);
+                
+                setTimeout(() => trail.remove(), 500);
+            });
+        }, 100);
+        
+        setTimeout(() => {
+            clearInterval(trailInterval);
+            resolve();
+        }, 2500);
+       });
+     }
+
+        //  Step 3: Gather with Implosion Effect
+        function gatherAndImplode() {
+            return new Promise(resolve => {
+                const babas = document.querySelectorAll('.flying-baba');
+                const centerX = window.innerWidth / 2 - 50;
+                const centerY = window.innerHeight / 2 - 50;
+                
+                // Add trail class for final approach
+                babas.forEach(baba => baba.classList.add('trail'));
+                
+                // Spiral into center
+                babas.forEach((baba, index) => {
+                    baba.style.transition = 'all 0.8s cubic-bezier(0.6, -0.28, 0.735, 0.045)';
+                    
+                    const spiralX = centerX + (Math.random() - 0.5) * 30;
+                    const spiralY = centerY + (Math.random() - 0.5) * 30;
+                    
+                    setTimeout(() => {
+                        baba.style.left = spiralX + 'px';
+                        baba.style.top = spiralY + 'px';
+                        baba.style.transform = 'scale(2) rotate(720deg)';
+                    }, index * 150);
+                });
+                
+                setTimeout(resolve, 1200);
+            });
+        }
+
+        //  Step 4: MEGA EXPLOSION
+        function megaExplosion() {
+            return new Promise(resolve => {
+                const centerX = window.innerWidth / 2;
+                const centerY = window.innerHeight / 2;
+                
+                // Lightning flash
+                const lightning = document.getElementById('lightning');
+                lightning.classList.add('active');
+                
+                // Multiple shockwaves
+                for (let i = 0; i < 3; i++) {
+                    setTimeout(() => {
+                        const wave = document.createElement('div');
+                        wave.className = 'shockwave-multi active';
+                        wave.style.animationDelay = (i * 0.3) + 's';
+                        document.body.appendChild(wave);
+                        setTimeout(() => wave.remove(), 2000);
+                    }, i * 200);
+                }
+                
+                // Explosion ring
+                const ring = document.getElementById('explosionRing');
+                ring.classList.add('active');
+                
+                // Remove babas with explosion
+                document.querySelectorAll('.flying-baba').forEach((baba, i) => {
+                    setTimeout(() => {
+                        baba.style.transform = 'scale(4)';
+                        baba.style.opacity = '0';
+                        setTimeout(() => baba.remove(), 300);
+                    }, i * 50);
+                });
+                
+                // Create 3D coins
+                create3DCoins(centerX, centerY);
+                
+                // Create gems
+                createGems(centerX, centerY);
+                
+                // Create fire particles
+                createFireParticles(centerX, centerY);
+                
+                // Create streamers
+                createStreamers(centerX, centerY);
+                
+                setTimeout(() => {
+                    lightning.classList.remove('active');
+                    ring.classList.remove('active');
+                    resolve();
+                }, 1500);
+            });
+        }
+
+        //  Create 3D Coins
+        function create3DCoins(x, y) {
+            for (let i = 0; i < 100; i++) {
+                setTimeout(() => {
+                    const coin = document.createElement('div');
+                    coin.className = 'coin-3d';
+                    
+                    const angle = Math.random() * Math.PI * 2;
+                    const velocity = 200 + Math.random() * 400;
+                    const tx = Math.cos(angle) * velocity;
+                    const ty = Math.sin(angle) * velocity + 300;
+                    
+                    coin.style.left = (x - 20) + 'px';
+                    coin.style.top = (y - 20) + 'px';
+                    coin.style.setProperty('--tx', tx + 'px');
+                    coin.style.setProperty('--ty', ty + 'px');
+                    
+                    document.body.appendChild(coin);
+                    setTimeout(() => coin.remove(), 2000);
+                }, i * 15);
+            }
+        }
+
+        //  Create Gems
+        function createGems(x, y) {
+            const gemEmojis = ['💎', '🔮', '💍', '👑', '⭐', '✨'];
+            
+            for (let i = 0; i < 50; i++) {
+        const gem = document.createElement('div');
+        gem.className = 'gem-particle';
+        gem.textContent = gemEmojis[Math.floor(Math.random() * gemEmojis.length)];
+                
+                const angle = Math.random() * Math.PI * 2;
+                const velocity = 150 + Math.random() * 300;
+                const tx = Math.cos(angle) * velocity;
+                const ty = Math.sin(angle) * velocity;
+                
+                gem.style.left = x + 'px';
+                gem.style.top = y + 'px';
+                gem.style.setProperty('--tx', tx + 'px');
+                gem.style.setProperty('--ty', ty + 'px');
+                
+                document.body.appendChild(gem);
+                setTimeout(() => gem.remove(), 1500);
+            }
+        }
+
+        //  Create Fire Particles
+        function createFireParticles(x, y) {
+            for (let i = 0; i < 40; i++) {
+                const fire = document.createElement('div');
+                fire.className = 'fire-particle';
+                
+                const angle = Math.random() * Math.PI * 2;
+                const velocity = 100 + Math.random() * 200;
+                const tx = Math.cos(angle) * velocity;
+                const ty = Math.sin(angle) * velocity;
+                
+                fire.style.left = x + 'px';
+                fire.style.top = y + 'px';
+                fire.style.setProperty('--tx', tx + 'px');
+                fire.style.setProperty('--ty', ty + 'px');
+                
+                document.body.appendChild(fire);
+                setTimeout(() => fire.remove(), 1200);
+            }
+        }
+
+        //  Create Streamers
+        function createStreamers(x, y) {
+            const colors = ['#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24'];
+            
+            for (let i = 0; i < 30; i++) {
+                const streamer = document.createElement('div');
+                streamer.className = 'streamer';
+                streamer.style.background = `linear-gradient(to bottom, ${colors[i % colors.length]}, transparent)`;
+                
+                const angle = (Math.PI * 2 * i) / 30;
+                const distance = 300 + Math.random() * 200;
+                const sx = Math.cos(angle) * distance;
+                const sy = Math.sin(angle) * distance;
+                
+                streamer.style.left = x + 'px';
+                streamer.style.top = y + 'px';
+                streamer.style.setProperty('--sx', sx + 'px');
+                streamer.style.setProperty('--sy', sy + 'px');
+                
+                document.body.appendChild(streamer);
+                setTimeout(() => streamer.remove(), 2000);
+            }
+        }
+
+        //  Step 5: Show MEGA JACKPOT
+        function showMegaJackpot() {
+            const container = document.getElementById('megaJackpot');
+            const soundBars = document.getElementById('soundBars');
+            
+            container.classList.add('active');
+            soundBars.classList.add('active');
+            
+            // Premium confetti
+            createPremiumConfetti();
+            
+            // Epic fireworks
+            createEpicFireworks();
+            
+            // Auto close
+            setTimeout(() => {
+                container.classList.remove('active');
+                soundBars.classList.remove('active');
+                resetPremium();
+            }, 8000);
+        }
+
+        //  Create Premium Confetti
+        function createPremiumConfetti() {
             const types = ['ribbon', 'star', 'coin'];
-            const colors = [['#ffd700','#ffed4e'],['#ff6b6b','#ff8e8e'],['#4ecdc4','#7eddd8'],['#45b7d1','#74c5e0'],['#f9ca24','#f0b90b']];
+            const colors = [
+                ['#ffd700', '#ffed4e'],
+                ['#ff6b6b', '#ff8e8e'],
+                ['#4ecdc4', '#7eddd8'],
+                ['#45b7d1', '#74c5e0'],
+                ['#f9ca24', '#f0b90b']
+            ];
+            
             for (let i = 0; i < 200; i++) {
                 setTimeout(() => {
-                    const c = document.createElement('div');
-                    const type = types[Math.floor(Math.random()*types.length)];
-                    const cp = colors[Math.floor(Math.random()*colors.length)];
-                    c.className = `pja-premium-confetti confetti-${type}`;
-                    c.style.left = Math.random()*100 + 'vw';
-                    c.style.setProperty('--color1', cp[0]);
-                    c.style.setProperty('--color2', cp[1]);
-                    c.style.animationDuration = (3+Math.random()*2)+'s';
-                    c.style.animationDelay = Math.random()+'s';
-                    if(type==='ribbon') c.style.cssText += 'width:15px;height:30px;background:linear-gradient(45deg,var(--color1),var(--color2));border-radius:0 0 50% 50%;';
-                    else if(type==='star') c.innerHTML = '⭐';
-                    else c.innerHTML = '🪙';
-                    document.body.appendChild(c);
-                    setTimeout(() => c.remove(), 5000);
-                }, i*25);
+                    const confetti = document.createElement('div');
+                    const type = types[Math.floor(Math.random() * types.length)];
+                    const colorPair = colors[Math.floor(Math.random() * colors.length)];
+                    
+                    confetti.className = `premium-confetti confetti-${type}`;
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.setProperty('--color1', colorPair[0]);
+                    confetti.style.setProperty('--color2', colorPair[1]);
+                    confetti.style.animationDuration = (3 + Math.random() * 2) + 's';
+                    confetti.style.animationDelay = Math.random() + 's';
+                    
+                    document.body.appendChild(confetti);
+                    setTimeout(() => confetti.remove(), 5000);
+                }, i * 25);
             }
-        })();
-        
-        (function fireworks() {
-            const colors = ['#ffd700','#ff6b6b','#4ecdc4','#45b7d1','#f9ca24','#ff00ff'];
-            for (let burst=0; burst<8; burst++) {
-                setTimeout(() => {
-                    const x=10+Math.random()*80, y=10+Math.random()*40, color=colors[Math.floor(Math.random()*colors.length)];
-                    const core=document.createElement('div'); core.className='pja-epic-firework'; core.style.left=x+'%'; core.style.top=y+'%'; core.style.background=color; core.style.boxShadow=`0 0 50px ${color}`; document.body.appendChild(core); setTimeout(()=>core.remove(),500);
-                    for(let i=0;i<36;i++) {
-                        const p=document.createElement('div'); p.className='pja-epic-firework'; p.style.left=(x*window.innerWidth/100)+'px'; p.style.top=(y*window.innerHeight/100)+'px'; p.style.background=color; p.style.boxShadow=`0 0 10px ${color}`;
-                        const angle=(Math.PI*2*i)/36, v=80+Math.random()*40;
-                        p.animate([{transform:'translate(0,0) scale(1)',opacity:1},{transform:`translate(${Math.cos(angle)*v}px,${Math.sin(angle)*v}px) scale(0)`,opacity:0}],{duration:1000,easing:'ease-out'});
-                        document.body.appendChild(p); setTimeout(()=>p.remove(),1000);
-                    }
-                }, burst*600);
-            }
-        })();
-        
-        // Cleanup after 43 seconds (total 2+8+3+4+43 = 60 seconds)
-        setTimeout(() => {
-            elements.megaJackpot.classList.remove('active');
-            elements.soundBars.classList.remove('active');
-            document.querySelectorAll('.pja-stars, .pja-lightning, .pja-explosion-ring, .pja-mega-jackpot-container, .pja-sound-bars, .pja-flying-baba, .pja-baba-trail, .pja-coin-3d, .pja-gem-particle, .pja-fire-particle, .pja-streamer, .pja-premium-confetti, .pja-epic-firework, .pja-shockwave-multi').forEach(el => el.remove());
-            document.querySelectorAll('.grid-cell, .slot-cell').forEach(cell => {
-                cell.style.opacity = '1';
-                cell.style.transform = 'scale(1)';
-            });
-            document.body.style.animation = '';
-        }, 43000);
-    }
-    
-    runAnimation();
-}
+        }
 
-window.showJackpotAnimation = showJackpotAnimation;
+        //  Create Epic Fireworks
+        function createEpicFireworks() {
+            const colors = ['#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#ff00ff'];
+            
+            for (let burst = 0; burst < 8; burst++) {
+                setTimeout(() => {
+                    const x = 10 + Math.random() * 80; // 10% to 90% of screen
+                    const y = 10 + Math.random() * 40; // Top half
+                    const color = colors[Math.floor(Math.random() * colors.length)];
+                    
+                    // Core burst
+                    const core = document.createElement('div');
+                    core.className = 'epic-firework firework-core';
+                    core.style.left = x + '%';
+                    core.style.top = y + '%';
+                    core.style.background = color;
+                    core.style.boxShadow = `0 0 50px ${color}`;
+                    document.body.appendChild(core);
+                    setTimeout(() => core.remove(), 500);
+                    
+                    // Particles
+                    for (let i = 0; i < 36; i++) {
+                        const particle = document.createElement('div');
+                        particle.className = 'epic-firework';
+                        particle.style.left = (x * window.innerWidth / 100) + 'px';
+                        particle.style.top = (y * window.innerHeight / 100) + 'px';
+                        particle.style.background = color;
+                        particle.style.boxShadow = `0 0 10px ${color}`;
+                        
+                        const angle = (Math.PI * 2 * i) / 36;
+                        const velocity = 80 + Math.random() * 40;
+                        
+                        particle.animate([
+                            { transform: 'translate(0,0) scale(1)', opacity: 1 },
+                            { transform: `translate(${Math.cos(angle) * velocity}px, ${Math.sin(angle) * velocity}px) scale(0)`, opacity: 0 }
+                        ], {
+                            duration: 1000,
+                            easing: 'ease-out'
+                        });
+                        
+                        document.body.appendChild(particle);
+                        setTimeout(() => particle.remove(), 1000);
+                    }
+                }, burst * 600);
+            }
+        }
+
+        //  Reset
+        function resetPremium() {
+            document.querySelectorAll('.flying-baba, .baba-trail, .coin-3d, .gem-particle, .fire-particle, .streamer, .premium-confetti, .epic-firework, .shockwave-multi').forEach(el => el.remove());
+            
+            const megaJackpot = document.getElementById('megaJackpot');
+    const soundBars = document.getElementById('soundBars');
+    if (megaJackpot) megaJackpot.classList.remove('active');
+    if (soundBars) soundBars.classList.remove('active');
+
+   document.querySelectorAll('.girt-cell, .slot-cell').forEach(cell => {
+    cell.style.opacity = '1';
+    cell.style.transform = 'scale(1)';
+});
+
+// Screen shake animation
+const shakeStyle = document.createElement('style');
+shakeStyle.textContent = `
+    @keyframes shake {
+        0%, 100% { transform: translate(0, 0); }
+        10% { transform: translate(-5px, -5px); }
+        20% { transform: translate(5px, 5px); }
+        30% { transform: translate(-8px, 0); }
+        40% { transform: translate(8px, 0); }
+        50% { transform: translate(-5px, 5px); }
+        60% { transform: translate(5px, -5px); }
+        70% { transform: translate(-3px, 0); }
+        80% { transform: translate(3px, 0); }
+        90% { transform: translate(0, 3px); }
+    }
+`;
+document.head.appendChild(shakeStyle);
+
+        // Keyboard
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') startPremiumJackpot();
+        });
+
+
+
+// ===== MAKE ALL FUNCTIONS GLOBAL =====
+window.startPremiumJackpot = startPremiumJackpot;
+window.createStars = createStars;
+window.lightningEscape = lightningEscape;
+window.orbitWithTrails = orbitWithTrails;
+window.gatherAndImplode = gatherAndImplode;
+window.megaExplosion = megaExplosion;
+window.showMegaJackpot = showMegaJackpot;
+window.resetPremium = resetPremium;
+console.log('✅ PremiumJackpot Anmation ULTIMATE VERSION fully loaded with  features!');
 // ============================================
 // 31. ADD PREMIUM STYLES
 // ============================================
-
 function addPremiumStyles() {
     if (document.getElementById('premium-styles')) return;
 
@@ -3373,8 +2793,9 @@ function addPremiumStyles() {
                 opacity: 1;
             }
             30% {
-                bottom: 50%;
-                transform: scale(1.2) rotate(180deg);
+                bottom: 50%; 
+            transform: scale(1.2) rotate(180deg);
+               opacity: 1;
             }
             50% {
                 bottom: 65%;
@@ -3412,8 +2833,7 @@ function addPremiumStyles() {
         .stagger-spin {
             animation: staggeredSpin 0.15s linear infinite;
         }
-
-        @keyframes staggeredSpin {
+@keyframes staggeredSpin {
             0% { transform: rotate(0deg) scale(1); }
             25% { transform: rotate(3deg) scale(1.1); }
             50% { transform: rotate(-3deg) scale(1.1); }
@@ -3513,8 +2933,7 @@ function addPremiumStyles() {
         .symbol-glow {
             animation: dropGlow 0.8s ease-out forwards !important;
         }
-
-        .auto-spin-option {
+.auto-spin-option {
             padding: 15px;
             background: linear-gradient(145deg, #ffd700, #ffaa00);
             border: none;
@@ -3535,7 +2954,6 @@ function addPremiumStyles() {
     `;
     document.head.appendChild(style);
 }
-
 
 
 // ============================================
@@ -4921,6 +4339,327 @@ if (!document.querySelector('#free-spin-animation-styles')) {
 }
 
 // ============================================
+// 19. ULTIMATE PREMIUM BUFFALO STAMPEDE (V3)
+// ============================================
+class UltimatePremiumBuffaloStampede {
+    constructor() {
+        this.container = null;
+        this.stampedeCount = 0;
+        this.maxStampedes = 3;
+        this.interval = null;
+        this.imageBasePath = '/images/'; // မင်းရဲ့ image folder လမ်းကြောင်း
+        this.setupStyles();
+        this.createContainer();
+    }
+
+    setupStyles() {
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes buffaloRun {
+                0% {
+                    transform: translate(-50%, -50%) translateZ(-800px) scale(0.3);
+                    opacity: 0;
+                }
+                20% {
+                    opacity: 1;
+                }
+                100% {
+                    transform: translate(-50%, -50%) translateZ(400px) scale(2);
+                    opacity: 0;
+                }
+            }
+            @keyframes dustRise {
+                0% { transform: translateY(0) scale(1); opacity: 0.5; }
+                100% { transform: translateY(-150px) scale(3); opacity: 0; }
+            }
+            @keyframes sparklePop {
+                0% { transform: scale(0); opacity: 1; }
+                100% { transform: scale(2); opacity: 0; }
+            }
+            @keyframes groundShake {
+                0%, 100% { transform: translateX(0); }
+                25% { transform: translateX(-15px); }
+                75% { transform: translateX(15px); }
+            }
+            @keyframes messagePop {
+                0% { transform: translate(-50%, -50%) scale(0.2); opacity: 0; }
+                50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+                100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            }
+            @keyframes buffaloEnter {
+                0% { transform: translateX(-100%) scale(0.5); opacity: 0; }
+                100% { transform: translateX(0) scale(1); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    createContainer() {
+        this.container = document.createElement('div');
+        this.container.id = 'ultimatePremiumBuffaloStampede';
+        this.container.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 150%;
+            height: 150%;
+            z-index: 999999;
+            pointer-events: none;
+            display: none;
+            overflow: hidden;
+            perspective: 1200px;
+            transform-style: preserve-3d;
+        `;
+        document.body.appendChild(this.container);
+    }
+
+    startStampede(winAmount, baseCount) {
+        this.stop();
+        this.stampedeCount = 0;
+        this.winAmount = winAmount;
+        this.baseCount = baseCount;
+        
+        const triggerCycle = () => {
+            this.runCycle();
+            this.stampedeCount++;
+            
+            if (this.stampedeCount < this.maxStampedes) {
+                this.interval = setTimeout(triggerCycle, 2800);
+            }
+        };
+        triggerCycle();
+    }
+
+    runCycle() {
+        this.container.innerHTML = '';
+        this.container.style.display = 'block';
+
+        const count = this.baseCount + (this.stampedeCount * 5);
+        const isFinal = (this.stampedeCount === 2);
+
+        // 1. ဖုန်မှုန့်များ
+        for (let i = 0; i < 25; i++) {
+            this.createDustCloud();
+        }
+
+        // 2. ကျွဲအုပ်စု (Layers ၃ ထပ်)
+        const layerCounts = [
+            Math.floor(count * 0.3), // အနောက် - ၃၀%
+            Math.floor(count * 0.4), // အလယ် - ၄၀%
+            Math.floor(count * 0.3)  // အရှေ့ - ၃၀%
+        ];
+
+        this.spawnBuffaloLayer(layerCounts[2], 30, 1.2, 6.0); // အရှေ့ဆုံး
+        this.spawnBuffaloLayer(layerCounts[1], 20, 0.9, 8.0); // အလယ်
+        this.spawnBuffaloLayer(layerCounts[0], 10, 0.6, 10.0); // အနောက်ဆုံး
+
+        // 3. ရွှေရောင်အမှုန်များ
+        if (isFinal) {
+            for (let i = 0; i < 40; i++) {
+                this.createSparkle();
+            }
+            
+            if (navigator.vibrate) {
+                navigator.vibrate([300, 100, 300, 100, 300]);
+            }
+        } else {
+            if (navigator.vibrate) {
+                navigator.vibrate([200, 100, 200]);
+            }
+        }
+
+        // 4. မြေငလျင်
+        this.createGroundShake();
+
+        // 5. Message ပြမယ်
+        this.showMessage(isFinal);
+
+        // 6. Sound Effects
+        this.playSounds(isFinal);
+    }
+
+    spawnBuffaloLayer(count, zIndex, scale, speed) {
+        for (let i = 0; i < count; i++) {
+            this.createBuffaloImage(zIndex, scale, speed);
+        }
+    }
+
+    createBuffaloImage(zIndex, scale, speed) {
+        const buffalo = document.createElement('div');
+        const buffaloType = Math.floor(Math.random() * 3) + 1;
+        const imageUrl = `${this.imageBasePath}running_bull${buffaloType}.png`;
+        
+        buffalo.style.cssText = `
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: ${120 * scale}px;
+            height: ${80 * scale}px;
+            margin-left: -${60 * scale}px;
+            margin-top: -${40 * scale}px;
+            z-index: ${zIndex};
+            background-image: url('${imageUrl}');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            animation: buffaloRun ${speed}s ease-out forwards;
+            filter: drop-shadow(0 0 20px rgba(255,215,0,0.3));
+            transform-style: preserve-3d;
+            will-change: transform;
+        `;
+
+        this.container.appendChild(buffalo);
+    }
+
+    createDustCloud() {
+        const dust = document.createElement('div');
+        const size = 30 + Math.random() * 80;
+        const left = Math.random() * 100;
+        const duration = 2 + Math.random() * 2;
+        const delay = Math.random() * 1;
+
+        dust.style.cssText = `
+            position: absolute;
+            left: ${left}%;
+            bottom: 30px;
+            width: ${size}px;
+            height: ${size * 0.5}px;
+            background: rgba(139, 69, 19, ${0.2 + Math.random() * 0.5});
+            border-radius: 50%;
+            filter: blur(${5 + Math.random() * 15}px);
+            animation: dustRise ${duration}s ease-out ${delay}s forwards;
+            transform: scale(${0.5 + Math.random()});
+        `;
+        this.container.appendChild(dust);
+    }
+
+    createSparkle() {
+        const sparkle = document.createElement('div');
+        const size = 10 + Math.random() * 30;
+        const left = Math.random() * 100;
+        const top = 20 + Math.random() * 60;
+
+        sparkle.style.cssText = `
+            position: absolute;
+            left: ${left}%;
+            top: ${top}%;
+            width: ${size}px;
+            height: ${size}px;
+            background: #FFD700;
+            border-radius: 50%;
+            filter: blur(2px);
+            animation: sparklePop 1.5s ease-out forwards;
+            box-shadow: 0 0 20px #FFA500;
+        `;
+        this.container.appendChild(sparkle);
+    }
+
+    createGroundShake() {
+        const gameContainer = document.querySelector('.game-container');
+        if (gameContainer) {
+            gameContainer.style.animation = 'groundShake 0.3s linear';
+            setTimeout(() => {
+                gameContainer.style.animation = '';
+            }, 2000);
+        }
+
+        const body = document.body;
+        body.style.transition = 'transform 0.1s';
+        let shakes = 0;
+        const shakeIntensity = 10 + (this.stampedeCount * 5);
+        const interval = setInterval(() => {
+            const x = (Math.random() - 0.5) * shakeIntensity;
+            const y = (Math.random() - 0.5) * shakeIntensity;
+            body.style.transform = `translate(${x}px, ${y}px)`;
+            shakes++;
+            if (shakes > 12) {
+                clearInterval(interval);
+                body.style.transform = '';
+            }
+        }, 40);
+    }
+
+    showMessage(isFinal) {
+        const message = document.createElement('div');
+        message.style.cssText = `
+            position: absolute;
+            top: 30%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 100001;
+            animation: messagePop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            text-shadow: 3px 3px 0 #000, 5px 5px 0 #444;
+        `;
+
+        const stampedeNumber = this.stampedeCount + 1;
+        const stampedeText = ['FIRST WAVE', 'MEGA RUSH', 'ULTIMATE STAMPEDE'][stampedeNumber - 1];
+        const stampedeMyan = ['၁ ကြိမ်', '၂ ကြိမ်', '၃ ကြိမ်'][stampedeNumber - 1];
+        const color = isFinal ? '#FFD700' : (stampedeNumber === 2 ? '#FFA500' : '#FFF');
+
+        message.innerHTML = `
+            <div style="font-size: ${isFinal ? 90 : 70}px; font-weight: 900; color: ${color}; 
+                        text-shadow: 0 0 30px #ffaa00, 0 0 60px #ff5500;
+                        margin-bottom: 10px;">
+                ${stampedeText}!
+            </div>
+            <div style="font-size: 60px; font-weight: 700; color: white; margin-bottom: 15px;">
+                ${stampedeMyan}
+            </div>
+            <div style="font-size: 50px; color: #00ff00; text-shadow: 0 0 20px #00ff00;">
+                +${this.winAmount.toLocaleString()} ကျပ်
+            </div>
+        `;
+        this.container.appendChild(message);
+        setTimeout(() => {
+            if (message && message.parentNode) {
+                message.style.transition = 'opacity 0.5s';
+                message.style.opacity = '0';
+                setTimeout(() => {
+                    if (message && message.parentNode) {
+                        message.parentNode.removeChild(message);
+                    }
+                }, 500);
+            }
+        }, 2000);
+    }
+
+    playSounds(isFinal) {
+        if (typeof SoundManager === 'undefined') return;
+
+        if (SoundManager.buffalo) SoundManager.buffalo();
+
+        if (this.stampedeCount === 1 && SoundManager.coinRain) {
+            SoundManager.coinRain();
+        }
+
+        if (isFinal) {
+            if (SoundManager.victory) SoundManager.victory();
+            if (SoundManager.sixCoin) SoundManager.sixCoin();
+            if (SoundManager.congratulations) SoundManager.congratulations();
+        }
+    }
+
+    stop() {
+        clearTimeout(this.interval);
+        if (this.container) {
+            this.container.style.display = 'none';
+            this.container.innerHTML = '';
+        }
+        
+        const gameContainer = document.querySelector('.game-container');
+        if (gameContainer) {
+            gameContainer.style.animation = '';
+        }
+        
+        document.body.style.transform = '';
+    }
+}
+
+// Global instance ဆောက်မယ်
+const buffaloStampede = new UltimatePremiumBuffaloStampede();
+
+// ============================================
 // 20. AUTO SPIN (LONG PRESS) WITH INDICATOR
 // ============================================
 let pressTimer;
@@ -4932,18 +4671,15 @@ let isWaitingForWin = false;
 const longPressDuration = 500;
 
 function setupLongPress(btn) {
-    // Mouse Events (passive မလို)
     btn.addEventListener('mousedown', startPress);
     btn.addEventListener('mouseup', cancelPress);
     btn.addEventListener('mouseleave', cancelPress);
-    
-    // Touch Events (passive: false လို)
     btn.addEventListener('touchstart', startPress, { passive: false });
-    btn.addEventListener('touchend', cancelPress, { passive: false });
-    btn.addEventListener('touchcancel', cancelPress, { passive: false });
+    btn.addEventListener('touchend', cancelPress);
+    btn.addEventListener('touchcancel', cancelPress);
 }
+
 function startPress(e) {
-    
     e.preventDefault();
 
     if (window.gameState.autoSpinActive) return;
@@ -4958,7 +4694,6 @@ function startPress(e) {
         showAutoSpinModal();
     }, longPressDuration);
 }
-
 
 function cancelPress(e) {
     clearTimeout(pressTimer);
@@ -5179,7 +4914,6 @@ function stopAutoSpin(reason = 'manual') {
         showNotification('Auto Spin ရပ်ဆိုင်းလိုက်သည်။', 'info');
     }
 }
-
 
 // ============================================
 // 22. BALANCE & JACKPOT FUNCTIONS
@@ -5499,12 +5233,10 @@ function listenForPendingJackpot(userId) {
     }
     console.log('🟢 Jackpot Listener Started for User:', userId);
 
-    // 🔥 နားထောင်မယ့် collection: notifications
-    // type က jackpot သို့မဟုတ် baba_jackpot နှစ်မျိုးလုံး
     const notificationsRef = db.collection('notifications')
         .where('userId', '==', userId)
-        .where('read', '==', false)
-        .where('type', 'in', ['jackpot', 'baba_jackpot']);   // 🔥 အဓိကပြင်ဆင်ချက်
+        .where('type', '==', 'jackpot')
+        .where('read', '==', false);
 
     return notificationsRef.onSnapshot((snapshot) => {
         snapshot.docChanges().forEach((change) => {
@@ -5513,7 +5245,6 @@ function listenForPendingJackpot(userId) {
                 const amount = data.amount || 0;
                 const spinReq = data.spinRequirement || 10;
                 const docId = change.doc.id;
-                const notifType = data.type;   // 'jackpot' သို့ 'baba_jackpot'
 
                 if (amount > 0) {
                     // ===== ပုံမှန် Pending Jackpot State =====
@@ -5523,32 +5254,20 @@ function listenForPendingJackpot(userId) {
                     window.gameState.Lucky_MoneySpinReq = spinReq;
                     window.gameState.currentNotifId = docId;
 
-                    // ===== ✅ BABA JACKPOT MODE ကို ACTIVATE လုပ်မယ် (type baba_jackpot အတွက်) =====
-                    if (notifType === 'baba_jackpot') {
-                        const babaMode = data.babaMode || 'modeA';   // Admin က သတ်မှတ်ထားတဲ့ Mode
-                        window.gameState.babaJackpotMode = {
-                            enabled: true,
-                            targetSpins: spinReq,
-                            currentSpinCount: 0,
-                            isReady: false,
-                            jackpotAmount: amount,
-                            babaMode: babaMode,      // 🔥 Mode A / B / C
-                            notifId: docId
-                        };
-                        console.log(`🎉 BABA JACKPOT MODE ACTIVATED! Mode: ${babaMode}, Amount: ${amount}, Required Spins: ${spinReq}`);
-                    } else {
-                        // သာမန် jackpot (အဟောင်း) အတွက်
-                        window.gameState.babaJackpotMode = {
-                            enabled: false,
-                            targetSpins: 0,
-                            currentSpinCount: 0,
-                            isReady: false,
-                            jackpotAmount: 0,
-                            babaMode: 'modeA',
-                            notifId: null
-                        };
-                        console.log(`🎉 Normal Jackpot Pending: ${amount} in ${spinReq} spins`);
-                    }
+                    // ===== ✅ BABA JACKPOT MODE ကို ACTIVATE လုပ်မယ် =====
+                    window.gameState.babaJackpotMode = {
+                        enabled: true,
+                        targetSpins: spinReq,
+                        currentSpinCount: 0,
+                        isReady: false,
+                        jackpotAmount: amount,
+                        notifId: docId
+                    };
+                    
+                    // Jackpot trigger flag ကို false ထားမယ်
+                    window.gameState.babaJackpotTriggered = false;
+
+                    console.log(`🎉 BABA JACKPOT MODE ACTIVATED! Amount: ${amount}, Required Spins: ${spinReq}`);
                 }
             }
         });
@@ -5556,6 +5275,7 @@ function listenForPendingJackpot(userId) {
         console.error('🔥 Error listening to notifications:', error);
     });
 }
+
 // ============================================
 // 26. JACKPOT ပြီးဆုံးကြောင်း FIRESTORE မှာ သွားမှတ်မည့် FUNCTION
 // ============================================
@@ -5602,6 +5322,258 @@ function listenToUserData(userId) {
     }, (error) => {
         console.error('Error listening to user data:', error);
     });
+}
+// ============================================
+// 28. JACKPOT ANIMATION
+// ============================================
+function showJackpotAwardAnimation(amount) {
+    // ===== 1. Inject dynamic styles =====
+    if (!document.getElementById('jackpot-award-styles')) {
+        const style = document.createElement('style');
+        style.id = 'jackpot-award-styles';
+        style.innerHTML = `
+            @keyframes jpPopIn {
+                0% { transform: translate(-50%, -50%) scale(0) rotate(-180deg); opacity: 0; }
+                40% { transform: translate(-50%, -50%) scale(1.1) rotate(5deg); }
+                100% { transform: translate(-50%, -50%) scale(1) rotate(0); opacity: 1; }
+            }
+            @keyframes jpGlowPulse {
+                0% { box-shadow: 0 0 20px #ff00ff, 0 0 40px #00ffff; }
+                50% { box-shadow: 0 0 60px #ff44ff, 0 0 100px #44ffff; }
+                100% { box-shadow: 0 0 20px #ff00ff, 0 0 40px #00ffff; }
+            }
+            @keyframes coinFountainLandscape {
+                0% {
+                    bottom: 0%;
+                    transform: scale(0.6) rotate(0deg);
+                    opacity: 0;
+                }
+                10% { opacity: 1; }
+                35% {
+                    bottom: 40%;
+                    transform: scale(1.2) rotate(220deg);
+                }
+                55% {
+                    bottom: 55%;
+                    transform: scale(1.1) rotate(440deg);
+                }
+                75% {
+                    bottom: 30%;
+                    transform: scale(0.9) rotate(600deg);
+                }
+                100% {
+                    bottom: -15%;
+                    transform: scale(0.5) rotate(780deg);
+                    opacity: 0;
+                }
+            }
+            @keyframes jpNumberCount {
+                0% { transform: scale(0.5); opacity: 0; letter-spacing: 10px; }
+                100% { transform: scale(1); opacity: 1; letter-spacing: normal; }
+            }
+            @keyframes gradientShift {
+                0% { background-position: 0% 50%; }
+                100% { background-position: 100% 50%; }
+            }
+            @keyframes jpScreenFlash {
+                0% { background: radial-gradient(circle, transparent, transparent); }
+                50% { background: radial-gradient(circle, rgba(255,215,0,0.6), rgba(255,0,255,0.4)); }
+                100% { background: radial-gradient(circle, transparent, transparent); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // ===== 2. Screen Flash (ပိုသေးအောင်) =====
+    const flashOverlay = document.createElement('div');
+    flashOverlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle, rgba(255,215,0,0.5), rgba(255,0,255,0.3));
+        z-index: 9999990;
+        pointer-events: none;
+        animation: jpScreenFlash 0.4s ease-out forwards;
+    `;
+    document.body.appendChild(flashOverlay);
+    setTimeout(() => flashOverlay.remove(), 400);
+
+    // ===== 3. Main Container (Landscape အတွက် သေးအောင်) =====
+    const container = document.createElement('div');
+    container.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 10000000;
+        text-align: center;
+        pointer-events: none;
+        width: 70vw;
+        max-width: 600px;
+        animation: jpPopIn 0.6s cubic-bezier(0.34, 1.2, 0.64, 1);
+    `;
+
+    container.innerHTML = `
+        <div style="
+            background: linear-gradient(135deg, #1a0a2a, #2a0a3a);
+            border: 2px solid rgba(255,100,200,0.6);
+            border-radius: 50px;
+            padding: 20px 25px;
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        ">
+            <div style="
+                font-size: 42px;
+                font-weight: 900;
+                font-family: 'Bangers', 'Impact', cursive;
+                background: linear-gradient(135deg, #ffaa44, #ff44aa, #44aaff);
+                background-size: 200% auto;
+                -webkit-background-clip: text;
+                background-clip: text;
+                color: transparent;
+                animation: gradientShift 1s ease infinite;
+                letter-spacing: 4px;
+                margin-bottom: 10px;
+            ">
+                🎰 JACKPOT! 🎰
+            </div>
+            
+            <div id="jpAmountDisplay" style="
+                font-size: 64px;
+                font-weight: 900;
+                font-family: 'Black Ops One', 'Impact', monospace;
+                background: linear-gradient(135deg, #ffaa44, #ff44aa, #44aaff);
+                -webkit-background-clip: text;
+                background-clip: text;
+                color: transparent;
+                margin: 15px 0;
+                animation: jpNumberCount 0.5s ease-out;
+            ">
+                0
+            </div>
+            
+            <div style="
+                background: rgba(0,0,0,0.6);
+                display: inline-block;
+                padding: 8px 25px;
+                border-radius: 40px;
+                font-size: 20px;
+                color: #ffd700;
+                font-weight: bold;
+                backdrop-filter: blur(5px);
+                border: 1px solid rgba(255,215,0,0.5);
+            ">
+                🎉 ဂုဏ်ယူပါသည်။ 🎉
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(container);
+
+    // ===== 4. Count-up Effect =====
+    const amountDisplay = document.getElementById('jpAmountDisplay');
+    const finalAmount = amount;
+    let current = 0;
+    const duration = 1800;
+    const stepTime = 20;
+    const steps = duration / stepTime;
+    const increment = finalAmount / steps;
+    let counter = 0;
+    
+    const timer = setInterval(() => {
+        counter++;
+        current = Math.min(finalAmount, Math.floor(increment * counter));
+        amountDisplay.textContent = formatNumber(current);
+        if (current >= finalAmount) {
+            clearInterval(timer);
+            amountDisplay.innerHTML = `<span style="animation: jpNumberCount 0.3s;">${formatNumber(finalAmount)}</span>`;
+        }
+    }, stepTime);
+
+    // ===== 5. Coin Fountain (Landscape အတွက် အနိမ့်ပိုင်းကနေ) =====
+    createCoinFountainLandscape();
+
+    // ===== 6. Screen Shake (နည်းနည်းသာ) =====
+    let shakes = 0;
+    const shakeInterval = setInterval(() => {
+        const x = (Math.random() - 0.5) * 8;
+        const y = (Math.random() - 0.5) * 5;
+        document.body.style.transform = `translate(${x}px, ${y}px)`;
+        shakes++;
+        if (shakes > 12) {
+            clearInterval(shakeInterval);
+            document.body.style.transform = '';
+        }
+    }, 40);
+
+    // ===== 7. Vibration =====
+    if (navigator.vibrate) {
+        navigator.vibrate([150, 80, 150, 80, 200]);
+    }
+    if (typeof SoundManager !== 'undefined') {
+        if (SoundManager.congratulations) SoundManager.congratulations();
+        if (SoundManager.coin) setTimeout(() => SoundManager.coin(), 300);
+        if (SoundManager.fireworks) setTimeout(() => SoundManager.fireworks(), 600);
+    }
+
+    // ===== 8. Remove after animation =====
+    setTimeout(() => {
+        container.style.transition = 'opacity 0.5s, transform 0.3s';
+        container.style.opacity = '0';
+        container.style.transform = 'translate(-50%, -50%) scale(0.8)';
+        setTimeout(() => {
+            container.remove();
+        }, 500);
+    }, 8500);
+}
+
+function createCoinFountainLandscape() {
+    const fountainContainer = document.createElement('div');
+    fountainContainer.style.cssText = `
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 9999995;
+        overflow: visible;
+    `;
+    document.body.appendChild(fountainContainer);
+    
+    for (let i = 0; i < 100; i++) {
+        setTimeout(() => {
+            const coin = document.createElement('div');
+            const symbols = ['💰', '🪙', '💎', '⭐', '💫'];
+            coin.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+            
+            const startX = 15 + Math.random() * 70;
+            const duration = 1.8 + Math.random() * 1.2;
+            const delay = i * 20;
+            
+            coin.style.cssText = `
+                position: absolute;
+                bottom: 0%;
+                left: ${startX}%;
+                font-size: ${28 + Math.random() * 40}px;
+                filter: drop-shadow(0 0 10px gold);
+                color: ${['#ffaa44', '#ff66cc', '#44aaff', '#88ff88'][Math.floor(Math.random() * 4)]};
+                z-index: 9999996;
+                text-shadow: 0 0 5px currentColor;
+                animation: coinFountainLandscape ${duration}s ease-out ${delay}ms forwards;
+            `;
+            
+            fountainContainer.appendChild(coin);
+            setTimeout(() => coin.remove(), (delay + duration * 1000) + 500);
+        }, i * 20);
+    }
+    
+    setTimeout(() => {
+        fountainContainer.remove();
+    }, 9500);
 }
 
 // ============================================
@@ -5737,10 +5709,12 @@ function playWinSounds(totalWin, winLines) {
 // 32. EXPORT GLOBALS
 // ============================================
 window.spin = spin;
+window.closeBuffaloJackpot = closeBuffaloJackpot;
 window.closeModal = closeModal;
 window.startFreeSpins = startFreeSpins;
 window.endFreeSpins = endFreeSpins;
 window.stopAutoSpin = stopAutoSpin;
 window.startAutoSpin = startAutoSpin;
+window.buffaloStampede = buffaloStampede;
 window.highlightWinsPremium = highlightWinsPremium;
 console.log('✅ Game.js ULTIMATE VERSION fully loaded with all features!');

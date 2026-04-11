@@ -169,8 +169,9 @@
                     </div>
                 </div>
                 <div class="balance-box">
-                    <small>Balance</small>
-                    <div class="balance-amount" id="balanceAmount">0</div>
+               <small>Balance</small>
+            
+             <div class="balance-amount" id="balanceAmount">0</div>
           </div>
         
           <div class="jackpot-pool-box" style="background: linear-gradient(145deg, #2a2a4a, #1a1a3a); padding: 8px 20px; border-radius: 12px; border: 1px solid #6c5ce7; box-shadow: 0 0 15px rgba(108, 92, 231, 0.3);">
@@ -184,13 +185,14 @@
                 <button class="icon-btn fullscreen-btn" id="fullScreenBtn" onclick="toggleFullScreen()">
                     <i class="fas fa-expand"></i>
                 </button>
-                <button class="menu-btn" id="mainMenuBtn" onclick="toggleMainMenu()">
+                   <button class="menu-btn" id="mainMenuBtn" onclick="toggleMainMenu()">
                     <i class="fas fa-bars"></i><span class="btn-label">MENU</span>
                 </button>
-            </div>
-        </div>
+             </div>
+           </div>
+
      <!-- MIDDLE SECTION -->
-<div class="middle-section">
+     <div class="middle-section">
     <!-- LEFT PANEL - Chat -->
     <div class="left-panel">
         <div class="chat-trigger" onclick="toggleChatModal()">
@@ -204,6 +206,7 @@
     <!-- CENTER - 5x4 GRID (အပြည့်) -->
     <div class="center-area expanded">
         <div class="grid-5x4" id="slotGrid"></div>
+        
     </div>
 
         <!-- RIGHT PANEL (1024 Ways) (သေး) -->
@@ -246,7 +249,10 @@
         </div>
     </div>
 
-    <!-- Main Menu Modal -->
+   <!-- ============================================ -->
+<!-- MAIN MENU MODAL (ပင်မ မီနူး)                 -->
+<!-- ============================================ -->
+               <!-- Main Menu Modal -->
     <div class="modal" id="mainMenuModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -254,14 +260,169 @@
                 <span class="close-btn" onclick="closeMainMenu()">&times;</span>
             </div>
             <div class="modal-body">
-                <button class="menu-item" onclick="openDepositModal()"><i class="fas fa-wallet"></i><span>ငွေသွင်း / Deposit</span></button>
-                <button class="menu-item" onclick="openWithdrawModal()"><i class="fas fa-money-bill-wave"></i><span>ငွေထုတ် / Withdraw</span></button>
-                <button class="menu-item" onclick="openSettings()"><i class="fas fa-cog"></i><span>ဆက်တင် / Settings</span></button>
-                <button class="menu-item" onclick="openHistory()"><i class="fas fa-history"></i><span>မှတ်တမ်း / History</span></button>
-            </div>
+              <button class="menu-item" onclick="openDepositModal()">
+                <i class="fas fa-wallet"></i><span>ငွေသွင်း / Deposit</span>
+            </button>
+
+            <button class="menu-item" onclick="openWithdrawModal()">
+                <i class="fas fa-money-bill-wave"></i><span>ငွေထုတ် / Withdraw</span>
+            </button>
+
+
+            <button class="menu-item" onclick="openSettingsModal()">
+                <i class="fas fa-sliders-h"></i><span>ဆက်တင်များ / Settings</span>
+            </button>
+
+            <button class="menu-item" onclick="openHistoryModal()">
+                <i class="fas fa-history"></i><span>မှတ်တမ်း / History</span>
+            </button>
+
+            <button class="menu-item" id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i><span>ထွက်မည် / Logout</span>
+            </button>
         </div>
     </div>
+</div>
 
+<!-- ============================================ -->
+<!-- SETTINGS MODAL (ဆက်တင်များ)                    -->
+<!-- ============================================ -->
+<div id="settingsModal" class="modal-glass" style="display: none;">
+    <div class="modal-content glass-panel">
+        <!-- Header with Close Button -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="color:#0ff; margin:0;">⚙️ Game Settings</h2>
+            <span onclick="closeSettingsModal()" style="cursor:pointer; font-size:28px; color:#fff; line-height:1;">&times;</span>
+        </div>
+
+        <!-- Setting Rows -->
+        <div class="setting-row">
+            <div class="setting-label">🔊 Sound Effects</div>
+            <label class="neon-toggle">
+                <input type="checkbox" id="soundToggle">
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+
+        <div class="setting-row">
+            <div class="setting-label">📳 Vibration</div>
+            <label class="neon-toggle">
+                <input type="checkbox" id="vibrationToggle">
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+
+        <div class="setting-row">
+            <div class="setting-label">🔉 Volume</div>
+            <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="70">
+        </div>
+
+        <div class="setting-row">
+            <div class="setting-label">🌐 Language</div>
+            <select id="languageSelect" class="lang-select">
+                <option value="my">မြန်မာ</option>
+                <option value="en">English</option>
+                <option value="th">ไทย</option>
+            </select>
+        </div>
+
+        <div class="setting-row">
+            <div class="setting-label">🎨 Theme</div>
+            <select id="themeSelect" class="theme-select">
+                <option value="neon">Neon Blue</option>
+                <option value="purple">Purple Haze</option>
+                <option value="green">Matrix Green</option>
+                <option value="red">Red Alert</option>
+            </select>
+        </div>
+
+        <div class="setting-row">
+            <div class="setting-label">🔔 Notifications</div>
+            <label class="neon-toggle">
+                <input type="checkbox" id="notificationToggle">
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+
+        <!-- Close Button -->
+        <button onclick="closeSettingsModal()" class="neon-btn" style="margin-top:20px; width:100%;">Close</button>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- HISTORY MODAL (မှတ်တမ်း)                       -->
+<!-- ============================================ -->
+<div id="historyModal" class="modal-glass" style="display: none;">
+    <div class="modal-content glass-panel" style="max-width: 550px;">
+        <!-- Header with Close Button -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="color:#0ff; margin:0;">📜 History</h2>
+            <span onclick="closeHistoryModal()" style="cursor:pointer; font-size:28px; color:#fff; line-height:1;">&times;</span>
+        </div>
+
+        <!-- Tabs -->
+        <div style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid rgba(0,255,255,0.3);">
+            <button id="tabMyHistory" class="history-tab active" style="background:none; border:none; color:#0ff; padding:8px 20px; cursor:pointer; font-size:16px;">👤 My History</button>
+            <button id="tabGlobalTop" class="history-tab" style="background:none; border:none; color:#aac8ff; padding:8px 20px; cursor:pointer; font-size:16px;">🌍 Global Top 10</button>
+        </div>
+
+        <!-- Tab 1: My History Panel -->
+        <div id="myHistoryPanel" class="history-panel">
+            <!-- Stats Cards -->
+            <div style="display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; margin-bottom: 24px;">
+                <div class="stat-card"><div class="stat-value" id="biggestWin">0</div><div class="stat-label">Biggest Win</div></div>
+                <div class="stat-card"><div class="stat-value" id="jackpotCount">0</div><div class="stat-label">Jackpot</div></div>
+                <div class="stat-card"><div class="stat-value" id="megaWinCount">0</div><div class="stat-label">Mega Win</div></div>
+                <div class="stat-card"><div class="stat-value" id="superWinCount">0</div><div class="stat-label">Super Win</div></div>
+                <div class="stat-card"><div class="stat-value" id="bigWinCount">0</div><div class="stat-label">Big Win</div></div>
+                <div class="stat-card"><div class="stat-value" id="lastPlayed">-</div><div class="stat-label">Last Played</div></div>
+            </div>
+
+            <h3 style="color:#0ff; font-size:14px; margin:10px 0;">📋 Recent Spins</h3>
+            <div style="max-height: 250px; overflow-y: auto;">
+                <table class="history-table" id="historyTable">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Bet</th>
+                            <th>Total Win</th> <!-- ✅ Win နေရာတွင် Total Win ဟု ပြင်ထားသည် -->
+                            <th>Result</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyBody">
+                        <tr><td colspan="4" style="text-align:center;">No history yet</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tab 2: Global Top 10 Panel -->
+        <div id="globalTopPanel" class="history-panel" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="color:#0ff; font-size:16px;">🏆 Global Top 10 Wins</h3>
+                <span style="font-size:11px; color:#aac8ff;" id="lastUpdateTime">Last update: -</span>
+            </div>
+            <div style="max-height: 400px; overflow-y: auto;">
+                <table class="history-table" id="globalTopTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Player</th>
+                            <th>Win Amount</th> <!-- ဒီနေရာကို Win Amount ဟုလည်း ထားနိုင်သည် -->
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="globalTopBody">
+                        <tr><td colspan="4" style="text-align:center;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Close Button -->
+        <button id="closeHistoryBtn" class="neon-btn" style="margin-top: 20px; width:100%;">Close</button>
+    </div>
+</div>
    <!-- User Chat Modal -->
 <div class="user-chat-modal" id="userChatModal">
     <div class="user-chat-header">
@@ -553,6 +714,7 @@
     <script src="login.js"></script>
     <script src="userpayment.js"></script>
     <script src="game.js"></script>
+     <script src="menu.js"></script>
     <script src="script.js"></script>
     <script src="userchat.js"></script>
 </body>
