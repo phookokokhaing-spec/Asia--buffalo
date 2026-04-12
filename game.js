@@ -89,10 +89,10 @@ window.symbolsWithWild = [...ALL_SYMBOLS.normal, ...ALL_SYMBOLS.wild];
 // ============================================
 const REELS = [
     ['seven', 'jack', 'queen', 'nine', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'ten', 'baba'],
-    ['seven', 'jack', 'queen', 'nine', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'ten', 'baba'],
-    ['seven', 'jack', 'queen', 'nine', 'tha', 'zebra', 'buffalo', 'baba', 'bonus', 'ten', 'wild', 'buffalo'],
+    ['seven', 'jack', 'queen', 'nine', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'ten', 'tha'],
+    ['seven', 'jack', 'queen', 'nine', 'tha', 'zebra', 'buffalo', 'lion', 'bonus', 'ten', 'wild', 'buffalo'],
     ['seven', 'jack', 'queen', 'nine', 'lion', 'wild', 'ele', 'tha', 'buffalo', 'ayeaye', 'coin', 'bonus', 'baba', 'lion'],
-    ['seven', 'jack', 'queen', 'nine', 'wild', 'tha', 'zebra', 'ayeaye', 'buffalo', 'bonus', 'ten', 'baba']
+    ['seven', 'jack', 'queen', 'nine', 'wild', 'tha', 'zebra', 'ayeaye', 'buffalo', 'bonus', 'ten', 'ele']
 ];
 
 
@@ -1919,51 +1919,63 @@ function calculateWinnings(result) {
     totalWin = cappedWin;
 
     // ===== UI updates =====
-    if (totalWin > 0) {
-        window.gameState.consecutiveWins++;
-        window.gameState.winAmount = totalWin;
+if (totalWin > 0) {
+    window.gameState.consecutiveWins++;
+    window.gameState.winAmount = totalWin;
 
-        updateWinDisplay(totalWin);
-        if (typeof addWinToHistory === 'function') addWinToHistory(totalWin);
-        if (typeof playWinSounds === 'function') playWinSounds(totalWin, winLines);
-        if (typeof showWinLinesInfo === 'function') showWinLinesInfo(winLines);
+    updateWinDisplay(totalWin);
+    if (typeof addWinToHistory === 'function') addWinToHistory(totalWin);
+    if (typeof playWinSounds === 'function') playWinSounds(totalWin, winLines);
+    if (typeof showWinLinesInfo === 'function') showWinLinesInfo(winLines);
 
-        const winPercentage = (totalWin / bet) * 100;
+    const winPercentage = (totalWin / bet) * 100;
+    
+    // Win Type သတ်မှတ်မယ်
+    let winType = 'big';
+    if (winPercentage >= 1500) winType = 'mega';
+    else if (winPercentage >= 1000) winType = 'super';
+    else if (winPercentage >= 500) winType = 'big';
 
-        // Win animations & Global Top
-        if (typeof WinAnimation !== 'undefined') {
-            if (winPercentage >= 1500) {
-                WinAnimation.mega(totalWin);
-                GlobalTopManager.submitWin(totalWin, 'mega');
-                if (typeof SoundManager !== 'undefined') {
-                    SoundManager.congratulations();
-                    SoundManager.lion();
-                    SoundManager.coin();
-                }
-            } else if (winPercentage >= 1000) {
-                WinAnimation.super(totalWin);
-                GlobalTopManager.submitWin(totalWin, 'super');
-                if (typeof SoundManager !== 'undefined') {
-                    SoundManager.congratulations();
-                    SoundManager.lion();
-                    SoundManager.coin();
-                }
-            } else if (winPercentage >= 500) {
-                WinAnimation.big(totalWin);
-                GlobalTopManager.submitWin(totalWin, 'big');
-                if (typeof SoundManager !== 'undefined') {
-                    SoundManager.congratulations();
-                    SoundManager.lion();
-                    SoundManager.coin();
-                }
+    // ⭐⭐⭐ ဒါပဲ ထပ်ထည့်ပေးပါ ⭐⭐⭐
+    // History ထဲ ထည့်မယ် (LocalStorage - Stats Cards အတွက်)
+    if (typeof GameHistory !== 'undefined') {
+        GameHistory.addEntry(bet, totalWin, winType);
+    }
+
+    // Win animations & Global Top (ဒါက ရှိပြီးသား ဆက်ထားပါ)
+    if (typeof WinAnimation !== 'undefined') {
+        if (winPercentage >= 1500) {
+            WinAnimation.mega(totalWin);
+            GlobalTopManager.submitWin(totalWin, 'mega');
+            if (typeof SoundManager !== 'undefined') {
+                SoundManager.congratulations();
+                SoundManager.lion();
+                SoundManager.coin();
+            }
+        } else if (winPercentage >= 1000) {
+            WinAnimation.super(totalWin);
+            GlobalTopManager.submitWin(totalWin, 'super');
+            if (typeof SoundManager !== 'undefined') {
+                SoundManager.congratulations();
+                SoundManager.lion();
+                SoundManager.coin();
+            }
+        } else if (winPercentage >= 500) {
+            WinAnimation.big(totalWin);
+            GlobalTopManager.submitWin(totalWin, 'big');
+            if (typeof SoundManager !== 'undefined') {
+                SoundManager.congratulations();
+                SoundManager.lion();
+                SoundManager.coin();
             }
         }
-
-        if (typeof checkLevelUp === 'function') checkLevelUp();
-    } else {
-        window.gameState.consecutiveWins = 0;
-        console.log('❌ No win');
     }
+
+    if (typeof checkLevelUp === 'function') checkLevelUp();
+} else {
+    window.gameState.consecutiveWins = 0;
+    console.log('❌ No win');
+}
 
     // Remove duplicate indices
     winIndices = [...new Set(winIndices)];

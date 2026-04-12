@@ -1,172 +1,164 @@
 const GlobalTopManager = {
     currentPlayerId: null,
-    currentPlayerName: 'Player', // Default
+    currentPlayerName: 'Player',
+    db: null,  // ⭐ db property ထည့်ထားမယ်
     
-    // 🔥 Auth Listener သီးသန့်ထားမယ်
-    listenToAuth() {
-        if (!window.auth) {
-            console.warn('Auth not available');
-            return;
-        }
+    init: function() {
+        this.listenToAuth();
         
-        window.auth.onAuthStateChanged((user) => {
-            if (user) {
-                // Name ကို အဆင့်မြင့်စွာ ကိုင်တွယ်မယ်
-                let name = user.displayName;
-                if (!name && user.email) {
-                    name = user.email.split('@')[0];
-                }
-                if (name) {
-                    // Capitalize first letter
-                    name = name.charAt(0).toUpperCase() + name.slice(1);
-                    this.currentPlayerName = name;
-                    localStorage.setItem('playerName', name); // Backup
-                } else {
-                    this.currentPlayerName = 'Player';
-                }
-                console.log('👤 GlobalTopManager: Player =', this.currentPlayerName);
-            } else {
-                this.currentPlayerName = 'Guest';
-                console.log('👤 GlobalTopManager: Guest Mode');
-            }
-        });
-    },
-    
-    init() {
-        this.listenToAuth(); // ✅ အရင်ဆုံး Auth ကို နားထောင်မယ်
-        
-        // Firestore စောင့်တဲ့အပိုင်း
+        // ⭐ db ကို window ကနေ ယူမယ်
         if (window.db) {
             this.db = window.db;
             this.loadGlobalTop();
             this.setupRealtimeListener();
         } else {
-            console.log('Firestore not ready yet, waiting...');
+            console.warn('⏳ Firestore not ready, waiting...');
+            // 500ms စောင့်ပြီး ပြန်ခေါ်မယ်
             setTimeout(() => this.init(), 500);
         }
     },
     
-    setupRealtimeListener() {
-        if (!this.db) return;
-        
-        this.db.collection('globalWins')
-            .orderBy('totalWin', 'desc')
-            .limit(10)
-            .onSnapshot((snapshot) => {
-                const winsArray = [];
-                snapshot.forEach((doc) => {
-                    winsArray.push({ id: doc.id, ...doc.data() });
-                });
-                this.displayGlobalTop(winsArray);
-                
-                const updateEl = document.getElementById('lastUpdateTime');
-                if (updateEl) updateEl.innerText = `Last update: ${new Date().toLocaleTimeString()}`;
-            }, (error) => {
-                console.log('Error loading global top:', error);
-                this.loadFromLocalStorage();
-            });
+    listenToAuth: function() {
+        if (!window.auth) return;
+        var self = this;
+        window.auth.onAuthStateChanged(function(user) {
+            if (user) {
+                var name = user.displayName || (user.email ? user.email.split('@')[0] : 'Player');
+                self.currentPlayerName = name.charAt(0).toUpperCase() + name.slice(1);
+            }
+        });
     },
     
-    loadFromLocalStorage() {
-        const saved = localStorage.getItem('globalTopWins');
-        let wins = saved ? JSON.parse(saved) : [];
-        wins.sort((a, b) => b.totalWin - a.totalWin);
-        this.displayGlobalTop(wins.slice(0, 10));
-    },
-    
-    // 🔥🔥🔥 winType ပါ ထည့်မယ် 🔥🔥🔥
-    submitWin(totalWin, winType = 'big', playerName = null) {
-    // 1. နာမည် အရင်ရှာမယ်
-    let name = playerName;
-    
-    if (!name) {
-        // Option A: Auth ကို တိုက်ရိုက်စစ်မယ် (Fallback)
-        const user = window.auth?.currentUser;
-        if (user) {
-            name = user.displayName || user.email?.split('@')[0] || 'Player';
-            name = name.charAt(0).toUpperCase() + name.slice(1);
-        } else {
-            // Option B: GlobalTopManager ထဲက သိမ်းထားတာကို သုံးမယ်
-            name = this.currentPlayerName || localStorage.getItem('playerName') || 'Player';
-        }
-    }
-    
-    // DEBUG: သေချာအောင် Console မှာ ထုတ်ကြည့်
-    console.log(`🚀 Submitting: Name=${name}, Amount=${totalWin}, Type=${winType}`);
-
-    // 2. Firestore Data ဆောက်မယ်
-    const winData = {
-        playerName: name,          // ✅ Mayhtetlu ဆိုပြီး ဝင်သွားရမယ်
-        totalWin: totalWin,
-        winType: winType,          // ✅ BIG / MEGA / JACKPOT
-        date: firebase.firestore.FieldValue.serverTimestamp(),
-        timestamp: Date.now()
-    };
-    
-    // 3. Firestore ထဲထည့်မယ်
-    if (this.db) {
-        this.db.collection('globalWins').add(winData)
-            .then(() => console.log('✅ Firestore Upload Success:', name))
-            .catch(err => console.log('❌ Firestore Error:', err));
-    } else {
-        // Offline Fallback
-        let wins = JSON.parse(localStorage.getItem('globalTopWins') || '[]');
-        wins.push({ ...winData, date: new Date().toISOString() });
-        wins.sort((a, b) => b.totalWin - a.totalWin);
-        wins = wins.slice(0, 20);
-        localStorage.setItem('globalTopWins', JSON.stringify(wins));
-        this.loadFromLocalStorage();
-    }
-},
-    
-    displayGlobalTop(wins) {
-        const tbody = document.getElementById('globalTopBody');
-        if (!tbody) return;
-        
-        if (!wins || wins.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No global wins yet</td></tr>';
+    setupRealtimeListener: function() {
+        // ⭐ db ရှိမှသာ လုပ်မယ်
+        if (!this.db) {
+            console.warn('⚠️ setupRealtimeListener: db not available');
             return;
         }
         
-        tbody.innerHTML = wins.map((win, idx) => {
-            let rankClass = '';
-            if (idx === 0) rankClass = 'global-rank-1';
-            else if (idx === 1) rankClass = 'global-rank-2';
-            else if (idx === 2) rankClass = 'global-rank-3';
-            
-            let dateStr = '-';
-            if (win.date) {
-                if (win.date.toDate) {
-                    dateStr = win.date.toDate().toLocaleDateString();
-                } else if (typeof win.date === 'string') {
-                    dateStr = new Date(win.date).toLocaleDateString();
-                }
-            }
-            
-            // 🔥 Win Type အလိုက် Badge ပြမယ်
-            let winTypeBadge = '';
-            const winType = win.winType || 'big';
-            
-            if (winType === 'mega') {
-                winTypeBadge = '<span style="background: linear-gradient(45deg, #ffd700, #ff8c00); color: black; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: bold; margin-left: 5px;">MEGA</span>';
-            } else if (winType === 'super') {
-                winTypeBadge = '<span style="background: linear-gradient(45deg, #c0c0c0, #e0e0e0); color: black; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: bold; margin-left: 5px;">SUPER</span>';
-            } else {
-                winTypeBadge = '<span style="background: #4ecdc4; color: black; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: bold; margin-left: 5px;">BIG</span>';
-            }
-            
-            return `
-                <tr class="${rankClass}">
-                    <td style="font-weight:bold;">${idx + 1}</td>
-                    <td>${this.escapeHtml(win.playerName || 'Anonymous')} ${winTypeBadge}</td>
-                    <td style="color:#0ff;">${(win.totalWin || 0).toLocaleString()}</td>
-                    <td style="font-size:11px;">${dateStr}</td>
-                </tr>
-            `;
-        }).join('');
+        var self = this;
+        this.db.collection('globalWins')
+            .orderBy('totalWin', 'desc')
+            .limit(10)
+            .onSnapshot(function(snapshot) {
+                var wins = [];
+                snapshot.forEach(function(doc) {
+                    wins.push({ id: doc.id, data: doc.data() });
+                });
+                self.displayGlobalTop(wins);
+            }, function(err) {
+                console.error('❌ Realtime listener error:', err);
+            });
     },
     
-    escapeHtml(str) {
+    submitWin: function(totalWin, winType, playerName) {
+        // ⭐ db ရှိမှသာ လုပ်မယ်
+        if (!this.db) {
+            console.warn('⚠️ submitWin: db not available, win not saved');
+            return;
+        }
+        
+        var name = playerName || this.currentPlayerName || 'Player';
+        name = name.charAt(0).toUpperCase() + name.slice(1);
+        
+        var winData = {
+            playerName: name,
+            totalWin: totalWin,
+            winType: winType,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        this.db.collection('globalWins').add(winData)
+            .then(function() {
+                console.log('✅ Win submitted to global top:', name, totalWin);
+            })
+            .catch(function(err) {
+                console.error('❌ Error submitting win:', err);
+            });
+    },
+    
+    displayGlobalTop: function(wins) {
+    var tbody = document.getElementById('globalTopBody');
+    if (!tbody) return;
+    
+    if (!wins || wins.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No global wins yet</td></tr>';
+        return;
+    }
+    
+    var html = '';
+    var self = this;
+    
+    wins.forEach(function(item, index) {
+        var win = item.data || item;
+        var name = self.escapeHtml(win.playerName || 'Anonymous');
+        var amount = (win.totalWin || 0).toLocaleString();
+        
+        // ⭐⭐⭐ Timestamp ကို စစ်ပြီး Date ပြောင်းမယ် ⭐⭐⭐
+        var dateStr = '-';
+        if (win.timestamp) {
+            try {
+                // Firestore Timestamp Object လား
+                if (win.timestamp.toDate && typeof win.timestamp.toDate === 'function') {
+                    dateStr = win.timestamp.toDate().toLocaleDateString('my-MM');
+                }
+                // JavaScript Date Object လား
+                else if (win.timestamp instanceof Date) {
+                    dateStr = win.timestamp.toLocaleDateString('my-MM');
+                }
+                // Unix Timestamp (seconds) လား
+                else if (typeof win.timestamp === 'number') {
+                    dateStr = new Date(win.timestamp * 1000).toLocaleDateString('my-MM');
+                }
+                // ISO String လား
+                else if (typeof win.timestamp === 'string') {
+                    dateStr = new Date(win.timestamp).toLocaleDateString('my-MM');
+                }
+                // _seconds ပါတဲ့ Object လား (Firestore old format)
+                else if (win.timestamp._seconds) {
+                    dateStr = new Date(win.timestamp._seconds * 1000).toLocaleDateString('my-MM');
+                }
+            } catch (e) {
+                console.warn('Error parsing date:', e);
+                dateStr = '-';
+            }
+        }
+        
+        // Rank Medal
+        var rankDisplay = index + 1;
+        if (index === 0) rankDisplay = '🥇';
+        else if (index === 1) rankDisplay = '🥈';
+        else if (index === 2) rankDisplay = '🥉';
+        
+        // Win Type Badge
+        var winTypeBadge = '';
+        var winType = win.winType || 'big';
+        if (winType === 'jackpot') {
+            winTypeBadge = '<span style="background:#ffd700; color:#000; padding:2px 6px; border-radius:10px; font-size:10px; margin-left:5px;">🎰 JACKPOT</span>';
+        } else if (winType === 'mega') {
+            winTypeBadge = '<span style="background:#ff6b6b; color:#fff; padding:2px 6px; border-radius:10px; font-size:10px; margin-left:5px;">✨ MEGA</span>';
+        } else if (winType === 'super') {
+            winTypeBadge = '<span style="background:#4ecdc4; color:#000; padding:2px 6px; border-radius:10px; font-size:10px; margin-left:5px;">🌟 SUPER</span>';
+        }
+        
+        html += '<tr>';
+        html += '<td style="font-size:18px;">' + rankDisplay + '</td>';
+        html += '<td style="font-weight:bold;">' + name + winTypeBadge + '</td>';
+        html += '<td style="color:#ffd700; font-weight:bold;">' + amount + '</td>';
+        html += '<td style="font-size:12px;">' + dateStr + '</td>';
+        html += '</tr>';
+    });
+    
+    tbody.innerHTML = html;
+    
+    // Last update time
+    var updateEl = document.getElementById('lastUpdateTime');
+    if (updateEl) {
+        updateEl.innerText = 'Last update: ' + new Date().toLocaleTimeString('my-MM');
+    }
+},
+    
+    escapeHtml: function(str) {
         if (!str) return '';
         return str.replace(/[&<>]/g, function(m) {
             if (m === '&') return '&amp;';
@@ -176,25 +168,30 @@ const GlobalTopManager = {
         });
     },
     
-    loadGlobalTop() {
-        if (this.db) {
-            this.db.collection('globalWins')
-                .orderBy('totalWin', 'desc')
-                .limit(10)
-                .get()
-                .then((snapshot) => {
-                    const winsArray = [];
-                    snapshot.forEach((doc) => {
-                        winsArray.push({ id: doc.id, ...doc.data() });
-                    });
-                    this.displayGlobalTop(winsArray);
-                })
-                .catch(err => console.log('Error:', err));
-        } else {
-            this.loadFromLocalStorage();
+    loadGlobalTop: function() {
+        // ⭐ db ရှိမှသာ လုပ်မယ်
+        if (!this.db) {
+            console.warn('⚠️ loadGlobalTop: db not available');
+            return;
         }
+        
+        var self = this;
+        this.db.collection('globalWins')
+            .orderBy('totalWin', 'desc')
+            .limit(10)
+            .get()
+            .then(function(snapshot) {
+                var wins = [];
+                snapshot.forEach(function(doc) {
+                    wins.push({ id: doc.id, data: doc.data() });
+                });
+                self.displayGlobalTop(wins);
+            })
+            .catch(function(err) {
+                console.error('❌ Error loading global top:', err);
+            });
     }
-};;
+};
 // ============================================
 // SETTINGS & HISTORY MANAGER
 // ============================================
@@ -383,15 +380,49 @@ function closeSettingsModal() {
 }
 
 
-  function openHistoryModal() {
-    document.getElementById('historyModal').style.display = 'flex';
-    closeMainMenu(); // Main Menu ကို အလိုအလျောက်ပိတ်မယ်
-    // GameHistory ကို refresh လုပ်ဖို့ မမေ့ပါနဲ့
-    if (typeof GameHistory !== 'undefined') GameHistory.updateUI();
-}
-
-function closeHistoryModal() {
+ function openHistoryModal() {
+    const modal = document.getElementById('historyModal');
+    if (!modal) return;
+    
+    modal.style.display = 'flex';
+    closeMainMenu();
+  } 
+     function closeHistoryModal() {
     document.getElementById('historyModal').style.display = 'none';
+} 
+    // ⭐ Stats Cards Update
+    if (typeof GameHistory !== 'undefined') {
+        GameHistory.updateUI();
+    }
+    
+    // ⭐ Global Top 10 Load
+    if (typeof GlobalTopManager !== 'undefined') {
+        GlobalTopManager.loadGlobalTop();
+    }
+    
+    // Default Tab: My History
+    function initHistoryTabs() {
+    const tabMy = document.getElementById('tabMyHistory');
+    const tabGlobal = document.getElementById('tabGlobalTop');
+    const panelMy = document.getElementById('myHistoryPanel');
+    const panelGlobal = document.getElementById('globalTopPanel');
+    
+    if (!tabMy || !tabGlobal) return;
+    
+    tabMy.onclick = () => {
+        tabMy.style.color = '#0ff';
+        tabGlobal.style.color = '#aac8ff';
+        panelMy.style.display = 'block';
+        panelGlobal.style.display = 'none';
+    };
+    
+    tabGlobal.onclick = () => {
+        tabGlobal.style.color = '#0ff';
+        tabMy.style.color = '#aac8ff';
+        panelGlobal.style.display = 'block';
+        panelMy.style.display = 'none';
+        if (typeof GlobalTopManager !== 'undefined') GlobalTopManager.loadGlobalTop();
+    };
 }
   
 // Modal controls
@@ -463,34 +494,14 @@ function closeHistoryModal() {
             }
         };
     }
-    function initHistoryTabs() {
-    const tabMy = document.getElementById('tabMyHistory');
-    const tabGlobal = document.getElementById('tabGlobalTop');
-    const panelMy = document.getElementById('myHistoryPanel');
-    const panelGlobal = document.getElementById('globalTopPanel');
-    
-    if (!tabMy || !tabGlobal) return;
-    
-    tabMy.onclick = () => {
-        tabMy.style.color = '#0ff';
-        tabGlobal.style.color = '#aac8ff';
-        panelMy.style.display = 'block';
-        panelGlobal.style.display = 'none';
-    };
-    
-    tabGlobal.onclick = () => {
-        tabGlobal.style.color = '#0ff';
-        tabMy.style.color = '#aac8ff';
-        panelGlobal.style.display = 'block';
-        panelMy.style.display = 'none';
-        if (typeof GlobalTopManager !== 'undefined') GlobalTopManager.loadGlobalTop();
-    };
-}
-
-// DOM Load ဖြစ်တာနဲ့ Tabs တွေကို အလုပ်လုပ်ခိုင်းမယ်
-document.addEventListener('DOMContentLoaded', () => {
+   
+   document.addEventListener('DOMContentLoaded', () => {
     initHistoryTabs();
-    
+  
+// GlobalTopManager စတင်
+if (typeof GlobalTopManager !== 'undefined') {
+    GlobalTopManager.init();
+} 
     // Logout Button အတွက် Event (အရင်ကရှိပြီးသားဆိုရင် ထပ်ထည့်စရာမလိုပါ)
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
@@ -507,22 +518,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.location.reload();
             }
         };
-    }
+   }
 });
-
-window.toggleMainMenu = function() {
-        playButtonSound();
-        const modal = document.getElementById('mainMenuModal');
-        if (modal) {
+// Global Function
+function toggleMainMenu() {
+    playButtonSound();
+    const modal = document.getElementById('mainMenuModal');
+    if (modal) {
+        // Toggle လုပ်မယ် (ဖွင့်/ပိတ်)
+        if (modal.style.display === 'flex') {
+            modal.style.display = 'none';
+        } else {
             modal.style.display = 'flex';
         }
-    };
+    }
+}
 
-    window.closeMainMenu = function() {
-        playButtonSound();
-        const modal = document.getElementById('mainMenuModal');
-        if (modal) {
-            modal.style.display = 'none';
-        }
-    };
+// Close Function
+function closeMainMenu() {
+    playButtonSound();
+    const modal = document.getElementById('mainMenuModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
 
+// window မှာလည်း ထည့်ထား
+window.toggleMainMenu = toggleMainMenu;
+window.closeMainMenu = closeMainMenu;
