@@ -1,3 +1,7 @@
+/* Sound effect class - no visual change, just for JS */
+.sound-enabled {
+    cursor: pointer;
+}
 /* Animation အတွက် လိုအပ်တဲ့ CSS */
 .flying-baba {
     position: fixed;
@@ -730,3 +734,411 @@
                 opacity: 0;
             }
         }
+
+/* ===== SURPRISE BOX STYLES - WITH LANDSCAPE SUPPORT ===== */
+
+/* Box Grid Container */
+#userBoxGrid {
+    display: grid;
+    gap: 15px;
+    padding: 20px;
+    justify-content: center;
+}
+
+/* Portrait Mode (ပုံမှန်) */
+@media (orientation: portrait) {
+    #userBoxGrid {
+        grid-template-columns: repeat(4, minmax(80px, 100px));
+        gap: 12px;
+    }
+    
+    .box-item {
+        width: 100px;
+        height: 120px;
+    }
+    
+    .box-icon {
+        font-size: 38px !important;
+    }
+    
+    .box-label {
+        font-size: 10px !important;
+    }
+    
+    .box-value {
+        font-size: 9px !important;
+    }
+}
+
+/* Landscape Mode (ဘေးတိုက်) */
+@media (orientation: landscape) {
+    #userBoxGrid {
+        grid-template-columns: repeat(5, minmax(65px, 80px));
+        gap: 10px;
+    }
+    
+    .box-item {
+        width: 75px;
+        height: 90px;
+    }
+    
+    .box-icon {
+        font-size: 28px !important;
+        margin-bottom: 4px !important;
+    }
+    
+    .box-label {
+        font-size: 8px !important;
+    }
+    
+    .box-value {
+        font-size: 7px !important;
+    }
+}
+
+/* Small Landscape (ဖုန်းသေး) */
+@media (orientation: landscape) and (max-height: 400px) {
+    #userBoxGrid {
+        grid-template-columns: repeat(5, minmax(55px, 65px));
+        gap: 8px;
+    }
+    
+    .box-item {
+        width: 60px;
+        height: 75px;
+    }
+    
+    .box-icon {
+        font-size: 22px !important;
+    }
+    
+    .box-label {
+        font-size: 7px !important;
+    }
+}
+
+/* Tablet Landscape */
+@media (orientation: landscape) and (min-width: 768px) and (max-width: 1024px) {
+    #userBoxGrid {
+        grid-template-columns: repeat(5, minmax(90px, 110px));
+        gap: 15px;
+    }
+    
+    .box-item {
+        width: 100px;
+        height: 120px;
+    }
+    
+    .box-icon {
+        font-size: 35px !important;
+    }
+}
+
+/* Box Item 3D Style */
+.box-item {
+    background: linear-gradient(145deg, #1a1a2e, #16213e);
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    transform-style: preserve-3d;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+}
+
+.box-item:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.5), 0 0 20px rgba(255,215,0,0.3);
+}
+
+.box-item.selected {
+    box-shadow: 0 0 0 3px #ffd700, 0 10px 25px rgba(0,0,0,0.5);
+    animation: boxSelectedPulse 0.5s ease-out;
+}
+
+@keyframes boxSelectedPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+/* Box Inner */
+.box-inner {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+    border-radius: 14px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Ribbon Decoration */
+.box-inner::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, #ffd700, #ffed4e, #ffd700);
+}
+
+/* Box Icon */
+.box-icon {
+    font-size: 38px;
+    filter: drop-shadow(0 2px 5px rgba(0,0,0,0.3));
+    transition: all 0.2s ease;
+}
+
+/* Box Label */
+.box-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.7);
+    margin-top: 5px;
+}
+
+/* Box Value */
+.box-value {
+    font-size: 9px;
+    font-weight: 700;
+    margin-top: 3px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    background: rgba(0,0,0,0.3);
+}
+
+/* Selected Boxes Container */
+#userSelectedBoxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin: 15px 0;
+}
+
+#userSelectedBoxes span {
+    background: linear-gradient(135deg, #ffd70020, #ffd70010);
+    border: 1px solid #ffd700;
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #ffd700;
+}
+
+/* Progress Bar */
+.selection-progress-container {
+    width: 100%;
+    height: 6px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 3px;
+    overflow: hidden;
+    margin: 10px 0;
+}
+
+#selectionProgress {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #ffd700, #ffed4e);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+/* Modal Content - Responsive */
+#userSurpriseModal .modal-content {
+    max-width: 90%;
+    width: auto;
+    background: linear-gradient(145deg, #0c2461, #1e3799);
+    border-radius: 20px;
+    padding: 20px;
+}
+
+/* Landscape Modal Adjustments */
+@media (orientation: landscape) {
+    #userSurpriseModal .modal-content {
+        max-width: 95%;
+        padding: 15px;
+        margin: 10px;
+    }
+    
+    .selection-info {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+    }
+}
+
+/* Landscape Mode Extra Styles */
+@media (orientation: landscape) {
+    .selection-info {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    #userSelectedBoxes {
+        order: 1;
+    }
+    
+    .selection-progress-container {
+        order: 2;
+        width: 150px;
+    }
+    
+    #userSelectionCount {
+        order: 3;
+    }
+    
+    .claim-btn {
+        order: 4;
+    }
+}
+
+/* Box Glow Animation */
+@keyframes boxGlow {
+    0%, 100% { box-shadow: 0 0 0 2px #ffd700, 0 8px 20px rgba(0,0,0,0.4); }
+    50% { box-shadow: 0 0 0 4px #ffd700, 0 0 30px rgba(255,215,0,0.5); }
+}
+
+.box-item.selected {
+    animation: boxGlow 1s ease-in-out infinite;
+}
+
+/* Selection Counter Badge */
+.selection-badge {
+    background: linear-gradient(135deg, #ff4757, #ff3838);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 30px;
+    font-size: 14px;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+
+/* ===== BASE STYLES ===== */
+body {
+    transition: all 0.3s ease;
+    font-family: 'Noto Sans Myanmar', sans-serif;
+}
+
+/* ===== NEON THEME (Default) ===== */
+body.theme-neon {
+    background: linear-gradient(135deg, #0c2461, #1e3799);
+    color: #ffffff;
+}
+
+body.theme-neon .grid-cell {
+    background: linear-gradient(145deg, #1a3a5c, #0f2a4a);
+    border: 2px solid #00d4ff;
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+}
+
+body.theme-neon .spin-btn {
+    background: linear-gradient(45deg, #00d4ff, #0099cc);
+    box-shadow: 0 5px 0 #006699;
+}
+
+body.theme-neon .modal-content {
+    background: linear-gradient(145deg, #0c2461, #1e3799);
+    border: 2px solid #00d4ff;
+}
+
+/* ===== PURPLE THEME ===== */
+body.theme-purple {
+    background: linear-gradient(135deg, #2d1b4e, #4a1a6b);
+    color: #e8d5ff;
+}
+
+body.theme-purple .grid-cell {
+    background: linear-gradient(145deg, #3a2a5c, #2a1a4a);
+    border: 2px solid #b300ff;
+    box-shadow: 0 0 15px rgba(179, 0, 255, 0.3);
+}
+
+body.theme-purple .spin-btn {
+    background: linear-gradient(45deg, #b300ff, #8a00cc);
+    box-shadow: 0 5px 0 #5a0080;
+}
+
+body.theme-purple .modal-content {
+    background: linear-gradient(145deg, #2d1b4e, #4a1a6b);
+    border: 2px solid #b300ff;
+}
+
+/* ===== GREEN THEME ===== */
+body.theme-green {
+    background: linear-gradient(135deg, #0a3a0a, #0d5a0d);
+    color: #ccffcc;
+}
+
+body.theme-green .grid-cell {
+    background: linear-gradient(145deg, #1a4a1a, #0f3a0f);
+    border: 2px solid #00ff00;
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+}
+
+body.theme-green .spin-btn {
+    background: linear-gradient(45deg, #00ff00, #00cc00);
+    box-shadow: 0 5px 0 #008800;
+}
+
+body.theme-green .modal-content {
+    background: linear-gradient(145deg, #0a3a0a, #0d5a0d);
+    border: 2px solid #00ff00;
+}
+
+/* ===== RED THEME ===== */
+body.theme-red {
+    background: linear-gradient(135deg, #4a0a0a, #6b1a1a);
+    color: #ffcccc;
+}
+
+body.theme-red .grid-cell {
+    background: linear-gradient(145deg, #5c2a2a, #4a1a1a);
+    border: 2px solid #ff3333;
+    box-shadow: 0 0 15px rgba(255, 51, 51, 0.3);
+}
+
+body.theme-red .spin-btn {
+    background: linear-gradient(45deg, #ff4444, #cc0000);
+    box-shadow: 0 5px 0 #880000;
+}
+
+body.theme-red .modal-content {
+    background: linear-gradient(145deg, #4a0a0a, #6b1a1a);
+    border: 2px solid #ff3333;
+}
+
+/* Common elements for all themes */
+body.theme-neon .jackpot-pool-box,
+body.theme-purple .jackpot-pool-box,
+body.theme-green .jackpot-pool-box,
+body.theme-red .jackpot-pool-box {
+    transition: all 0.3s ease;
+}
+
+body.theme-neon .vip-badge {
+    background: linear-gradient(45deg, #00d4ff, #0099cc);
+}
+
+body.theme-purple .vip-badge {
+    background: linear-gradient(45deg, #b300ff, #8a00cc);
+}
+
+body.theme-green .vip-badge {
+    background: linear-gradient(45deg, #00ff00, #00cc00);
+}
+
+body.theme-red .vip-badge {
+    background: linear-gradient(45deg, #ff4444, #cc0000);
+}
