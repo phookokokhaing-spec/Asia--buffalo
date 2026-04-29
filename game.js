@@ -89,16 +89,16 @@ window.symbolsWithWild = [...ALL_SYMBOLS.normal, ...ALL_SYMBOLS.wild];
 // ============================================
 const REELS = [
     ['seven', 'jack', 'queen', 'nine', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'ten', 'baba'],
-    ['seven', 'jack', 'queen', 'nine', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'ten', 'tha'],
-    ['seven', 'jack', 'queen', 'nine', 'tha', 'zebra', 'buffalo', 'lion', 'bonus', 'ten', 'wild', 'buffalo'],
+    ['seven', 'jack', 'queen', 'nine', 'tha', 'zebra', 'ayeaye', 'coin', 'tha', 'ten', 'tha'],
+    ['seven', 'jack', 'queen', 'nine', 'tha', 'zebra', 'buffalo', 'lion', 'jack', 'ten', 'wild', 'buffalo'],
     ['seven', 'jack', 'queen', 'nine', 'lion', 'wild', 'ele', 'tha', 'buffalo', 'ayeaye', 'coin', 'bonus', 'baba', 'lion'],
-    ['seven', 'jack', 'queen', 'nine', 'wild', 'tha', 'zebra', 'ayeaye', 'buffalo', 'bonus', 'ten', 'ele']
+    ['seven', 'jack', 'queen', 'nine', 'wild', 'tha', 'zebra', 'ayeaye', 'buffalo', 'lion', 'ten', 'ele']
 ];
 
 
 // Free Spin Reel Strips (Bonus နဲ့ အထူးသင်္ကေတတွေ ထည့်ထား)
 const FREE_SPIN_REELS = [
-    ['seven', 'lion', 'tha', 'ele', 'zebra', 'coin', 'ayeaye', 'bonus', 'wild'],
+    ['seven', 'lion', 'tha', 'ele', 'zebra', 'coin', 'ayeaye', 'jack', 'wild'],
     ['seven', 'lion', 'jack', 'ele', 'zebra', 'coin', 'ayeaye', 'bonus', 'wild'],
     ['seven', 'lion', 'buffalo', 'ele', 'zebra', 'coin', 'ayeaye', 'queen', 'wild'],
     ['seven', 'lion', 'buffalo', 'ele', 'zebra', 'coin', 'ayeaye', 'ten', 'wild'],
@@ -255,61 +255,6 @@ function checkUserCanPlay() {
     }
 
     return true;
-}
-// ============================================
-// 4. BUFFALO MODE (၂/၃ လုံးပါအောင်)
-// ============================================
-const BUFFALO_MODE_CONFIG = {
-    // Mode A: Column 0,1,2 မှာ buffalo ၂ လုံးစီထည့်
-    modeA: {
-        cols: [0, 1, 2],
-        countPerCol: 2,        // တစ် column ကို buffalo ၂ လုံး
-        distribution: 'random' // ကျပန်းထည့်
-    },
-    
-    // Mode B: Column 1,2,3 မှာ buffalo ၃ လုံးစီထည့်
-    modeB: {
-        cols: [1, 2, 3],
-        countPerCol: 3,
-        distribution: 'alternating' // တစ်လှည့်စီထည့်
-    },
-    
-    // Mode C: Column 0,2,4 မှာ buffalo ၂ လုံးစီ
-    modeC: {
-        cols: [0, 2, 4],
-        countPerCol: 2,
-        distribution: 'random'
-    }
-};
-
-// Buffalo mode ကိုခေါ်မယ့် function
-function applyBuffaloMode(result, modeName) {
-    const mode = BUFFALO_MODE_CONFIG[modeName];
-    if (!mode) return result;
-    
-    const { cols, countPerCol, distribution } = mode;
-    
-    for (let col of cols) {
-        // ဒီ column မှာ buffalo ဘယ်နှစ်လုံးထည့်ရမလဲ
-        let buffaloCount = 0;
-        
-        // ကျပန်းနေရာတွေရွေးပြီး buffalo ထည့်
-        const positions = [];
-        while (positions.length < countPerCol) {
-            const pos = Math.floor(Math.random() * 4);
-            if (!positions.includes(pos)) {
-                positions.push(pos);
-            }
-        }
-        
-        // ရွေးထားတဲ့နေရာတွေမှာ buffalo ထည့်
-        for (let row = 0; row < 4; row++) {
-            if (positions.includes(row)) {
-                result[col][row] = 'buffalo';
-            }
-        }
-    }
-    return result;
 }
 
 // ============================================
@@ -834,38 +779,43 @@ function spin() {
         const winResult = calculateWinnings(result);
         const totalWin = winResult.totalWin || 0;
 
-        // ===== WIN HANDLING =====
-        if (totalWin > 0) {
-            if (window.gameState.isFreeSpinning) {
-                window.gameState.freeSpinTotalWin = (window.gameState.freeSpinTotalWin || 0) + totalWin;
-                console.log(`🎰 Free Spin win accumulated: ${window.gameState.freeSpinTotalWin}`);
-                updateWinDisplay(window.gameState.freeSpinTotalWin);
+       // ===== WIN HANDLING =====
+if (totalWin > 0) {
+    if (window.gameState.isFreeSpinning) {
+        window.gameState.freeSpinTotalWin = (window.gameState.freeSpinTotalWin || 0) + totalWin;
+        console.log(`🎰 Free Spin win accumulated: ${window.gameState.freeSpinTotalWin}`);
+        updateWinDisplay(window.gameState.freeSpinTotalWin);
 
-                if (winResult.indices?.length > 0) {
-                    highlightWinsPremium(winResult.indices, winResult.buffaloIndices || []);
-                    showWinWithRise(totalWin, winResult.indices);
-                }
-                window.gameState.waitingForWinAnimation = true;
-                setTimeout(() => {
-                    window.gameState.waitingForWinAnimation = false;
-                    continueFreeSpinAfterWin();
-                }, 2000);
-            } else {
-                window.gameState.balance += totalWin;
-                window.gameState.displayBalance += totalWin;
-                updateBalanceDisplay();
-                updateWinDisplay(totalWin);
-
-                if (winResult.indices?.length > 0) {
-                    highlightWinsPremium(winResult.indices, winResult.buffaloIndices || []);
-                    showWinWithRise(totalWin, winResult.indices);
-                }
-                window.gameState.waitingForWinAnimation = false;
-            }
+        if (winResult.indices?.length > 0) {
+            highlightWinsPremium(winResult.indices, winResult.buffaloIndices || []);
+            showWinWithRise(totalWin, winResult.indices);
         }
+        window.gameState.waitingForWinAnimation = true;
+        setTimeout(() => {
+            window.gameState.waitingForWinAnimation = false;
+            continueFreeSpinAfterWin();
+        }, 2000);
+    } else {
+        // ✅ Baba Jackpot မဟုတ်ရင်မှ balance ထည့်
+        if (!winResult.isBabaJackpot) {
+            window.gameState.balance += totalWin;
+            window.gameState.displayBalance += totalWin;
+            updateBalanceDisplay();
+            updateUserBalanceInStorage();
+        }
+        updateWinDisplay(totalWin);
+
+        if (winResult.indices?.length > 0) {
+            highlightWinsPremium(winResult.indices, winResult.buffaloIndices || []);
+            showWinWithRise(totalWin, winResult.indices);
+        }
+        window.gameState.waitingForWinAnimation = false;
+    }
+}
 
         updateUserBalanceInStorage();
-        checkScatter(result);
+       // မူရင်း checkScatter ကို ဒီအတိုင်းပြောင်း
+checkScatterWithSuspense(result);
 
         const buffaloCount = countBuffalo(result);
         if (buffaloCount >= 20) {
@@ -900,6 +850,7 @@ function spin() {
 
         // ===== BABA JACKPOT MODE RESET (after trigger) =====
         if (window.gameState.babaJackpotTriggered) {
+               finishJackpotSequence();
             if (window.gameState.babaJackpotMode?.notifId) {
                 try {
                     const db = firebase.firestore();
@@ -999,7 +950,7 @@ function detectSuspenseMode(result) {
     var babaColumns = [];
 
     // result က array အစစ် ဟုတ်၊ မဟုတ် အရင်စစ်
-    if (!result || !Array.isArray(result)) return { isSuspense: false, babaCount: 0 };
+     if (!result || !Array.isArray(result)) return { isSuspense: false, babaCount: 0 };
 
     for (var col = 0; col < 5; col++) {
         var foundInCol = false;
@@ -1582,6 +1533,35 @@ function finishJackpotSequence() {
 
     console.log(`💰 Jackpot Amount: ${jackpotAmount}`);
 
+    // ===== FORCE BALANCE UPDATE =====
+    if (window.gameState) {
+        let oldBalance = window.gameState.balance;
+        window.gameState.balance = (window.gameState.balance || 0) + jackpotAmount;
+        window.gameState.displayBalance = window.gameState.balance;
+        
+        console.log(`💰 OLD Balance: ${oldBalance}`);
+        console.log(`💰 NEW Balance: ${window.gameState.balance}`);
+        
+        // Force UI update - တိုက်ရိုက် DOM ကိုပြောင်း
+        const balanceEl = document.getElementById('balanceDisplay');
+        if (balanceEl) {
+            balanceEl.innerText = window.gameState.balance.toLocaleString();
+            console.log("✅ Force updated balance UI:", balanceEl.innerText);
+        }
+        
+        // Storage ကိုလည်း force update
+        if (window.currentUser) {
+            window.currentUser.balance = window.gameState.balance;
+            localStorage.setItem('currentUser', JSON.stringify(window.currentUser));
+            console.log("✅ Force updated localStorage");
+        }
+        
+        updateBalanceDisplay();  // ပုံမှန် update
+        updateUserBalanceInStorage();
+        
+        showNotification(`🎉 ဂျက်ပေါ့ဆုကြေး ${formatNumber(jackpotAmount)} ကျပ် ရရှိပါသည်။`, 'success');
+    }
+
     // Animation & Sound
     if (typeof showJackpotAnimation === 'function') {
         showJackpotAnimation(jackpotAmount, jackpotFinalResult);
@@ -1988,6 +1968,7 @@ if (totalWin > 0) {
     };
 }
 
+
  // ============================================
 // 12. GENERATE SPIN RESULT (REELS ကိုသုံး - FIXED COLUMN 5 BLOCK)
 // ============================================
@@ -1999,17 +1980,17 @@ function generateSpinResult() {
 if (window.gameState.babaJackpotMode?.forceJackpot) {
     const mode = window.gameState.babaJackpotMode.babaMode || 'modeA';
     console.log(`🎰 FORCE BABA JACKPOT! Mode: ${mode}`);
-    
+
     // 🔥 suspense-ready result ထုတ်မယ် (3 baba + 2 suspense columns)
     result = generateBabaJackpotResult();
-    
+
     window.gameState.babaJackpotMode.forceJackpot = false;
-    
+
     // detectSuspenseMode က columnsWithBaba = [0,1,2] နဲ့ columnsToCheck = [3,4] ကို ပြန်ပေးမယ်
     const suspenseInfo = detectSuspenseMode(result);
     window.gameState.suspenseMode = suspenseInfo.isSuspense;
     window.gameState.suspenseColumn = suspenseInfo.isSuspense ? suspenseInfo.columnsToCheck[0] : -1;
-    
+
     console.log('Suspense Info for Baba Jackpot:', suspenseInfo);
     return result;
 }
@@ -2085,7 +2066,7 @@ function generateNormalResult() {
 
         for (let row = 0; row < 4; row++) {
             let symbol = reel[(startPos + row) % reel.length];
-            
+
             // Admin Control 2 ရဲ့ Column 5 Block ကို ဒီမှာ ထည့်လို့ရတယ် (လိုအပ်ရင်)
             if (col === 4 && symbol === 'baba') {
                 const isAdminAllowed = window.adminControl2 && window.adminControl2.jackpotTrigger;
@@ -2099,14 +2080,12 @@ function generateNormalResult() {
                     symbol = safeSymbol;
                 }
             }
-            
+
             result[col][row] = symbol;
         }
     }
     return result;
 }
-
-
 function forceNoWinByColumns(result) {
     const allSymbols = ['seven', 'jack', 'queen', 'nine', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'ten'];
 
@@ -2964,20 +2943,431 @@ function addPremiumStyles() {
     `;
     document.head.appendChild(style);
 }
+// ============================================
+// FREE SPIN SUSPENSE MODE (Jackpot Mode Style)
+// ============================================
 
+// ===== MAIN ENTRY: Bonus စစ်တဲ့အခါ ဒီ function ကိုသုံးမယ် =====
+function checkScatterWithSuspense(result) {
+    let bonusColumns = [];
+    let nonBonusColumns = [];
+    
+    for (let col = 0; col < 5; col++) {
+        let hasBonus = false;
+        for (let row = 0; row < 4; row++) {
+            if (result[col][row] === 'bonus') {
+                hasBonus = true;
+                break;
+            }
+        }
+        if (hasBonus) {
+            bonusColumns.push(col);
+        } else {
+            nonBonusColumns.push(col);
+        }
+    }
+    
+    let bonusCount = bonusColumns.length;
+    console.log(`📊 Bonus Columns: ${bonusColumns} (Total: ${bonusCount})`);
+    
+    // ===== FREE SPIN အတွင်း BONUS ထပ်ကျရင် (Bonus 2 လုံးကျရင်တောင် ရမယ်) =====
+    if (window.gameState.isFreeSpinning && bonusCount >= 2) {
+        let extraSpins = calculateExtraSpins(bonusCount);
+        window.gameState.freeSpins += extraSpins;
+        window.gameState.totalFreeSpins += extraSpins;
+        updateFreeSpinIndicator();
+        showNotification(`✨ Bonus ${bonusCount} လုံးကျပါသည်။ အပို Free Spin ${extraSpins} ကြိမ် ထပ်ရရှိပါသည်။`, 'success');
+        showExtraFreeSpinAnimation(extraSpins);
+        return bonusCount;
+    }
+    
+    // ===== ပုံမှန် Suspense Mode (Bonus 2 လုံးကျရင် စမယ်) =====
+    if (!window.gameState.isFreeSpinning && bonusCount >= 2) {
+        startFreeSpinSuspense(result, bonusColumns, nonBonusColumns, bonusCount);
+    }
+    
+    return bonusCount;
+}
+// ===== FREE SPIN SUSPENSE SEQUENCE START =====
+function startFreeSpinSuspense(finalResult, bonusColumns, nonBonusColumns, bonusCount) {
+    console.log('🎬 FREE SPIN SUSPENSE MODE ACTIVATED!');
+    
+    // Bonus ပါတဲ့ Column တွေကို ချက်ချင်း Lock+Reveal
+    bonusColumns.forEach(col => {
+        lockAndRevealBonusColumn(col, finalResult[col]);
+    });
+    
+    // Bonus မပါတဲ့ Column တွေကို Suspense နဲ့ ဆက်စစ်မယ်
+    if (nonBonusColumns.length > 0) {
+        // Free Spin ပမာဏကို ကြိုသိမ်းထား
+        let freeSpinCount = calculateFreeSpinCount(bonusCount);
+        
+        // Suspense စမယ်
+        startFreeSpinSuspenseSequence(finalResult, nonBonusColumns, 0, bonusCount, freeSpinCount);
+    } else {
+        // အကုန်လုံး Bonus ပါရင် ချက်ချင်း Free Spin စ
+        initializeFreeSpinsDirect(bonusCount, calculateFreeSpinCount(bonusCount));
+    }
+}
+// ===== SUSPENSE SEQUENCE: Column တစ်ခုချင်းစီ စစ်မယ် =====
+function startFreeSpinSuspenseSequence(finalResult, columnsToCheck, index, bonusCount, freeSpinCount) {
+    if (index >= columnsToCheck.length) {
+        // အကုန်စစ်ပြီးရင် - စုစုပေါင်း Bonus အရေအတွက် ပြန်ရေတွက်မယ်
+        let totalBonusCount = countTotalBonuses(finalResult);
+        console.log(`📊 Total Bonus Count after suspense: ${totalBonusCount}`);
+        
+        if (totalBonusCount >= 3) {
+            // Bonus 3 လုံးနဲ့အထက်ဆိုရင် Free Spin ပေးမယ်
+            let finalFreeSpinCount = calculateFreeSpinCount(totalBonusCount);
+            finishFreeSpinSuspense(totalBonusCount, finalFreeSpinCount);
+        } else {
+            // Bonus 2 လုံးပဲရှိရင် Free Spin မပေးဘူး
+            console.log('⚠️ Only 2 bonuses total → NO free spins');
+            removeAllBorders();
+            disableButtons(false);
+            window.gameState.isSpinning = false;
+        }
+        return;
+    }
+   
+
+    // ===== Bonus စုစုပေါင်း အရေအတွက် ပြန်ရေတွက်မယ် =====
+function countTotalBonuses(result) {
+    let count = 0;
+    for (let col = 0; col < 5; col++) {
+        for (let row = 0; row < 4; row++) {
+            if (result[col][row] === 'bonus') {
+                count++;
+            }
+        }
+    }
+    return count;
+} 
+    let col = columnsToCheck[index];
+    let isLastColumn = (index === columnsToCheck.length - 1);
+    let targetSymbols = finalResult[col];
+    let hasBonusInThisCol = targetSymbols.some(s => s === 'bonus');
+    
+    if (hasBonusInThisCol) {
+        // Bonus ပါရင် ချက်ချင်းပြ
+        console.log(`⏩ Column ${col} has Bonus, revealing instantly...`);
+        revealColumnInstantly(col, targetSymbols);
+        lockColumn(col);
+        
+        setTimeout(() => {
+            startFreeSpinSuspenseSequence(finalResult, columnsToCheck, index + 1, bonusCount, freeSpinCount);
+        }, 400);
+    } else {
+        // Bonus မပါရင် Suspense နဲ့ စစ်မယ်
+        console.log(`🔍 Column ${col} suspense check...`);
+        
+        // Visual Effect
+        addRedBorderToColumn(col);
+        let cells = getColumnCells(col);
+        cells.forEach(cell => cell.classList.add('rise-column'));
+        
+        // Sound Effect (Jackpot Mode အတိုင်း)
+        if (typeof SoundManager !== 'undefined') {
+            SoundManager.lion();
+            SoundManager.boom();
+        }
+        
+        // Spin Duration (နောက်ဆုံး Column ဆိုရင် ပိုကြာ)
+        let spinDuration = isLastColumn ? 7000 : 5000;
+        
+        // Fast Random Spin
+        fastRandomSpin(col, spinDuration, () => {
+            // Slow Reveal
+            slowRevealColumn(col, targetSymbols, (hasBonus) => {
+                removeRedBorderFromColumn(col);
+                cells.forEach(c => c.classList.remove('rise-column'));
+                
+                if (hasBonus) {
+                    lockColumn(col);
+                }
+                
+                setTimeout(() => {
+                    startFreeSpinSuspenseSequence(finalResult, columnsToCheck, index + 1, bonusCount, freeSpinCount);
+                }, 500);
+            });
+        });
+    }
+}
+
+// ===== BONUS COLUMN ကို ချက်ချင်း Lock + Reveal =====
+function lockAndRevealBonusColumn(col, targetSymbols) {
+    let cells = getColumnCells(col);
+    
+    cells.forEach((cell, row) => {
+        let img = cell.querySelector('img');
+        let symbol = targetSymbols[row];
+        
+        if (img && symbol) {
+            img.src = 'images/' + symbol + '.png';
+            img.style.opacity = '1';
+            img.style.transition = 'all 0.3s ease';
+            cell.dataset.symbol = symbol;
+            
+            if (symbol === 'bonus') {
+                addBonusGlow(cell);
+                if (typeof SoundManager !== 'undefined' && SoundManager.boom) {
+                    SoundManager.boom();
+                }
+            }
+        }
+    });
+    
+    // Lock Column Visual
+    cells.forEach(cell => {
+        cell.classList.add('locked-column');
+        cell.style.opacity = '0.9';
+        cell.style.filter = 'brightness(1.1)';
+    });
+    
+    console.log(`🔒 Bonus Column ${col} LOCKED`);
+}
+
+// ===== COLUMN ကို Lock ချမယ် =====
+function lockColumn(col) {
+    let cells = getColumnCells(col);
+    cells.forEach(cell => {
+        cell.classList.add('locked-column');
+        cell.style.opacity = '0.9';
+        cell.style.filter = 'brightness(1.1)';
+    });
+}
+
+// ===== SLOW REVEAL (Row by Row) =====
+function slowRevealColumn(col, targetSymbols, onComplete) {
+    let colCells = getColumnCells(col);
+    let rowIndex = 0;
+    let hasBonus = false;
+    
+    function revealNextRow() {
+        if (rowIndex >= colCells.length) {
+            setTimeout(() => {
+                if (onComplete) onComplete(hasBonus);
+            }, 300);
+            return;
+        }
+        
+        let cell = colCells[rowIndex];
+        let img = cell.querySelector('img');
+        let symbol = targetSymbols[rowIndex];
+        
+        if (img && symbol) {
+            img.src = 'images/' + symbol + '.png';
+            img.style.transition = 'none';
+            img.style.opacity = '0';
+            img.style.transform = 'translateY(-50px) scale(0.8)';
+            
+            setTimeout(() => {
+                img.style.transition = 'all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                img.style.opacity = '1';
+                img.style.transform = 'translateY(0) scale(1)';
+                cell.dataset.symbol = symbol;
+                
+                if (symbol === 'bonus') {
+                    hasBonus = true;
+                    addBonusGlow(cell);
+                    if (typeof SoundManager !== 'undefined' && SoundManager.boom) {
+                        SoundManager.boom();
+                    }
+                }
+            }, 50);
+        }
+        
+        rowIndex++;
+        setTimeout(revealNextRow, 150);
+    }
+    
+    revealNextRow();
+}
+function addBonusGlow(cell) {
+    const img = cell.querySelector('img');
+    if (img) {
+        // Inline styles
+        img.style.borderRadius = '50%';
+        img.style.boxShadow = '0 0 0 4px #ffd700, 0 0 25px #ffd700';
+        img.style.padding = '4px';
+        img.style.backgroundColor = 'rgba(255, 215, 0, 0.3)';
+        
+        // Cell background
+        cell.style.backgroundColor = 'rgba(255, 215, 0, 0.1)';
+        cell.dataset.symbol = 'bonus';
+        
+        // Add a class for easier cleanup
+        cell.classList.add('bonus-glow-cell');
+        img.classList.add('bonus-glow-img');
+    }
+}
+function finishFreeSpinSuspense(bonusCount, freeSpinCount) {
+    console.log('✅ Free Spin Suspense Finished!');
+    
+    // ⭐ Borders အကုန်ရှင်းမယ်
+    removeAllBorders();
+    
+    // ⭐ နောက်ထပ် သေချာအောင် ထပ်ရှင်းမယ်
+    setTimeout(() => {
+        removeAllBorders();  // ထပ်ခေါ်
+    }, 100);
+    
+    if (bonusCount >= 3) {
+        initializeFreeSpinsDirect(bonusCount, freeSpinCount);
+    } else {
+        disableButtons(false);
+        window.gameState.isSpinning = false;
+        removeAllBorders();  // ထပ်ရှင်း
+    }
+}
+// ===== FREE SPIN ပမာဏ တွက်မယ် =====
+function calculateFreeSpinCount(bonusCount) {
+    let freeSpinCount = 10;  // Bonus 3 လုံးအတွက် 10 ကြိမ်
+    if (bonusCount >= 4) freeSpinCount = 15;
+    if (bonusCount >= 5) freeSpinCount = 20;
+    if (bonusCount >= 6) freeSpinCount = 25;
+    if (bonusCount >= 7) freeSpinCount = 30;
+    if (bonusCount >= 8) freeSpinCount = 40;
+    if (bonusCount >= 9) freeSpinCount = 50;
+    if (bonusCount >= 10) freeSpinCount = 60;
+    return freeSpinCount;
+}
+
+// ===== EXTRA SPINS တွက်မယ် =====
+function calculateExtraSpins(bonusCount) {
+    let extraSpins = 5;
+    if (bonusCount >= 4) extraSpins = 8;
+    if (bonusCount >= 5) extraSpins = 12;
+    if (bonusCount >= 6) extraSpins = 15;
+    return extraSpins;
+}
+
+// ===== DIRECT FREE SPIN INIT (Suspense မပါ) =====
+function initializeFreeSpinsDirect(bonusCount, freeSpinCount) {
+    window.gameState.isFreeSpinning = true;
+    window.gameState.freeSpins = freeSpinCount;
+    window.gameState.totalFreeSpins = freeSpinCount;
+    window.gameState.freeSpinBonusCount = bonusCount;
+    
+    disableButtons(true);
+    showFreeSpinIndicator();
+    showFreeSpinStartAnimation(freeSpinCount);
+    showNotification(`✨ Free Spin ${freeSpinCount} ကြိမ် ရရှိပါသည်။ (Bonus ${bonusCount} လုံး)`, 'success');
+    
+    setTimeout(() => {
+        spin();
+    }, 1500);
+}
+
+// ===== HELPER FUNCTIONS =====
+function getColumnCells(col) {
+    let cells = [];
+    for (let row = 0; row < 4; row++) {
+        let cell = document.querySelector(`.grid-cell[data-col="${col}"][data-row="${row}"]`);
+        if (cell) cells.push(cell);
+    }
+    return cells;
+}
+
+function addRedBorderToColumn(col) {
+    const cells = getColumnCells(col);
+    cells.forEach(cell => {
+        cell.classList.add('suspense-glow');
+        // ဒါ့အပြင် inline style ထပ်ထည့်မယ်
+        cell.style.boxShadow = '0 0 0 3px #ff0000, 0 0 20px rgba(255,0,0,0.5)';
+        cell.style.border = '2px solid #ff0000';
+        cell.style.borderRadius = '8px';
+    });
+}
+
+function removeRedBorderFromColumn(col) {
+    const cells = getColumnCells(col);
+    cells.forEach(cell => {
+        cell.classList.remove('suspense-glow');
+        // Inline style တွေကို ရှင်းမယ်
+        cell.style.boxShadow = '';
+        cell.style.border = '';
+        cell.style.borderRadius = '';
+    });
+}
+function removeAllBorders() {
+    console.log('🧹 Removing all borders, glows, and bonus effects...');
+    
+    const allCells = document.querySelectorAll('.grid-cell');
+    
+    allCells.forEach(cell => {
+        // Remove all CSS classes
+        cell.classList.remove(
+            'suspense-glow', 'locked-column', 'rise-column', 
+            'red-border-line', 'yellow-border-line', 'bonus-glow-cell'
+        );
+        
+        // Reset cell inline styles
+        cell.style.border = '';
+        cell.style.borderRadius = '';
+        cell.style.boxShadow = '';
+        cell.style.transform = '';
+        cell.style.transition = '';
+        cell.style.backgroundColor = '';
+        cell.style.opacity = '';
+        cell.style.filter = '';
+        cell.style.outline = '';
+        cell.dataset.symbol = '';
+        
+        // 🔥 Reset image styles (THIS IS KEY FOR BONUS GLOW)
+        const img = cell.querySelector('img');
+        if (img) {
+            img.style.borderRadius = '';
+            img.style.boxShadow = '';
+            img.style.padding = '';
+            img.style.backgroundColor = '';
+            img.style.transform = '';
+            img.style.opacity = '';
+            img.style.transition = '';
+            img.style.border = '';
+            img.style.outline = '';
+            img.classList.remove('bonus-glow-img');
+        }
+    });
+    
+    console.log('✅ All borders, glows, and bonus effects removed');
+}
+// Bonus Glow ပျောက်သွားလား စစ်ဖို့
+function checkForRemainingBonusGlow() {
+    const allImages = document.querySelectorAll('.grid-cell img');
+    let hasGlow = false;
+    
+    allImages.forEach(img => {
+        if (img.style.borderRadius === '50%' || img.style.boxShadow.includes('ffd700')) {
+            console.warn('⚠️ Bonus glow still present on:', img);
+            hasGlow = true;
+        }
+    });
+    
+    if (!hasGlow) {
+        console.log('✅ No bonus glow found - clean!');
+    }
+}
+
+// Suspense ပြီးတိုင်း ဒီလိုခေါ်ပါ
+removeAllBorders();
+checkForRemainingBonusGlow();
 // ============================================
-// 18. FREE SPIN FUNCTIONS
+// 18. FREE SPIN FUNCTIONS (FIXED - NO SUSPENSE)
 // ============================================
+
 function startFreeSpins(bonusCount) {
     // Bonus အရေအတွက်အလိုက် Free Spin ပမာဏ
-    let freeSpinCount = 15;  // Bonus 5 ခုအတွက် 15 ကြိမ်
-    
-    if (bonusCount >= 6) freeSpinCount = 20;
-    if (bonusCount >= 7) freeSpinCount = 25;
-    if (bonusCount >= 8) freeSpinCount = 30;
-    if (bonusCount >= 9) freeSpinCount = 40;
-    if (bonusCount >= 10) freeSpinCount = 50;
-    
+    let freeSpinCount = 10;  // Bonus 3 ခုအတွက် 10 ကြိမ်
+
+    if (bonusCount >= 4) freeSpinCount = 15;
+    if (bonusCount >= 5) freeSpinCount = 20;
+    if (bonusCount >= 6) freeSpinCount = 25;
+    if (bonusCount >= 7) freeSpinCount = 30;
+    if (bonusCount >= 8) freeSpinCount = 40;
+    if (bonusCount >= 9) freeSpinCount = 50;
+    if (bonusCount >= 10) freeSpinCount = 60;
+
     console.log(`🎰 Starting Free Spins! Bonus: ${bonusCount}, Free Spins: ${freeSpinCount}`);
 
     // Set game state
@@ -2988,16 +3378,16 @@ function startFreeSpins(bonusCount) {
 
     // Disable buttons
     disableButtons(true);
-    
+
     // Show indicator
     showFreeSpinIndicator();
-    
+
     // Show start animation
     showFreeSpinStartAnimation(freeSpinCount);
-    
+
     // Show notification
     showNotification(`✨ Free Spin ${freeSpinCount} ကြိမ် ရရှိပါသည်။ (Bonus ${bonusCount} လုံး)`, 'success');
-    
+
     // Start first free spin
     setTimeout(() => {
         spin();
@@ -3007,20 +3397,20 @@ function startFreeSpins(bonusCount) {
 // ===== HANDLE FREE SPIN AFTER EACH SPIN =====
 function handleFreeSpin() {
     if (!window.gameState.isFreeSpinning) return;
-    
+
     // ✅ Win Animation ပြနေရင် စောင့်မယ်
     if (window.gameState.waitingForWinAnimation) {
         console.log('⏳ Waiting for win animation to finish...');
         setTimeout(() => handleFreeSpin(), 500);
         return;
     }
-    
+
     if (window.gameState.freeSpins > 0) {
         window.gameState.freeSpins--;
         updateFreeSpinIndicator();
-        
+
         console.log(`🎰 Free Spins left: ${window.gameState.freeSpins} / ${window.gameState.totalFreeSpins}`);
-        
+
         if (window.gameState.freeSpins > 0) {
             // ✅ Animation ပြီးမှ နောက် Free Spin ကိုဆက်မယ်
             setTimeout(() => {
@@ -3034,16 +3424,16 @@ function handleFreeSpin() {
     }
 }
 
-// ✅ Win Animation ပြီးရင် ခေါ်မယ့် function
+// ===== CONTINUE FREE SPIN AFTER WIN (တစ်ခုတည်းသာ ထားမယ် - duplicate ဖျက်ပြီး) =====
 function continueFreeSpinAfterWin() {
     if (!window.gameState.isFreeSpinning) return;
-    
+
     if (window.gameState.freeSpins > 0) {
         window.gameState.freeSpins--;
         updateFreeSpinIndicator();
-        
+
         console.log(`🎰 Free Spins left after win: ${window.gameState.freeSpins} / ${window.gameState.totalFreeSpins}`);
-        
+
         if (window.gameState.freeSpins > 0) {
             setTimeout(() => {
                 spin();
@@ -3059,18 +3449,18 @@ function continueFreeSpinAfterWin() {
 // ===== END FREE SPINS =====
 function endFreeSpins() {
     console.log('🎰 Free Spins ended');
-    
+
     const totalWin = window.gameState.freeSpinTotalWin || 0;
-    
+
     // Add total win to balance
     if (totalWin > 0) {
         window.gameState.balance += totalWin;
         window.gameState.displayBalance += totalWin;
         updateBalanceDisplay();
-        
+
         // Win Box မှာ စုစုပေါင်းကို ပြပြီးမှ ပြန်ရှင်းမယ်
         updateWinDisplay(totalWin);
-        
+
         // Show big win animation
         if (typeof WinAnimations !== 'undefined') {
             if (totalWin >= 50000) {
@@ -3081,36 +3471,36 @@ function endFreeSpins() {
                 WinAnimations.big(totalWin);
             }
         }
-        
+
         showNotification(`🎉 Free Spin ပြီးဆုံးပါသည်။ စုစုပေါင်း ${formatNumber(totalWin)} ကျပ် ရရှိပါသည်။`, 'success');
     }
-    
+
     // Reset free spin state
     window.gameState.isFreeSpinning = false;
     window.gameState.freeSpins = 0;
     window.gameState.totalFreeSpins = 0;
     window.gameState.freeSpinTotalWin = 0;
     window.gameState.freeSpinBonusCount = 0;
-    
+
     // Hide indicator
     hideFreeSpinIndicator();
-    
+
     // Enable buttons
     disableButtons(false);
-    
+
     // Show end animation
     showFreeSpinEndAnimation(totalWin);
-    
+
     // Clear win display after 3 seconds
     setTimeout(() => {
         updateWinDisplay(0);
     }, 3000);
-    
+
     // Update Firestore
     updateUserBalanceInStorage();
 }
 
-// ===== CHECK SCATTER (BONUS) =====
+// ===== CHECK SCATTER (BONUS) - UPDATED: 3 BONUS = START =====
 function checkScatter(result) {
     let bonusCount = 0;
 
@@ -3125,28 +3515,33 @@ function checkScatter(result) {
     console.log(`🎰 Bonus count: ${bonusCount}`);
 
     // ===== FREE SPIN အတွင်း BONUS ထပ်ကျရင် =====
-    if (window.gameState.isFreeSpinning && bonusCount >= 4) {
+    if (window.gameState.isFreeSpinning && bonusCount >= 3) {
         // အပို Free Spin ထပ်ထည့်
-        const extraSpins = 5;
+        let extraSpins = 5;
+        
+        if (bonusCount >= 4) extraSpins = 8;
+        if (bonusCount >= 5) extraSpins = 12;
+        if (bonusCount >= 6) extraSpins = 15;
+        
         window.gameState.freeSpins += extraSpins;
         window.gameState.totalFreeSpins += extraSpins;
-        
+
         console.log(`🎰 Extra Free Spins! +${extraSpins} (Total left: ${window.gameState.freeSpins})`);
-        
+
         // Update indicator
         updateFreeSpinIndicator();
-        
+
         // Show notification
         showNotification(`✨ Bonus ${bonusCount} လုံးကျပါသည်။ အပို Free Spin ${extraSpins} ကြိမ် ထပ်ရရှိပါသည်။`, 'success');
-        
+
         // Show extra spins animation
         showExtraFreeSpinAnimation(extraSpins);
-        
+
         return bonusCount;
     }
 
-    // ===== ပုံမှန် Free Spin စတာ (၅ လုံးကျမှ) =====
-    if (!window.gameState.isFreeSpinning && bonusCount >= 5) {
+    // ===== ပုံမှန် Free Spin စတာ (၃ လုံးကျမှ) =====
+    if (!window.gameState.isFreeSpinning && bonusCount >= 3) {
         startFreeSpins(bonusCount);
     }
 
@@ -3195,9 +3590,16 @@ function updateFreeSpinIndicator() {
     const indicator = document.getElementById('freeSpinIndicator');
     if (indicator) {
         indicator.innerHTML = `
-            <div style="font-size: 14px; opacity: 0.9;">✨ FREE SPINS</div>
-            <div style="font-size: 32px; font-weight: 900; line-height: 1.2;">${window.gameState.freeSpins}</div>
-            <div style="font-size: 12px; opacity: 0.8;">Total: ${window.gameState.totalFreeSpins}</div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="font-size: 32px;">🎰</div>
+                <div>
+                    <div style="font-size: 10px; color: #00ffaa; letter-spacing: 2px;">FREE SPINS ACTIVE</div>
+                    <div style="font-size: 32px; font-weight: 900; color: #ffffff; line-height: 1; text-shadow: 0 0 10px #00ffaa;">
+                        ${window.gameState.freeSpins}
+                    </div>
+                    <div style="font-size: 10px; color: #88ffaa;">out of ${window.gameState.totalFreeSpins}</div>
+                </div>
+            </div>
         `;
     }
 }
@@ -3208,7 +3610,6 @@ function hideFreeSpinIndicator() {
         indicator.remove();
     }
 }
-
 // Add keyframe animation for indicator
 if (!document.querySelector('#indicator-animation-styles')) {
     const style = document.createElement('style');
@@ -3245,7 +3646,7 @@ function showFreeSpinStartAnimation(spins) {
         align-items: center;
         animation: fadeIn 0.5s;
     `;
-    
+
     overlay.innerHTML = `
         <div style="text-align: center; animation: spinPop 1s cubic-bezier(0.68, -0.55, 0.265, 1.55);">
             <div style="font-size: 100px; margin-bottom: 20px; animation: bounce 0.5s infinite alternate;">🎰</div>
@@ -3269,7 +3670,7 @@ function showFreeSpinStartAnimation(spins) {
             </div>
         </div>
     `;
-    
+
     // Add floating particles
     for (let i = 0; i < 50; i++) {
         setTimeout(() => {
@@ -3291,9 +3692,9 @@ function showFreeSpinStartAnimation(spins) {
             setTimeout(() => particle.remove(), 1000);
         }, i * 30);
     }
-    
+
     document.body.appendChild(overlay);
-    
+
     setTimeout(() => {
         overlay.style.animation = 'fadeOut 0.5s';
         setTimeout(() => overlay.remove(), 500);
@@ -3329,7 +3730,7 @@ function showExtraFreeSpinAnimation(extraSpins) {
         </div>
     `;
     document.body.appendChild(overlay);
-    
+
     // Add confetti
     for (let i = 0; i < 30; i++) {
         setTimeout(() => {
@@ -3350,7 +3751,7 @@ function showExtraFreeSpinAnimation(extraSpins) {
             setTimeout(() => confetti.remove(), 1000);
         }, i * 30);
     }
-    
+
     setTimeout(() => {
         overlay.remove();
     }, 2000);
@@ -3371,7 +3772,7 @@ function showFreeSpinEndAnimation(totalWin) {
         align-items: center;
         animation: fadeIn 0.5s;
     `;
-    
+
     overlay.innerHTML = `
         <div style="text-align: center; animation: popIn 0.8s;">
             <div style="font-size: 80px; margin-bottom: 20px; animation: bounce 0.3s infinite alternate;">🎁</div>
@@ -3389,9 +3790,9 @@ function showFreeSpinEndAnimation(totalWin) {
             </div>
         </div>
     `;
-    
+
     document.body.appendChild(overlay);
-    
+
     setTimeout(() => {
         overlay.style.animation = 'fadeOut 0.5s';
         setTimeout(() => overlay.remove(), 500);
@@ -3402,13 +3803,13 @@ function showFreeSpinEndAnimation(totalWin) {
 function disableButtons(disable) {
     const spinBtn = document.getElementById('spinBtn');
     const betButtons = document.querySelectorAll('.bet-option, #decreaseBetBtn, #increaseBetBtn');
-    
+
     if (spinBtn) {
         spinBtn.disabled = disable;
         spinBtn.style.opacity = disable ? '0.5' : '1';
         spinBtn.style.pointerEvents = disable ? 'none' : 'auto';
     }
-    
+
     betButtons.forEach(btn => {
         btn.disabled = disable;
         btn.style.opacity = disable ? '0.5' : '1';
@@ -3445,7 +3846,24 @@ if (!document.querySelector('#free-spin-animation-styles')) {
     `;
     document.head.appendChild(style);
 }
-
+// ===== DIRECT FREE SPIN INIT (Suspense မပါ - ဒါပေမယ့် Free Spin စဖို့သုံးတယ်) =====
+function initializeFreeSpinsDirect(bonusCount, freeSpinCount) {
+    console.log(`🎰 Initializing Free Spins: ${freeSpinCount} spins for ${bonusCount} bonuses`);
+    
+    window.gameState.isFreeSpinning = true;
+    window.gameState.freeSpins = freeSpinCount;
+    window.gameState.totalFreeSpins = freeSpinCount;
+    window.gameState.freeSpinBonusCount = bonusCount;
+    
+    disableButtons(true);
+    showFreeSpinIndicator();
+    showFreeSpinStartAnimation(freeSpinCount);
+    showNotification(`✨ Free Spin ${freeSpinCount} ကြိမ် ရရှိပါသည်။ (Bonus ${bonusCount} လုံး)`, 'success');
+    
+    setTimeout(() => {
+        spin();
+    }, 1500);
+}
 // ============================================
 // 20. AUTO SPIN (LONG PRESS) WITH INDICATOR
 // ============================================
