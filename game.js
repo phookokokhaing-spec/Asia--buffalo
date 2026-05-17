@@ -2089,12 +2089,19 @@ function generateNormalResult() {
 function forceNoWinByColumns(result) {
     const allSymbols = ['seven', 'jack', 'queen', 'nine', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'ten'];
 
+    // Col 0 ကို သဘာဝအတိုင်း အရင်နှိုက်မယ်
     for (let row = 0; row < 4; row++) {
         result[0][row] = allSymbols[Math.floor(Math.random() * allSymbols.length)];
     }
 
     const usedInCol0 = new Set(result[0]);
-    let availableForCol1 = allSymbols.filter(s => !usedInCol0.has(s));
+    
+    // 💡 အဓိကပြင်ဆင်ချက် - Col 0 မှာ buffalo ပါခဲ့ရင် Col 1 မှာလည်း buffalo ကို နှိုက်ခွင့် (Chance) ပေးမယ်။
+    // ဒါပေမဲ့ Col 0 မှာ buffalo မပါရင် Col 1 မှာလည်း အလကားနေရင်း တိုးမလာစေရဘူး။
+    let availableForCol1 = allSymbols.filter(s => {
+        if (s === 'buffalo' && usedInCol0.has('buffalo')) return true; // Col 0 မှာပါမှ Col 1 မှာ နှိုက်ခွင့်ရှိမယ်
+        return !usedInCol0.has(s);
+    });
 
     if (availableForCol1.length < 4) {
         availableForCol1 = [...allSymbols];
@@ -2109,8 +2116,9 @@ function forceNoWinByColumns(result) {
         if (result[1][row] === 'wild') result[1][row] = 'ten';
     }
 
-    console.log('🔧 forceNoWinByColumns: col0 and col1 symbol sets are disjoint → guaranteed no win');
+    console.log('🔧 forceNoWinByColumns: Balanced with smart buffalo logic');
 }
+
 // ===== ADMIN CONTROL 2 - NOWIN CONTROL =====
 window.adminControl2 = {
     enabled: false,
