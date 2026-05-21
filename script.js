@@ -1,6 +1,58 @@
+function startLobbyFeatures() {
+            animateJackpots();
+        }
+        function animateJackpots() {
+            const jackpots = [
+                { el:'jackpot1', base:15759157, speed:100 },
+                { el:'jackpot2', base:5229739, speed:80 },
+                { el:'jackpot3', base:16587205, speed:60 },
+                { el:'jackpot4', base:11026483, speed:70 },
+                { el:'jackpot5', base:1570008, speed:90 },
+                { el:'jackpot6', base:543993, speed:50 }
+            ];
+            jackpots.forEach(j => {
+                let current = j.base;
+                const el = document.getElementById(j.el);
+                if(el) setInterval(() => {
+                    current += Math.floor(Math.random() * 100) + 10;
+                    el.textContent = current.toLocaleString();
+                }, j.speed * 10);
+            });
+        }
+        function showLobbyNotification(msg) {
+            const n = document.getElementById('lobbyNotification');
+            document.getElementById('notifText').innerText = msg;
+            n.classList.add('show');
+            setTimeout(() => n.classList.remove('show'), 2000);
+        }
+        function switchLobbyTab(el, tab) {
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+            if(tab !== 'home') showLobbyNotification(tab + ' - မကြာမီလာမည်');
+        }
+
+        // Show/hide slot game container
+        function showGameContainer() {
+            document.getElementById('lobbyScreen').style.display = 'none';
+            document.getElementById('gameContainer').style.display = 'flex';
+            // If game.js has init function, call it
+            if(typeof initGame === 'function') initGame();
+        }
+        function hideGameContainer() {
+            document.getElementById('gameContainer').style.display = 'none';
+            document.getElementById('lobbyScreen').style.display = 'flex';
+        }
 
 
 // ===== LOADING SCREEN LOGIC =====
+document.addEventListener('copy', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+}, false);
+
+
+// ===== LOADING SCREEN LOGIC (ပြင်ဆင်ပြီး) =====
 document.addEventListener('DOMContentLoaded', function() {
     const startBtn = document.getElementById('startBtn');
     const startWrapper = document.getElementById('startWrapper');
@@ -9,6 +61,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const loginScreen = document.getElementById('loginScreen');
     const gameContainer = document.getElementById('gameContainer');
     const loadingScreen = document.getElementById('loadingScreen');
+    const lobbyScreen = document.getElementById('lobbyScreen');
 
     // Check if user already logged in
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));

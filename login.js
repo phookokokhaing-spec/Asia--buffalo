@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // Hide login, show game
                 document.getElementById('loginScreen').style.display = 'none';
-                document.getElementById('gameContainer').style.display = 'flex';
+                document.getElementById('lobbyScreen').style.display = 'flex';
 
                 // Update UI
                 if (typeof updateUserUI === 'function') {
@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('❌ User logged out');
             window.currentUser = null;                                                         localStorage.removeItem('currentUser');
             document.getElementById('loginScreen').style.display = 'flex';
-            document.getElementById('gameContainer').style.display = 'none';
+            document.getElementById('lobbyScreen').style.display = 'none';
         }
     });
 
@@ -275,15 +275,22 @@ function updateUserUI(user) {
     const usernameEl = document.getElementById('usernameMini');
     if (usernameEl) usernameEl.textContent = user.username;
 
+    // ၁။ ဂိမ်းထဲက Balance UI ကို ပြင်မယ်
     const balanceEl = document.getElementById('balanceAmount');
     if (balanceEl) balanceEl.textContent = formatNumber(user.balance);
+
+    // 💡 ၂။ Lobby က Balance UI ကိုပါ တပြိုင်နက် ပြင်ဖို့ ဒါလေး ထည့်လိုက်ပါ
+    const lobbyBalanceEl = document.getElementById('lobbyBalance');
+    if (lobbyBalanceEl) lobbyBalanceEl.textContent = formatNumber(user.balance);
 
     const levelEl = document.getElementById('userLevel');
     if (levelEl) levelEl.textContent = user.level;
 
-    const vipEl = document.getElementById('vipLevel');
+    // Lobby မှာ ရှိတဲ့ VIP Level ပြတဲ့ နေရာကိုပါ ထည့်ပြင်ပေးထားပါတယ်
+    const vipEl = document.querySelector('.vip-level'); 
     if (vipEl) vipEl.textContent = user.vip;
 }
+
 
 // ===== FORMAT NUMBER =====
 function formatNumber(num) {

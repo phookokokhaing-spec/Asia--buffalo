@@ -2220,8 +2220,8 @@ html, body {
 
 /* Panel တွေရဲ့အတွင်းပိုင်း styling (အရင်အတိုင်း) */
 .chat-trigger {
-    background: linear-gradient(145deg, #2a2a4a, #1a1a3a);
-    border: 2px solid #6c5ce7;
+    background: linear-gradient(0deg, #100202 0%, #2d0808 100%);
+    border: 2px solid #8B4513;
     border-radius: 15px;
     padding: 15px 0;
     width: 100%;
@@ -2239,7 +2239,7 @@ html, body {
     padding: 12px 5px;
     background: linear-gradient(145deg, #2a2a4a, #1a1a3a);
     border-radius: 15px;
-    border: 1px solid #6c5ce7;
+    border: 1px solid #8B4513;
 }
 
 .ways-number {
@@ -2285,8 +2285,8 @@ html, body {
     width: 100px;
     background: rgba(10, 10, 25, 0.7);
     backdrop-filter: blur(5px);
-    border: 2px solid #6c5ce7;
-    border-right: 1px solid #6c5ce7;
+    border: 2px solid #8B4513;
+    border-right: 1px solid #8B4513;
     border-radius: 20px 0 0 20px;
     padding: 15px 8px;
     display: flex;
@@ -2372,7 +2372,7 @@ html, body {
 
 .grid-cell:hover {
     transform: scale(1.02);
-    border-color: #00d4ff;
+    border-color: #8B4513;
 }
 
 
@@ -2380,7 +2380,7 @@ html, body {
     width: 80%;
     height: 80%;
     object-fit: contain;
-   filter: drop-shadow(0 0 8px #6c5ce7);
+   filter: drop-shadow(0 0 8px #8B4513);
     transition: all 0.2s;
 }
 
@@ -2394,8 +2394,8 @@ html, body {
     width: 120px;
     background: rgba(10, 10, 25, 0.7);
     backdrop-filter: blur(5px);
-    border: 2px solid #6c5ce7;
-    border-left: 1px solid #6c5ce7;
+    border: 2px solid #8B4513;
+    border-left: 1px solid #8B4513;
     border-radius: 0 20px 20px 0;
     padding: 15px 8px;
     display: flex;
@@ -2611,8 +2611,8 @@ html, body {
 }
 
 .grid-cell {
-    background: linear-gradient(145deg, #2a2a4a, #1a1a3a);
-    border: 2px solid #6c5ce7;
+    background: linear-gradient(0deg, #100202 0%, #2d0808 100%);
+    border: 2px solid #8B4513;
     border-radius: 15px;
     display: flex;
     align-items: center;
@@ -2636,8 +2636,7 @@ html, body {
 }
 
 .grid-cell {
-    background: linear-gradient(145deg, #2a2a4a, #1a1a3a);
-    border: 2px solid #6c5ce7;
+   background: linear-gradient(0deg, #100202 0%, #2d0808 100%);
     border-radius: 15px;
 
     display: flex;

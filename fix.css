@@ -1,4 +1,28 @@
 
+.back-btn {
+    background: linear-gradient(145deg, #6c5ce7, #a463f5);
+    border: none;
+    color: white;
+    font-size: 20px;
+    font-weight: 600;
+    padding: 0 50px;
+    height: 70px;
+    border-radius: 35px;
+    cursor: pointer;
+    box-shadow: 0 10px 0 #4a3aa7;
+    transition: all 0.1s;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.spin-btn:active {
+    transform: translateY(5px);
+    box-shadow: 0 5px 0 #4a3aa7;
+}
 .vfx-frame {
   width: 200px;
   height: 400px;
@@ -2065,7 +2089,7 @@ img {
     position: absolute;
     top: -5px;
     right: -5px;
-    background: #ff5252;
+    background: 8B4513;
     color: white;
     border-radius: 50%;
     width: 22px;
@@ -3669,3 +3693,866 @@ body.theme-red { background: linear-gradient(135deg, #2a0a0a, #3a0a0a); }
 .global-rank-1 { color: #ffd700; }
 .global-rank-2 { color: #c0c0c0; }
 .global-rank-3 { color: #cd7f32; }
+        /* ========== LOBBY SCREEN (first HTML) ========== */
+        #lobbyScreen {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(180deg, #4a0e0e 0%, #2d0808 50%, #1a0505 100%);
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-bottom: 90px;
+            position: relative;
+            z-index: 10;
+        }
+        /* Lobby styles (abbreviated but fully functional) */
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 10px;
+            background: linear-gradient(180deg, #5a1a1a 0%, #3d0c0c 100%);
+            border-bottom: 3px solid #8B4513;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .top-left, .top-center, .top-right { display: flex; gap: 8px; align-items: center; }
+        .avatar-btn {
+            width: 42px; height: 42px; border-radius: 10px; border: 2px solid #FFD700;
+            background: linear-gradient(145deg, #8B4513, #654321);
+            display: flex; align-items: center; justify-content: center;
+            position: relative; cursor: pointer;
+        }
+        .vip-level {
+            position: absolute; bottom: -5px; right: -5px;
+            background: linear-gradient(145deg, #FFD700, #FFA500);
+            color: #4a0e0e; font-size: 9px; font-weight: 900;
+            padding: 1px 5px; border-radius: 5px; border: 1px solid #fff;
+        }
+        .balance-box {
+            display: flex; align-items: center; gap: 6px;
+            background: linear-gradient(145deg, #3d0c0c, #2a0808);
+            border: 2px solid #8B4513; border-radius: 20px; padding: 5px 12px;
+        }
+        .balance-amount { font-size: 18px; font-weight: 900; color: #FFD700; }
+        .green-btn, .purple-btn {
+            border-radius: 15px; padding: 6px 15px; color: white; font-weight: 700; cursor: pointer;
+        }
+        .green-btn { background: linear-gradient(145deg, #00C853, #00E676); border: 2px solid #00FF00; }
+        .purple-btn { background: linear-gradient(145deg, #9C27B0, #E040FB); border: 2px solid #FF00FF; }
+        .gold-box {
+            display: flex; align-items: center; gap: 5px;
+            background: linear-gradient(145deg, #3d0c0c, #2a0808);
+            border: 2px solid #8B4513; border-radius: 20px; padding: 5px 12px;
+        }
+        .gold-amount { font-size: 16px; font-weight: 900; color: #FFD700; }
+        .settings-btn {
+            width: 38px; height: 38px; border-radius: 50%;
+            background: linear-gradient(145deg, #666, #333);
+            border: 2px solid #999; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; color: #FFD700;
+        }
+        .jackpot-tree {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            padding: 10px 5px;
+            position: relative;
+            overflow-x: auto;
+        }
+        .jackpot-tree-title {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(145deg, #FFD700, #FFA500);
+            color: #4a0e0e;
+            font-size: 14px;
+            font-weight: 900;
+            padding: 3px 20px;
+            border-radius: 0 0 10px 10px;
+            border: 2px solid #8B4513;
+            border-top: none;
+            white-space: nowrap;
+            z-index: 10;
+        }
+        .jackpot-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 8px 8px;
+            border-radius: 10px;
+            min-width: 100px;
+        }
+        .jackpot-item.blue { background: linear-gradient(145deg, rgba(0,100,200,0.4), rgba(0,50,150,0.3)); border: 2px solid #0080FF; }
+        .jackpot-item.green { background: linear-gradient(145deg, rgba(0,150,100,0.4), rgba(0,100,50,0.3)); border: 2px solid #00CC66; }
+        .jackpot-item.purple { background: linear-gradient(145deg, rgba(200,50,200,0.4), rgba(150,0,150,0.3)); border: 2px solid #CC33CC; }
+        .jackpot-item.orange { background: linear-gradient(145deg, rgba(255,100,0,0.4), rgba(200,50,0,0.3)); border: 2px solid #FF6600; }
+        .jackpot-item.teal { background: linear-gradient(145deg, rgba(0,150,150,0.4), rgba(0,100,100,0.3)); border: 2px solid #00CCCC; }
+        .jackpot-value { font-size: 14px; font-weight: 900; font-family: 'Orbitron', monospace; }
+        .games-area { flex: 1; padding: 10px; }
+        .games-scroll { display: flex; gap: 20px; overflow-x: auto; padding: 5px; scroll-snap-type: x mandatory; }
+        .game-card {
+            position: relative;
+            min-width: 220px;
+            max-width: 280px;
+            border-radius: 28px;
+            background: linear-gradient(145deg, rgba(255,215,0,0.3), rgba(139,69,19,0.5));
+            padding: 4px;
+            box-shadow: 0 15px 25px rgba(0,0,0,0.4), 0 0 0 2px #FFD700 inset, 0 0 0 4px #8B4513 inset;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .game-card.active {
+            background: linear-gradient(145deg, #FFD700, #FFA500);
+            box-shadow: 0 0 30px rgba(255,215,0,0.8);
+        }
+        .game-frame {
+            width: 100%;
+            aspect-ratio: 3/4;
+            border-radius: 24px;
+            overflow: hidden;
+            border: 3px solid #FFE484;
+        }
+        .game-frame-inner {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .game-title-overlay {
+            position: absolute;
+            bottom: 12px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            background: linear-gradient(90deg, transparent, rgba(0,0,0,0.7), transparent);
+        }
+        .game-title-text { font-size: 20px; font-weight: 900; color: #FFD700; text-shadow: 0 2px 10px black; }
+        .game-subtitle-text { font-size: 12px; color: #FFB347; }
+        /* Spin button (lobby) -> ဖြည့်ပါ */
+        .spin-btn-right {
+            position: fixed;
+            right: 12px;
+            bottom: 85px;
+            width: 75px;
+            height: 75px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 30%, #FFD700, #FF8C00, #FF6B35);
+            border: 4px solid #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 150;
+            animation: spinGlow 2s infinite;
+        }
+        @keyframes spinGlow { 0%,100% { box-shadow: 0 0 15px rgba(255,140,0,0.6); } 50% { box-shadow: 0 0 35px rgba(255,215,0,0.9); } }
+        .spin-btn-right i { font-size: 32px; color: #4a0e0e; }
+        .spin-btn-right span { font-size: 11px; color: #4a0e0e; font-weight: 800; margin-top: 2px; }
+        /* Bottom Nav */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 8px 5px 12px;
+            background: linear-gradient(180deg, #3d0c0c, #1a0505);
+            border-top: 3px solid #8B4513;
+            z-index: 200;
+            padding-bottom: max(12px, env(safe-area-inset-bottom, 12px));
+        }
+        .bottom-nav::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #FFD700, #FF6B35, #FFD700, transparent);
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            cursor: pointer;
+            padding: 5px 8px;
+            border-radius: 10px;
+            min-width: 55px;
+            position: relative;
+        }
+        .nav-item.active .nav-icon { color: #FFD700; text-shadow: 0 0 15px rgba(255,215,0,0.6); }
+        .nav-item.active .nav-label { color: #FFD700; }
+        .nav-icon { font-size: 24px; color: #aaa; }
+        .nav-label { font-size: 10px; color: #aaa; font-weight: 500; white-space: nowrap; }
+        .nav-badge {
+            position: absolute;
+            top: -2px;
+            right: 2px;
+            background: #FF3B30;
+            color: white;
+            font-size: 9px;
+            padding: 1px 5px;
+            border-radius: 8px;
+        }
+        /* ========== GAME CONTAINER (Slot Machine from second HTML) ========== */
+        .game-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0a0a1a;
+            z-index: 300;
+            display: none;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: linear-gradient(145deg, #1a1a2e, #0f0f1a);
+            border-radius: 30px;
+            max-width: 90%;
+            width: 450px;
+            max-height: 85%;
+            overflow-y: auto;
+            border: 1px solid rgba(255,215,0,0.5);
+        }
+        /* Add other missing styles from second HTML (like .amount-chips, .method-btn, etc.) quickly */
+        .amount-chips { display: flex; flex-wrap: wrap; gap: 10px; margin: 20px 0; }
+        .amount-chip { background: rgba(255,215,0,0.1); border: 1px solid #FFD700; border-radius: 30px; padding: 8px 16px; cursor: pointer; }
+        .method-grid { display: flex; gap: 10px; margin: 15px 0; }
+        .method-btn { background: #2a2a4a; border-radius: 20px; padding: 10px; text-align: center; cursor: pointer; }
+        .bank-info-card, .user-fields, .upload-area { margin: 15px 0; }
+        .submit-btn { background: linear-gradient(145deg, #FFD700, #FF8C00); padding: 12px; border-radius: 40px; width: 100%; font-weight: bold; }
+        .back-to-lobby { background: linear-gradient(145deg, #5a1515, #3d0c0c); border: 2px solid #8B4513; color: #FFD700; padding: 8px 20px; border-radius: 30px; cursor: pointer; display: inline-block; margin: 10px; }
+        .lobby-notification {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: #000000cc;
+            border: 2px solid #FFD700;
+            border-radius: 15px;
+            padding: 12px 25px;
+            opacity: 0;
+            transition: 0.4s;
+            z-index: 500;
+        }
+        .lobby-notification.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        /* ============================================
+   MAIN STYLES - COMPLETE VERSION
+   Premium Purple & Teal Theme
+   Landscape Full Screen Ready
+   ============================================ */
+   #adminModeIndicator {
+    display: none !important;
+}
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #0a0a1a;
+    font-family: 'Noto Sans Myanmar', 'Segoe UI', sans-serif;
+}
+
+/* ============================================
+   LOGIN SCREEN
+   ============================================ */
+.login-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    z-index: 1000;
+}
+
+.login-box {
+    background: rgba(20, 20, 40, 0.95);
+    backdrop-filter: blur(10px);
+    border: 2px solid #6c5ce7;
+    border-radius: 30px;
+    padding: 40px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 0 50px #6c5ce7;
+}
+
+.form-title {
+    color: white;
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 28px;
+}
+
+.form-title i {
+    color: #6c5ce7;
+    margin-right: 10px;
+}
+
+        /* ========== LOBBY SCREEN (first HTML) ========== */
+        #lobbyScreen {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            /* Landscape နဲ့ လိုက်ဖက်မယ့် ပိုမိုက်တဲ့ Dark Luxury Red Background */
+            background: radial-gradient(circle at center, #3d0c0c 0%, #1a0505 70%, #0a0202 100%);
+            overflow: hidden; /* Landscape မှာ Scroll ဘားတွေ မရှုပ်အောင် ပိတ်ထားမယ် */
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Top Bar - Premium Glassmorphism Style */
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 24px;
+            background: linear-gradient(180deg, rgba(90, 26, 26, 0.75) 0%, rgba(26, 5, 5, 0.4) 100%);
+            backdrop-filter: blur(12px); /* နောက်ခံကို မှန်ကြည်လို မှုန်ဝါးသွားစေတဲ့ effect */
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 15px rgba(255, 215, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .top-left, .top-center, .top-right { 
+            display: flex; 
+            gap: 15px; 
+            align-items: center; 
+        }
+
+        /* 3D Gold Avatar Button */
+        .avatar-btn {
+            width: 48px; 
+            height: 48px; 
+            border-radius: 50%; /* ဝိုင်းဝိုင်းလေးဆို ပိုလှတယ် */
+            border: 2px solid #FFF7C2;
+            background: linear-gradient(135deg, #FFD700, #B8860B, #8B4513);
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            position: relative; 
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.4), inset 0 2px 4px rgba(255,255,255,0.6);
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .avatar-btn:hover {
+            transform: scale(1.1);
+        }
+        .avatar-btn i {
+            color: #fff;
+            font-size: 20px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        /* Luxury VIP Badge (သရဖူ စတိုင်) */
+        .vip-level {
+            position: absolute; 
+            bottom: -3px; 
+            right: -5px;
+            background: linear-gradient(135deg, #FFE47A 0%, #FF9900 50%, #FF5500 100%);
+            color: #2d0808; 
+            font-size: 10px; 
+            font-weight: 900;
+            padding: 2px 7px; 
+            border-radius: 8px; 
+            border: 1.5px solid #fff;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.4);
+            letter-spacing: 0.5px;
+        }
+        .vip-level::before {
+            content: '👑 '; /* VIP နံပါတ်ဘေးမှာ သရဖူ Icon ထည့်ပေးတာ */
+            font-size: 8px;
+        }
+
+        /* Premium Balance Box (ရွှေဒင်္ဂါး Glow Effect) */
+        .balance-box {
+            display: flex; 
+            align-items: center; 
+            gap: 10px;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(45, 8, 8, 0.8) 100%);
+            border: 2px solid #FFD700; 
+            border-radius: 25px; 
+            padding: 6px 16px;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.25), inset 0 0 10px rgba(0,0,0,0.8);
+            min-width: 150px;
+            transition: all 0.3s;
+        }
+        .balance-box:hover {
+            border-color: #FFF;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+        .balance-box span:first-child {
+            font-size: 18px;
+            animation: coinSpin 2.5s infinite linear; /* ဒင်္ဂါးပြားလေး လည်နေမယ့် Animation */
+        }
+        .balance-amount { 
+            font-size: 20px; 
+            font-weight: 900; 
+            color: #FFF;
+            background: linear-gradient(180deg, #FFF 30%, #FFD700 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        /* ဒင်္ဂါးပြား လည်ပတ်မည့် ကုဒ် */
+        @keyframes coinSpin {
+            0% { transform: rotateY(0deg); }
+            50% { transform: rotateY(180deg); }
+            100% { transform: rotateY(360deg); }
+        }
+
+        /* Quick Deposit (+) Button */
+        .green-btn { 
+            background: linear-gradient(180deg, #00FF87 0%, #00A853 100%); 
+            border: 1.5px solid #FFF; 
+            border-radius: 12px;
+            padding: 6px 14px;
+            color: #052e16;
+            font-weight: 800;
+            box-shadow: 0 0 12px rgba(0, 255, 135, 0.4);
+            transition: all 0.2s;
+        }
+        .green-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 18px rgba(0, 255, 135, 0.7);
+        }
+
+        /* Withdraw Button */
+        .purple-btn { 
+            background: linear-gradient(180deg, #FF007F 0%, #7B1FA2 100%); 
+            border: 1.5px solid #FFF; 
+            border-radius: 12px;
+            padding: 6px 14px;
+            color: white;
+            font-weight: 800;
+            box-shadow: 0 0 12px rgba(255, 0, 127, 0.4);
+            transition: all 0.2s;
+        }
+        .purple-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 18px rgba(255, 0, 127, 0.7);
+        }
+
+        /* ---------- LANDSCAPE ADJUSTMENTS (ဂိမ်းကို ဘေးစောင်းဆော့မည့်စနစ်) ---------- */
+        @media (orientation: landscape) {
+            .top-bar {
+                padding: 4px 20px; /* Landscape မှာ Area ချုံ့မယ် */
+            }
+            .avatar-btn {
+                width: 38px; height: 38px;
+            }
+            .balance-box {
+                padding: 4px 12px;
+                min-width: 130px;
+            }
+            .balance-amount {
+                font-size: 16px;
+            }
+            /* Game Card တွေကို ဘေးတိုက်ရွှေ့ရတာ Landscape မှာ ပိုကျယ်ကျယ်ပြန့်ပြန့်ဖြစ်အောင် */
+            .games-scroll {
+                padding: 10px 40px;
+                gap: 30px;
+            }
+            .game-card {
+                min-width: 180px;
+                max-width: 220px;
+            }
+           
+        }
+
+        /* Bottom Nav */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            /* Landscape မှာ အမြင့် အရမ်းမတက်အောင် padding ညှိပြီး အောက်ကို ချလိုက်တယ် */
+            padding: 4px 10px 6px; 
+            height: 56px; /* ပုံသေ အမြင့် သတ်မှတ်ပြီး အောက်မှာ ကပ်ထားမယ် */
+            background: linear-gradient(180deg, #250505 0%, #100202 100%);
+            border-top: 2px solid #8B4513;
+            z-index: 200;
+            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.8);
+        }
+
+        /* အပေါ်ဘက်က ရွှေရောင်/အနီရောင် Gradient လိုင်းလေးကို ပိုတောက်ပအောင် လုပ်မယ် */
+        .bottom-nav::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #FFD700, #FF3B30, #FFD700, transparent);
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+        }
+
+        /* Nav Item - Icon နဲ့ စာသား ပိုကပ်သွားအောင် ညှိမယ် */
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px; /* အိုင်ကွန်နဲ့ စာသားကြား အကွာအဝေးကို ချုံ့လိုက်တယ် */
+            cursor: pointer;
+            padding: 2px 10px;
+            border-radius: 12px;
+            min-width: 65px;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        /* Hover & Active Effect - ရှယ်လန်းမယ့် ရွှေရောင် Glow */
+        .nav-item:hover {
+            transform: translateY(-2px); /* ထိလိုက်ရင် အပေါ်နည်းနည်း ကြွတက်မယ် */
+        }
+
+        .nav-item.active .nav-icon { 
+            color: #FFD700; 
+            /* Icon ကို နီယွန်မီးလို တောက်ပစေမယ့် Glow Effect */
+            filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.8)); 
+        }
+
+        .nav-item.active .nav-label { 
+            color: #FFD700;
+            font-weight: 900;
+            text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+        }
+
+        /* Nav Icons Styling */
+        .nav-icon { 
+            font-size: 20px; /* Landscape ဖုန်းနဲ့ ကွက်တိဖြစ်အောင် နည်းနည်းချုံ့တယ် */
+            color: #a89292; /* ရိုးရိုးအချိန်မှာ အဖြူရောင်မှိုင်းမှိုင်းလေး */
+            transition: color 0.3s, filter 0.3s;
+        }
+
+        /* Nav Labels Styling */
+        .nav-label { 
+            font-size: 11px; 
+            color: #a89292; 
+            font-weight: bold; 
+            white-space: nowrap; 
+        }
+
+        /* Notification Badge (အနီရောင် အသိပေးချက်ဝိုင်းလေး) */
+        .nav-badge {
+            position: absolute;
+            top: 0;
+            right: 8px;
+            background: linear-gradient(135deg, #FF3B30, #FF0000);
+            color: white;
+            font-size: 9px;
+            font-weight: 900;
+            padding: 1px 5px;
+            border-radius: 10px;
+            border: 1px solid #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+            min-width: 16px;
+            text-align: center;
+        }
+
+        /* LANDSCAPE SPECIFIC ADJUSTMENTS (ဘေးစောင်းအတွက် သီးသန့် အချောသတ်) */
+        @media (orientation: landscape) {
+            .bottom-nav {
+                height: 48px; /* ဘေးစောင်းမှာ Screen ပိုကျယ်အောင် အမြင့်ကို 48px ထိ ထပ်ချပေးလိုက်တယ် */
+                padding: 2px 20px;
+            }
+            .nav-icon {
+                font-size: 18px; /* Icon အရွယ်အစားကို အံကိုက်ဖြစ်အောင် ညှိမယ် */
+            }
+            .nav-label {
+                font-size: 10px;
+            }
+            /* Game Card တွေ အောက်ခြေလွတ်သွားအောင် ကတ်တွေရဲ့ ဧရိယာကို အောက်ခြေ Padding နည်းနည်းတိုးမယ် */
+            .games-area {
+                padding-bottom: 55px; 
+            }
+        }
+
+/* Game Card ရဲ့ Image စတိုင် */
+.game-card-img {
+    width: 65%;          /* ကတ်ရဲ့ ၆၅ ရာခိုင်နှုန်းခန့်ပဲ ယူမယ် (အပေါ်အောက် စာသားတွေနဲ့ လွတ်အောင်) */
+    height: auto;         /* အချိုးအစား မပျက်စေရန် */
+    object-fit: contain;  /* ပုံမပြားသွားအောင် ထိန်းပေးမယ် */
+    margin-bottom: 20px;  /* အောက်က စာသားနဲ့ မကပ်စေရန် */
+    filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5)); /* ပုံရဲ့ အောက်မှာ ရိပ်ထွက်စေတဲ့ 3D effect */
+    transition: transform 0.3s ease; /* ပုံကြီးလာမယ့် Speed အနှေးအမြန် */
+}
+
+/* 💡 ကတ်ကို လက်နဲ့ ထိလိုက်ရင် ပုံလေးက ရှေ့ကို ကြွတက်လာမယ့် Effect */
+.game-card:hover .game-card-img {
+    transform: scale(1.1) translateY(-5px); 
+    filter: drop-shadow(0 10px 25px rgba(255, 215, 0, 0.4)); /* ထိလိုက်ရင် ရွှေရောင် Glow မှိန်မှိန်လေး ထွက်မယ် */
+}
+
+
+/* Jackpot Tree Container - အမြင့်ကို ချုံ့ပြီး စနစ်တကျ ပြားပြားလေး ထားမယ် */
+.jackpot-tree {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    padding: 35px 10px 5px; /* အပေါ်က ခေါင်းစဉ်နဲ့ မလွတ်လို့ padding ပေးထားတယ် */
+    width: 100%;
+    flex-wrap: nowrap; /* ဘေးတိုက် တန်းနေအောင် */
+}
+
+/* Jackpot အကွက်လေးများ - Landscape အံကိုက် Size ချုံ့မယ် */
+.jackpot-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 10px;
+    border-radius: 8px;
+    min-width: 90px;
+    height: 32px;
+}
+.jackpot-value { 
+    font-size: 11px; 
+    font-weight: 900; 
+    font-family: 'Orbitron', monospace; 
+}
+
+/* Games Area - ကတ်တွေ အောက် Nav ဘားနဲ့ မငြိအောင် ထိန်းမယ် */
+.games-area { 
+    flex: 1; 
+    padding: 5px 10px; 
+    display: flex;
+    align-items: center;
+}
+
+/* Game Card ရဲ့ အမြင့်ကို ဖုန်းမျက်နှာပြင်နဲ့ ကွက်တိဖြစ်အောင် ညှိမယ် */
+.game-card {
+    position: relative;
+    min-width: 160px;
+    max-width: 200px;
+    height: 190px; /* Landscape အတွက် အမြင့်ကို ပုံသေချုပ်လိုက်တယ် */
+    border-radius: 20px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.game-frame {
+    width: 100%;
+    height: 100%;
+    border-radius: 18px;
+    overflow: hidden;
+}
+
+.game-frame-inner {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start; /* ပုံကို အပေါ်ကပ်ထားမယ် */
+    padding-top: 25px; /* အပေါ်က ကတ်ခေါင်းစဉ်စာသားအတွက် နေရာလွတ် */
+    position: relative;
+}
+
+/* 💡 Game Card ရဲ့ Image ကို Size ထိန်းပြီး စာတန်းနဲ့ မငြိအောင် လုပ်နည်း */
+.game-card-img {
+    width: 70%;
+    height: 60%;
+    object-fit: contain;
+    z-index: 1;
+}
+
+/* 💡 စာတန်းကို အုပ်မနေစေဘဲ ကတ်ရဲ့ အောက်ခြေမှာ ကွက်တိ ထားမည့်စနစ် */
+.game-title-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 8px 5px;
+    background: linear-gradient(360deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 70%, transparent 100%);
+    z-index: 2;
+    border-radius: 0 0 18px 18px;
+}
+
+.game-title-text { 
+    font-size: 14px; /* စာလုံးအရွယ်အစား နည်းနည်းချုံ့မယ် */
+    font-weight: 900; 
+    color: #FFD700; 
+    line-height: 1.2;
+}
+.game-subtitle-text { font-size: 10px; color: #FFB347; }
+
+/* 💡 မင်းလိုချင်တဲ့ ကတ်ပေါ်က Jackpot စာတန်းအလှ (GRAND, MAJOR, MINI) */
+.card-jackpot-badge {
+    position: absolute;
+    top: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 2px 12px;
+    font-size: 11px;
+    font-weight: 900;
+    border-radius: 0 0 8px 8px;
+    color: #fff;
+    z-index: 5;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.card-jackpot-badge.grand { background: linear-gradient(180deg, #FF3B30, #990000); border: 1px solid #FFD700; }
+.card-jackpot-badge.major { background: linear-gradient(180deg, #E040FB, #6a008a); border: 1px solid #FFD700; }
+.card-jackpot-badge.minor { background: linear-gradient(180deg, #00E676, #006633); border: 1px solid #FFD700; }
+.card-jackpot-badge.mini  { background: linear-gradient(180deg, #00B0FF, #005580); border: 1px solid #FFD700; }
+
+/* 💡 မင်းကြိုက်တဲ့ ဘောင်ချွန်ချွန် (Hexagon) ပုံစံ Badge */
+.card-jackpot-badge {
+    position: absolute;
+    top: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 4px 20px; /* ဘေးချွန်ထွက်ဖို့ horizontal padding ကို တိုးထားတယ် */
+    font-size: 11px;
+    font-weight: 900;
+    color: #fff;
+    z-index: 5;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-family: 'Orbitron', sans-serif;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+
+    /* ✨ ဒီကုဒ်က ဘေးနှစ်ဖက်ကို ချွန်ထွက်သွားစေမယ့် အသက် (Polygon Clip) */
+    clip-path: polygon(10% 0%, 90% 0%, 100% 50%, 90% 100%, 10% 100%, 0% 50%);
+    
+    /* ရွှေရောင် Gradient အတွင်းလိုင်း အလင်းတန်း (Border အစား သုံးတာပါ) */
+    box-shadow: inset 0 0 0 2px #FFD700; 
+}
+
+/* တစ်ခုချင်းစီရဲ့ Gradient ကာလာတွေကို ပိုတောက်ပအောင် ညှိမယ် */
+.card-jackpot-badge.grand { 
+    background: linear-gradient(135deg, #a60000 0%, #ff3b30 50%, #990000 100%); 
+    box-shadow: inset 0 0 6px #ffe600, 0 3px 6px rgba(0,0,0,0.4);
+}
+
+.card-jackpot-badge.major { 
+    background: linear-gradient(135deg, #5c0080 0%, #e040fb 50%, #42005c 100%); 
+    box-shadow: inset 0 0 6px #ffe600, 0 3px 6px rgba(0,0,0,0.4);
+}
+
+.card-jackpot-badge.minor { 
+    background: linear-gradient(135deg, #005c25 0%, #00e676 50%, #00401a 100%); 
+    box-shadow: inset 0 0 6px #ffe600, 0 3px 6px rgba(0,0,0,0.4);
+}
+
+.card-jackpot-badge.mini  { 
+    background: linear-gradient(135deg, #004466 0%, #00b0ff 50%, #002e47 100%); 
+    box-shadow: inset 0 0 6px #ffe600, 0 3px 6px rgba(0,0,0,0.4);
+}
+
+  /* 1. Top Panel (အပေါ်ဘက်က Balance နဲ့ ခလုတ်များရှိရာနေရာ) */
+.top-panel {
+    background: linear-gradient(180deg, #5a1a1a 0%, #2d0808 100%) !important;
+    border-bottom: 2px solid #8B4513; /* လိုအပ်မှ ထားရန် */
+}
+
+/* 2. Left Panel (ဘယ်ဘက်ခြမ်း Area) */
+.left-panel {
+    background: linear-gradient(90deg, #2d0808 0%, #1a0505 100%) !important;
+}
+
+/* 3. Right Panel (ညာဘက်ခြမ်း Spin ခလုတ် ရှိရာနေရာ) */
+.right-panel {
+    background: linear-gradient(270deg, #2d0808 0%, #1a0505 100%) !important;
+}
+
+/* 4. Bottom Bar (အောက်ခြေက Bet ညှိတဲ့ နေရာ) */
+.bottom-bar {
+    background: linear-gradient(0deg, #100202 0%, #2d0808 100%) !important;
+    border-top: 2px solid #8B4513; /* လိုအပ်မှ ထားရန် */
+}
+
+.game-title-text {
+    /* 💡 Font အထူကြီးကြီးစတိုင် ပြောင်းမယ် */
+    font-family: 'Alfa Slab One', 'Arial Black', sans-serif;
+    font-size: 18px;
+    font-weight: 900;
+    text-transform: uppercase;
+    line-height: 1.1;
+    letter-spacing: 0.5px;
+    
+    /* ✨ စာလုံးကို ရွှေရောင် Gradient ဖျန်းနည်း */
+    background: linear-gradient(180deg, #FFFFFF 0%, #FFF59D 30%, #FFB300 70%, #FF6D00 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+    /* 💙 ပုံထဲကအတိုင်း အပြာရောင်/အမည်းရောင် 3D အရိပ်နဲ့ အနားသတ်လိုင်း ထည့်နည်း */
+    filter: drop-shadow(0 2px 0px #0D47A1) 
+            drop-shadow(0 4px 0px #01579B) 
+            drop-shadow(0 5px 4px rgba(0, 0, 0, 0.9));
+}
+
+.game-logo {
+   
+    font-family: 'Alfa Slab One', 'Arial Black', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    text-transform: uppercase;
+    line-height: 1.1;
+    letter-spacing: 0.5px;
+    background: linear-gradient(180deg, #FFFFFF 0%, #FFF59D 30%, #FFB300 70%, #FF6D00 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+   filter: drop-shadow(0 2px 0px #0D47A1) 
+            drop-shadow(0 4px 0px #01579B) 
+            drop-shadow(0 5px 4px rgba(0, 0, 0, 0.9));
+}
+
+.center-area {
+         border-bottom: 2px solid #8B4513;
+    background: linear-gradient(0deg, #100202 0%, #2d0808 100%);
+    border-top: 2px solid #8B4513; /* ลိုအပ်က ထည့်ရန် */
+}
+

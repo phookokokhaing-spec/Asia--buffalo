@@ -655,10 +655,31 @@ function loadCurrentUserData() {
     if (savedUser) {
         currentUser = JSON.parse(savedUser);
         window.gameState.balance = currentUser.balance || 0;
-       window.gameState.displayBalance = currentUser.displayBalance || currentUser.balance || 0;
+        window.gameState.displayBalance = currentUser.displayBalance || currentUser.balance || 0;
         window.gameState.userLevel = currentUser.level || 1;
         window.gameState.vipLevel = currentUser.vip || 0;
-        updateBalanceDisplay();
+        
+        // 💡 မူလကုဒ်ဟောင်းနေရာမှာ အောက်က Function အသစ်ကို လှမ်းခေါ်လိုက်မယ်
+        updateAllBalancesUI(window.gameState.displayBalance);
+    }
+}
+
+
+
+// 💡 game.js ရဲ့ အောက်ခြေ သို့မဟုတ် သင့်တော်တဲ့နေရာမှာ ဒီတိုင်း အစားထိုးထည့်ပေးပါ
+function updateAllBalancesUI(amount) {
+    const formattedAmount = Number(amount).toLocaleString();
+
+    // ၁။ ဂိမ်းထဲက Balance UI ကို ပြင်မယ် (မင်းပေးထားတဲ့ HTML ID က balanceAmount ဖြစ်လို့)
+    const gameElement = document.getElementById('balanceAmount');
+    if (gameElement) {
+        gameElement.innerText = formattedAmount;
+    }
+
+    // ၂။ Lobby က Balance UI ကိုပါ တစ်ခါတည်း လှမ်းပြင်မယ်
+    const lobbyElement = document.getElementById('lobbyBalance');
+    if (lobbyElement) {
+        lobbyElement.innerText = formattedAmount;
     }
 }
 
@@ -747,6 +768,7 @@ function spin() {
     window.gameState.spinCount++;
     window.gameState.spinCounter = (window.gameState.spinCounter || 0) + 1;
     updateBalanceDisplay();
+    updateAllBalancesUI(window.gameState.displayBalance);
 
     // ===== BABA JACKPOT MODE COUNTER (if enabled) =====
     if (window.gameState.babaJackpotMode?.enabled) {
@@ -1529,7 +1551,7 @@ function finishJackpotSequence() {
 
     const jackpotAmount = window.gameState?.babaJackpotMode?.jackpotAmount ||
                           window.gameState?.pendingJackpotAmount ||
-                          800000;
+                          0;
 
     console.log(`💰 Jackpot Amount: ${jackpotAmount}`);
 
@@ -1558,7 +1580,7 @@ function finishJackpotSequence() {
         
         updateBalanceDisplay();  // ပုံမှန် update
         updateUserBalanceInStorage();
-        
+        updateAllBalancesUI(window.gameState.displayBalance);
         showNotification(`🎉 ဂျက်ပေါ့ဆုကြေး ${formatNumber(jackpotAmount)} ကျပ် ရရှိပါသည်။`, 'success');
     }
 
@@ -3077,7 +3099,7 @@ function countTotalBonuses(result) {
         // Sound Effect (Jackpot Mode အတိုင်း)
         if (typeof SoundManager !== 'undefined') {
             SoundManager.lion();
-            SoundManager.boom();
+            SoundManager.coin();
         }
         
         // Spin Duration (နောက်ဆုံး Column ဆိုရင် ပိုကြာ)
@@ -3119,7 +3141,7 @@ function lockAndRevealBonusColumn(col, targetSymbols) {
             if (symbol === 'bonus') {
                 addBonusGlow(cell);
                 if (typeof SoundManager !== 'undefined' && SoundManager.boom) {
-                    SoundManager.boom();
+                    SoundManager.coin();
                 }
             }
         }
@@ -3179,7 +3201,7 @@ function slowRevealColumn(col, targetSymbols, onComplete) {
                     hasBonus = true;
                     addBonusGlow(cell);
                     if (typeof SoundManager !== 'undefined' && SoundManager.boom) {
-                        SoundManager.boom();
+                        SoundManager.coin();
                     }
                 }
             }, 50);
