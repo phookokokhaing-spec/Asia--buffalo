@@ -158,8 +158,8 @@
         </div>
     </div>
 </div>
-        <!-- LOBBY SCREEN (first HTML) -->
-    <div id="lobbyScreen" style="display: none;">
+       <div id="lobbyScreen" style="display: none;">
+
       <div class="top-bar">
     <!-- LEFT: Avatar + Balance -->
     <div class="top-left">
@@ -263,12 +263,15 @@
 
     </div>
 </div>
-
-        <!-- Spin button (lobby) -> ဖြည့်ပါ -->
-        <div class="back-btn-right" onclick="openDepositModal()">
-            <i class="fas fa-dharmachakra"></i><span>ဖြည့်ပါ</span>
+   <div class="ticker-container">
+        <div class="notification-ticker">
+            <div class="ticker-content" id="tickerText">
+                🎉 Latest Winner: Player "MgMg" won 5,000,000 KS! 🎰
+            </div>
         </div>
     </div>
+
+    
 
    <!-- BOTTOM NAV (lobby) - Premium Casino Style -->
 <div class="bottom-nav">
@@ -288,6 +291,11 @@
     <div class="nav-item" onclick="openDepositModal()">
         <div class="nav-icon"><i class="fas fa-coins"></i></div>
         <span class="nav-badge">5</span>
+         <!-- Spin button (lobby) -> ဖြည့်ပါ -->
+        <div class="back-btn-right" onclick="openDepositModal()">
+            <i class="fas fa-dharmachakra"></i><span>ဖြည့်ပါ</span>
+        </div>
+    </div>
     </div>
 </div>
 
@@ -837,6 +845,7 @@
             <div class="bar"></div>
         </div>
     </div>
+
         
     <!-- Core Libraries & Helpers -->
     <script src="sound-manager.js"></script>

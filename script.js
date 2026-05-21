@@ -44,11 +44,27 @@ function startLobbyFeatures() {
 window.addEventListener('DOMContentLoaded', () => {
     animateJackpots();
 });
+const winners = [
+    'Player "MgMg" won 1,200,000 KS in African Buffalo! 🎰',
+    'Player "ZawZaw" hit 800,000 KS in Grand Dragons! 💎',
+    'Player "NuNu" won 3,500,000 KS in Ultimate Fire Link! 🔥'
+];
+
+function updateTicker() {
+    const ticker = document.getElementById('tickerText');
+    let randomWinner = winners[Math.floor(Math.random() * winners.length)];
+    ticker.innerText = "🎉 LATEST WINNERS: " + randomWinner + " | Good luck to everyone! 🍀";
+}
+
+// ၅ စက္ကန့်တိုင်း စာတန်းလေး ပြောင်းပေးမယ်
+setInterval(updateTicker, 5000);
+
 // Show Game Container (Slot Machine)
 function showGameContainer() {
     const lobby = document.getElementById('lobbyScreen');
     const game = document.getElementById('gameContainer');
     
+
     if (lobby && game) {
         lobby.style.display = 'none';
         game.style.display = 'flex';

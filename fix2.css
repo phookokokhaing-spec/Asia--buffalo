@@ -1,6 +1,193 @@
-/* ============================================
-   PREMIUM WINE-RED JACKPOT THEME (FULL SCREEN)
-   ============================================ */
+/* Withdraw Modal အတွက် သီးသန့်စတိုင်လ် */
+#withdrawModal .modal-content {
+    background: linear-gradient(180deg, #1a0d0d 0%, #0d0505 100%); /* Withdraw အတွက် နည်းနည်းအရောင်ပြောင်းမယ် */
+    border: 1px solid #8b0000; /* အနီရောင်ဖျော့ဖျော့ Border */
+    box-shadow: 0 0 30px rgba(139, 0, 0, 0.4);
+}
+
+#withdrawModal .modal-header h3 {
+    color: #ff4d4d; /* ငွေထုတ်ရင် အနီရောင် Theme */
+}
+
+/* Withdraw Input Field တွေကို ပိုလှအောင် */
+.withdraw-input {
+    width: 100%;
+    padding: 15px;
+    margin: 10px 0;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid #444;
+    border-radius: 12px;
+    color: #fff;
+}
+
+/* Withdraw Button ကို ပိုပေါ်လွင်အောင် */
+.withdraw-btn {
+    background: linear-gradient(90deg, #b30000, #ff4d4d);
+    color: white;
+    font-weight: bold;
+    border-radius: 50px;
+    padding: 15px;
+    width: 100%;
+    border: none;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.withdraw-btn:hover {
+    background: #ff1a1a;
+    box-shadow: 0 0 15px rgba(255, 77, 77, 0.5);
+}
+
+
+
+/* Modal Overlay ကို Premium ဖြစ်အောင် Blur လုပ်မယ် */
+.modal {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.85); /* ပိုမိုက်တဲ့ အမည်းရောင် */
+    backdrop-filter: blur(15px); /* ပိုကြည်သွားအောင် blur လုပ်မယ် */
+    display: flex; justify-content: center; align-items: center;
+    z-index: 9999;
+}
+
+.modal-content {
+    background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
+    width: 90%; max-width: 450px;
+    border: 1px solid #444;
+    border-radius: 25px;
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.2); /* ရွှေရောင် အလင်းစက်လေး */
+    padding: 20px;
+}
+
+/* Chips တွေကို ပိုလှအောင် */
+.amount-chip {
+    border: 1px solid #555;
+    background: #222;
+    color: #fff;
+    transition: 0.3s;
+    border-radius: 12px;
+}
+
+.amount-chip:hover {
+    background: #ffd700;
+    color: #000;
+    transform: scale(1.05);
+}
+
+/* Payment Method ကို လှလှပပလုပ်မယ် */
+.method-btn {
+    border-radius: 15px;
+    background: #111;
+    border: 2px solid #333;
+}
+
+.method-btn.active {
+    border-color: #ffd700;
+    background: #2b2500;
+}
+
+/* Bank Info Card ကို ပိုပေါ်လွင်အောင် */
+.bank-info-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px dashed #ffd700;
+    border-radius: 15px;
+    margin: 15px 0;
+}
+
+/* Submit Button ကို တောက်ပနေအောင် */
+.submit-btn {
+    background: linear-gradient(90deg, #ffd700, #ff8c00);
+    color: #000;
+    font-weight: bold;
+    border-radius: 50px;
+    padding: 15px;
+    width: 100%;
+    border: none;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+}
+
+
+
+#lobbyScreen {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+}
+.ticker-text {
+ colour: white;
+font size:20px;
+}
+
+.ticker-container {
+    width: 100%;
+    background: #000;
+    overflow: hidden; /* အရေးကြီးဆုံး: အပြင်ရောက်နေတာတွေကို ဖျောက်ထားမယ် */
+    white-space: nowrap; /* စာတွေကို တစ်ကြောင်းတည်း ဖြစ်နေစေမယ် */
+    padding: 10px 0;
+}
+
+.ticker-content {
+    display: inline-block;
+    padding-left: 100%; /* စာစကြောင်းကို အဆုံးကနေ စပြမယ် */
+    animation: ticker-move 15s linear infinite;
+    color: #ffd700;
+    font-size: 14px;
+}
+
+@keyframes ticker-move {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(-100%, 0); }
+}
+
+.games-area {
+    flex: 1; /* ဒီကတ်တွေက နေရာလွတ်ကို အကုန်ယူမယ် */
+    overflow-y: auto; /* Scroll ဖြစ်မယ့်နေရာ */
+}
+
+.ticker-container {
+    width: 100%;
+    padding: 10px 0;
+    background: #000; /* နောက်ခံအမည်း */
+    flex-shrink: 0; /* ဒီနေရာက ကျုံ့မသွားဘူး */
+    border-top: 2px solid #ffd700;
+    border-bottom: 2px solid #ffd700;
+}
+
+/* Scroll ဖြစ်နေတဲ့နေရာက Ticker ကို မဖုံးအောင် */
+.games-scroll {
+    padding-bottom: 20px;
+}
+/* Breathing Animation ကို သတ်မှတ်မယ် */
+@keyframes cardBreathing {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+    50% {
+        transform: scale(1.03); /* နည်းနည်းလေး ကြီးလာမယ် */
+        box-shadow: 0 10px 25px rgba(255, 215, 0, 0.2); /* ရွှေရောင် glow လေး ထွက်လာမယ် */
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+}
+
+/* Game Card တိုင်းမှာ ဒီ Animation ကို အသုံးချမယ် */
+.game-card {
+    transition: transform 0.3s ease-out; /* Manual Hover အတွက် smooth ဖြစ်အောင် */
+    animation: cardBreathing 4s ease-in-out infinite; /* ၄ စက္ကန့်တိုင်း အသက်ရှူနေမယ် */
+    will-change: transform, box-shadow; /* Performance ကောင်းအောင် */
+}
+
+/* Mouse ထောက်လိုက်တဲ့အခါ (Hover) Animation ကို ခဏရပ်ပြီး ပိုကြီးလာအောင်လုပ်မယ် */
+.game-card:hover {
+    animation-play-state: paused; /* Breathing ကို ခဏရပ်မယ် */
+    transform: scale(1.08) translateY(-5px); /* ပိုကြီးပြီး အပေါ်နည်းနည်းတက်မယ် */
+    box-shadow: 0 15px 35px rgba(255, 215, 0, 0.4); /* Glow ပိုပြင်းလာမယ် */
+    cursor: pointer;
+}
 
 /* မျက်နှာပြင်အပြည့် Background - မင်းပေးတဲ့ အနီရင့်ရင့် Gradient အရောင် */
 .modal {
@@ -804,3 +991,33 @@
         display: none;  /* ဖုန်းအရမ်းကျဉ်းရင် balance ဖျောက် */
     }
 }
+/* Transition Overlay */
+.transition-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    z-index: 9999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+}
+
+.transition-overlay.active {
+    opacity: 1;
+}
+
+.jackpot-number {
+    font-family: 'Orbitron', sans-serif; /* ဂိမ်းဆန်တဲ့ Font */
+    font-weight: 700;
+    color: #ffffff;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.8), 0 0 20px rgba(255, 140, 0, 0.5);
+    letter-spacing: 1px;
+}
+
+.game-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
