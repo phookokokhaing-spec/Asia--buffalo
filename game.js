@@ -307,23 +307,23 @@ function initSlotGrid() {
     slotGrid.className = 'grid-5x4';
 
     // Premium grid styles
-    slotGrid.style.cssText = `
-        display: grid;
-        grid-template-columns: repeat(5, 1fr);
-        grid-template-rows: repeat(4, 1fr);
-        gap: 1px;
-        background: linear-gradient(165deg, #1a2f1a, #0a1f0a, #1a2a1a);
-        border-radius: 2px;
-        box-shadow: 
-            inset 0 -4px 0 #2a4a2a,
-            0 15px 30px rgba(0,0,0,0.7),
-            0 0 0 2px #ffd70022,
-            0 0 20px #ffd70033;
-        border: 1px solid #ffd70044;
-        position: relative;
-        z-index: 1;
-        overflow: hidden;
-    `;
+   slotGrid.style.cssText = `
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    gap: 1px;
+    /* မူလ Lobby အရောင် သို့မဟုတ် အနီရင့်ရင့် Theme Gradient */
+    background: linear-gradient(165deg, #2d0808, #1a0505);
+    border-radius: 2px;
+    box-shadow: 
+        inset 0 -4px 0 #c5a028,
+        0 15px 30px rgba(0,0,0,0.3),
+        0 0 0 2px #ffd70044;
+    border: 1px solid #ffd70066;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+`;
 
     // Ambient light
     const ambientLight = document.createElement('div');
@@ -360,24 +360,25 @@ function createPremiumCell(index) {
     cell.dataset.row = Math.floor(index / 5);
     cell.dataset.col = index % 5;
 
-    cell.style.cssText = `
-        background: linear-gradient(145deg, #2d4a2d, #1d3a1d);
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 1px;
-        box-shadow: 
-            inset 0 -4px 0 #0a2a0a,
-            0 8px 15px rgba(0,0,0,0.5),
-            0 0 0 1px #ffd70033;
-        border: 2px solid #ffd70022;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        aspect-ratio: 1 / 1;
-        position: relative;
-        overflow: hidden;
-        z-index: 1;
-    `;
+   cell.style.cssText = `
+    background: linear-gradient(145deg, #4a1515, #2d0808);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1px;
+    box-shadow: 
+        inset 0 -4px 0 #d4af37,
+        0 8px 15px rgba(0,0,0,0.2),
+        0 0 0 1px #ffd70066;
+    border: 2px solid #ffd70044;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    aspect-ratio: 1 / 1;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+`;
+
 
     // Shine effect
     const shine = document.createElement('div');
@@ -406,7 +407,7 @@ function createPremiumCell(index) {
         right: 0;
         bottom: 0;
         border-radius: 18px;
-        box-shadow: 0 0 20px #ffd70033;
+        box-shadow: 0 0 20px #00ffff;
         opacity: 0;
         transition: opacity 0.3s;
         pointer-events: none;
@@ -459,35 +460,38 @@ function createPremiumCell(index) {
     // Win overlay
     const winOverlay = document.createElement('div');
     winOverlay.className = 'win-overlay';
-    winOverlay.style.cssText = `
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: radial-gradient(circle at 30% 30%, rgba(255,215,0,0.4), rgba(255,215,0,0.1) 70%);
-        border-radius: 18px;
-        opacity: 0;
-        transition: opacity 0.2s;
-        pointer-events: none;
-        z-index: 4;
-        mix-blend-mode: overlay;
-    `;
-    cell.appendChild(winOverlay);
+  // Win overlay (အဝါရောင်အစား Electric Cyan ပြောင်းခြင်း)
+winOverlay.style.cssText = `
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    /* အဝါရောင် radial-gradient အစား အပြာရောင်တောက်တောက်ကို ပြောင်းလိုက်တယ် */
+    background: radial-gradient(circle at 30% 30%, rgba(0, 255, 255, 0.6), rgba(0, 150, 255, 0.2) 70%);
+    border-radius: 18px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+    z-index: 4;
+    mix-blend-mode: screen; /* Overlay အစား screen ကိုသုံးရင် ပိုလင်းတယ် */
+`;
 
     // Corner sparkles
     for (let i = 0; i < 4; i++) {
-        const sparkle = document.createElement('div');
-        sparkle.className = 'corner-sparkle';
-        sparkle.style.cssText = `
-            position: absolute;
-            width: 6px;
-            height: 6px;
-            background: #ffd700;
-            border-radius: 50%;
-            filter: blur(2px);
-            opacity: 0;
-            transition: opacity 0.3s;
+        
+const sparkle = document.createElement('div');
+sparkle.className = 'corner-sparkle';
+sparkle.style.cssText = `
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    /* အဝါရောင်အစား အပြာရောင် တောက်တောက် */
+    background: #00ffff; 
+    border-radius: 50%;
+    filter: blur(2px);
+    opacity: 0;
+    transition: opacity 0.3s;
             pointer-events: none;
             z-index: 5;
             ${i === 0 ? 'top: 5px; left: 5px;' : ''}
@@ -519,8 +523,8 @@ function addCornerDecorations(grid) {
             ${Object.entries(pos).map(([k,v]) => `${k}: ${v};`).join('')}
             border-${i === 0 ? 'top' : i === 1 ? 'top' : i === 2 ? 'bottom' : 'bottom'}-left-radius: ${i % 2 === 0 ? '30px' : '0'};
             border-${i === 0 ? 'top' : i === 1 ? 'top' : i === 2 ? 'bottom' : 'bottom'}-right-radius: ${i % 2 === 1 ? '30px' : '0'};
-            border-${i < 2 ? 'top' : 'bottom'}: 3px solid #ffd70066;
-            border-${i % 2 === 0 ? 'left' : 'right'}: 3px solid #ffd70066;
+            border-${i < 2 ? 'top' : 'bottom'}: 3px solid #00ffff;
+            border-${i % 2 === 0 ? 'left' : 'right'}: 3px solid #00ffff;
             filter: drop-shadow(0 0 10px gold);
             z-index: 5;
             pointer-events: none;
