@@ -1,48 +1,86 @@
 function startLobbyFeatures() {
             animateJackpots();
         }
-        function animateJackpots() {
-            const jackpots = [
-                { el:'jackpot1', base:15759157, speed:100 },
-                { el:'jackpot2', base:5229739, speed:80 },
-                { el:'jackpot3', base:16587205, speed:60 },
-                { el:'jackpot4', base:11026483, speed:70 },
-                { el:'jackpot5', base:1570008, speed:90 },
-                { el:'jackpot6', base:543993, speed:50 }
-            ];
-            jackpots.forEach(j => {
-                let current = j.base;
-                const el = document.getElementById(j.el);
-                if(el) setInterval(() => {
-                    current += Math.floor(Math.random() * 100) + 10;
-                    el.textContent = current.toLocaleString();
-                }, j.speed * 10);
-            });
+    function animateJackpots() {
+    // game card ပေါ်က badge တွေအတွက်
+    const cardJackpots = [
+        { id: 'jackpotMajor', base: 11026483, speed: 70, inc: () => Math.floor(Math.random() * 80) + 15 },
+        { id: 'jackpotGrand', base: 15759157, speed: 100, inc: () => Math.floor(Math.random() * 120) + 25 },
+        { id: 'jackpotMini', base: 1570008, speed: 90, inc: () => Math.floor(Math.random() * 50) + 10 },
+        { id: 'jackpotMinor', base: 5229739, speed: 80, inc: () => Math.floor(Math.random() * 60) + 12 }
+    ];
+    
+    cardJackpots.forEach(j => {
+        let current = j.base;
+        const el = document.getElementById(j.id);
+        if(el) {
+            setInterval(() => {
+                current += j.inc();
+                el.textContent = current.toLocaleString();
+            }, j.speed * 10);
         }
-        function showLobbyNotification(msg) {
-            const n = document.getElementById('lobbyNotification');
-            document.getElementById('notifText').innerText = msg;
-            n.classList.add('show');
-            setTimeout(() => n.classList.remove('show'), 2000);
-        }
-        function switchLobbyTab(el, tab) {
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            el.classList.add('active');
-            if(tab !== 'home') showLobbyNotification(tab + ' - မကြာမီလာမည်');
-        }
+    });
 
-        // Show/hide slot game container
-        function showGameContainer() {
-            document.getElementById('lobbyScreen').style.display = 'none';
-            document.getElementById('gameContainer').style.display = 'flex';
-            // If game.js has init function, call it
-            if(typeof initGame === 'function') initGame();
+    // ရှိပြီးသား jackpot-tree (အောက်က အုပ်စု) ကိုလည်း update လုပ်ချင်ရင် ဆက်ထည့်ပါ
+    const treeJackpots = [
+        { id: 'jackpot1', base: 15759157, speed: 100 },
+        { id: 'jackpot2', base: 5229739, speed: 80 },
+        { id: 'jackpot3', base: 16587205, speed: 60 },
+        { id: 'jackpot4', base: 11026483, speed: 70 }
+    ];
+    treeJackpots.forEach(j => {
+        let current = j.base;
+        const el = document.getElementById(j.id);
+        if(el) {
+            setInterval(() => {
+                current += Math.floor(Math.random() * 100) + 10;
+                el.textContent = current.toLocaleString();
+            }, j.speed * 10);
         }
-        function hideGameContainer() {
-            document.getElementById('gameContainer').style.display = 'none';
-            document.getElementById('lobbyScreen').style.display = 'flex';
-        }
+    });
+}
 
+// window load မှာ ခေါ်ပါ
+window.addEventListener('DOMContentLoaded', () => {
+    animateJackpots();
+});
+// Show Game Container (Slot Machine)
+function showGameContainer() {
+    const lobby = document.getElementById('lobbyScreen');
+    const game = document.getElementById('gameContainer');
+    
+    if (lobby && game) {
+        lobby.style.display = 'none';
+        game.style.display = 'flex';
+        
+        // Optional: Initialize game if needed
+        if (typeof initGame === 'function') {
+            initGame();
+        } else {
+            console.log('Game container shown, but initGame not defined');
+        }
+    } else {
+        console.error('Lobby or Game Container not found');
+    }
+}
+
+// Hide Game Container (Back to Lobby)
+function hideGameContainer() {
+    const lobby = document.getElementById('lobbyScreen');
+    const game = document.getElementById('gameContainer');
+    
+    if (lobby && game) {
+        game.style.display = 'none';
+        lobby.style.display = 'flex';
+        
+        // Optional: Stop game sounds or reset state if needed
+        if (typeof stopGameAudio === 'function') {
+            stopGameAudio();
+        }
+    } else {
+        console.error('Lobby or Game Container not found');
+    }
+}
 
 // ===== LOADING SCREEN LOGIC =====
 document.addEventListener('copy', function(e) {

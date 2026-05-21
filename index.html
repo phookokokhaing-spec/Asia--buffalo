@@ -158,71 +158,84 @@
         </div>
     </div>
 </div>
-    <!-- LOBBY SCREEN (first HTML) -->
+        <!-- LOBBY SCREEN (first HTML) -->
     <div id="lobbyScreen" style="display: none;">
-        <div class="top-bar">
-            <div class="top-left">
-                <div class="avatar-btn" onclick="showLobbyNotification('ပရိုဖိုင်')"><i class="fas fa-user" style="font-size:20px;"></i><div class="vip-level">6</div></div>
-                <div class="balance-box"><span>💰</span><span class="balance-amount" id="lobbyBalance">49</span></div>
+      <div class="top-bar">
+    <!-- LEFT: Avatar + Balance -->
+    <div class="top-left">
+        <div class="avatar-btn" onclick="showLobbyNotification('ပရိုဖိုင်')">
+            <i class="fas fa-user"></i>
+            <div class="vip-level">6</div>
+        </div>
+        <div class="balance-box">
+            <span class="coin-img">💰</span>
+            <span class="balance-amount" id="lobbyBalance">49</span>
+        </div>
+    </div>
+
+    <!-- CENTER: Game Logo (အလယ်တည့်တည့်) -->
+    <div class="top-center">
+        <div class="game-logo">
+            <i class="fas fa-dragon"></i> ASIA BUFFALO
+        </div>
+    </div>
+
+    <!-- RIGHT: Daily Bonus + Settings -->
+    <div class="top-right">
+        <div class="daily-box">
+            <span>🪙</span>
+            <span class="daily-amount" id="dailyAmount">20000</span>
+        </div>
+        <button class="settings-btn" onclick="openSettingsModal()">
+            <i class="fas fa-cog"></i>
+        </button>
+    </div>
+</div>
+  <div class="games-area">
+    <div class="games-scroll">
+              <!-- Crocodile (MAJOR) -->
+<div class="game-card" onclick="showGameContainer()">
+    <div class="game-frame">
+        <div class="game-frame-inner" style="background: linear-gradient(145deg, #00331a, #001a0d);">
+            <div class="card-jackpot-badge major">
+                <span class="badge-name">MAJOR</span>
+                <span class="badge-value" id="jackpotMajor">11,026,483</span>
             </div>
-            <div class="top-center">
-                <button class="green-btn" onclick="showLobbyNotification('vip')"><i class="fas fa-yen-sign"></i> vip</button>
-                <button class="purple-btn" onclick="openDepositModal()"><i class="fas fa-gift"></i> ဖြည့်ပါ</button>
-            </div>
-            <div class="top-right">
-                <div class="gold-box"><span>💰</span><span class="gold-amount" id="goldAmount">7</span></div>
-                <button class="settings-btn" onclick="openSettings()"><i class="fas fa-cog"></i></button>
+            <img src="images/crocodile.png" alt="Crocodile" class="game-card-img">
+            <div class="game-title-overlay">
+                <div class="game-title-text">CROCODILE<br>ADVENTURE</div>
+                <div class="game-subtitle-text">Jungle Quest</div>
             </div>
         </div>
-       <div class="jackpot-tree">
-    <div class="jackpot-tree-title"><i class="fas fa-tree"></i> JACKPOT TREE</div>
-    <div class="jackpot-item blue"><div class="jackpot-value" id="jackpot1">15,759,157</div></div>
-    <div class="jackpot-item green"><div class="jackpot-value" id="jackpot2">5,229,739</div></div>
-    <div class="jackpot-item purple"><div class="jackpot-value" id="jackpot3">16,587,205</div></div>
-    <div class="jackpot-item orange"><div class="jackpot-value" id="jackpot4">11,026,483</div></div>
+    </div>
 </div>
 
-<div class="games-area">
-    <div class="games-scroll">
-        
-        <div class="game-card" onclick="showGameContainer()">
-            <div class="game-frame">
-                <div class="game-frame-inner" style="background: linear-gradient(145deg, #00331a, #001a0d);">
-                    <div class="card-jackpot-badge major">MAJOR</div>
-                    
-                    <img src="images/crocodile.png" alt="Crocodile" class="game-card-img">
-                    
-                    <div class="game-title-overlay">
-                        <div class="game-title-text">CROCODILE<br>ADVENTURE</div>
-                        <div class="game-subtitle-text">Jungle Quest</div>
-                    </div>
-                </div>
+<!-- African Buffalo (GRAND) -->
+<div class="game-card active" onclick="showGameContainer()">
+    <div class="game-frame">
+        <div class="game-frame-inner" style="background: linear-gradient(145deg, #4a1a00, #2d0f00);">
+            <div class="card-jackpot-badge grand">
+                <span class="badge-name">GRAND</span>
+                <span class="badge-value" id="jackpotGrand">15,759,157</span>
             </div>
-        </div>
-
-        <div class="game-card active" onclick="showGameContainer()">
-            <div class="game-frame">
-                <div class="game-frame-inner" style="background: linear-gradient(145deg, #4a1a00, #2d0f00);">
-                    <div class="card-jackpot-badge grand">GRAND</div>
-                    
-                    <img src="images/buffalo.png" alt="Buffalo" class="game-card-img">
-                    
-                    <div class="game-title-overlay">
+            <img src="images/buffalo.png" alt="Buffalo" class="game-card-img">
+                         <div class="game-title-overlay">
                         <div class="game-title-text">AFRICAN<br>BUFFALO</div>
                         <div class="game-subtitle-text">1024 Ways</div>
                     </div>
                 </div>
             </div>
         </div>
-
-        <div class="game-card" onclick="showGameContainer()">
-            <div class="game-frame purple-border">
-                <div class="game-frame-inner" style="background: linear-gradient(145deg, #331a00, #1a0d00);">
-                    <div class="card-jackpot-badge mini">MINI</div>
-                    
-                    <img src="images/firelink.png" alt="Fire Link" class="game-card-img">
-                    
-                    <div class="game-title-overlay">
+<!-- Ultimate Fire Link (MINI) -->
+<div class="game-card" onclick="showGameContainer()">
+    <div class="game-frame purple-border">
+        <div class="game-frame-inner" style="background: linear-gradient(145deg, #331a00, #1a0d00);">
+            <div class="card-jackpot-badge mini">
+                <span class="badge-name">MINI</span>
+                <span class="badge-value" id="jackpotMini">1,570,008</span>
+            </div>
+            <img src="images/firelink.png" alt="Fire Link" class="game-card-img">
+                               <div class="game-title-overlay">
                         <div class="game-title-text">ULTIMATE<br>FIRE LINK</div>
                         <div class="game-subtitle-text">China Street</div>
                     </div>
@@ -230,14 +243,17 @@
             </div>
         </div>
 
-        <div class="game-card" onclick="showGameContainer()">
-            <div class="game-frame purple-border">
-                <div class="game-frame-inner" style="background: linear-gradient(145deg, #4a0000, #2d0000);">
-                    <div class="card-jackpot-badge minor">MINOR</div>
-                    
-                    <img src="images/dragon.png" alt="Dragon" class="game-card-img">
-                    
-                    <div class="game-title-overlay">
+
+<!-- Grand Dragons (MINOR) -->
+<div class="game-card" onclick="showGameContainer()">
+    <div class="game-frame purple-border">
+        <div class="game-frame-inner" style="background: linear-gradient(145deg, #4a0000, #2d0000);">
+            <div class="card-jackpot-badge minor">
+                <span class="badge-name">MINOR</span>
+                <span class="badge-value" id="jackpotMinor">5,229,739</span>
+            </div>
+            <img src="images/dragon.png" alt="Dragon" class="game-card-img">
+            <div class="game-title-overlay">
                         <div class="game-title-text">GRAND<br>DRAGONS</div>
                         <div class="game-subtitle-text">888 Ways</div>
                     </div>
@@ -248,21 +264,32 @@
     </div>
 </div>
 
-
         <!-- Spin button (lobby) -> ဖြည့်ပါ -->
         <div class="back-btn-right" onclick="openDepositModal()">
             <i class="fas fa-dharmachakra"></i><span>ဖြည့်ပါ</span>
         </div>
     </div>
 
-    <!-- BOTTOM NAV (lobby) -->
-    <div class="bottom-nav">
-        <div class="nav-item active" onclick="switchLobbyTab(this,'home')"><div class="nav-icon"><i class="fas fa-home"></i></div><div class="nav-label">ပင်မ</div></div>
-        <div class="nav-item" onclick="switchLobbyTab(this,'daily')"><div class="nav-icon"><i class="fas fa-calendar-check"></i></div><div class="nav-label">နေ့စဉ်</div><span class="nav-badge">1</span></div>
-        <div class="nav-item" onclick="switchLobbyTab(this,'shop')"><div class="nav-icon"><i class="fas fa-store"></i></div><div class="nav-label">ဆိုင်</div></div>
-        <div class="nav-item" onclick="switchLobbyTab(this,'vip')"><div class="nav-icon"><i class="fas fa-crown"></i></div><div class="nav-label">VIP</div></div>
-        <div class="nav-item" onclick="openDepositModal()"><div class="nav-icon"><i class="fas fa-gift"></i></div><div class="nav-label">TopUp</div><span class="nav-badge">5</span></div>
+   <!-- BOTTOM NAV (lobby) - Premium Casino Style -->
+<div class="bottom-nav">
+    <div class="nav-item active" onclick="switchLobbyTab(this,'home')">
+        <div class="nav-icon"><i class="fas fa-gamepad"></i></div>
     </div>
+    <div class="nav-item" onclick="switchLobbyTab(this,'daily')">
+        <div class="nav-icon"><i class="fas fa-trophy"></i></div>
+        <span class="nav-badge">1</span>
+    </div>
+    <div class="nav-item" onclick="switchLobbyTab(this,'shop')">
+        <div class="nav-icon"><i class="fas fa-diamond"></i></div>
+    </div>
+    <div class="nav-item" onclick="switchLobbyTab(this,'vip')">
+        <div class="nav-icon"><i class="fas fa-crown"></i></div>
+    </div>
+    <div class="nav-item" onclick="openDepositModal()">
+        <div class="nav-icon"><i class="fas fa-coins"></i></div>
+        <span class="nav-badge">5</span>
+    </div>
+</div>
 
  
     <!-- MAIN GAME CONTAINER -->
@@ -283,10 +310,6 @@
              <div class="balance-amount" id="balanceAmount">0</div>
           </div>
         
-          <div class="jackpot-pool-box" style="background: linear-gradient(145deg, #2a2a4a, #1a1a3a); padding: 8px 20px; border-radius: 12px; border: 1px solid #6c5ce7; box-shadow: 0 0 15px rgba(108, 92, 231, 0.3);">
-              <small></small>
-              <div class="jackpot-pool-amount" id="jackpotPoolAmount" style="font-size: 20px; font-weight: 600; color: #00d4ff; text-shadow: 0 0 10px #00d4ff;">20000</div>
-             </div>
                 <div class="vip-badge" id="vipBadge"><i class="fas fa-crown"></i> VIP <span id="vipLevel">3</span></div>
             </div>
             <div class="game-logo"><i class="fas fa-slot-machine"></i> MINI SLOT</div>

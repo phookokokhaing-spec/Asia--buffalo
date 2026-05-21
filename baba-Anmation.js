@@ -23,17 +23,6 @@ function showJackpotAnimation(winAmount = 5000000, finalResult = null) {
             .pja-flying-baba.spinning { animation: pja-orbit 2.5s linear infinite; }
             @keyframes pja-orbit { 0% { transform: rotate(0deg) translateX(180px) rotate(0deg) scale(1); } 25% { transform: rotate(90deg) translateX(180px) rotate(-90deg) scale(1.2); } 50% { transform: rotate(180deg) translateX(180px) rotate(-180deg) scale(1); } 75% { transform: rotate(270deg) translateX(180px) rotate(-270deg) scale(1.2); } 100% { transform: rotate(360deg) translateX(180px) rotate(-360deg) scale(1); } }
             
-            // Baba ပျံတဲ့အချိန်မှာ ရိုးရိုးမသွားဘဲ ရှေ့ကို နည်းနည်းလေး ဆတ်ခနဲ (Stretch) ဖြစ်သွားအောင်
-.pja-flying-baba {
-    transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); /* Bounce effect */
-    transform: scale(1.2); /* ပျံနေချိန်မှာ နည်းနည်းကြီးနေမယ် */
-}
-
-// Baba တွေက ဗဟိုကိုစုတဲ့အချိန်မှာ အရှိန်တက်သွားအောင်
-.pja-flying-baba.gathering {
-    transition: all 0.4s cubic-bezier(0.8, 0, 1, 1);
-    transform: scale(0.5); /* စုလိုက်တဲ့အခါ သေးသွားမယ် */
-}
 
 
             .pja-baba-trail { position: fixed; width: 100px; height: 100px; font-size: 70px; display: flex; align-items: center; justify-content: center; opacity: 0.3; filter: blur(2px); pointer-events: none; z-index: 9998; }
@@ -358,13 +347,9 @@ await new Promise(resolve => {
         const targetX = centerX + Math.cos(angle) * radius - 50;
         const targetY = centerY + Math.sin(angle) * radius - 50;
         
-       // ပိုပြီး Organic ဖြစ်သွားအောင် delay ကို random လုပ်ပေးပါ
-setTimeout(() => {
-    flyingBaba.style.transition = 'all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1)'; // Springy effect
-    flyingBaba.style.left = targetX + 'px';
-    flyingBaba.style.top = targetY + 'px';
-}, 50 + (index * 50)); // 50ms စီ ခြားလိုက်ရင် ပို natural ဖြစ်သွားမယ်
-
+              setTimeout(() => {
+            flyingBaba.style.left = targetX + 'px';
+            flyingBaba.style.top = targetY + 'px';
             flyingBaba.classList.add('spinning');
         }, 300 + index * 150);
     });
