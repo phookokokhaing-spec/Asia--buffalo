@@ -16,7 +16,6 @@ firebase.initializeApp(firebaseConfig);
 // Initialize services - USE VAR NOT CONST
 var db = firebase.firestore();
 var auth = firebase.auth();
-var analytics = firebase.analytics();
 var storage = firebase.storage();
 // Make them globally available
 window.db = db;
