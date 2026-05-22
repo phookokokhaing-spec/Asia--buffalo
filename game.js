@@ -654,38 +654,57 @@ function initEventListeners() {
     }
 }
 
+// ၁။ User Data တင်တဲ့အခါ (Jackpot Pool ကို သီးသန့် သိမ်းထားပါ)
 function loadCurrentUserData() {
     const savedUser = localStorage.getItem('currentUser');
     if (savedUser) {
         currentUser = JSON.parse(savedUser);
+
+        // Data တွေကို Assign လုပ်
         window.gameState.balance = currentUser.balance || 0;
+        
+        // Jackpot Pool ကို displayBalance ထဲမှာ သိမ်းထားမယ် (ဒါကို UI update မှာ မထိရဘူး)
         window.gameState.displayBalance = currentUser.displayBalance || currentUser.balance || 0;
+        
         window.gameState.userLevel = currentUser.level || 1;
         window.gameState.vipLevel = currentUser.vip || 0;
-        
-        // 💡 မူလကုဒ်ဟောင်းနေရာမှာ အောက်က Function အသစ်ကို လှမ်းခေါ်လိုက်မယ်
-        updateAllBalancesUI(window.gameState.displayBalance);
+
+        // UI ကို User Balance နဲ့ပဲ Update လုပ်
+        updateUI(window.gameState.balance);
     }
 }
 
+// ၂။ Balance ပြောင်းတိုင်း (ဂိမ်းနိုင်/ရှုံး) ဒီ Function ကိုပဲ သုံးပါ
+function setBalance(newAmount) {
+    window.gameState.balance = newAmount; // Data ကို Update လုပ်
+    updateUI(newAmount);                  // UI ကို Update လုပ် (Jackpot ကို မထိပါ)
+}
 
-
-// 💡 game.js ရဲ့ အောက်ခြေ သို့မဟုတ် သင့်တော်တဲ့နေရာမှာ ဒီတိုင်း အစားထိုးထည့်ပေးပါ
-function updateAllBalancesUI(amount) {
+// ၃။ UI Update လုပ်တဲ့ Function (ဒီမှာ displayBalance မပါရဘူး)
+function updateUI(amount) {
     const formattedAmount = Number(amount).toLocaleString();
 
-    // ၁။ ဂိမ်းထဲက Balance UI ကို ပြင်မယ် (မင်းပေးထားတဲ့ HTML ID က balanceAmount ဖြစ်လို့)
+    // ဂိမ်းထဲက Balance UI ကို ပြင်မယ်
     const gameElement = document.getElementById('balanceAmount');
     if (gameElement) {
         gameElement.innerText = formattedAmount;
     }
 
-    // ၂။ Lobby က Balance UI ကိုပါ တစ်ခါတည်း လှမ်းပြင်မယ်
+    // Lobby က Balance UI ကိုပါ တစ်ခါတည်း လှမ်းပြင်မယ်
     const lobbyElement = document.getElementById('lobbyBalance');
     if (lobbyElement) {
         lobbyElement.innerText = formattedAmount;
     }
 }
+
+// ၄။ Jackpot Pool အတွက် သီးသန့် Function (Jackpot ပြောင်းမှသာ သုံးပါ)
+function updateJackpotPool(newPoolAmount) {
+    window.gameState.displayBalance = newPoolAmount;
+    // လိုအပ်ရင် Jackpot UI ကို ဒီမှာ သီးသန့်ပြင်ပေးပါ
+    // const jackpotEl = document.getElementById('jackpotDisplay');
+    // if (jackpotEl) jackpotEl.innerText = Number(newPoolAmount).toLocaleString();
+}
+
 
 // ============================================
 // BA BA Control Mode Function
@@ -772,7 +791,7 @@ function spin() {
     window.gameState.spinCount++;
     window.gameState.spinCounter = (window.gameState.spinCounter || 0) + 1;
     updateBalanceDisplay();
-    updateAllBalancesUI(window.gameState.displayBalance);
+    updateUI(window.gameState.balance); 
 
     // ===== BABA JACKPOT MODE COUNTER (if enabled) =====
     if (window.gameState.babaJackpotMode?.enabled) {
@@ -1584,7 +1603,7 @@ function finishJackpotSequence() {
         
         updateBalanceDisplay();  // ပုံမှန် update
         updateUserBalanceInStorage();
-        updateAllBalancesUI(window.gameState.displayBalance);
+       updateUI(window.gameState.balance); 
         showNotification(`🎉 ဂျက်ပေါ့ဆုကြေး ${formatNumber(jackpotAmount)} ကျပ် ရရှိပါသည်။`, 'success');
     }
 
