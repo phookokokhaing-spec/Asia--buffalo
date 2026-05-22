@@ -462,18 +462,8 @@
     }
     
     // ========== MAIN PLAY FUNCTION ==========
-    // အရောင်စနစ်သတ်မှတ်ခြင်း
-const getTheme = (type) => {
-    switch(type) {
-        case 'big': return { color: '#ff8c00', particles: 150 }; // Orange
-        case 'super': return { color: '#bf00ff', particles: 250 }; // Magenta
-        case 'mega': return { color: '#00ffff', particles: 400 }; // Cyan/Gold mix
-    }
-};
-
-
+    
     function playAnimation(type, amount) {
-    const theme = getTheme(type);
         if (isAnimating) {
             // Clear previous
             cancelAnimationFrame(animationId);
@@ -517,13 +507,7 @@ const getTheme = (type) => {
         }
         
         const tl = gsap.timeline();
-        tl.add(() => {
-        spawnSparkBurst(centerX, centerY, theme.particles);
-          if(type === 'mega') spawnRadialBurst(centerX, centerY);
-    }, 0);
-         gsap.set(winText, { color: theme.color });
-}
-
+        
         // === PHASE 1: MASSIVE INITIAL BURST ===
         tl.add(() => {
             screenShakeIntensity = 8;
