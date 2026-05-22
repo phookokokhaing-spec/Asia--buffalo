@@ -174,20 +174,6 @@ font size:20px;
     }
 }
 
-/* Game Card တိုင်းမှာ ဒီ Animation ကို အသုံးချမယ် */
-.game-card {
-    transition: transform 0.3s ease-out; /* Manual Hover အတွက် smooth ဖြစ်အောင် */
-    animation: cardBreathing 4s ease-in-out infinite; /* ၄ စက္ကန့်တိုင်း အသက်ရှူနေမယ် */
-    will-change: transform, box-shadow; /* Performance ကောင်းအောင် */
-}
-
-/* Mouse ထောက်လိုက်တဲ့အခါ (Hover) Animation ကို ခဏရပ်ပြီး ပိုကြီးလာအောင်လုပ်မယ် */
-.game-card:hover {
-    animation-play-state: paused; /* Breathing ကို ခဏရပ်မယ် */
-    transform: scale(1.08) translateY(-5px); /* ပိုကြီးပြီး အပေါ်နည်းနည်းတက်မယ် */
-    box-shadow: 0 15px 35px rgba(255, 215, 0, 0.4); /* Glow ပိုပြင်းလာမယ် */
-    cursor: pointer;
-}
 
 /* မျက်နှာပြင်အပြည့် Background - မင်းပေးတဲ့ အနီရင့်ရင့် Gradient အရောင် */
 .modal {
