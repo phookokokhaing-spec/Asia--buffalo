@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Casino Royale - Spin Wheel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            background: radial-gradient(circle at 30% 10%, #0a0718, #02010c);
+            font-family: 'Segoe UI', 'Poppins', 'Orbitron', system-ui;
+        }
+
+        /* Main Container - Full Screen */
+        .wheel-container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 12px 15px;
+            background: linear-gradient(145deg, rgba(20, 15, 45, 0.95), rgba(10, 8, 25, 0.98));
+        }
+
+        /* Top Panel */
+        .top-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, #0f0b1f, #1a1535);
+            border-radius: 50px;
+            padding: 12px 20px;
+            border: 1px solid rgba(255, 215, 0, 0.4);
+            flex-shrink: 0;
+        }
+
+        .balance-box, .bet-box {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        .balance-label, .bet-label {
+            font-size: 13px;
+            color: #ffd966aa;
+        }
+
+        .balance-value, .bet-value {
+            font-size: 22px;
+            font-weight: 800;
+            color: #ffd966;
+            font-family: 'Orbitron', monospace;
+        }
+
+        /* Middle Area - Side Panels + Wheel */
+        .middle-area {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        /* Left Panel */
+        .left-panel {
+            width: 100px;
+            height: 100%;
+            flex-shrink: 0;
+            background: linear-gradient(145deg, #161229, #0e0b20);
+            border-radius: 35px;
+            padding: 18px 5px;
+            text-align: center;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .left-label {
+            font-size: 11px;
+            color: #ffd966aa;
+        }
+
+        .left-value {
+            font-size: 22px;
+            font-weight: 800;
+            color: #ffd966;
+            font-family: 'Orbitron', monospace;
+            word-break: break-word;
+        }
+
+        /* Wheel */
+        .wheel-wrapper {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-width: 0;
+        }
+
+        canvas {
+            width: 100%;
+            max-width: 260px;
+            height: auto;
+            background: #0b0822;
+            border-radius: 50%;
+            box-shadow: 0 0 0 6px #1a1535, 0 0 0 10px #2a254b, 0 15px 30px black;
+        }
+
+        /* Right Panel */
+        .right-panel {
+            width: 100px;
+            height: 100%;
+            flex-shrink: 0;
+            background: linear-gradient(145deg, #161229, #0e0b20);
+            border-radius: 35px;
+            padding: 18px 5px;
+            text-align: center;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .right-label {
+            font-size: 11px;
+            color: #ffd966aa;
+        }
+
+        .right-value {
+            font-size: 18px;
+            font-weight: 800;
+            color: #ffd966;
+        }
+
+        /* Bottom Bar */
+        .bottom-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            background: linear-gradient(145deg, #161229, #0e0b20);
+            border-radius: 60px;
+            padding: 8px 15px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            flex-shrink: 0;
+        }
+
+        .bet-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #0c0822;
+            padding: 5px 12px;
+            border-radius: 50px;
+            border: 1px solid #ffd966;
+        }
+
+        .bet-btn {
+            background: linear-gradient(145deg, #2a254b, #1a1535);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 24px;
+            color: #ffd966;
+            cursor: pointer;
+        }
+
+        .bet-amount {
+            font-size: 20px;
+            font-weight: bold;
+            color: #ffd966;
+            min-width: 70px;
+            text-align: center;
+        }
+
+        .c-btn {
+            background: linear-gradient(145deg, #ffd966, #ffaa33);
+            border: none;
+            width: 50px;
+            height: 40px;
+            border-radius: 40px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #1e1a2f;
+            cursor: pointer;
+        }
+
+        .lobby-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .back-to-lobby {
+            background: linear-gradient(145deg, #ff6b6b, #ee5a5a);
+            border: none;
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: bold;
+            border-radius: 40px;
+            color: white;
+            cursor: pointer;
+        }
+
+        .spin-btn {
+            background: linear-gradient(135deg, #c9a03d, #aa7c2c);
+            border: none;
+            padding: 8px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 40px;
+            color: #1a1202;
+            cursor: pointer;
+        }
+
+        /* Popup */
+        .popup-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 30000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .popup-content {
+            background: linear-gradient(145deg, #1f1b3c, #13102b);
+            border-radius: 40px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid #ffd966;
+            width: 85%;
+            max-width: 320px;
+        }
+
+        .win-overlay {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            padding: 15px 30px;
+            border-radius: 50px;
+            z-index: 40000;
+            text-align: center;
+            animation: winPop 0.5s ease-out forwards;
+        }
+
+        @keyframes winPop {
+    0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+    70% { transform: translate(-50%, -50%) scale(1.15); }
+    100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+@keyframes winFadeOut {
+    to { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+}
+    </style>
+</head>
+<body>
+
+<div class="wheel-container">
+    <!-- Top Panel -->
+    <div class="top-panel">
+        <div class="balance-box">
+            <span class="balance-label">💰 BALANCE</span>
+            <span class="balance-value" id="casinoBalance">12500</span>
+        </div>
+        <div class="bet-box">
+            <span class="bet-label">🎲 BET</span>
+            <span class="bet-value" id="betDisplay">800</span>
+        </div>
+    </div>
+
+    <!-- Middle Area -->
+    <div class="middle-area">
+        <!-- Left Panel -->
+        <div class="left-panel">
+            <div class="left-label">🏆 LAST WIN</div>
+            <div class="left-value" id="lastWinDisplay">0</div>
+        </div>
+
+        <!-- Wheel -->
+        <div class="wheel-wrapper">
+            <canvas id="wheelCanvas" width="600" height="600"></canvas>
+        </div>
+
+        <!-- Right Panel -->
+        <div class="right-panel">
+            <div class="right-label">🎰 LUCKY</div>
+            <div class="right-value">SPIN</div>
+        </div>
+    </div>
+
+    <!-- Bottom Bar -->
+    <div class="bottom-bar">
+        <div class="bet-control">
+            <button class="bet-btn" id="decreaseBet">−</button>
+            <span class="bet-amount" id="betAmount">800</span>
+            <button class="bet-btn" id="increaseBet">+</button>
+        </div>
+        <button class="c-btn" id="cBtn">C</button>
+        <div class="lobby-buttons">
+           <button class="back-to-lobby" onclick="window.parent.document.getElementById('wheelGameContainer').style.display = 'none'; window.parent.document.getElementById('lobbyScreen').style.display = 'block';">◀ ပင်မ</button>
+            <button class="spin-btn" id="spinBtn">SPIN</button>
+        </div>
+    </div>
+</div>
+
+<!-- Popup Modal -->
+<div id="betPopup" class="popup-modal">
+    <div class="popup-content">
+        <h3 style="color:#ffd966;">🎲 SELECT BET</h3>
+        <div class="bet-types" style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-bottom:20px;">
+            <button class="bet-type-btn" data-type="1C" style="background:#2a254b; padding:8px 16px; border-radius:30px; color:#ffd966;">1C</button>
+            <button class="bet-type-btn" data-type="5C" style="background:#2a254b; padding:8px 16px; border-radius:30px; color:#ffd966;">5C</button>
+            <button class="bet-type-btn" data-type="10C" style="background:#2a254b; padding:8px 16px; border-radius:30px; color:#ffd966;">10C</button>
+            <button class="bet-type-btn" data-type="16C" style="background:#2a254b; padding:8px 16px; border-radius:30px; color:#ffd966;">16C</button>
+            <button class="bet-type-btn" data-type="20C" style="background:#2a254b; padding:8px 16px; border-radius:30px; color:#ffd966;">20C</button>
+            <button class="bet-type-btn" data-type="50C" style="background:#2a254b; padding:8px 16px; border-radius:30px; color:#ffd966;">50C</button>
+        </div>
+        <div class="bet-indexes" style="display:flex; gap:10px; justify-content:center; margin-bottom:20px;">
+            <button class="bet-index-btn" data-index="0" style="background:#2a254b; width:40px; padding:8px; border-radius:30px; color:#ffd966;">1</button>
+            <button class="bet-index-btn" data-index="1" style="background:#2a254b; width:40px; padding:8px; border-radius:30px; color:#ffd966;">2</button>
+            <button class="bet-index-btn" data-index="2" style="background:#2a254b; width:40px; padding:8px; border-radius:30px; color:#ffd966;">3</button>
+            <button class="bet-index-btn" data-index="3" style="background:#2a254b; width:40px; padding:8px; border-radius:30px; color:#ffd966;">4</button>
+            <button class="bet-index-btn" data-index="4" style="background:#2a254b; width:40px; padding:8px; border-radius:30px; color:#ffd966;">5</button>
+        </div>
+        <div id="currentBetInfo" style="color:#ffd966; margin-bottom:15px;">Current: 800</div>
+        <button class="close-popup" onclick="closeBetPopup()" style="background:#ff4444; border:none; padding:8px 25px; border-radius:30px; color:white;">Close</button>
+    </div>
+</div>
+
+<script>
+    // Game code here (same as before)
+    const BET_TABLE = {
+        "1C": [80, 160, 320, 480, 800],
+        "5C": [400, 800, 1600, 2400, 4000],
+        "10C": [800, 1600, 3200, 4800, 8000],
+        "16C": [1280, 2560, 5120, 7680, 12800],
+        "20C": [1600, 3200, 6400, 9600, 16000],
+        "50C": [4000, 8000, 16000, 24000, 40000]
+    };
+
+    const SLOTS = [
+    // ဆုငွေများ (ပိုက်ဆံ)
+    { label: "0.1K", value: 100, color: "#2c2e5f", type: "small" },
+    { label: "2K", value: 2000, color: "#3c3160", type: "big" },
+    { label: "0.5K", value: 500, color: "#6c5ce7", type: "big" },
+    { label: "0.9K", value: 900, color: "#a463f5", type: "big" },
+    { label: "2.5K", value: 2500, color: "#e08e2e", type: "super" },
+    { label: "5K", value: 5000, color: "#f4a261", type: "mega" },
+    { label: "100K", value: 100000, color: "#e63946", type: "jackpot" },
+    
+    // Free Spins
+    { label: "FREE 5", value: 0, color: "#00bcd4", type: "freespin", spins: 5 },
+    { label: "FREE 10", value: 0, color: "#00bcd4", type: "freespin", spins: 10 },
+    
+    // Multipliers
+    { label: "2x", value: 0, color: "#9c27b0", type: "multiplier", multiplier: 2 },
+    { label: "5x", value: 0, color: "#9c27b0", type: "multiplier", multiplier: 5 },
+    
+    // Fun / Emotional
+    { label: "🙏 THANK YOU", value: 0, color: "#4caf50", type: "thankyou" },
+    { label: "🍀 GOOD LUCK", value: 0, color: "#8bc34a", type: "goodluck" },
+    { label: "🎁 MYSTERY", value: 0, color: "#ff9800", type: "mystery" },
+    { label: "⭐ TRY AGAIN", value: 0, color: "#795548", type: "tryagain" }
+];
+
+    let currentAngle = 0;
+    let spinning = false;
+    let userBalance = 12500;
+    let currentBetType = "1C";
+    let currentBetIndex = 4;
+    let currentBet = 800;
+    let lastWin = 0;
+
+    const canvas = document.getElementById('wheelCanvas');
+    const ctx = canvas.getContext('2d');
+
+    function updateBetFromTypeAndIndex() {
+        if (BET_TABLE[currentBetType] && BET_TABLE[currentBetType][currentBetIndex]) {
+            currentBet = BET_TABLE[currentBetType][currentBetIndex];
+        }
+        updateUI();
+    }
+
+    function setBetType(type) {
+        currentBetType = type;
+        currentBetIndex = 4;
+        updateBetFromTypeAndIndex();
+    }
+
+    function setBetIndex(index) {
+        if (index >= 0 && index < 5) {
+            currentBetIndex = index;
+            updateBetFromTypeAndIndex();
+        }
+    }
+
+    function changeBet(delta) {
+        let newIndex = currentBetIndex + delta;
+        if (newIndex >= 0 && newIndex < 5) {
+            currentBetIndex = newIndex;
+            updateBetFromTypeAndIndex();
+        }
+    }
+
+    function updateUI() {
+        document.getElementById('casinoBalance').innerText = userBalance.toLocaleString();
+        document.getElementById('betDisplay').innerText = currentBet;
+        document.getElementById('betAmount').innerText = currentBet;
+        document.getElementById('lastWinDisplay').innerText = lastWin.toLocaleString();
+    }
+
+    function showWinAnimation(amount, type) {
+        if (window.parent && window.parent.WinAnimation) {
+            if (type === 'mega') window.parent.WinAnimation.mega(amount);
+            else if (type === 'super') window.parent.WinAnimation.super(amount);
+            else if (type === 'big') window.parent.WinAnimation.big(amount);
+            return;
+        }
+        const overlay = document.createElement('div');
+        overlay.className = 'win-overlay';
+        let title = type === 'mega' ? 'MEGA WIN' : (type === 'super' ? 'SUPER WIN' : 'BIG WIN');
+        overlay.innerHTML = `<h2 style="margin:0;">${title}</h2><div>${amount.toLocaleString()} KS</div>`;
+        document.body.appendChild(overlay);
+        setTimeout(() => overlay.remove(), 2000);
+    }
+
+    function drawWheel() {
+        const w = canvas.width = 600, h = canvas.height = 600;
+        const cx = w/2, cy = h/2, rad = w/2 - 12;
+        const angleStep = (Math.PI * 2) / SLOTS.length;
+        ctx.clearRect(0, 0, w, h);
+        for (let i = 0; i < SLOTS.length; i++) {
+            const start = currentAngle + i * angleStep;
+            const end = start + angleStep;
+            ctx.beginPath();
+            ctx.fillStyle = SLOTS[i].color;
+            ctx.moveTo(cx, cy);
+            ctx.arc(cx, cy, rad, start, end);
+            ctx.fill();
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(start + angleStep/2);
+            ctx.fillStyle = "#FFF8E2";
+            ctx.font = "bold 16px 'Segoe UI'";
+            ctx.fillText(SLOTS[i].label, rad - 42, 10);
+            ctx.restore();
+        }
+        ctx.beginPath();
+        ctx.arc(cx, cy, 28, 0, 2*Math.PI);
+        ctx.fillStyle = "#e6be5e";
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(cx, cy, 16, 0, 2*Math.PI);
+        ctx.fillStyle = "#bd882a";
+        ctx.fill();
+        ctx.fillStyle = "#2b1f0c";
+        ctx.font = "bold 28px 'Segoe UI'";
+        ctx.fillText("👑", cx-15, cy+10);
+        ctx.beginPath();
+        ctx.moveTo(cx-14, 8);
+        ctx.lineTo(cx+14, 8);
+        ctx.lineTo(cx, 38);
+        ctx.fillStyle = "#ffd966";
+        ctx.fill();
+    }
+
+    function sendToLobby(type, amount) {
+        if (window.parent !== window) {
+            window.parent.postMessage({ type: type, amount: amount }, '*');
+        }
+    }
+
+    function startSpin() {
+    if (spinning) return;
+    if (userBalance < currentBet) {
+        alert('လက်ကျန်ငွေ မလုံလောက်ပါ!');
+        return;
+    }
+
+    // 🔥 PLAY WHEEL SOUND when spinning starts
+    const parentSound = window.parent && window.parent.SoundManager;
+    if (parentSound && typeof parentSound.wheel === 'function') {
+        parentSound.wheel();
+        console.log('🔊 Wheel spin sound played');
+    } else if (parentSound && typeof parentSound.spin === 'function') {
+        parentSound.spin();
+        console.log('🔊 Spin sound played');
+    } else if (parentSound && typeof parentSound.click === 'function') {
+        parentSound.click();
+    }
+
+    userBalance -= currentBet;
+    updateUI();
+    sendToLobby('BET_DEDUCT', currentBet);
+
+    const spinDuration = 11000;
+    const startTime = performance.now();
+    const startAngle = currentAngle;
+    const rounds = 6 + Math.random() * 6;
+    const targetDelta = (Math.PI * 2) * rounds + Math.random() * Math.PI * 2;
+    spinning = true;
+
+    function animate(now) {
+        let t = Math.min(1, (now - startTime) / spinDuration);
+        let ease = 1 - Math.pow(1 - t, 3.5);
+        currentAngle = startAngle + targetDelta * ease;
+        drawWheel();
+        if (t < 1) requestAnimationFrame(animate);
+        else finishSpin();
+    }
+    requestAnimationFrame(animate);
+}
+
+  function finishSpin() {
+    spinning = false;
+    const angleStep = (Math.PI * 2) / SLOTS.length;
+    let raw = currentAngle % (Math.PI * 2);
+    let pointerDir = (Math.PI * 2 - raw + Math.PI/2 + Math.PI) % (Math.PI * 2);
+    let idx = Math.floor(pointerDir / angleStep) % SLOTS.length;
+    const prize = SLOTS[idx];
+
+    let winAmount = 0;
+    let winMessage = '';
+    let winType = prize.type;
+    let winPercentage = 0;
+    
+    const parentSound = window.parent && window.parent.SoundManager;
+    const parentWinAnim = window.parent && window.parent.WinAnimation;
+    const parentGlobalTop = window.parent && window.parent.GlobalTopManager;
+    
+    // 🔥 Handle different prize types
+    switch(prize.type) {
+        case 'small':
+        case 'normal':
+        case 'big':
+        case 'super':
+        case 'mega':
+        case 'jackpot':
+            const multiplier = prize.value / 1000;
+            winAmount = Math.floor(currentBet * multiplier);
+            winPercentage = (winAmount / currentBet) * 100;
+            winMessage = `${prize.label} (${winAmount.toLocaleString()} KS)`;
+            break;
+            
+        case 'freespin':
+            winAmount = 0;
+            winMessage = `🎰 FREE SPIN x${prize.spins} 🎰`;
+            if (window.parent && window.parent.addFreeSpins) {
+                window.parent.addFreeSpins(prize.spins);
+            }
+            break;
+            
+        case 'multiplier':
+            winAmount = 0;
+            winMessage = `✨ ${prize.multiplier}x MULTIPLIER ✨`;
+            if (window.parent && window.parent.setMultiplier) {
+                window.parent.setMultiplier(prize.multiplier);
+            }
+            break;
+            
+        case 'thankyou':
+            winAmount = 0;
+            winMessage = `🙏 THANK YOU FOR PLAYING! 🙏`;
+            break;
+            
+        case 'goodluck':
+            winAmount = 0;
+            winMessage = `🍀 GOOD LUCK NEXT TIME! 🍀`;
+            break;
+            
+        case 'mystery':
+            winAmount = Math.floor(Math.random() * 49000) + 1000;
+            winMessage = `🎁 MYSTERY PRIZE: ${winAmount.toLocaleString()} KS 🎁`;
+            winPercentage = (winAmount / currentBet) * 100;
+            break;
+            
+        case 'tryagain':
+            winAmount = 0;
+            winMessage = `⭐ TRY AGAIN! ⭐`;
+            break;
+            
+        default:
+            winAmount = 0;
+            winMessage = prize.label;
+    }
+    
+    // Update balance and UI
+    if (winAmount > 0) {
+        userBalance += winAmount;
+        lastWin = winAmount;
+        sendToLobby('WIN_AMOUNT', winAmount);
+    } else {
+        lastWin = 0;
+        sendToLobby('WIN_AMOUNT', 0);
+    }
+    
+    updateUI();
+    
+    // 🔥 Show win message
+    showWinMessage(winMessage, winAmount, prize.type);
+    
+    // 🔥 SOUND EFFECTS based on win amount
+    if (winAmount > 0) {
+        if (parentSound) {
+            try {
+                if (winPercentage >= 1500) {
+                    parentSound.congratulations();
+                    parentSound.lion();
+                    parentSound.coin();
+                  
+                    console.log('🔊 Mega win sounds (from lobby)');
+                } else if (winPercentage >= 1000) {
+                    parentSound.congratulations();
+                    parentSound.lion();
+                    parentSound.coin();
+                   
+                    console.log('🔊 Super win sounds (from lobby)');
+                } else if (winPercentage >= 500) {
+                    parentSound.congratulations();
+                    parentSound.lion();
+                    parentSound.coin();
+                    console.log('🔊 Big win sounds (from lobby)');
+                } else if (winAmount > 0) {
+                    parentSound.win();
+                    parentSound.coin();
+                    console.log('🔊 Normal win sounds (from lobby)');
+                }
+            } catch(e) {
+                console.warn('Sound error:', e);
+            }
+        }
+        
+        // Call WinAnimation from parent
+        if (parentWinAnim) {
+            try {
+                if (winPercentage >= 1500) {
+                    parentWinAnim.mega(winAmount);
+                } else if (winPercentage >= 1000) {
+                    parentWinAnim.super(winAmount);
+                } else if (winPercentage >= 500) {
+                    parentWinAnim.big(winAmount);
+                }
+            } catch(e) {}
+        }
+        
+        // Submit to Global Top
+        if (parentGlobalTop && winAmount >= 50000) {
+            try {
+                let globalWinType = 'big';
+                if (winPercentage >= 1500) globalWinType = 'mega';
+                else if (winPercentage >= 1000) globalWinType = 'super';
+                parentGlobalTop.submitWin(winAmount, globalWinType);
+            } catch(e) {}
+        }
+    } else {
+        // No win sound for 0 wins
+        if (parentSound && parentSound.noWin) {
+            parentSound.noWin();
+        }
+    }
+}
+
+// 🔥 New function to show win message
+
+function showWinMessage(message, amount, type) {
+    const overlay = document.createElement('div');
+    
+    let bgColor = '#ffd966';
+    
+    if (type === 'jackpot') bgColor = '#e63946';
+    else if (type === 'mega') bgColor = '#f4a261';
+    else if (type === 'super') bgColor = '#e08e2e';
+    else if (type === 'big') bgColor = '#6c5ce7';
+    else if (type === 'freespin') bgColor = '#00bcd4';
+    else if (type === 'multiplier') bgColor = '#9c27b0';
+    else if (type === 'thankyou') bgColor = '#4caf50';
+    else if (type === 'mystery') bgColor = '#ff9800';
+    else if (type === 'goodluck') bgColor = '#8bc34a';
+    else if (type === 'tryagain') bgColor = '#795548';
+    
+    overlay.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: ${bgColor};
+        padding: 30px 60px;
+        border-radius: 80px;
+        color: white;
+        text-align: center;
+        z-index: 40000;
+        animation: winPop 0.5s ease-out forwards;
+        box-shadow: 0 0 80px ${bgColor};
+        min-width: 400px;
+    `;
+    
+    overlay.innerHTML = `
+        <div style="font-size: 40px; font-weight: 1000; margin-bottom: 15px; letter-spacing: 2px;">🎉 ${message} 🎉</div>
+        ${amount > 0 ? `<div style="font-size: 53px; font-weight: 1000; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">+${amount.toLocaleString()} KS</div>` : ''}
+    `;
+    
+    document.body.appendChild(overlay);
+    
+    setTimeout(() => {
+        overlay.style.animation = 'winFadeOut 0.5s ease-in forwards';
+        setTimeout(() => overlay.remove(), 500);
+    }, 2800);
+}
+
+    window.addEventListener('message', function(event) {
+        if (event.data && event.data.type === 'SYNC_BALANCE') {
+            userBalance = event.data.balance || 12500;
+            updateUI();
+        }
+    });
+
+    if (window.parent !== window) {
+        window.parent.postMessage({ type: 'REQUEST_BALANCE' }, '*');
+    }
+
+    window.closeWheelGame = function() {
+        if (window.parent !== window) {
+            window.parent.postMessage({ type: 'CLOSE_WHEEL' }, '*');
+        }
+    };
+
+    // Event Listeners
+    document.getElementById('decreaseBet').addEventListener('click', () => changeBet(-1));
+    document.getElementById('increaseBet').addEventListener('click', () => changeBet(1));
+    document.getElementById('spinBtn').addEventListener('click', startSpin);
+
+    // Popup
+    const cBtn = document.getElementById('cBtn');
+    const betPopup = document.getElementById('betPopup');
+    cBtn.addEventListener('click', () => {
+        betPopup.style.display = 'flex';
+    });
+    window.closeBetPopup = function() {
+        betPopup.style.display = 'none';
+    };
+    document.querySelectorAll('.bet-type-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            setBetType(btn.dataset.type);
+            document.getElementById('currentBetInfo').innerText = `Current: ${currentBet}`;
+            betPopup.style.display = 'none';
+        });
+    });
+    document.querySelectorAll('.bet-index-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            setBetIndex(parseInt(btn.dataset.index));
+            document.getElementById('currentBetInfo').innerText = `Current: ${currentBet}`;
+            betPopup.style.display = 'none';
+        });
+    });
+    betPopup.addEventListener('click', (e) => {
+        if (e.target === betPopup) betPopup.style.display = 'none';
+    });
+
+    drawWheel();
+    updateUI();
+</script>
+</body>
+</html>

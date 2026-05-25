@@ -304,7 +304,26 @@ function checkOrientation() {
     if (!warning) return;
     warning.style.display = window.innerHeight > window.innerWidth ? 'flex' : 'none';
 }
-
+// Make update balance function globally available for wheel game
+window.updateBalanceInFirebase = function(newBalance) {
+    // 🔥 CRITICAL: Check for NaN
+    if (isNaN(newBalance) || newBalance === undefined || newBalance === null) {
+        console.error('❌ Attempted to save NaN to Firebase! Ignoring...');
+        return;
+    }
+    
+    if (typeof currentUser !== 'undefined' && currentUser && currentUser.uid) {
+        db.collection('users').doc(currentUser.uid).update({
+            balance: newBalance
+        }).then(() => {
+            console.log('🔥 Firebase balance updated:', newBalance);
+        }).catch(err => {
+            console.error('Firebase update error:', err);
+        });
+    } else {
+        console.warn('No user logged in, balance not saved to Firebase');
+    }
+};
 // ===== EXPORT FUNCTIONS =====
 window.handleLogin = handleLogin;
 window.handleSignup = handleSignup;

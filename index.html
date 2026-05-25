@@ -157,148 +157,181 @@
         </div>
     </div>
 </div>
-       <div id="lobbyScreen" style="display: none;">
+     <div id="lobbyScreen" style="display: none;">
 
-      <div class="top-bar">
-    <!-- LEFT: Avatar + Balance -->
-    <div class="top-left">
-        <div class="avatar-btn" onclick="showLobbyNotification('ပရိုဖိုင်')">
-            <i class="fas fa-user"></i>
-            <div class="vip-level">6</div>
-        </div>
-        <div class="balance-box">
-            <span class="coin-img">💰</span>
-            <span class="balance-amount" id="lobbyBalance">49</span>
-        </div>
-    </div>
-
-    <!-- CENTER: Game Logo (အလယ်တည့်တည့်) -->
-    <div class="top-center">
-        <div class="game-logo">
-            <i class="fas fa-dragon"></i> ASIA BUFFALO
-        </div>
-    </div>
-
-    <!-- RIGHT: Daily Bonus + Settings -->
-    <div class="top-right">
-        <div class="daily-box">
-            <span>🪙</span>
-            <span class="daily-amount" id="dailyAmount">20000</span>
-        </div>
-        <button class="settings-btn" onclick="openSettingsModal()">
-            <i class="fas fa-cog"></i>
-        </button>
-    </div>
-</div>
-  <div class="games-area">
-    <div class="games-scroll">
-              <!-- Crocodile (MAJOR) -->
-<div class="game-card" onclick="showGameContainer()">
-    <div class="game-frame">
-        <div class="game-frame-inner" style="background: linear-gradient(145deg, #00331a, #001a0d);">
-            <div class="card-jackpot-badge major">
-                <span class="badge-name">MAJOR</span>
-                <span class="badge-value" id="jackpotMajor">11,026,483</span>
+    <!-- ========== TOP BAR ========== -->
+    <div class="top-bar">
+        <!-- LEFT: Avatar + Balance -->
+        <div class="top-left">
+            <div class="avatar-btn" onclick="showLobbyNotification('ပရိုဖိုင်')">
+                <i class="fas fa-user"></i>
+                <div class="vip-level">6</div>
             </div>
-            <img src="images/crocodile.png" alt="Crocodile" class="game-card-img">
-            <div class="game-title-overlay">
-                <div class="game-title-text">CROCODILE<br>ADVENTURE</div>
-                <div class="game-subtitle-text">Jungle Quest</div>
+            <div class="balance-box">
+                <span class="coin-img">💰</span>
+                <span class="balance-amount" id="lobbyBalance">49</span>
             </div>
         </div>
-    </div>
-</div>
 
-<!-- African Buffalo (GRAND) -->
-<div class="game-card active" onclick="showGameContainer()">
+        <!-- CENTER: Game Logo -->
+        <div class="top-center">
+            <div class="game-logo">
+                <i class="fas fa-dragon"></i> ASIA BUFFALO
+            </div>
+        </div>
+
+        <!-- RIGHT: Daily Bonus + Settings -->
+        <div class="top-right">
+            <div class="daily-box">
+                <span>🪙</span>
+                <span class="daily-amount" id="dailyAmount">20000</span>
+            </div>
+            <button class="settings-btn" onclick="openSettingsModal()">
+                <i class="fas fa-cog"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- ========== GAMES AREA (Game Cards Only) ========== -->
+    <div class="games-area">
+        <div class="games-scroll">
+
+            <!-- Crocodile (MAJOR) -->
+            <div class="game-card" onclick="showGameContainer()">
+                <div class="game-frame">
+                    <div class="game-frame-inner" style="background: linear-gradient(145deg, #00331a, #001a0d);">
+                        <div class="card-jackpot-badge major">
+                            <span class="badge-name">MAJOR</span>
+                            <span class="badge-value" id="jackpotMajor">11,026,483</span>
+                        </div>
+                        <img src="images/crocodile.png" alt="Crocodile" class="game-card-img">
+                        <div class="game-title-overlay">
+                            <div class="game-title-text">CROCODILE<br>ADVENTURE</div>
+                            <div class="game-subtitle-text">Jungle Quest</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- African Buffalo (GRAND) -->
+            <div class="game-card active" onclick="showGameContainer()">
+                <div class="game-frame">
+                    <div class="game-frame-inner" style="background: linear-gradient(145deg, #4a1a00, #2d0f00);">
+                        <div class="card-jackpot-badge grand">
+                            <span class="badge-name">GRAND</span>
+                            <span class="badge-value" id="jackpotGrand">15,759,157</span>
+                        </div>
+                        <img src="images/buffalo.png" alt="Buffalo" class="game-card-img">
+                        <div class="game-title-overlay">
+                            <div class="game-title-text">AFRICAN<br>BUFFALO</div>
+                            <div class="game-subtitle-text">1024 Ways</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ultimate Fire Link (MINI) -->
+            <div class="game-card" onclick="showGameContainer()">
+                <div class="game-frame purple-border">
+                    <div class="game-frame-inner" style="background: linear-gradient(145deg, #331a00, #1a0d00);">
+                        <div class="card-jackpot-badge mini">
+                            <span class="badge-name">MINI</span>
+                            <span class="badge-value" id="jackpotMini">1,570,008</span>
+                        </div>
+                        <img src="images/firelink.png" alt="Fire Link" class="game-card-img">
+                        <div class="game-title-overlay">
+                            <div class="game-title-text">ULTIMATE<br>FIRE LINK</div>
+                            <div class="game-subtitle-text">China Street</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grand Dragons (MINOR) -->
+            <div class="game-card" onclick="showGameContainer()">
+                <div class="game-frame purple-border">
+                    <div class="game-frame-inner" style="background: linear-gradient(145deg, #4a0000, #2d0000);">
+                        <div class="card-jackpot-badge minor">
+                            <span class="badge-name">MINOR</span>
+                            <span class="badge-value" id="jackpotMinor">5,229,739</span>
+                        </div>
+                        <img src="images/dragon.png" alt="Dragon" class="game-card-img">
+                        <div class="game-title-overlay">
+                            <div class="game-title-text">GRAND<br>DRAGONS</div>
+                            <div class="game-subtitle-text">888 Ways</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+              <!-- slot-jackpot.html Game Card -->
+<div class="game-card" onclick="openJackpotWaysGame()">
     <div class="game-frame">
-        <div class="game-frame-inner" style="background: linear-gradient(145deg, #4a1a00, #2d0f00);">
+        <div class="game-frame-inner" style="background: linear-gradient(145deg, #1a0f0a, #0d0705);">
             <div class="card-jackpot-badge grand">
                 <span class="badge-name">GRAND</span>
-                <span class="badge-value" id="jackpotGrand">15,759,157</span>
+                <span class="badge-value" id="jackpotWaysGrand">10,000,000</span>
             </div>
-            <img src="images/buffalo.png" alt="Buffalo" class="game-card-img">
-                         <div class="game-title-overlay">
-                        <div class="game-title-text">AFRICAN<br>BUFFALO</div>
-                        <div class="game-subtitle-text">1024 Ways</div>
-                    </div>
-                </div>
+            <div style="font-size: 70px; text-align: center; padding: 30px 0;">
+                <i class="fas fa-dice-d6" style="color: #ffd700;"></i>
             </div>
-        </div>
-<!-- Ultimate Fire Link (MINI) -->
-<div class="game-card" onclick="showGameContainer()">
-    <div class="game-frame purple-border">
-        <div class="game-frame-inner" style="background: linear-gradient(145deg, #331a00, #1a0d00);">
-            <div class="card-jackpot-badge mini">
-                <span class="badge-name">MINI</span>
-                <span class="badge-value" id="jackpotMini">1,570,008</span>
-            </div>
-            <img src="images/firelink.png" alt="Fire Link" class="game-card-img">
-                               <div class="game-title-overlay">
-                        <div class="game-title-text">ULTIMATE<br>FIRE LINK</div>
-                        <div class="game-subtitle-text">China Street</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-
-<!-- Grand Dragons (MINOR) -->
-<div class="game-card" onclick="showGameContainer()">
-    <div class="game-frame purple-border">
-        <div class="game-frame-inner" style="background: linear-gradient(145deg, #4a0000, #2d0000);">
-            <div class="card-jackpot-badge minor">
-                <span class="badge-name">MINOR</span>
-                <span class="badge-value" id="jackpotMinor">5,229,739</span>
-            </div>
-            <img src="images/dragon.png" alt="Dragon" class="game-card-img">
             <div class="game-title-overlay">
-                        <div class="game-title-text">GRAND<br>DRAGONS</div>
-                        <div class="game-subtitle-text">888 Ways</div>
+                <div class="game-title-text">JACKPOT<br>WAYS</div>
+                <div class="game-subtitle-text">1024 Ways Slot</div>
+            </div>
+        </div>
+    </div>
+</div>
+            <!-- WHEEL GAME CARD -->
+            <div class="game-card" onclick="openWheelGameFromLobby()">
+                <div class="game-frame">
+                    <div class="game-frame-inner" style="background: linear-gradient(145deg, #6c5ce7, #4a3ba7);">
+                        <div class="card-jackpot-badge jackpot">JACKPOT</div>
+                        <div style="font-size: 80px; text-align: center; padding: 30px 0;">
+                            <i class="fas fa-dharmachakra" style="color: #ffd966; text-shadow: 0 0 20px gold;"></i>
+                        </div>
+                        <div class="game-title-overlay">
+                            <div class="game-title-text">LUCKY<br>SPIN WHEEL</div>
+                            <div class="game-subtitle-text">Win up to 100,000 KS</div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
+             </div>
 
-    </div>
-</div>
-   <div class="ticker-container">
-        <div class="notification-ticker">
-            <div class="ticker-content" id="tickerText">
-                🎉 Latest Winner: Player "MgMg" won 5,000,000 KS! 🎰
-            </div>
-        </div>
-    </div>
+        </div> <!-- end games-scroll -->
+    </div> <!-- end games-area -->
 
-    
-
-   <!-- BOTTOM NAV (lobby) - Premium Casino Style -->
-<div class="bottom-nav">
-    <div class="nav-item active" onclick="switchLobbyTab(this,'home')">
-        <div class="nav-icon"><i class="fas fa-gamepad"></i></div>
-    </div>
-    <div class="nav-item" onclick="switchLobbyTab(this,'daily')">
-        <div class="nav-icon"><i class="fas fa-trophy"></i></div>
-        <span class="nav-badge">1</span>
-    </div>
-    <div class="nav-item" onclick="switchLobbyTab(this,'shop')">
-        <div class="nav-icon"><i class="fas fa-diamond"></i></div>
-    </div>
-    <div class="nav-item" onclick="switchLobbyTab(this,'vip')">
-        <div class="nav-icon"><i class="fas fa-crown"></i></div>
-    </div>
-    <div class="nav-item" onclick="openDepositModal()">
-        <div class="nav-icon"><i class="fas fa-coins"></i></div>
-        <span class="nav-badge">5</span>
-         <!-- Spin button (lobby) -> ဖြည့်ပါ -->
-        <div class="back-btn-right" onclick="openDepositModal()">
-            <i class="fas fa-dharmachakra"></i><span>ဖြည့်ပါ</span>
+    <!-- ========== TICKER CONTAINER (Below Game Cards) ========== -->
+    <div class="ticker-container" style="margin-top: auto; margin-bottom: 10px;">
+    <div class="notification-ticker">
+        <div class="ticker-content" id="tickerText">
+            🕺 Latest Winner: Player "MgMg" won 5,000,000 KS! 💃
         </div>
-    </div>
     </div>
 </div>
 
- 
+    <!-- ========== BOTTOM NAVIGATION ========== -->
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="switchLobbyTab(this,'home')">
+            <div class="nav-icon"><i class="fas fa-gamepad"></i></div>
+        </div>
+        <div class="nav-item" onclick="switchLobbyTab(this,'daily')">
+            <div class="nav-icon"><i class="fas fa-trophy"></i></div>
+            <span class="nav-badge">1</span>
+        </div>
+        <div class="nav-item" onclick="switchLobbyTab(this,'shop')">
+            <div class="nav-icon"><i class="fas fa-diamond"></i></div>
+        </div>
+        <div class="nav-item" onclick="switchLobbyTab(this,'vip')">
+            <div class="nav-icon"><i class="fas fa-crown"></i></div>
+        </div>
+        <div class="nav-item" onclick="openDepositModal()">
+            <div class="nav-icon"><i class="fas fa-coins"></i></div>
+            <span class="nav-badge">5</span>
+        </div>
+    </div>
+
+
+</div> <!-- end lobbyScreen --> 
     <!-- MAIN GAME CONTAINER -->
     <div class="game-container" id="gameContainer">
         <!-- TOP PANEL -->
@@ -845,14 +878,404 @@
         </div>
     </div>
 
+<!-- ========== WHEEL GAME CONTAINER (ဒါက Lobby ထဲမှာ ထည့်ပါ) ========== -->
+<div id="wheelGameContainer" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100000; background: #0a0718;">
+    <iframe id="wheelIframe" src="spin-wheel-casino.html" style="width: 100%; height: 100%; border: none;"></iframe>
+    <button onclick="closeWheelGame()" style="position: absolut"></button>
+</div>
+
+<!-- JACKPOT GAME CONTAINER -->
+<div id="jackpotGameContainer" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100000; background: #0d0705;">
+    <iframe id="jackpotframe" src="slot-jackpot.html" style="width: 100%; height: 100%; border: none;"></iframe>
+    <button onclick="closeJackpotWaysGame()" style="position: absolute; top: 20px; right: 20px; background: #ffd700; border: none; width: 50px; height: 50px; border-radius: 50%; font-size: 24px; cursor: pointer; z-index: 100001;">✕</button>
+</div>
+
+<script>
+    // ========== SPIN WHEEL WITH PROPER NUMBER HANDLING (CONTAINER VERSION) ==========
+    const wheelContainer = document.getElementById('wheelGameContainer');
+    const wheelIframe = document.getElementById('wheelIframe');
+
+    // 🔥 Safe number parser - remove commas and ensure number
+    function safeNumber(value) {
+        if (value === undefined || value === null) return 0;
+        if (typeof value === 'number' && !isNaN(value)) return value;
+
+        let str = String(value).replace(/,/g, '').trim();
+        let num = parseFloat(str);
+
+        if (isNaN(num)) {
+            console.warn('⚠️ safeNumber received NaN for:', value);
+            return 0;
+        }
+        return num;
+    }
+
+   function updateLobbyBalance(newBalance) {
+    let safeBalance = safeNumber(newBalance);
+    
+    if (isNaN(safeBalance)) {
+        console.error('❌ Attempted to update lobby with NaN! Ignoring...');
+        return false;
+    }
+
+    let formattedBalance = safeBalance.toLocaleString();
+
+    // Update DOM
+    const lobbyElem = document.getElementById('lobbyBalance');
+    if (lobbyElem) lobbyElem.innerText = formattedBalance;
+    
+    const gameElem = document.getElementById('balanceAmount');
+    if (gameElem) gameElem.innerText = formattedBalance;
+    
+    // Update gameState
+    if (window.gameState) {
+        window.gameState.balance = safeBalance;
+        window.gameState.displayBalance = safeBalance;
+    }
+    
+    // Update UI
+    if (typeof updateUI === 'function') updateUI(safeBalance);
+    
+    // 🔥 FIX: Update Firebase if user is logged in
+    if (typeof window.updateBalanceInFirebase === 'function') {
+        window.updateBalanceInFirebase(safeBalance);
+    } else if (typeof updateUserBalanceInStorage === 'function') {
+        updateUserBalanceInStorage();
+    } else {
+        // Try to find current user and update directly
+        const currentUser = localStorage.getItem('currentUser');
+        if (currentUser) {
+            const user = JSON.parse(currentUser);
+            user.balance = safeBalance;
+            localStorage.setItem('currentUser', JSON.stringify(user));
+            console.log('💰 Balance saved to localStorage:', safeBalance);
+            
+            // Also try Firebase if available
+            if (window.db && user.uid) {
+                window.db.collection('users').doc(user.uid).update({
+                    balance: safeBalance,
+                    displayBalance: safeBalance
+                }).catch(e => console.warn('Firebase update error:', e));
+            }
+        }
+    }
+    
+    return true;
+}
+
+
+    function getCurrentBalance() {
+        // First try from gameState
+        if (window.gameState && typeof window.gameState.balance === 'number' && !isNaN(window.gameState.balance)) {
+            return window.gameState.balance;
+        }
+
+        // Try from lobby DOM
+        const lobbyElem = document.getElementById('lobbyBalance');
+        if (lobbyElem) {
+            let rawText = lobbyElem.innerText || '0';
+            return safeNumber(rawText);
+        }
+
+        return 10000;
+    }
+
+    function openWheelGameFromLobby() {
+        if (!wheelContainer) return;
+
+        // Hide lobby screen
+        const lobbyScreen = document.getElementById('lobbyScreen');
+        if (lobbyScreen) lobbyScreen.style.display = 'none';
+
+        // Show wheel container
+        wheelContainer.style.display = 'block';
+
+        let currentBalance = getCurrentBalance();
+        console.log('🎡 Opening wheel, balance:', currentBalance);
+
+        // Refresh iframe and send balance
+        if (wheelIframe) {
+            wheelIframe.src = wheelIframe.src;
+            wheelIframe.onload = function() {
+                setTimeout(() => {
+                    wheelIframe.contentWindow.postMessage({
+                        type: 'SYNC_BALANCE',
+                        balance: currentBalance
+                    }, '*');
+                }, 500);
+            };
+        }
+    }
+
+    function closeWheelGame() {
+        if (wheelContainer) wheelContainer.style.display = 'none';
         
-    <!-- Core Libraries & Helpers -->
+        // Show lobby screen back
+        const lobbyScreen = document.getElementById('lobbyScreen');
+        if (lobbyScreen) lobbyScreen.style.display = 'block';
+    }
+
+    // Listen for messages from wheel game
+    window.addEventListener('message', function(event) {
+        const data = event.data;
+        console.log('📨 Lobby received:', data);
+
+        if (data && data.type === 'WIN_AMOUNT') {
+            let currentBalance = getCurrentBalance();
+            let winAmount = safeNumber(data.amount);
+            let newBalance = currentBalance + winAmount;
+
+            console.log(`💰 WIN: ${currentBalance} + ${winAmount} = ${newBalance}`);
+
+            updateLobbyBalance(newBalance);
+
+            if (typeof updateUserBalanceInStorage === 'function') {
+                updateUserBalanceInStorage();
+            }
+
+            showWinNotification(winAmount);
+        }
+        else if (data && data.type === 'BET_DEDUCT') {
+            let currentBalance = getCurrentBalance();
+            let betAmount = safeNumber(data.amount);
+            let newBalance = currentBalance - betAmount;
+
+            if (newBalance < 0) newBalance = 0;
+
+            console.log(`💸 BET: ${currentBalance} - ${betAmount} = ${newBalance}`);
+
+            updateLobbyBalance(newBalance);
+
+            if (typeof updateUserBalanceInStorage === 'function') {
+                updateUserBalanceInStorage();
+            }
+        }
+        else if (data && data.type === 'REQUEST_BALANCE') {
+            let currentBalance = getCurrentBalance();
+            if (wheelIframe && wheelIframe.contentWindow) {
+                wheelIframe.contentWindow.postMessage({
+                    type: 'SYNC_BALANCE',
+                    balance: currentBalance
+                }, '*');
+            }
+        }
+    });
+
+    function showWinNotification(amount) {
+        let safeAmount = safeNumber(amount);
+        const notif = document.createElement('div');
+        notif.innerText = `🎉 Spin Wheel မှ ${safeAmount.toLocaleString()} KS ရရှိပါသည်! 🎉`;
+        notif.style.cssText = 'position:fixed;top:20%;left:50%;transform:translateX(-50%);background:#ffd966;color:#1e1a2f;padding:12px 24px;border-radius:50px;font-weight:bold;z-index:40001;font-size:16px;box-shadow:0 0 20px gold;white-space:nowrap';
+        document.body.appendChild(notif);
+        setTimeout(() => notif.remove(), 3000);
+    }
+
+    // When iframe loads, send balance
+    if (wheelIframe) {
+        wheelIframe.addEventListener('load', function() {
+            let currentBalance = getCurrentBalance();
+            wheelIframe.contentWindow.postMessage({
+                type: 'SYNC_BALANCE',
+                balance: currentBalance
+            }, '*');
+        });
+    }
+
+// ============================================
+// JACKPOT GAME - LOBBY INTEGRATION
+// ============================================
+
+const jackpotContainer = document.getElementById('jackpotGameContainer');
+const jackpotIframe = document.getElementById('jackpotframe');
+
+// 🔥 Safe number parser - remove commas and ensure number
+function safeNumber(value) {
+    if (value === undefined || value === null) return 0;
+    if (typeof value === 'number' && !isNaN(value)) return value;
+
+    let str = String(value).replace(/,/g, '').trim();
+    let num = parseFloat(str);
+
+    if (isNaN(num)) {
+        console.warn('⚠️ safeNumber received NaN for:', value);
+        return 0;
+    }
+    return num;
+}
+
+function updateLobbyBalance(newBalance) {
+    let safeBalance = safeNumber(newBalance);
+    
+    if (isNaN(safeBalance)) {
+        console.error('❌ Attempted to update lobby with NaN! Ignoring...');
+        return false;
+    }
+
+    let formattedBalance = safeBalance.toLocaleString();
+
+    // Update DOM
+    const lobbyElem = document.getElementById('lobbyBalance');
+    if (lobbyElem) lobbyElem.innerText = formattedBalance;
+    
+    const gameElem = document.getElementById('balanceAmount');
+    if (gameElem) gameElem.innerText = formattedBalance;
+    
+    // Update gameState
+    if (window.gameState) {
+        window.gameState.balance = safeBalance;
+        window.gameState.displayBalance = safeBalance;
+    }
+    
+    // Update UI
+    if (typeof updateUI === 'function') updateUI(safeBalance);
+    
+    // Update localStorage
+    const currentUser = localStorage.getItem('currentUser');
+    if (currentUser) {
+        const user = JSON.parse(currentUser);
+        user.balance = safeBalance;
+        localStorage.setItem('currentUser', JSON.stringify(user));
+        console.log('💰 Balance saved to localStorage:', safeBalance);
+        
+        // Update Firebase if available
+        if (window.db && user.uid) {
+            window.db.collection('users').doc(user.uid).update({
+                balance: safeBalance,
+                displayBalance: safeBalance
+            }).catch(e => console.warn('Firebase update error:', e));
+        }
+    }
+    
+    return true;
+}
+
+function getCurrentBalance() {
+    // First try from gameState
+    if (window.gameState && typeof window.gameState.balance === 'number' && !isNaN(window.gameState.balance)) {
+        return window.gameState.balance;
+    }
+
+    // Try from lobby DOM
+    const lobbyElem = document.getElementById('lobbyBalance');
+    if (lobbyElem) {
+        let rawText = lobbyElem.innerText || '0';
+        return safeNumber(rawText);
+    }
+
+    return 10000;
+}
+
+// ========== OPEN JACKPOT GAME ==========
+function openJackpotWaysGame() {
+    if (!jackpotContainer) return;
+
+    // Hide lobby screen
+    const lobbyScreen = document.getElementById('lobbyScreen');
+    if (lobbyScreen) lobbyScreen.style.display = 'none';
+
+    // Show jackpot container
+    jackpotContainer.style.display = 'block';
+
+    let currentBalance = getCurrentBalance();
+    console.log('🎰 Opening Jackpot Game, balance:', currentBalance);
+
+    // Refresh iframe and send balance
+    if (jackpotIframe) {
+        jackpotIframe.src = jackpotIframe.src;
+        jackpotIframe.onload = function() {
+            setTimeout(() => {
+                jackpotIframe.contentWindow.postMessage({
+                    type: 'SYNC_BALANCE',
+                    balance: currentBalance
+                }, '*');
+            }, 500);
+        };
+    }
+}
+
+// ========== CLOSE JACKPOT GAME ==========
+function closeJackpotWaysGame() {
+    if (jackpotContainer) jackpotContainer.style.display = 'none';
+    
+    // Show lobby screen back
+    const lobbyScreen = document.getElementById('lobbyScreen');
+    if (lobbyScreen) lobbyScreen.style.display = 'block';
+}
+
+// ========== LISTEN FOR MESSAGES FROM JACKPOT GAME ==========
+window.addEventListener('message', function(event) {
+    const data = event.data;
+    console.log('📨 Lobby received from Jackpot:', data);
+
+    if (data && data.type === 'WIN_AMOUNT') {
+        let currentBalance = getCurrentBalance();
+        let winAmount = safeNumber(data.amount);
+        let newBalance = currentBalance + winAmount;
+
+        console.log(`💰 JACKPOT WIN: ${currentBalance} + ${winAmount} = ${newBalance}`);
+
+        updateLobbyBalance(newBalance);
+
+        if (typeof updateUserBalanceInStorage === 'function') {
+            updateUserBalanceInStorage();
+        }
+
+        showJackpotWinNotification(winAmount);
+    }
+    else if (data && data.type === 'BET_DEDUCT') {
+        let currentBalance = getCurrentBalance();
+        let betAmount = safeNumber(data.amount);
+        let newBalance = currentBalance - betAmount;
+
+        if (newBalance < 0) newBalance = 0;
+
+        console.log(`💸 JACKPOT BET: ${currentBalance} - ${betAmount} = ${newBalance}`);
+
+        updateLobbyBalance(newBalance);
+
+        if (typeof updateUserBalanceInStorage === 'function') {
+            updateUserBalanceInStorage();
+        }
+    }
+    else if (data && data.type === 'REQUEST_BALANCE') {
+        let currentBalance = getCurrentBalance();
+        if (jackpotIframe && jackpotIframe.contentWindow) {
+            jackpotIframe.contentWindow.postMessage({
+                type: 'SYNC_BALANCE',
+                balance: currentBalance
+            }, '*');
+        }
+    }
+});
+
+// ========== SHOW WIN NOTIFICATION ==========
+function showJackpotWinNotification(amount) {
+    let safeAmount = safeNumber(amount);
+    const notif = document.createElement('div');
+    notif.innerText = `🎰 Jackpot Game မှ ${safeAmount.toLocaleString()} KS ရရှိပါသည်! 🎰`;
+    notif.style.cssText = 'position:fixed;top:20%;left:50%;transform:translateX(-50%);background:#ffd700;color:#1a0f0a;padding:12px 24px;border-radius:50px;font-weight:bold;z-index:40001;font-size:16px;box-shadow:0 0 20px gold;white-space:nowrap';
+    document.body.appendChild(notif);
+    setTimeout(() => notif.remove(), 3000);
+}
+
+// When iframe loads, send balance
+if (jackpotIframe) {
+    jackpotIframe.addEventListener('load', function() {
+        let currentBalance = getCurrentBalance();
+        jackpotIframe.contentWindow.postMessage({
+            type: 'SYNC_BALANCE',
+            balance: currentBalance
+        }, '*');
+    });
+}
+</script>
+  <!-- Core Libraries & Helpers -->
     <script src="sound-manager.js"></script>
 <!-- Jackpot Animation -->
 <script src="menu.js"></script>
 <script src="win-anmation.js"></script>
 <script src="baba-Anmation.js"></script>
- <script src="supprisebox.js"></script>   
+ <script src="supprisebox.js"></script>
     <script src="login.js"></script>
     <script src="userpayment.js"></script>
     <script src="game.js"></script>
