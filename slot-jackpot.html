@@ -759,7 +759,9 @@ html_content = """<!DOCTYPE html>
             <button class="modal-close" onclick="closeCModal()">Close</button>
         </div>
     </div>
-
+      <div id="freeSpinsIndicator" style="display: none; text-align: center; background: gold; color: black; border-radius: 20px; padding: 4px 12px; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 10;">
+    🎰 <span id="freeSpinsCount">0</span> FREE SPIN(S) REMAINING
+</div>
     <div class="toast" id="toast"></div>
 
     <script>
@@ -846,6 +848,33 @@ const PAYTABLE = {
 };
 
 const SYMBOLS = Object.keys(PAYTABLE);
+
+// ============================================
+// SCATTER SYMBOLS & VALUES
+// ============================================
+const SCATTER_SYMBOLS = [
+    'eight', 'four', 'one', 'six', 'ttw', 'twen', 
+    'zero', 'mini', 'minor', 'major', 'grand'
+];
+
+const SCATTER_BASE_VALUES = {
+    'eight': 88,
+    'four': 440,
+    'one': 17600,
+    'six': 176,
+    'ttw': 22000,
+    'twen': 1320,
+    'zero': 880,
+    'mini': 10000,
+    'minor': 100000,
+    'major': 1000000,     // 10 သိန်း
+    'grand': 20000000   
+};
+
+// C type multiplier (1C=1, 5C=5, 10C=10, etc.)
+function getCMultiplier(cType) {
+    return parseFloat(cType) || 1;
+}
 
 // ============================================
 // COLUMN-SPECIFIC REEL STRIPS
@@ -1212,25 +1241,27 @@ function showToast(msg) {
 // ============================================
 // MAIN SPIN
 // ============================================
- function spin() {
+  function spin() {
     if (window.gameState.isSpinning) return;
     let bet = window.gameState.betAmount;
-    if (bet > window.gameState.balance) {
+    let isFreeSpin = (freeSpinsRemaining > 0);
+    const cMultiplier = getCMultiplier(currentCType);
+
+    if (!isFreeSpin && bet > window.gameState.balance) {
         showToast('Balance insufficient!');
         return;
     }
 
-    // 🎵 Play spin sound from Lobby SoundManager
-    if (window.parent && window.parent.SoundManager && typeof window.parent.SoundManager.spin === 'function') {
-        window.parent.SoundManager.spin();
-    }
+    if (window.parent?.SoundManager?.spin) window.parent.SoundManager.spin();
 
     window.gameState.isSpinning = true;
     spinButton.classList.add('spinning');
     spinButton.disabled = true;
 
-    reportBet(bet);
-    window.gameState.balance -= bet;
+    if (!isFreeSpin) {
+        reportBet(bet);
+        window.gameState.balance -= bet;
+    }
     window.gameState.winAmount = 0;
     updateUI();
 
@@ -1238,23 +1269,73 @@ function showToast(msg) {
     currentGrid = newGrid;
 
     animateDrop(currentGrid, () => {
-        const result = calculateWinlineWin(currentGrid, bet);
-        const totalWin = result.totalWin;
+        // 1) ပုံမှန် winline win (အမြဲတမ်း)
+        const lineResult = calculateWinlineWin(currentGrid, bet);
+        
+        // 2) Scatter win – Free Spin အတွင်းမှသာ ချက်ချင်းငွေပေးမယ်
+        const scatterResult = calculateScatterWins(currentGrid, cMultiplier, isFreeSpin);
+        
+        let totalWin = lineResult.totalWin + scatterResult.totalWin;
+        let freeSpinsEarned = 0;
 
-        if (totalWin > 0) {
-            // 🎵 Play win sound from Lobby SoundManager
-            if (window.parent && window.parent.SoundManager && typeof window.parent.SoundManager.win === 'function') {
-                window.parent.SoundManager.win();
+        // BASE GAME: Scatter 6 လုံးနဲ့အထက် → Free Spin Trigger (ငွေမပေးရသေး)
+        if (!isFreeSpin && scatterResult.scatterCount >= 6) {
+            freeSpinsEarned = 3;  // 3 free spins
+            freeSpinsRemaining += freeSpinsEarned;
+            // trigger ဖြစ်စေတဲ့ symbol မျိုးစုံကို မှတ်ထား (retrigger အတွက်)
+            triggerSymbols = [];
+            for (let r = 0; r < 4; r++) {
+                for (let c = 0; c < 5; c++) {
+                    const sym = currentGrid[r][c];
+                    if (SCATTER_SYMBOLS.includes(sym) && !triggerSymbols.includes(sym)) {
+                        triggerSymbols.push(sym);
+                    }
+                }
             }
-            reportWin(totalWin);
+            showToast(`🎁 SCATTER! +${freeSpinsEarned} FREE SPINS!`);
+        }
+
+        // DURING FREE SPINS: Retrigger if any of the trigger symbols appears again
+        if (isFreeSpin && triggerSymbols.length > 0) {
+            let retriggerCount = 0;
+            for (let r = 0; r < 4; r++) {
+                for (let c = 0; c < 5; c++) {
+                    const sym = currentGrid[r][c];
+                    if (triggerSymbols.includes(sym)) {
+                        retriggerCount++;
+                    }
+                }
+            }
+            if (retriggerCount > 0) {
+                freeSpinsRemaining += retriggerCount;
+                showToast(`✨ RETRIGGER! +${retriggerCount} FREE SPIN(S)! ✨`);
+            }
+        }
+
+        // Win handling
+        if (totalWin > 0) {
+            if (window.parent?.SoundManager?.win) window.parent.SoundManager.win();
             window.gameState.balance += totalWin;
             window.gameState.winAmount = totalWin;
             updateUI();
-            addToHistory(totalWin, bet);
-            highlightWins(result.winPositions);
-            showWinPopup(totalWin, result.winningLines);
+            addToHistory(totalWin, bet, isFreeSpin);
+            const allPositions = [...lineResult.winPositions, ...scatterResult.positions];
+            highlightWins(allPositions);
+            showScatterWinPopup(totalWin, lineResult.winningLines, scatterResult, isFreeSpin);
         } else {
-            addToHistory(0, bet);
+            addToHistory(0, bet, isFreeSpin);
+        }
+
+        if (isFreeSpin) {
+            freeSpinsRemaining--;
+        }
+
+        updateFreeSpinsUI();
+
+        if (freeSpinsRemaining > 0) {
+            setTimeout(() => spin(), 800);
+        } else {
+            triggerSymbols = [];
         }
 
         window.gameState.isSpinning = false;
@@ -1275,6 +1356,93 @@ function reset() {
     sendToLobby('WIN_AMOUNT', 0);
     document.querySelectorAll('.reel-cell').forEach(c => c.classList.remove('winner'));
     showToast('Game Reset!');
+}
+// Free spin state
+let freeSpinsRemaining = 0;
+let triggerSymbols = [];   // ပထမအကြိမ် trigger ဖြစ်စေတဲ့ scatter symbol အမျိုးအစားများ
+
+function getFreeSpinsAwarded(scatterCount) {
+    if (scatterCount >= 6) return 3;   // 6 လုံးကျော်ရင် 3 free spins
+    return 0;
+}
+
+function calculateScatterWins(grid, cMultiplier, isFreeSpinMode) {
+    let totalWin = 0;
+    let positions = [];
+    let details = [];
+    let scatterCount = 0;
+
+    for (let r = 0; r < 4; r++) {
+        for (let c = 0; c < 5; c++) {
+            const sym = grid[r][c];
+            if (SCATTER_SYMBOLS.includes(sym)) {
+                scatterCount++;
+                const pos = r * 5 + c;
+                positions.push(pos);
+
+                if (isFreeSpinMode) {
+                    const baseVal = SCATTER_BASE_VALUES[sym] || 0;
+                    const winAmount = Math.floor(baseVal * cMultiplier);
+                    totalWin += winAmount;
+                    details.push({ symbol: sym, baseValue: baseVal, win: winAmount });
+                }
+            }
+        }
+    }
+
+    // Grand jackpot (20 cells all scatter) – ဘယ်အချိန်မဆို ရနိုင်
+    let grandWin = 0;
+    if (scatterCount === 20) {
+        const GRAND_PRIZE_BASE = 10000000; // 100 သိန်း
+        grandWin = Math.floor(GRAND_PRIZE_BASE * cMultiplier);
+        totalWin += grandWin;
+        details.push({ symbol: 'GRAND JACKPOT', baseValue: GRAND_PRIZE_BASE, win: grandWin });
+    }
+
+    return { totalWin, positions, details, scatterCount, grandWin };
+}
+
+function showScatterWinPopup(totalWin, winLines, scatterResult, isFreeSpin) {
+    const overlay = document.getElementById('winPopupOverlay');
+    const amountEl = document.getElementById('winPopupAmount');
+    const linesEl = document.getElementById('winPopupLines');
+    
+    amountEl.innerText = '+' + totalWin.toLocaleString();
+    let html = '';
+
+    if (scatterResult.totalWin > 0 && isFreeSpin) {
+        html += `<div class="win-popup-line" style="color:#ffaa00;">✨ SCATTER BONUS (FREE SPIN) ✨</div>`;
+        for (let d of scatterResult.details) {
+            if (d.symbol !== 'GRAND JACKPOT')
+                html += `<div class="win-popup-line">${d.symbol.toUpperCase()} : ${d.baseValue.toLocaleString()} × ${getCMultiplier(currentCType)} = +${d.win.toLocaleString()}</div>`;
+        }
+        if (scatterResult.grandWin > 0) {
+            html += `<div class="win-popup-line" style="color:red; font-weight:bold;">🏆 GRAND JACKPOT! ALL 20 SCATTERS! +${scatterResult.grandWin.toLocaleString()} 🏆</div>`;
+        }
+    }
+
+    if (winLines.length) {
+        winLines.slice(0, 6).forEach(w => {
+            html += `<div class="win-popup-line">Line ${w.line}: ${w.streak}x ${w.symbol} = +${w.winAmount.toLocaleString()}</div>`;
+        });
+        if (winLines.length > 6) html += `<div class="win-popup-line" style="color:#ffaa00;">+${winLines.length-6} more lines...</div>`;
+    }
+
+    linesEl.innerHTML = html || '<div>No wins</div>';
+    overlay.classList.add('show');
+    createConfetti();
+}
+function updateFreeSpinsUI() {
+    const el = document.getElementById('freeSpinsIndicator');
+    const span = document.getElementById('freeSpinsCount');
+    if (el && span) {
+        if (freeSpinsRemaining > 0) {
+            el.style.display = 'block';
+            span.innerText = freeSpinsRemaining;
+        } else {
+            el.style.display = 'none';
+        }
+    }
 }
 
 // ============================================
