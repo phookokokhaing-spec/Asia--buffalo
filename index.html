@@ -1518,32 +1518,28 @@ if (megaWaysIframe) {
     });
 }
 
-
-// Lobby ထဲမှာ ထည့်ပါ
-const iframe = document.getElementById('gameIframe');
-
-window.addEventListener('message', (event) => {
-    const data = event.data;
+// Lobby ထဲမှာ ဒီ function ကို ထည့်ပါ
+function updateBalance(amount) {
+    // Lobby ရဲ့ balance ကို update လုပ်တဲ့ နည်းလမ်းအတိုင်း
+    const currentBalance = getUserBalance();
+    const newBalance = currentBalance + amount;
     
-    if (data.type === 'REQUEST_BALANCE') {
-        // Slot game က balance တောင်းရင် ပြန်ပို့ပေး
-        const currentBalance = getUserBalance(); // မင်းရဲ့ balance ယူတဲ့ function
-        iframe.contentWindow.postMessage({ 
-            type: 'SYNC_BALANCE', 
-            balance: currentBalance 
-        }, '*');
+    // Lobby UI ကို update လုပ်
+    document.getElementById('lobbyBalance').innerText = newBalance.toLocaleString();
+    
+    // Local storage သို့ save
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    if (user) {
+        user.balance = newBalance;
+        localStorage.setItem('currentUser', JSON.stringify(user));
     }
     
-    if (data.type === 'BET_DEDUCT') {
-        // Bet လျှော့
-        updateBalance(-data.amount);
-    }
-    
-    if (data.type === 'WIN_AMOUNT') {
-        // Win တိုး
-        updateBalance(data.amount);
-    }
-});
+    // Slot game ကို ပြန် sync လုပ် (optional)
+    iframe.contentWindow.postMessage({
+        type: 'SYNC_BALANCE',
+        balance: newBalance
+    }, '*');
+}
 </script>
   <!-- Core Libraries & Helpers -->
     <script src="sound-manager.js"></script>

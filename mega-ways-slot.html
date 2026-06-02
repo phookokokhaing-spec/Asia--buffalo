@@ -234,7 +234,7 @@
             margin: 0;
             opacity: 0.6;
         }
-        .reel-cell {
+        .grid-cell {
             flex: 1;
             display: flex;
             align-items: center;
@@ -246,7 +246,7 @@
             transition: all 0.3s ease;
             min-height: 0;
         }
-        .reel-cell img, .reel-cell .symbol-text {
+        .grid-cell img, .reel-cell .symbol-text {
             width: 75%;
             height: 75%;
             object-fit: contain;
@@ -267,7 +267,7 @@
             animation: dropFromTop 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards !important;
         }
 
-        .reel-cell.winner {
+        .grid-cell.winner {
             background: radial-gradient(circle, rgba(255,215,0,0.2), transparent);
             animation: winnerPulse 1s ease-in-out infinite;
         }
@@ -500,6 +500,30 @@
             font-weight: bold;
             font-family: 'Orbitron', sans-serif;
         }
+
+
+       /* ဒီ keyframes တွေ ရှိဖို့လိုတယ် */
+@keyframes fireGlow {
+    0% { box-shadow: 0 0 10px #ff4500, 0 0 20px #ff8c00; }
+    100% { box-shadow: 0 0 25px #ff0000, 0 0 50px #ff4500; }
+}
+
+.suspense-glow {
+    animation: fireGlow 1.5s infinite alternate;
+    border: 3px solid #ffd700 !important;
+    border-radius: 15px;
+    z-index: 10;
+}
+
+.rise-column {
+    transform: translateY(-20px) scale(1.05);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.locked-column {
+    opacity: 0.9;
+    filter: brightness(1.1);
+}
     </style>
 </head>
 <body>
@@ -714,6 +738,8 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('✅ Game initialized with balance:', window.gameState.balance);
 });
 
+
+
         const BET_TABLE = {
             "1C": [80, 160, 320, 480, 800],
             "5C": [400, 800, 1600, 2400, 4000],
@@ -756,15 +782,15 @@ document.addEventListener('DOMContentLoaded', function() {
 };
 
         const REELS = [
-            ['seven', 'jack', 'queen', 'nine', 'lion', 'buffalos', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'ten'],
+            ['seven', 'jack', 'queen', 'nine', 'lion', 'buffalos', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'ten', 'ten'],
             ['seven', 'jack', 'queen', 'nine', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'ten'],
             ['seven', 'jack', 'queen', 'nine', 'tha', 'zebra', 'buffalos', 'coin', 'bonus', 'ten', 'wild'],
-            ['seven', 'jack', 'queen', 'nine', 'lion', 'wild', 'ele', 'tha', 'buffalos', 'ayeaye', 'coin', 'bonus', 'ten'],
+            ['seven', 'jack', 'queen', 'nine', 'lion', 'wild', 'ele', 'tha', 'buffalos', 'ayeaye', 'coin', 'ele', 'ten'],
             ['seven', 'jack', 'queen', 'nine', 'wild', 'tha', 'zebra', 'ayeaye', 'buffalos', 'bonus', 'ten']
         ];
 
         const FREE_SPIN_REELS = [
-            ['seven', 'lion', 'tha', 'ele', 'zebra', 'coin', 'ayeaye', 'bonus', 'wild'],
+            ['seven', 'lion', 'tha', 'ele', 'zebra', 'coin', 'ayeaye', 'ten', 'wild'],
             ['seven', 'lion', 'jack', 'ele', 'zebra', 'coin', 'ayeaye', 'bonus', 'wild'],
             ['seven', 'lion', 'buffalos', 'ele', 'zebra', 'coin', 'ayeaye', 'queen', 'wild'],
             ['seven', 'lion', 'buffalos', 'ele', 'zebra', 'coin', 'ayeaye', 'ten', 'wild'],
@@ -796,66 +822,76 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(() => winEl.style.animation = '', 500);
         }
 
-        function initSlotGrid() {
-            const grid = document.getElementById('slotGrid');
-            grid.innerHTML = '';
-            for (let col = 0; col < 5; col++) {
-                const colDiv = document.createElement('div');
-                colDiv.className = 'grid-column';
-                for (let row = 0; row < 4; row++) {
-                    const cell = document.createElement('div');
-                    cell.className = 'reel-cell';
-                    cell.id = `cell-${row}-${col}`;
-                    const img = document.createElement('img');
-                    img.src = IMAGE_PATHS.coin;
-                    cell.appendChild(img);
-                    colDiv.appendChild(cell);
-                }
-                grid.appendChild(colDiv);
-            }
+       function initSlotGrid() {
+    const grid = document.getElementById('slotGrid');
+    grid.innerHTML = '';
+    for (let col = 0; col < 5; col++) {
+        const colDiv = document.createElement('div');
+        colDiv.className = 'grid-column';
+        for (let row = 0; row < 4; row++) {
+            const cell = document.createElement('div');
+            cell.className = 'grid-cell';  // 🔥 reel-cell ကနေ grid-cell ကိုပြောင်း
+            cell.id = `cell-${row}-${col}`;
+            cell.setAttribute('data-col', col);  // 🔥 data-col ထည့်
+            cell.setAttribute('data-row', row);  // 🔥 data-row ထည့်
+            const img = document.createElement('img');
+            img.src = IMAGE_PATHS.coin;
+            cell.appendChild(img);
+            colDiv.appendChild(cell);
         }
+        grid.appendChild(colDiv);
+    }
+}
 
         // ===== ANIMATION =====
         function animateReels(result, onComplete) {
-            let completed = 0;
-            for (let col = 0; col < 5; col++) {
-                setTimeout(() => {
-                    for (let row = 0; row < 4; row++) {
-                        const cell = document.getElementById(`cell-${row}-${col}`);
-                        const img = cell.querySelector('img');
-                        img.style.transition = 'none';
-                        img.style.transform = 'translateY(-200px)';
-                        img.style.opacity = '0';
-                        setTimeout(() => {
-                            img.src = IMAGE_PATHS[result[col][row]] || IMAGE_PATHS.coin;
-                            img.style.transition = 'transform 0.2s, opacity 0.1s';
-                            img.style.transform = 'translateY(0)';
-                            img.style.opacity = '1';
-                            cell.classList.add('animate-drop');
-                            setTimeout(() => cell.classList.remove('animate-drop'), 500);
-                            setTimeout(() => {
-                                completed++;
-                                if (completed === 20 && onComplete) onComplete();
-                            }, row * 60);
-                        }, row * 60);
-                    }
-                }, col * 120);
-            }
-        }
-
-        function clearWinHighlights() {
-            document.querySelectorAll('.reel-cell').forEach(c => c.classList.remove('winner'));
-        }
-
-        function highlightWins(indices) {
-            clearWinHighlights();
-            indices.forEach(idx => {
-                const row = Math.floor(idx / 5);
-                const col = idx % 5;
+    let completed = 0;
+    for (let col = 0; col < 5; col++) {
+        setTimeout(() => {
+            for (let row = 0; row < 4; row++) {
                 const cell = document.getElementById(`cell-${row}-${col}`);
-                if (cell) cell.classList.add('winner');
-            });
-        }
+                if (!cell) continue;
+                
+                const img = cell.querySelector('img');
+                if (!img) continue;
+                
+                img.style.transition = 'none';
+                img.style.transform = 'translateY(-200px)';
+                img.style.opacity = '0';
+                
+                setTimeout(() => {
+                    const symbol = result[col]?.[row];
+                    img.src = IMAGE_PATHS[symbol] || IMAGE_PATHS.coin;
+                    img.style.transition = 'transform 0.2s, opacity 0.1s';
+                    img.style.transform = 'translateY(0)';
+                    img.style.opacity = '1';
+                    cell.classList.add('animate-drop');
+                    
+                    setTimeout(() => cell.classList.remove('animate-drop'), 500);
+                    
+                    setTimeout(() => {
+                        completed++;
+                        if (completed === 20 && onComplete) onComplete();
+                    }, row * 60);
+                }, row * 60);
+            }
+        }, col * 120);
+    }
+  }
+  
+   function clearWinHighlights() {
+    // 🔥 .reel-cell ကနေ .grid-cell ကိုပြောင်း
+    document.querySelectorAll('.grid-cell').forEach(c => c.classList.remove('winner'));
+  }
+  function highlightWins(indices) {
+    clearWinHighlights();
+    indices.forEach(idx => {
+        const row = Math.floor(idx / 5);
+        const col = idx % 5;
+        const cell = document.getElementById(`cell-${row}-${col}`);
+        if (cell) cell.classList.add('winner');
+    });
+   } 
 
         // ===== 1024 WAYS WIN CALC =====
         function calculateWinnings(result) {
@@ -911,55 +947,897 @@ document.addEventListener('DOMContentLoaded', function() {
             return { totalWin, winIndices: [...new Set(winIndices)], winLines };
         }
 
-        // ===== SCATTER (BONUS) =====
-        function checkScatter(result) {
-            let bonusCount = 0;
-            for (let c = 0; c < 5; c++) {
-                for (let r = 0; r < 4; r++) {
-                    if (result[c][r] === 'bonus') bonusCount++;
+        // ============================================
+// LOBBY SOUND HELPER (GLOBAL)
+// ============================================
+const LobbySound = {
+    play: function(soundName) {
+        try {
+            if (window.parent && window.parent.SoundManager && window.parent.SoundManager[soundName]) {
+                window.parent.SoundManager[soundName]();
+            } else if (window.SoundManager && window.SoundManager[soundName]) {
+                window.SoundManager[soundName]();
+            }
+        } catch(e) {
+            // Silent fail
+        }
+    },
+    coin: function() { this.play('coin'); },
+    lion: function() { this.play('lion'); },
+    boom: function() { this.play('boom'); },
+    win: function() { this.play('win'); },
+    spin: function() { this.play('spin'); },
+    jackpot: function() { this.play('jackpot'); },
+    congratulations: function() { this.play('congratulations'); }
+};
+
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
+function getColumnCells(col) {
+    let cells = [];
+    for (let row = 0; row < 4; row++) {
+        // Try with id first (most reliable)
+        let cell = document.getElementById(`cell-${row}-${col}`);
+        // Fallback to data attributes
+        if (!cell) cell = document.querySelector(`.grid-cell[data-col="${col}"][data-row="${row}"]`);
+        if (!cell) cell = document.querySelector(`.reel-cell[data-col="${col}"][data-row="${row}"]`);
+        if (cell) cells.push(cell);
+    }
+    return cells;
+}
+
+function addRedBorderToColumn(col) {
+    const cells = getColumnCells(col);
+    cells.forEach(cell => {
+        cell.classList.add('suspense-glow');
+        cell.style.boxShadow = '0 0 0 3px #ff0000, 0 0 20px rgba(255,0,0,0.5)';
+        cell.style.border = '2px solid #ff0000';
+        cell.style.borderRadius = '8px';
+    });
+}
+
+function removeRedBorderFromColumn(col) {
+    const cells = getColumnCells(col);
+    cells.forEach(cell => {
+        cell.classList.remove('suspense-glow');
+        cell.style.boxShadow = '';
+        cell.style.border = '';
+        cell.style.borderRadius = '';
+    });
+}
+
+function lockColumn(col) {
+    const cells = getColumnCells(col);
+    cells.forEach(cell => {
+        cell.classList.add('locked-column');
+        cell.style.opacity = '0.9';
+        cell.style.filter = 'brightness(1.1)';
+    });
+}
+
+function removeAllBorders() {
+    console.log('🧹 Removing all borders, glows, and bonus effects...');
+    const allCells = document.querySelectorAll('.grid-cell, .reel-cell');
+    allCells.forEach(cell => {
+        cell.classList.remove('suspense-glow', 'locked-column', 'rise-column', 'red-border-line', 'yellow-border-line', 'bonus-glow-cell');
+        cell.style.border = '';
+        cell.style.borderRadius = '';
+        cell.style.boxShadow = '';
+        cell.style.transform = '';
+        cell.style.transition = '';
+        cell.style.backgroundColor = '';
+        cell.style.opacity = '';
+        cell.style.filter = '';
+        cell.dataset.symbol = '';
+        const img = cell.querySelector('img');
+        if (img) {
+            img.style.borderRadius = '';
+            img.style.boxShadow = '';
+            img.style.padding = '';
+            img.style.backgroundColor = '';
+            img.style.transform = '';
+            img.style.opacity = '';
+            img.classList.remove('bonus-glow-img');
+        }
+    });
+    console.log('✅ All borders, glows, and bonus effects removed');
+}
+
+function addBonusGlow(cell) {
+    const img = cell.querySelector('img');
+    if (img) {
+        img.style.borderRadius = '50%';
+        img.style.boxShadow = '0 0 0 4px #ffd700, 0 0 25px #ffd700';
+        img.style.padding = '4px';
+        img.style.backgroundColor = 'rgba(255, 215, 0, 0.3)';
+        cell.style.backgroundColor = 'rgba(255, 215, 0, 0.1)';
+        cell.dataset.symbol = 'bonus';
+        cell.classList.add('bonus-glow-cell');
+        img.classList.add('bonus-glow-img');
+        LobbySound.coin();
+    }
+}
+
+function fastRandomSpin(col, duration, onComplete) {
+    const cells = getColumnCells(col);
+    const symbols = ['seven', 'jack', 'queen', 'nine', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'ten'];
+    const startTime = Date.now();
+    const IMG_PATHS = window.IMAGE_PATHS || {
+        'seven': 'images/seven.png', 'jack': 'images/jack.png', 'queen': 'images/queen.png',
+        'nine': 'images/nine.png', 'lion': 'images/lion.png', 'buffalo': 'images/buffalo.png',
+        'ele': 'images/ele.png', 'tha': 'images/tha.png', 'zebra': 'images/zebra.png',
+        'ayeaye': 'images/ayeaye.png', 'coin': 'images/coin.png', 'ten': 'images/ten.png'
+    };
+    
+    function spinLoop() {
+        if (Date.now() - startTime >= duration) {
+            if (onComplete) onComplete();
+            return;
+        }
+        for (let i = 0; i < cells.length; i++) {
+            const img = cells[i].querySelector('img');
+            if (img) {
+                const rand = symbols[Math.floor(Math.random() * symbols.length)];
+                img.src = IMG_PATHS[rand] || IMG_PATHS.coin;
+            }
+        }
+        setTimeout(spinLoop, 60);
+    }
+    spinLoop();
+}
+
+function revealColumnInstantly(col, targetSymbols) {
+    const cells = getColumnCells(col);
+    const IMG_PATHS = window.IMAGE_PATHS || {};
+    cells.forEach((cell, row) => {
+        const img = cell.querySelector('img');
+        const symbol = targetSymbols[row];
+        if (img && symbol) {
+            img.src = IMG_PATHS[symbol] || `images/${symbol}.png`;
+            img.style.opacity = '1';
+            cell.dataset.symbol = symbol;
+            if (symbol === 'bonus') addBonusGlow(cell);
+        }
+    });
+}
+
+function slowRevealColumn(col, targetSymbols, onComplete) {
+    const cells = getColumnCells(col);
+    let rowIndex = 0;
+    let hasBonus = false;
+    const IMG_PATHS = window.IMAGE_PATHS || {};
+    
+    function revealNextRow() {
+        if (rowIndex >= cells.length) {
+            setTimeout(() => { if (onComplete) onComplete(hasBonus); }, 300);
+            return;
+        }
+        const cell = cells[rowIndex];
+        const img = cell.querySelector('img');
+        const symbol = targetSymbols[rowIndex];
+        if (img && symbol) {
+            img.src = IMG_PATHS[symbol] || `images/${symbol}.png`;
+            img.style.transition = 'none';
+            img.style.opacity = '0';
+            img.style.transform = 'translateY(-50px) scale(0.8)';
+            setTimeout(() => {
+                img.style.transition = 'all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                img.style.opacity = '1';
+                img.style.transform = 'translateY(0) scale(1)';
+                cell.dataset.symbol = symbol;
+                if (symbol === 'bonus') {
+                    hasBonus = true;
+                    addBonusGlow(cell);
+                    LobbySound.coin();
                 }
-            }
+            }, 50);
+        }
+        rowIndex++;
+        setTimeout(revealNextRow, 150);
+    }
+    revealNextRow();
+}
 
-            if (gameState.isFreeSpinning && bonusCount >= 4) {
-                gameState.freeSpins += 5;
-                document.getElementById('freeSpinsCount').textContent = gameState.freeSpins;
-                showToast(`✨ +5 Extra Free Spins!`);
-                return bonusCount;
+function lockAndRevealBonusColumn(col, targetSymbols) {
+    const cells = getColumnCells(col);
+    const IMG_PATHS = window.IMAGE_PATHS || {};
+    cells.forEach((cell, row) => {
+        const img = cell.querySelector('img');
+        const symbol = targetSymbols[row];
+        if (img && symbol) {
+            img.src = IMG_PATHS[symbol] || `images/${symbol}.png`;
+            img.style.opacity = '1';
+            img.style.transition = 'all 0.3s ease';
+            cell.dataset.symbol = symbol;
+            if (symbol === 'bonus') {
+                addBonusGlow(cell);
+                LobbySound.coin();
             }
+        }
+    });
+    cells.forEach(cell => {
+        cell.classList.add('locked-column');
+        cell.style.opacity = '0.9';
+        cell.style.filter = 'brightness(1.1)';
+    });
+    console.log(`🔒 Bonus Column ${col} LOCKED`);
+}
 
-            if (!gameState.isFreeSpinning && bonusCount >= 5) {
-                startFreeSpins(bonusCount);
+function countTotalBonuses(result) {
+    let count = 0;
+    for (let col = 0; col < 5; col++) {
+        for (let row = 0; row < 4; row++) {
+            if (result[col] && result[col][row] === 'bonus') count++;
+        }
+    }
+    return count;
+}
+
+function calculateFreeSpinCount(bonusCount) {
+    if (bonusCount >= 10) return 60;
+    if (bonusCount >= 9) return 50;
+    if (bonusCount >= 8) return 40;
+    if (bonusCount >= 7) return 30;
+    if (bonusCount >= 6) return 25;
+    if (bonusCount >= 5) return 20;
+    if (bonusCount >= 4) return 15;
+    return 10;
+}
+
+function calculateExtraSpins(bonusCount) {
+    if (bonusCount >= 6) return 15;
+    if (bonusCount >= 5) return 12;
+    if (bonusCount >= 4) return 8;
+    return 5;
+}
+
+function finishFreeSpinSuspense(bonusCount, freeSpinCount) {
+    console.log('✅ Free Spin Suspense Finished!');
+    removeAllBorders();
+    setTimeout(() => removeAllBorders(), 100);
+    if (bonusCount >= 3) {
+        initializeFreeSpinsDirect(bonusCount, freeSpinCount);
+    } else {
+        if (typeof disableButtons === 'function') disableButtons(false);
+        if (window.gameState) window.gameState.isSpinning = false;
+        removeAllBorders();
+    }
+}
+
+function initializeFreeSpinsDirect(bonusCount, freeSpinCount) {
+    if (!window.gameState) return;
+    window.gameState.isFreeSpinning = true;
+    window.gameState.freeSpins = freeSpinCount;
+    window.gameState.totalFreeSpins = freeSpinCount;
+    window.gameState.freeSpinBonusCount = bonusCount;
+    if (typeof disableButtons === 'function') disableButtons(true);
+    if (typeof showFreeSpinIndicator === 'function') showFreeSpinIndicator();
+    if (typeof showFreeSpinStartAnimation === 'function') showFreeSpinStartAnimation(freeSpinCount);
+    if (typeof showNotification === 'function') {
+        showNotification(`✨ Free Spin ${freeSpinCount} ကြိမ် ရရှိပါသည်။ (Bonus ${bonusCount} လုံး)`, 'success');
+    } else if (typeof showToast === 'function') {
+        showToast(`✨ Free Spin ${freeSpinCount} ကြိမ် ရရှိပါသည်။`);
+    }
+    setTimeout(() => { if (typeof spin === 'function') spin(); }, 1500);
+}
+
+function startFreeSpinSuspenseSequence(finalResult, columnsToCheck, index, bonusCount, freeSpinCount) {
+    if (index >= columnsToCheck.length) {
+        let totalBonusCount = countTotalBonuses(finalResult);
+        console.log(`📊 Total Bonus Count after suspense: ${totalBonusCount}`);
+        if (totalBonusCount >= 3) {
+            finishFreeSpinSuspense(totalBonusCount, calculateFreeSpinCount(totalBonusCount));
+        } else {
+            console.log('⚠️ Only 2 bonuses total → NO free spins');
+            removeAllBorders();
+            if (typeof disableButtons === 'function') disableButtons(false);
+            if (window.gameState) window.gameState.isSpinning = false;
+        }
+        return;
+    }
+
+    let col = columnsToCheck[index];
+    let isLastColumn = (index === columnsToCheck.length - 1);
+    let targetSymbols = finalResult[col];
+    let hasBonusInThisCol = targetSymbols.some(s => s === 'bonus');
+
+    if (hasBonusInThisCol) {
+        console.log(`⏩ Column ${col} has Bonus, revealing instantly...`);
+        revealColumnInstantly(col, targetSymbols);
+        lockColumn(col);
+        setTimeout(() => {
+            startFreeSpinSuspenseSequence(finalResult, columnsToCheck, index + 1, bonusCount, freeSpinCount);
+        }, 400);
+    } else {
+        console.log(`🔍 Column ${col} suspense check...`);
+        addRedBorderToColumn(col);
+        let cells = getColumnCells(col);
+        cells.forEach(cell => cell.classList.add('rise-column'));
+        
+        LobbySound.lion();
+        LobbySound.coin();
+        
+        let spinDuration = isLastColumn ? 7000 : 5000;
+        fastRandomSpin(col, spinDuration, () => {
+            slowRevealColumn(col, targetSymbols, (hasBonus) => {
+                removeRedBorderFromColumn(col);
+                cells.forEach(c => c.classList.remove('rise-column'));
+                if (hasBonus) lockColumn(col);
+                setTimeout(() => {
+                    startFreeSpinSuspenseSequence(finalResult, columnsToCheck, index + 1, bonusCount, freeSpinCount);
+                }, 500);
+            });
+        });
+    }
+}
+
+function startFreeSpinSuspense(finalResult, bonusColumns, nonBonusColumns, bonusCount) {
+    console.log('🎬 FREE SPIN SUSPENSE MODE ACTIVATED!');
+    bonusColumns.forEach(col => { lockAndRevealBonusColumn(col, finalResult[col]); });
+    if (nonBonusColumns.length > 0) {
+        let freeSpinCount = calculateFreeSpinCount(bonusCount);
+        startFreeSpinSuspenseSequence(finalResult, nonBonusColumns, 0, bonusCount, freeSpinCount);
+    } else {
+        initializeFreeSpinsDirect(bonusCount, calculateFreeSpinCount(bonusCount));
+    }
+}
+
+function checkScatterWithSuspense(result) {
+    let bonusColumns = [], nonBonusColumns = [];
+    for (let col = 0; col < 5; col++) {
+        let hasBonus = false;
+        for (let row = 0; row < 4; row++) {
+            if (result[col] && result[col][row] === 'bonus') { hasBonus = true; break; }
+        }
+        if (hasBonus) bonusColumns.push(col);
+        else nonBonusColumns.push(col);
+    }
+    let bonusCount = bonusColumns.length;
+    console.log(`📊 Bonus Columns: ${bonusColumns} (Total: ${bonusCount})`);
+    
+    if (window.gameState && window.gameState.isFreeSpinning && bonusCount >= 2) {
+        let extraSpins = calculateExtraSpins(bonusCount);
+        window.gameState.freeSpins += extraSpins;
+        window.gameState.totalFreeSpins += extraSpins;
+        if (typeof updateFreeSpinIndicator === 'function') updateFreeSpinIndicator();
+        if (typeof showNotification === 'function') {
+            showNotification(`✨ Bonus ${bonusCount} လုံးကျပါသည်။ အပို Free Spin ${extraSpins} ကြိမ် ထပ်ရရှိပါသည်။`, 'success');
+        }
+        if (typeof showExtraFreeSpinAnimation === 'function') showExtraFreeSpinAnimation(extraSpins);
+        return bonusCount;
+    }
+    
+    if (!window.gameState?.isFreeSpinning && bonusCount >= 2) {
+        startFreeSpinSuspense(result, bonusColumns, nonBonusColumns, bonusCount);
+    }
+    return bonusCount;
+}
+// ============================================
+// 18. FREE SPIN FUNCTIONS (FIXED - NO SUSPENSE)
+// ============================================
+
+function startFreeSpins(bonusCount) {
+    // Bonus အရေအတွက်အလိုက် Free Spin ပမာဏ
+    let freeSpinCount = 10;  // Bonus 3 ခုအတွက် 10 ကြိမ်
+
+    if (bonusCount >= 4) freeSpinCount = 15;
+    if (bonusCount >= 5) freeSpinCount = 20;
+    if (bonusCount >= 6) freeSpinCount = 25;
+    if (bonusCount >= 7) freeSpinCount = 30;
+    if (bonusCount >= 8) freeSpinCount = 40;
+    if (bonusCount >= 9) freeSpinCount = 50;
+    if (bonusCount >= 10) freeSpinCount = 60;
+
+    console.log(`🎰 Starting Free Spins! Bonus: ${bonusCount}, Free Spins: ${freeSpinCount}`);
+
+    // Set game state
+    window.gameState.isFreeSpinning = true;
+    window.gameState.freeSpins = freeSpinCount;
+    window.gameState.totalFreeSpins = freeSpinCount;
+    window.gameState.freeSpinBonusCount = bonusCount;
+
+    // Disable buttons
+    disableButtons(true);
+
+    // Show indicator
+    showFreeSpinIndicator();
+
+    // Show start animation
+    showFreeSpinStartAnimation(freeSpinCount);
+
+    // Show notification
+    showNotification(`✨ Free Spin ${freeSpinCount} ကြိမ် ရရှိပါသည်။ (Bonus ${bonusCount} လုံး)`, 'success');
+
+    // Start first free spin
+    setTimeout(() => {
+        spin();
+    }, 1500);
+}
+
+// ===== HANDLE FREE SPIN AFTER EACH SPIN =====
+function handleFreeSpin() {
+    if (!window.gameState.isFreeSpinning) return;
+
+    // ✅ Win Animation ပြနေရင် စောင့်မယ်
+    if (window.gameState.waitingForWinAnimation) {
+        console.log('⏳ Waiting for win animation to finish...');
+        setTimeout(() => handleFreeSpin(), 500);
+        return;
+    }
+
+    if (window.gameState.freeSpins > 0) {
+        window.gameState.freeSpins--;
+        updateFreeSpinIndicator();
+
+        console.log(`🎰 Free Spins left: ${window.gameState.freeSpins} / ${window.gameState.totalFreeSpins}`);
+
+        if (window.gameState.freeSpins > 0) {
+            // ✅ Animation ပြီးမှ နောက် Free Spin ကိုဆက်မယ်
+            setTimeout(() => {
+                spin();
+            }, 1500);
+        } else {
+            endFreeSpins();
+        }
+    } else {
+        endFreeSpins();
+    }
+}
+
+// ===== CONTINUE FREE SPIN AFTER WIN (တစ်ခုတည်းသာ ထားမယ် - duplicate ဖျက်ပြီး) =====
+function continueFreeSpinAfterWin() {
+    if (!window.gameState.isFreeSpinning) return;
+
+    if (window.gameState.freeSpins > 0) {
+        window.gameState.freeSpins--;
+        updateFreeSpinIndicator();
+
+        console.log(`🎰 Free Spins left after win: ${window.gameState.freeSpins} / ${window.gameState.totalFreeSpins}`);
+
+        if (window.gameState.freeSpins > 0) {
+            setTimeout(() => {
+                spin();
+            }, 500);
+        } else {
+            endFreeSpins();
+        }
+    } else {
+        endFreeSpins();
+    }
+}
+
+// ===== END FREE SPINS =====
+function endFreeSpins() {
+    console.log('🎰 Free Spins ended');
+
+    const totalWin = window.gameState.freeSpinTotalWin || 0;
+
+    // Add total win to balance
+    if (totalWin > 0) {
+        window.gameState.balance += totalWin;
+        window.gameState.displayBalance += totalWin;
+        updateBalanceDisplay();
+
+        // Win Box မှာ စုစုပေါင်းကို ပြပြီးမှ ပြန်ရှင်းမယ်
+        updateWinDisplay(totalWin);
+
+        // Show big win animation
+        if (typeof WinAnimations !== 'undefined') {
+            if (totalWin >= 50000) {
+                WinAnimations.mega(totalWin);
+            } else if (totalWin >= 15000) {
+                WinAnimations.super(totalWin);
+            } else if (totalWin >= 5000) {
+                WinAnimations.big(totalWin);
             }
-            return bonusCount;
         }
 
-        function startFreeSpins(bonusCount) {
-            let spins = 15;
-            if (bonusCount >= 6) spins = 20;
-            if (bonusCount >= 7) spins = 25;
+        showNotification(`🎉 Free Spin ပြီးဆုံးပါသည်။ စုစုပေါင်း ${formatNumber(totalWin)} ကျပ် ရရှိပါသည်။`, 'success');
+    }
 
-            gameState.isFreeSpinning = true;
-            gameState.freeSpins = spins;
-            gameState.freeSpinTotalWin = 0;
-            const indicator = document.getElementById('freeSpinsIndicator');
-            document.getElementById('freeSpinsCount').textContent = spins;
-            indicator.style.display = 'block';
-            showToast(`🎰 FREE SPINS! ${spins} spins awarded!`);
-            setTimeout(() => spin(), 1500);
-        }
+    // Reset free spin state
+    window.gameState.isFreeSpinning = false;
+    window.gameState.freeSpins = 0;
+    window.gameState.totalFreeSpins = 0;
+    window.gameState.freeSpinTotalWin = 0;
+    window.gameState.freeSpinBonusCount = 0;
 
-        function endFreeSpins() {
-            if (gameState.freeSpinTotalWin > 0) {
-                gameState.balance += gameState.freeSpinTotalWin;
-                updateBalanceDisplay();
-                showToast(`🎉 Free Spins ended! Total win: ${formatNumber(gameState.freeSpinTotalWin)} KS`);
+    // Hide indicator
+    hideFreeSpinIndicator();
+
+    // Enable buttons
+    disableButtons(false);
+
+    // Show end animation
+    showFreeSpinEndAnimation(totalWin);
+
+    // Clear win display after 3 seconds
+    setTimeout(() => {
+        updateWinDisplay(0);
+    }, 3000);
+
+    // Update Firestore
+    updateUserBalanceInStorage();
+}
+
+// ===== CHECK SCATTER (BONUS) - UPDATED: 3 BONUS = START =====
+function checkScatter(result) {
+    let bonusCount = 0;
+
+    for (let reel = 0; reel < 5; reel++) {
+        for (let row = 0; row < 4; row++) {
+            if (result[reel][row] === 'bonus') {
+                bonusCount++;
             }
-            gameState.isFreeSpinning = false;
-            gameState.freeSpins = 0;
-            gameState.freeSpinTotalWin = 0;
-            document.getElementById('freeSpinsIndicator').style.display = 'none';
         }
+    }
 
+    console.log(`🎰 Bonus count: ${bonusCount}`);
+
+    // ===== FREE SPIN အတွင်း BONUS ထပ်ကျရင် =====
+    if (window.gameState.isFreeSpinning && bonusCount >= 3) {
+        // အပို Free Spin ထပ်ထည့်
+        let extraSpins = 5;
+
+        if (bonusCount >= 4) extraSpins = 8;
+        if (bonusCount >= 5) extraSpins = 12;
+        if (bonusCount >= 6) extraSpins = 15;
+
+        window.gameState.freeSpins += extraSpins;
+        window.gameState.totalFreeSpins += extraSpins;
+
+        console.log(`🎰 Extra Free Spins! +${extraSpins} (Total left: ${window.gameState.freeSpins})`);
+
+        // Update indicator
+        updateFreeSpinIndicator();
+
+        // Show notification
+        showNotification(`✨ Bonus ${bonusCount} လုံးကျပါသည်။ အပို Free Spin ${extraSpins} ကြိမ် ထပ်ရရှိပါသည်။`, 'success');
+
+        // Show extra spins animation
+        showExtraFreeSpinAnimation(extraSpins);
+
+        return bonusCount;
+    }
+
+    // ===== ပုံမှန် Free Spin စတာ (၃ လုံးကျမှ) =====
+    if (!window.gameState.isFreeSpinning && bonusCount >= 3) {
+        startFreeSpins(bonusCount);
+    }
+
+    return bonusCount;
+}
+
+// ===== UPDATE FREE SPIN INDICATOR =====
+function showFreeSpinIndicator() {
+    let indicator = document.getElementById('freeSpinIndicator');
+    if (!indicator) {
+        indicator = document.createElement('div');
+        indicator.id = 'freeSpinIndicator';
+        indicator.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, #0a2a1a, #1a3a2a);
+            border-left: 4px solid #00ffaa;
+            border-radius: 16px;
+            padding: 12px 20px;
+            font-weight: 900;
+            z-index: 99999;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5), 0 0 20px rgba(0,255,170,0.3);
+            text-align: left;
+            min-width: 150px;
+            backdrop-filter: blur(8px);
+        `;
+        document.body.appendChild(indicator);
+    }
+
+    indicator.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="font-size: 32px;">🎰</div>
+            <div>
+                <div style="font-size: 10px; color: #00ffaa; letter-spacing: 2px;">FREE SPINS ACTIVE</div>
+                <div style="font-size: 32px; font-weight: 900; color: #ffffff; line-height: 1; text-shadow: 0 0 10px #00ffaa;">
+                    ${window.gameState.freeSpins}
+                </div>
+                <div style="font-size: 10px; color: #88ffaa;">out of ${window.gameState.totalFreeSpins}</div>
+            </div>
+        </div>
+    `;
+}
+
+function updateFreeSpinIndicator() {
+    const indicator = document.getElementById('freeSpinIndicator');
+    if (indicator) {
+        indicator.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="font-size: 32px;">🎰</div>
+                <div>
+                    <div style="font-size: 10px; color: #00ffaa; letter-spacing: 2px;">FREE SPINS ACTIVE</div>
+                    <div style="font-size: 32px; font-weight: 900; color: #ffffff; line-height: 1; text-shadow: 0 0 10px #00ffaa;">
+                        ${window.gameState.freeSpins}
+                    </div>
+                    <div style="font-size: 10px; color: #88ffaa;">out of ${window.gameState.totalFreeSpins}</div>
+                </div>
+            </div>
+        `;
+    }
+}
+
+function hideFreeSpinIndicator() {
+    const indicator = document.getElementById('freeSpinIndicator');
+    if (indicator) {
+        indicator.remove();
+    }
+}
+// Add keyframe animation for indicator
+if (!document.querySelector('#indicator-animation-styles')) {
+    const style = document.createElement('style');
+    style.id = 'indicator-animation-styles';
+    style.textContent = `
+        @keyframes indicatorGlow {
+            0% {
+                box-shadow: 0 0 20px rgba(0,212,255,0.3), 0 0 5px rgba(0,212,255,0.2);
+                border-color: rgba(0,212,255,0.5);
+            }
+            100% {
+                box-shadow: 0 0 40px rgba(0,212,255,0.8), 0 0 20px rgba(0,212,255,0.5);
+                border-color: rgba(0,212,255,1);
+            }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// ===== FREE SPIN ANIMATIONS =====
+function showFreeSpinStartAnimation(spins) {
+    const overlay = document.createElement('div');
+    overlay.className = 'freespin-overlay';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #000000dd, #ff6b6baa, #4ecdc4aa);
+        z-index: 1000000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        animation: fadeIn 0.5s;
+    `;
+
+    overlay.innerHTML = `
+        <div style="text-align: center; animation: spinPop 1s cubic-bezier(0.68, -0.55, 0.265, 1.55);">
+            <div style="font-size: 100px; margin-bottom: 20px; animation: bounce 0.5s infinite alternate;">🎰</div>
+            <div style="font-size: 80px; font-weight: 900; color: #ffd700;
+                        text-shadow: 0 0 30px #ffaa00, 0 0 60px #ff5500;
+                        margin-bottom: 20px;
+                        background: linear-gradient(45deg, #ffd700, #ffaa00, #ff6600);
+                        -webkit-background-clip: text;
+                        background-clip: text;
+                        color: transparent;">
+                FREE SPINS
+            </div>
+            <div style="font-size: 120px; font-weight: 900; color: #00ff00;
+                        text-shadow: 0 0 40px #00ff00, 0 0 80px #00aa00;
+                        margin-bottom: 30px;
+                        animation: pulse 1s infinite;">
+                ${spins}
+            </div>
+            <div style="font-size: 40px; color: white; background: rgba(0,0,0,0.5); padding: 10px 30px; border-radius: 50px;">
+                ကြိမ် ရရှိပါသည်။
+            </div>
+        </div>
+    `;
+
+    // Add floating particles
+    for (let i = 0; i < 50; i++) {
+        setTimeout(() => {
+            const particle = document.createElement('div');
+            particle.style.cssText = `
+                position: fixed;
+                top: ${Math.random() * 100}%;
+                left: ${Math.random() * 100}%;
+                width: ${5 + Math.random() * 15}px;
+                height: ${5 + Math.random() * 15}px;
+                background: ${['#ffd700', '#ffaa00', '#ff6600', '#ff3300'][Math.floor(Math.random() * 4)]};
+                border-radius: 50%;
+                filter: blur(3px);
+                animation: fadeOut 1s ease-out forwards;
+                pointer-events: none;
+                z-index: 1000001;
+            `;
+            document.body.appendChild(particle);
+            setTimeout(() => particle.remove(), 1000);
+        }, i * 30);
+    }
+
+    document.body.appendChild(overlay);
+
+    setTimeout(() => {
+        overlay.style.animation = 'fadeOut 0.5s';
+        setTimeout(() => overlay.remove(), 500);
+    }, 3000);
+}
+
+function showExtraFreeSpinAnimation(extraSpins) {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: linear-gradient(135deg, #ffd700, #ffaa00, #ff6600);
+        color: black;
+        padding: 20px 40px;
+        border-radius: 60px;
+        font-weight: 900;
+        font-size: 36px;
+        z-index: 1000001;
+        text-align: center;
+        animation: popIn 0.3s, fadeOut 0.5s 1.5s forwards;
+        box-shadow: 0 0 50px gold;
+        white-space: nowrap;
+        font-family: 'Bangers', cursive;
+        letter-spacing: 2px;
+    `;
+    overlay.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <span style="font-size: 50px;">✨</span>
+            +${extraSpins} FREE SPINS
+            <span style="font-size: 50px;">✨</span>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+
+    // Add confetti
+    for (let i = 0; i < 30; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.style.cssText = `
+                position: fixed;
+                top: ${Math.random() * 100}%;
+                left: ${Math.random() * 100}%;
+                width: ${8 + Math.random() * 12}px;
+                height: ${8 + Math.random() * 12}px;
+                background: ${['#ffd700', '#ffaa00', '#ff6600', '#ff3300'][Math.floor(Math.random() * 4)]};
+                transform: rotate(${Math.random() * 360}deg);
+                animation: confettiFall 1s ease-out forwards;
+                pointer-events: none;
+                z-index: 1000002;
+            `;
+            document.body.appendChild(confetti);
+            setTimeout(() => confetti.remove(), 1000);
+        }, i * 30);
+    }
+
+    setTimeout(() => {
+        overlay.remove();
+    }, 2000);
+}
+
+
+function showFreeSpinEndAnimation(totalWin) {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(45deg, #000000dd, #4caf50aa, #2196f3aa);
+        z-index: 1000000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        animation: fadeIn 0.5s;
+    `;
+
+    overlay.innerHTML = `
+        <div style="text-align: center; animation: popIn 0.8s;">
+            <div style="font-size: 80px; margin-bottom: 20px; animation: bounce 0.3s infinite alternate;">🎁</div>
+            <div style="font-size: 60px; font-weight: 900; color: #ffd700; margin-bottom: 20px;
+                        text-shadow: 0 0 30px gold;">
+                FREE SPINS ENDED
+            </div>
+            <div style="font-size: 80px; font-weight: 900; color: #00ff00;
+                        text-shadow: 0 0 40px #00ff00, 0 0 80px #00aa00;
+                        animation: pulse 0.8s infinite alternate;">
+                +${formatNumber(totalWin)} ကျပ်
+            </div>
+            <div style="font-size: 30px; color: white; margin-top: 20px;">
+                ဂုဏ်ယူပါသည်။
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    setTimeout(() => {
+        overlay.style.animation = 'fadeOut 0.5s';
+        setTimeout(() => overlay.remove(), 500);
+    }, 3500);
+}
+
+// ===== DISABLE BUTTONS DURING FREE SPIN =====
+function disableButtons(disable) {
+    const spinBtn = document.getElementById('spinBtn');
+    const betButtons = document.querySelectorAll('.bet-option, #decreaseBetBtn, #increaseBetBtn');
+
+    if (spinBtn) {
+        spinBtn.disabled = disable;
+        spinBtn.style.opacity = disable ? '0.5' : '1';
+        spinBtn.style.pointerEvents = disable ? 'none' : 'auto';
+    }
+
+    betButtons.forEach(btn => {
+        btn.disabled = disable;
+        btn.style.opacity = disable ? '0.5' : '1';
+        btn.style.pointerEvents = disable ? 'none' : 'auto';
+    });
+}
+
+// Add missing keyframes if not already in style
+if (!document.querySelector('#free-spin-animation-styles')) {
+    const style = document.createElement('style');
+    style.id = 'free-spin-animation-styles';
+    style.textContent = `
+        @keyframes bounce {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-20px); }
+        }
+        @keyframes confettiFall {
+            0% { transform: translateY(-50px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            80% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.05); }
+        }
+    `;
+    document.head.appendChild(style);
+}
+// ===== DIRECT FREE SPIN INIT (Suspense မပါ - ဒါပေမယ့် Free Spin စဖို့သုံးတယ်) =====
+function initializeFreeSpinsDirect(bonusCount, freeSpinCount) {
+    console.log(`🎰 Initializing Free Spins: ${freeSpinCount} spins for ${bonusCount} bonuses`);
+
+    window.gameState.isFreeSpinning = true;
+    window.gameState.freeSpins = freeSpinCount;
+    window.gameState.totalFreeSpins = freeSpinCount;
+    window.gameState.freeSpinBonusCount = bonusCount;
+
+    disableButtons(true);
+    showFreeSpinIndicator();
+    showFreeSpinStartAnimation(freeSpinCount);
+    showNotification(`✨ Free Spin ${freeSpinCount} ကြိမ် ရရှိပါသည်။ (Bonus ${bonusCount} လုံး)`, 'success');
+
+    setTimeout(() => {
+        spin();
+    }, 1500);
+}
+
+
+    function showNotification(msg, type = 'info') {
+    const toast = document.getElementById('toast');
+    if (toast) {
+        toast.textContent = msg;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2500);
+    } else {
+        console.log('📢 Notification:', msg);
+    }
+}
         // ===== SPIN RESULT GENERATION =====
         function generateSpinResult() {
             const result = [[],[],[],[],[]];
@@ -1104,7 +1982,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        checkScatter(result);
+        checkScatterWithSuspense(result);
         gameState.isSpinning = false;
 
         if (gameState.isFreeSpinning && gameState.freeSpins > 0) {
@@ -1119,6 +1997,143 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 }
 
+     // ============================================
+// NO WIN CYCLE (Normal 2 → No Win 2)
+// ============================================
+const noWinCycle = {
+    enabled: true,
+    currentPhase: 'normal',      // 'normal' or 'nowin'
+    normalSpins: 0,
+    noWinSpins: 0,
+    normalPhaseLength: 2,        // 2 ကြိမ် normal
+    noWinPhaseLength: 2          // 2 ကြိမ် no win
+};
+
+function shouldForceNoWin() {
+    if (!noWinCycle.enabled) return false;
+    
+    const cycle = noWinCycle;
+    
+    if (cycle.currentPhase === 'nowin') {
+        // No win phase မှာ ရှိနေရင်
+        cycle.noWinSpins++;
+        console.log(`🔴 No win phase: spin ${cycle.noWinSpins}/${cycle.noWinPhaseLength}`);
+        
+        if (cycle.noWinSpins >= cycle.noWinPhaseLength) {
+            // No win phase ပြီးရင် normal phase ကိုပြောင်း
+            cycle.currentPhase = 'normal';
+            cycle.normalSpins = 0;
+            cycle.noWinSpins = 0;
+            console.log('🟢 Switching to NORMAL phase');
+        }
+        return true;  // Force no win
+    } 
+    else {
+        // Normal phase
+        cycle.normalSpins++;
+        console.log(`🟢 Normal phase: spin ${cycle.normalSpins}/${cycle.normalPhaseLength}`);
+        
+        if (cycle.normalSpins >= cycle.normalPhaseLength) {
+            // Normal phase ပြီးရင် no win phase ကိုပြောင်း
+            cycle.currentPhase = 'nowin';
+            cycle.normalSpins = 0;
+            cycle.noWinSpins = 0;
+            console.log('🔴 Switching to NO WIN phase');
+        }
+        return false;  // Normal spin
+    }
+}
+
+// ============================================
+// FORCE TRUE NO WIN (Col 0 vs Col 1 မတူ)
+// ============================================
+function forceTrueNoWin(result) {
+    // Wild မပါတဲ့ symbol pool
+    const symbolsNoWild = ['lion', 'buffalo', 'ele', 'zebra', 'tha', 'seven', 'jack', 'queen', 'nine', 'ten', 'coin'];
+    
+    // === COL 0 (Wild မပါ) ===
+    for (let row = 0; row < 4; row++) {
+        result[0][row] = symbolsNoWild[Math.floor(Math.random() * symbolsNoWild.length)];
+    }
+    
+    // Col 0 မှာပါတဲ့ symbol တွေကို မှတ်ထား
+    const usedInCol0 = new Set(result[0]);
+    
+    // Col 0 မှာမပါတဲ့ symbol တွေ
+    let availableForCol1 = symbolsNoWild.filter(s => !usedInCol0.has(s));
+    
+    // === COL 1 (Col 0 နဲ့ လုံးဝမတူ) ===
+    for (let row = 0; row < 4; row++) {
+        const randomIndex = Math.floor(Math.random() * availableForCol1.length);
+        result[1][row] = availableForCol1[randomIndex];
+    }
+    
+    // Col 2,3,4 ကို ပုံမှန်အတိုင်း (ဘာမှမထိ)
+    // ဒါပေမယ့် Wild မပါအောင် လုပ်ချင်ရင် အောက်ပါအတိုင်းလည်း လုပ်နိုင်တယ်
+    for (let col = 2; col < 5; col++) {
+        for (let row = 0; row < 4; row++) {
+            // Wild မပါအောင် သေချာချင်ရင်
+            if (result[col][row] === 'wild') {
+                result[col][row] = symbolsNoWild[Math.floor(Math.random() * symbolsNoWild.length)];
+            }
+        }
+    }
+    
+    return result;
+}
+
+// ============================================
+// GENERATE SPIN RESULT (WITH NO WIN CYCLE)
+// ============================================
+function generateSpinResult() {
+    const result = [[],[],[],[],[]];
+    const reels = gameState.isFreeSpinning ? FREE_SPIN_REELS : REELS;
+    
+    for (let col = 0; col < 5; col++) {
+        const reel = reels[col];
+        const start = Math.floor(Math.random() * reel.length);
+        
+        for (let row = 0; row < 4; row++) {
+            let symbol = reel[(start + row) % reel.length];
+            
+            // COL 0 မှာ Wild မကျရ
+            if (col === 0 && symbol === 'wild') {
+                const safeSymbols = reel.filter(s => s !== 'wild');
+                symbol = safeSymbols[Math.floor(Math.random() * safeSymbols.length)];
+            }
+            
+            result[col][row] = symbol;
+        }
+    }
+    
+    // 🔥 Check if we need to force no win
+    if (shouldForceNoWin()) {
+        console.log('🎯 FORCING TRUE NO WIN');
+        forceTrueNoWin(result);
+    }
+    
+    return result;
+}
+
+// ============================================
+// RESET NO WIN CYCLE (ပြန်စချင်ရင်)
+// ============================================
+function resetNoWinCycle() {
+    noWinCycle.currentPhase = 'normal';
+    noWinCycle.normalSpins = 0;
+    noWinCycle.noWinSpins = 0;
+    console.log('🔄 No win cycle reset to NORMAL phase');
+}
+
+// ============================================
+// TOGGLE NO WIN CYCLE (ပိတ်/ဖွင့်)
+// ============================================
+function toggleNoWinCycle() {
+    noWinCycle.enabled = !noWinCycle.enabled;
+    console.log(`🎮 No win cycle ${noWinCycle.enabled ? 'ENABLED' : 'DISABLED'}`);
+    return noWinCycle.enabled;
+}
+       
         // ===== BET CONTROLS =====
         function initBetControls() {
             const dec = document.getElementById('decBet');
@@ -1238,6 +2253,8 @@ document.addEventListener('DOMContentLoaded', function() {
             };
             setupLongPress(spinBtn);
         };
+
+     
     </script>
 </body>
 </html>
