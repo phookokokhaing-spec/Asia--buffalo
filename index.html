@@ -266,8 +266,9 @@
                
 
               
-            <!-- Grand Dragons (MINOR) -->
-            <div class="game-card" onclick="showGameContainer()">
+          
+             <!-- MEGA WAYS 1024 Slot Game Card -->
+               <div class="game-card" onclick="openMegaWaysGame()">
                 <div class="game-frame purple-border">
                     <div class="game-frame-inner" style="background: linear-gradient(145deg, #4a0000, #2d0000);">
                         <div class="card-jackpot-badge minor">
@@ -283,8 +284,9 @@
                 </div>
             </div>
 
-                 <!-- Grand Dragons (MINOR) -->
-            <div class="game-card" onclick="showGameContainer()">
+                
+             <!-- MEGA WAYS 1024 Slot Game Card -->
+              <div class="game-card" onclick="openMegaWaysGame()">
                 <div class="game-frame purple-border">
                     <div class="game-frame-inner" style="background: linear-gradient(145deg, #4a0000, #2d0000);">                               <div class="card-jackpot-badge minor">
                             <span class="badge-name">MINOR</span>
@@ -298,8 +300,9 @@
                 </div>
             </div>
              
-             <!-- Grand Dragons (MINOR) -->
-            <div class="game-card" onclick="showGameContainer()">
+            
+             <!-- MEGA WAYS 1024 Slot Game Card -->
+               <div class="game-card" onclick="openMegaWaysGame()">
                 <div class="game-frame purple-border">
                     <div class="game-frame-inner" style="background: linear-gradient(145deg, #4a0000, #2d0000);">                               <div class="card-jackpot-badge minor">
                             <span class="badge-name">MINOR</span>
@@ -313,7 +316,7 @@
                 </div>
             </div>
 
-             
+          
               <!-- slot-jackpot.html Game Card -->
 <div class="game-card" onclick="openJackpotWaysGame()">
     <div class="game-frame">
@@ -942,6 +945,11 @@
     <iframe id="jackpotframe" src="slot-jackpot.html" style="width: 100%; height: 100%; border: none;"></iframe>
     <button onclick="closeJackpotWaysGame()" style="position: absolute; top: 20px; right: 20px; background: #ffd700; border: none; width: 50px; height: 50px; border-radius: 50%; font-size: 24px; cursor: pointer; z-index: 100001;">✕</button>
 </div>
+<!-- MEGA WAYS Game Container -->
+<div id="megaWaysContainer" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100000; background: #0a0718;">
+    <iframe id="megaWaysIframe" src="mega-ways-slot.html" style="width: 100%; height: 100%; border: none;"></iframe>
+    <button onclick="closeMegaWaysGame()" style="position: absolute; top: 20px; right: 20px; background: #ffd700; border: none; width: 50px; height: 50px; border-radius: 50%; font-size: 24px; cursor: pointer; z-index: 100001;">✕</button>
+</div>
 
 <script>
     // ========== SPIN WHEEL WITH PROPER NUMBER HANDLING (CONTAINER VERSION) ==========
@@ -1321,6 +1329,221 @@ if (jackpotIframe) {
         }, '*');
     });
 }
+
+// ============================================
+// MEGA WAYS GAME - LOBBY INTEGRATION (1024 Ways)
+// ============================================
+
+const megaWaysContainer = document.getElementById('megaWaysContainer');
+const megaWaysIframe = document.getElementById('megaWaysIframe');
+
+// 🔥 Safe number parser - remove commas and ensure number
+function safeNumber(value) {
+    if (value === undefined || value === null) return 0;
+    if (typeof value === 'number' && !isNaN(value)) return value;
+
+    let str = String(value).replace(/,/g, '').trim();
+    let num = parseFloat(str);
+
+    if (isNaN(num)) {
+        console.warn('⚠️ safeNumber received NaN for:', value);
+        return 0;
+    }
+    return num;
+}
+
+function updateLobbyBalance(newBalance) {
+    let safeBalance = safeNumber(newBalance);
+    
+    if (isNaN(safeBalance)) {
+        console.error('❌ Attempted to update lobby with NaN! Ignoring...');
+        return false;
+    }
+
+    let formattedBalance = safeBalance.toLocaleString();
+
+    // Update DOM
+    const lobbyElem = document.getElementById('lobbyBalance');
+    if (lobbyElem) lobbyElem.innerText = formattedBalance;
+    
+    const gameElem = document.getElementById('balanceAmount');
+    if (gameElem) gameElem.innerText = formattedBalance;
+    
+    // Update gameState
+    if (window.gameState) {
+        window.gameState.balance = safeBalance;
+        window.gameState.displayBalance = safeBalance;
+    }
+    
+    // Update UI
+    if (typeof updateUI === 'function') updateUI(safeBalance);
+    
+    // Update localStorage
+    const currentUser = localStorage.getItem('currentUser');
+    if (currentUser) {
+        const user = JSON.parse(currentUser);
+        user.balance = safeBalance;
+        localStorage.setItem('currentUser', JSON.stringify(user));
+        console.log('💰 Balance saved to localStorage:', safeBalance);
+        
+        // Update Firebase if available
+        if (window.db && user.uid) {
+            window.db.collection('users').doc(user.uid).update({
+                balance: safeBalance,
+                displayBalance: safeBalance
+            }).catch(e => console.warn('Firebase update error:', e));
+        }
+    }
+    
+    return true;
+}
+
+function getCurrentBalance() {
+    // First try from gameState
+    if (window.gameState && typeof window.gameState.balance === 'number' && !isNaN(window.gameState.balance)) {
+        return window.gameState.balance;
+    }
+
+    // Try from lobby DOM
+    const lobbyElem = document.getElementById('lobbyBalance');
+    if (lobbyElem) {
+        let rawText = lobbyElem.innerText || '0';
+        return safeNumber(rawText);
+    }
+
+    return 10000;
+}
+
+// ========== OPEN MEGA WAYS GAME ==========
+function openMegaWaysGame() {
+    if (!megaWaysContainer) return;
+
+    // Hide lobby screen
+    const lobbyScreen = document.getElementById('lobbyScreen');
+    if (lobbyScreen) lobbyScreen.style.display = 'none';
+
+    // Show mega ways container
+    megaWaysContainer.style.display = 'block';
+
+    let currentBalance = getCurrentBalance();
+    console.log('🎰 Opening Mega Ways Game, balance:', currentBalance);
+
+    // Refresh iframe and send balance
+    if (megaWaysIframe) {
+        megaWaysIframe.src = megaWaysIframe.src;
+        megaWaysIframe.onload = function() {
+            setTimeout(() => {
+                megaWaysIframe.contentWindow.postMessage({
+                    type: 'SYNC_BALANCE',
+                    balance: currentBalance
+                }, '*');
+            }, 500);
+        };
+    }
+}
+
+// ========== CLOSE MEGA WAYS GAME ==========
+function closeMegaWaysGame() {
+    if (megaWaysContainer) megaWaysContainer.style.display = 'none';
+    
+    // Show lobby screen back
+    const lobbyScreen = document.getElementById('lobbyScreen');
+    if (lobbyScreen) lobbyScreen.style.display = 'block';
+}
+
+// ========== LISTEN FOR MESSAGES FROM MEGA WAYS GAME ==========
+window.addEventListener('message', function(event) {
+    const data = event.data;
+    console.log('📨 Lobby received from MegaWays:', data);
+
+    if (data && data.type === 'WIN_AMOUNT') {
+        let currentBalance = getCurrentBalance();
+        let winAmount = safeNumber(data.amount);
+        let newBalance = currentBalance + winAmount;
+
+        console.log(`💰 MEGA WAYS WIN: ${currentBalance} + ${winAmount} = ${newBalance}`);
+
+        updateLobbyBalance(newBalance);
+
+        if (typeof updateUserBalanceInStorage === 'function') {
+            updateUserBalanceInStorage();
+        }
+
+        showMegaWaysWinNotification(winAmount);
+    }
+    else if (data && data.type === 'BET_DEDUCT') {
+        let currentBalance = getCurrentBalance();
+        let betAmount = safeNumber(data.amount);
+        let newBalance = currentBalance - betAmount;
+
+        if (newBalance < 0) newBalance = 0;
+
+        console.log(`💸 MEGA WAYS BET: ${currentBalance} - ${betAmount} = ${newBalance}`);
+
+        updateLobbyBalance(newBalance);
+
+        if (typeof updateUserBalanceInStorage === 'function') {
+            updateUserBalanceInStorage();
+        }
+    }
+    else if (data && data.type === 'REQUEST_BALANCE') {
+        let currentBalance = getCurrentBalance();
+        if (megaWaysIframe && megaWaysIframe.contentWindow) {
+            megaWaysIframe.contentWindow.postMessage({
+                type: 'SYNC_BALANCE',
+                balance: currentBalance
+            }, '*');
+        }
+    }
+});
+
+// ========== SHOW WIN NOTIFICATION ==========
+function showMegaWaysWinNotification(amount) {
+    let safeAmount = safeNumber(amount);
+    const notif = document.createElement('div');
+    notif.innerText = `🎰 Mega Ways 1024 မှ ${safeAmount.toLocaleString()} KS ရရှိပါသည်! 🎰`;
+    notif.style.cssText = 'position:fixed;top:20%;left:50%;transform:translateX(-50%);background:#ffd700;color:#1a0f0a;padding:12px 24px;border-radius:50px;font-weight:bold;z-index:40001;font-size:16px;box-shadow:0 0 20px gold;white-space:nowrap';
+    document.body.appendChild(notif);
+    setTimeout(() => notif.remove(), 3000);
+}
+
+// When iframe loads, send balance
+if (megaWaysIframe) {
+    megaWaysIframe.addEventListener('load', function() {
+        let currentBalance = getCurrentBalance();
+        megaWaysIframe.contentWindow.postMessage({
+            type: 'SYNC_BALANCE',
+            balance: currentBalance
+        }, '*');
+    });
+}
+
+
+// Lobby ထဲမှာ ထည့်ပါ
+const iframe = document.getElementById('gameIframe');
+
+window.addEventListener('message', (event) => {
+    const data = event.data;
+    
+    if (data.type === 'REQUEST_BALANCE') {
+        // Slot game က balance တောင်းရင် ပြန်ပို့ပေး
+        const currentBalance = getUserBalance(); // မင်းရဲ့ balance ယူတဲ့ function
+        iframe.contentWindow.postMessage({ 
+            type: 'SYNC_BALANCE', 
+            balance: currentBalance 
+        }, '*');
+    }
+    
+    if (data.type === 'BET_DEDUCT') {
+        // Bet လျှော့
+        updateBalance(-data.amount);
+    }
+    
+    if (data.type === 'WIN_AMOUNT') {
+        // Win တိုး
+        updateBalance(data.amount);
+    }
+});
 </script>
   <!-- Core Libraries & Helpers -->
     <script src="sound-manager.js"></script>
