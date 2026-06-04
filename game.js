@@ -757,8 +757,9 @@ function generateBabaJackpotResult() {
     console.log('🎰 BABA 5 JACKPOT RESULT GENERATED!');
     return result;
 }
+
 // ============================================
-// 9. MAIN SPIN FUNCTION (CLEAN VERSION)
+// 9. MAIN SPIN FUNCTION (FIXED WITH AUTO SPIN & ANIMATION CALLBACK)
 // ============================================
 function spin() {
     console.log('🔥 spin() called');
@@ -791,7 +792,7 @@ function spin() {
     window.gameState.spinCount++;
     window.gameState.spinCounter = (window.gameState.spinCounter || 0) + 1;
     updateBalanceDisplay();
-    updateUI(window.gameState.balance); 
+    updateUI(window.gameState.balance);
 
     // ===== BABA JACKPOT MODE COUNTER (if enabled) =====
     if (window.gameState.babaJackpotMode?.enabled) {
@@ -800,7 +801,7 @@ function spin() {
 
         if (window.gameState.babaJackpotMode.currentSpinCount >= window.gameState.babaJackpotMode.targetSpins) {
             window.gameState.babaJackpotMode.isReady = true;
-            window.gameState.babaJackpotMode.forceJackpot = true;   // next spin will force jackpot
+            window.gameState.babaJackpotMode.forceJackpot = true;
             console.log('🎯 BABA JACKPOT IS READY!');
         }
     }
@@ -811,7 +812,7 @@ function spin() {
         console.log(`🎯 Jackpot pending spins left: ${window.gameState.pendingJackpotSpinsLeft}`);
     }
 
-    // Generate result (forceJackpot will be used inside generateSpinResult)
+    // Generate result
     const result = generateSpinResult();
     console.log('Final Result:', result);
 
@@ -824,43 +825,90 @@ function spin() {
         const winResult = calculateWinnings(result);
         const totalWin = winResult.totalWin || 0;
 
-       // ===== WIN HANDLING =====
-if (totalWin > 0) {
-    if (window.gameState.isFreeSpinning) {
-        window.gameState.freeSpinTotalWin = (window.gameState.freeSpinTotalWin || 0) + totalWin;
-        console.log(`🎰 Free Spin win accumulated: ${window.gameState.freeSpinTotalWin}`);
-        updateWinDisplay(window.gameState.freeSpinTotalWin);
+        // ===== WIN HANDLING =====
+        if (totalWin > 0) {
+            if (window.gameState.isFreeSpinning) {
+                window.gameState.freeSpinTotalWin = (window.gameState.freeSpinTotalWin || 0) + totalWin;
+                console.log(`🎰 Free Spin win accumulated: ${window.gameState.freeSpinTotalWin}`);
+                updateWinDisplay(window.gameState.freeSpinTotalWin);
 
-        if (winResult.indices?.length > 0) {
-            highlightWinsPremium(winResult.indices, winResult.buffaloIndices || []);
-            showWinWithRise(totalWin, winResult.indices);
-        }
-        window.gameState.waitingForWinAnimation = true;
-        setTimeout(() => {
+                if (winResult.indices?.length > 0) {
+                    highlightWinsPremium(winResult.indices, winResult.buffaloIndices || []);
+                    showWinWithRise(totalWin, winResult.indices);
+                }
+
+                window.gameState.waitingForWinAnimation = true;
+                setTimeout(() => {
+                    window.gameState.waitingForWinAnimation = false;
+                    continueFreeSpinAfterWin();
+                }, 2000);
+
+            } else {
+                // ✅ Baba Jackpot မဟုတ်ရင်မှ balance ထည့်
+                if (!winResult.isBabaJackpot) {
+                    window.gameState.balance += totalWin;
+                    window.gameState.displayBalance += totalWin;
+                    updateBalanceDisplay();
+                    updateUserBalanceInStorage();
+                }
+                updateWinDisplay(totalWin);
+
+                if (winResult.indices?.length > 0) {
+                    highlightWinsPremium(winResult.indices, winResult.buffaloIndices || []);
+                    showWinWithRise(totalWin, winResult.indices);
+                }
+
+                // 🔥 WIN ANIMATION WITH CALLBACK (FOR AUTO SPIN)
+                const winPercentage = (totalWin / window.gameState.betAmount) * 100;
+                const parentWinAnim = window.parent?.WinAnimation;
+
+                window.gameState.waitingForWinAnimation = true;
+
+                if (parentWinAnim) {
+                    if (winPercentage >= 1500) {
+                        parentWinAnim.mega(totalWin, () => {
+                            console.log('✅ Mega animation completed');
+                            window.gameState.waitingForWinAnimation = false;
+                            if (typeof window._pendingAutoSpinResume === 'function') {
+                                console.log('📢 Calling pending auto spin resume from mega callback');
+                                window._pendingAutoSpinResume();
+                            }
+                        });
+                        console.log('🎬 Mega Win Animation started');
+                    } else if (winPercentage >= 1000) {
+                        parentWinAnim.super(totalWin, () => {
+                            console.log('✅ Super animation completed');
+                            window.gameState.waitingForWinAnimation = false;
+                            if (typeof window._pendingAutoSpinResume === 'function') {
+                                console.log('📢 Calling pending auto spin resume from super callback');
+                                window._pendingAutoSpinResume();
+                            }
+                        });
+                        console.log('🎬 Super Win Animation started');
+                    } else if (winPercentage >= 500) {
+                        parentWinAnim.big(totalWin, () => {
+                            console.log('✅ Big animation completed');
+                            window.gameState.waitingForWinAnimation = false;
+                            if (typeof window._pendingAutoSpinResume === 'function') {
+                                console.log('📢 Calling pending auto spin resume from big callback');
+                                window._pendingAutoSpinResume();
+                            }
+                        });
+                        console.log('🎬 Big Win Animation started');
+                    } else {
+                        window.gameState.waitingForWinAnimation = false;
+                    }
+                } else {
+                    window.gameState.waitingForWinAnimation = false;
+                }
+            }
+        } else {
+            updateWinDisplay(0);
             window.gameState.waitingForWinAnimation = false;
-            continueFreeSpinAfterWin();
-        }, 2000);
-    } else {
-        // ✅ Baba Jackpot မဟုတ်ရင်မှ balance ထည့်
-        if (!winResult.isBabaJackpot) {
-            window.gameState.balance += totalWin;
-            window.gameState.displayBalance += totalWin;
-            updateBalanceDisplay();
-            updateUserBalanceInStorage();
         }
-        updateWinDisplay(totalWin);
-
-        if (winResult.indices?.length > 0) {
-            highlightWinsPremium(winResult.indices, winResult.buffaloIndices || []);
-            showWinWithRise(totalWin, winResult.indices);
-        }
-        window.gameState.waitingForWinAnimation = false;
-    }
-}
 
         updateUserBalanceInStorage();
-       // မူရင်း checkScatter ကို ဒီအတိုင်းပြောင်း
-checkScatterWithSuspense(result);
+        checkScatterWithSuspense(result);
 
         const buffaloCount = countBuffalo(result);
         if (buffaloCount >= 20) {
@@ -888,14 +936,14 @@ checkScatterWithSuspense(result);
             }
         }
 
-        // Auto Spin Handling
+        // 🔥 AUTO SPIN HANDLING (with fallback)
         if (window.gameState.autoSpinActive) {
             handleAutoSpinComplete(totalWin);
         }
 
         // ===== BABA JACKPOT MODE RESET (after trigger) =====
         if (window.gameState.babaJackpotTriggered) {
-               finishJackpotSequence();
+            finishJackpotSequence();
             if (window.gameState.babaJackpotMode?.notifId) {
                 try {
                     const db = firebase.firestore();
@@ -905,7 +953,6 @@ checkScatterWithSuspense(result);
                     });
                 } catch(e) { console.log('Firebase update error:', e); }
             }
-            // Reset Baba mode
             window.gameState.babaJackpotMode = {
                 enabled: false,
                 targetSpins: 0,
@@ -920,7 +967,7 @@ checkScatterWithSuspense(result);
             console.log('✅ BABA JACKPOT MODE RESET COMPLETED');
         }
 
-        // ===== NORMAL JACKPOT HANDLING (pendingJackpotSpinsLeft === 0) =====
+        // ===== NORMAL JACKPOT HANDLING =====
         if (window.gameState.pendingJackpotSpinsLeft === 0 && window.gameState.pendingJackpotAmount > 0) {
             const jackpotAmount = window.gameState.pendingJackpotAmount;
             if (jackpotAmount > 0) {
@@ -986,21 +1033,18 @@ function showNotification(msg, type = 'info') {
     }, 3000);
 }
 
-
 // ============================================
-// DetectSuspense  FUNCTIONS
+// DETECT SUSPENSE MODE
 // ============================================
 function detectSuspenseMode(result) {
     var babaLocations = [];
     var babaColumns = [];
 
-    // result က array အစစ် ဟုတ်၊ မဟုတ် အရင်စစ်
-     if (!result || !Array.isArray(result)) return { isSuspense: false, babaCount: 0 };
+    if (!result || !Array.isArray(result)) return { isSuspense: false, babaCount: 0 };
 
     for (var col = 0; col < 5; col++) {
         var foundInCol = false;
         for (var row = 0; row < 4; row++) {
-            // 🔥 တိတိကျကျ စစ်မယ် - စာလုံးအသေး 'baba' အစစ်ဖြစ်ရမယ်
             if (result[col] && result[col][row] === 'baba') {
                 console.log(`🎯 Found REAL Baba at Col: ${col}, Row: ${row}`);
                 babaLocations.push({ col: col, row: row });
@@ -1030,11 +1074,9 @@ function detectSuspenseMode(result) {
     return { isSuspense: false, babaCount: 0, babaLocations: [], columnsToCheck: [] };
 }
 
-
 // ============================================
-// COLOR BORDER FUNCTIONS
+// BORDER FUNCTIONS
 // ============================================
-
 function addRedBorderToColumn(col) {
     var cells = getColumnCells(col);
     for (var i = 0; i < cells.length; i++) {
@@ -1042,13 +1084,13 @@ function addRedBorderToColumn(col) {
     }
 }
 
-// Glow Effect ဖျက်ခြင်း
 function removeRedBorderFromColumn(col) {
     var cells = getColumnCells(col);
     for (var i = 0; i < cells.length; i++) {
         cells[i].classList.remove('suspense-glow');
-     }
-  }
+    }
+}
+
 function addYellowBorderToBabaImg(cell) {
     var img = cell.querySelector('img');
     if (!img) return;
@@ -1066,144 +1108,25 @@ function addYellowBorderToBabaImg(cell) {
         img.style.boxShadow = 'none';
         img.style.backgroundColor = 'transparent';
         cell.style.backgroundColor = 'transparent';
-        console.log(`🚫 Refused to border: ${filename}`); 
-    }
-}
-function startSuspenseAnimation(finalResult, suspenseInfo) {
-    console.log('🎬 SUSPENSE MODE ACTIVATED!');
-    
-    // ============================================
-    // ⭐⭐⭐ အသစ်ထည့်ရန်: 5 BaBa စစ်ဆေးခြင်း ⭐⭐⭐
-    // ============================================
-    var babaCount = suspenseInfo.babaCount || 0;
-    
-    // suspenseInfo မှာ babaCount မပါရင် finalResult ကနေ ပြန်ရေတွက်
-    if (!babaCount && finalResult) {
-        babaCount = 0;
-        for (var col = 0; col < finalResult.length; col++) {
-            var hasBaba = finalResult[col].some(function(s) { 
-                return s === 'baba'; 
-            });
-            if (hasBaba) babaCount++;
-        }
-    }
-    
-    console.log(`📊 BaBa Column Count: ${babaCount}`);
-    
-    // 5 BaBa ဆိုရင် Jackpot Sequence ကို ခေါ်မယ်
-    if (babaCount === 5) {
-        console.log("🎰🎰🎰 5 BABA JACKPOT DETECTED! Switching to Jackpot Sequence...");
-        
-        // BaBa Columns နဲ့ Non-BaBa Columns ခွဲမယ်
-        var babaColumns = [];
-        var nonBabaColumns = [];
-        
-        for (var col = 0; col < finalResult.length; col++) {
-            var hasBaba = finalResult[col].some(function(s) { 
-                return s === 'baba'; 
-            });
-            if (hasBaba) {
-                babaColumns.push(col);
-            } else {
-                nonBabaColumns.push(col);
-            }
-        }
-        
-        // Jackpot Sequence ကို ခေါ်မယ်
-        if (typeof startJackpotSequence === 'function') {
-            startJackpotSequence(finalResult, babaColumns, nonBabaColumns);
-        } else {
-            console.error("❌ startJackpotSequence function not found!");
-        }
-        
-        return; // ⭐ မူရင်း Suspense ကို ဆက်မလုပ်တော့ဘူး
-    }
-
-// ============================================
-    // အောက်က မင်းရဲ့ မူရင်း Code (3-4 BaBa အတွက်)
-    // ============================================
-
-    if (suspenseInfo.babaLocations && suspenseInfo.babaLocations.length > 0) {
-        suspenseInfo.babaLocations.forEach(loc => {
-            var cell = document.querySelector(`.grid-cell[data-col="${loc.col}"][data-row="${loc.row}"]`);
-            if (cell) {
-                var img = cell.querySelector('img');
-                if (img) {
-                    img.src = 'images/baba.png';
-                    img.style.opacity = '1';
-                    addYellowBorderToBabaImg(cell);
-                }
-            }
-        });
-    }
-
-    // ၂။ Baba မပါတဲ့တိုင် (columnsToCheck) ကိုပဲ ဆက်စစ်မယ်
-    if (suspenseInfo.columnsToCheck.length > 0) {
-        // ပထမဆုံး စစ်ရမယ့်တိုင်ကို စတင်မယ်
-        checkNextSuspenseColumn(finalResult, suspenseInfo.columnsToCheck, 0);
-    } else {
-        setTimeout(finishSuspense, 500);
     }
 }
 
 // ============================================
-// 2. CHECK NEXT COLUMN (The Core Sequence)
+// GET COLUMN CELLS
 // ============================================
-function checkNextSuspenseColumn(finalResult, columnsToCheck, index) {
-    if (index >= columnsToCheck.length) {
-        setTimeout(finishSuspense, 500);
-        return;
+function getColumnCells(col) {
+    let cells = [];
+    for (let row = 0; row < 4; row++) {
+        let cell = document.querySelector(`.grid-cell[data-col="${col}"][data-row="${row}"]`);
+        if (!cell) cell = document.getElementById(`cell-${row}-${col}`);
+        if (cell) cells.push(cell);
     }
-
-    var col = columnsToCheck[index];
-    var targetSymbols = finalResult[col];
-
-    var hasBabaInThisCol = targetSymbols.some(function(s) {
-        return s === 'baba';
-    });
-
-    if (hasBabaInThisCol) {
-        // ✨ Baba ပါနေရင် ကျော်မယ်
-        console.log("⏩ Col " + col + " has Baba, skipping suspense...");
-        revealColumnInstantly(col, targetSymbols);
-
-        setTimeout(function() {
-            checkNextSuspenseColumn(finalResult, columnsToCheck, index + 1);
-        }, 400);
-    } else {
-        // 🔥 အသံထည့်တဲ့နေရာ (SoundManager ရှိမှ ခေါ်မယ်)
-       SoundManager.lion();
-      SoundManager.boom();
-
-
-        // ✨ Baba မပါရင် ၆ စက္ကန့် စစ်မယ်
-        console.log("🔍 Col " + col + " is empty, checking for Baba (6s)...");
-
-        addRedBorderToColumn(col);
-        var cells = getColumnCells(col);
-        cells.forEach(function(cell) {
-            cell.classList.add('rise-column');
-        });
-
-        // Spin Logic
-        fastRandomSpin(col, 6000, function() {
-            // Spin ပြီးရင် ပုံဖော်မယ်
-            slowRevealColumn(col, targetSymbols, function() {
-                removeRedBorderFromColumn(col);
-                var currentCells = getColumnCells(col);
-                currentCells.forEach(function(c) {
-                    c.classList.remove('rise-column');
-                });
-
-                // Next one 
-                setTimeout(function() {
-                    checkNextSuspenseColumn(finalResult, columnsToCheck, index + 1);
-                }, 500);
-            });
-        }); 
-    } 
+    return cells;
 }
 
+// ============================================
+// REVEAL FUNCTIONS
+// ============================================
 function revealColumnInstantly(col, targetSymbols) {
     var cells = getColumnCells(col);
     cells.forEach(function(cell, row) {
@@ -1220,25 +1143,16 @@ function revealColumnInstantly(col, targetSymbols) {
     });
 }
 
-
-// ============================================
-// 3. SLOW REVEAL
-// ============================================
 function fastRandomSpin(col, duration, onComplete) {
     var cells = getColumnCells(col);
     var symbols = ['seven', 'jack', 'queen', 'nine', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'baba'];
     var startTime = Date.now();
 
     function spin() {
-        var elapsed = Date.now() - startTime;
-
-        if (elapsed >= duration) {
-            
+        if (Date.now() - startTime >= duration) {
             onComplete();
             return;
         }
-
-        // Random 
         for (var i = 0; i < cells.length; i++) {
             var img = cells[i].querySelector('img');
             if (img) {
@@ -1246,13 +1160,10 @@ function fastRandomSpin(col, duration, onComplete) {
                 img.src = 'images/' + rand + '.png';
             }
         }
-
-        setTimeout(spin, 50); 
+        setTimeout(spin, 50);
     }
-
     spin();
 }
-
 
 function slowRevealColumn(col, targetSymbols, onComplete) {
     var colCells = getColumnCells(col);
@@ -1287,13 +1198,8 @@ function slowRevealColumn(col, targetSymbols, onComplete) {
                     if (targetSymbol === 'baba') {
                         hasBabaInThisCol = true;
                         addYellowBorderToBabaImg(targetCell);
-                        
-                        if (typeof SoundManager !== 'undefined') {
-                            if (SoundManager.boom) {
-                                SoundManager.boom();
-                            } else if (SoundManager.shortcuts && SoundManager.shortcuts.boom) {
-                                SoundManager.shortcuts.boom();
-                            }
+                        if (typeof SoundManager !== 'undefined' && SoundManager.boom) {
+                            SoundManager.boom();
                         }
                     }
                 }, 50);
@@ -1307,80 +1213,163 @@ function slowRevealColumn(col, targetSymbols, onComplete) {
     revealNextRow();
 }
 
+// ============================================
+// REMOVE ALL BORDERS
+// ============================================
+function removeAllBorders() {
+    var cells = document.querySelectorAll('.grid-cell');
+    for (var i = 0; i < cells.length; i++) {
+        var cell = cells[i];
+        var img = cell.querySelector('img');
+        cell.classList.remove('suspense-glow', 'locked-column', 'rise-column', 'red-border-line', 'yellow-border-line', 'bonus-glow-cell');
+        cell.style.border = '';
+        cell.style.borderRadius = '';
+        cell.style.boxShadow = '';
+        cell.style.transform = '';
+        cell.style.transition = '';
+        cell.style.backgroundColor = '';
+        cell.style.opacity = '';
+        cell.style.filter = '';
+        cell.dataset.symbol = '';
+        if (img) {
+            img.style.borderRadius = '';
+            img.style.boxShadow = '';
+            img.style.padding = '';
+            img.style.backgroundColor = '';
+            img.style.transform = '';
+            img.style.opacity = '';
+            img.classList.remove('bonus-glow-img');
+        }
+    }
+}
+
+// ============================================
+// SPIN BUTTON CONTROL
+// ============================================
+function disableSpinButton() {
+    const spinBtn = document.getElementById('spinBtn');
+    if (spinBtn) {
+        spinBtn.disabled = true;
+        spinBtn.style.opacity = '0.4';
+        spinBtn.style.pointerEvents = 'none';
+        spinBtn.classList.add('spinning-disabled');
+    }
+    console.log('🔒 SPIN BUTTON LOCKED');
+}
+
+function enableSpinButton() {
+    const spinBtn = document.getElementById('spinBtn');
+    if (spinBtn) {
+        spinBtn.disabled = false;
+        spinBtn.style.opacity = '1';
+        spinBtn.style.pointerEvents = 'auto';
+        spinBtn.classList.remove('spinning-disabled');
+    }
+    console.log('🔓 SPIN BUTTON UNLOCKED');
+}
+
+// ============================================
+// BABA SUSPENSE MODE (3-4 Baba)
+// ============================================
+function startSuspenseAnimation(finalResult, suspenseInfo) {
+    console.log('🎬 BABA SUSPENSE MODE ACTIVATED!');
+    
+    // 🔥 PAUSE AUTO SPIN
+    if (window.gameState.autoSpinActive) {
+        autoSpinPaused = true;
+        console.log('✅✅✅ autoSpinPaused SET to TRUE (BABA SUSPENSE) ✅✅✅');
+    }
+    
+    window.gameState.suspenseMode = true;
+    disableSpinButton();
+
+    if (suspenseInfo.babaLocations && suspenseInfo.babaLocations.length > 0) {
+        suspenseInfo.babaLocations.forEach(loc => {
+            var cell = document.querySelector(`.grid-cell[data-col="${loc.col}"][data-row="${loc.row}"]`);
+            if (cell) {
+                var img = cell.querySelector('img');
+                if (img) {
+                    img.src = 'images/baba.png';
+                    img.style.opacity = '1';
+                    addYellowBorderToBabaImg(cell);
+                }
+            }
+        });
+    }
+
+    if (suspenseInfo.columnsToCheck.length > 0) {
+        checkNextSuspenseColumn(finalResult, suspenseInfo.columnsToCheck, 0);
+    } else {
+        setTimeout(finishSuspense, 500);
+    }
+}
+
+function checkNextSuspenseColumn(finalResult, columnsToCheck, index) {
+    if (index >= columnsToCheck.length) {
+        setTimeout(finishSuspense, 500);
+        return;
+    }
+
+    var col = columnsToCheck[index];
+    var targetSymbols = finalResult[col];
+    var hasBabaInThisCol = targetSymbols.some(function(s) { return s === 'baba'; });
+
+    if (hasBabaInThisCol) {
+        console.log("⏩ Col " + col + " has Baba, skipping suspense...");
+        revealColumnInstantly(col, targetSymbols);
+        setTimeout(function() {
+            checkNextSuspenseColumn(finalResult, columnsToCheck, index + 1);
+        }, 400);
+    } else {
+        if (typeof SoundManager !== 'undefined') {
+            SoundManager.lion();
+            SoundManager.boom();
+        }
+
+        console.log("🔍 Col " + col + " is empty, checking for Baba (6s)...");
+        addRedBorderToColumn(col);
+        var cells = getColumnCells(col);
+        cells.forEach(function(cell) { cell.classList.add('rise-column'); });
+
+        fastRandomSpin(col, 6000, function() {
+            slowRevealColumn(col, targetSymbols, function() {
+                removeRedBorderFromColumn(col);
+                cells.forEach(function(c) { c.classList.remove('rise-column'); });
+                setTimeout(function() {
+                    checkNextSuspenseColumn(finalResult, columnsToCheck, index + 1);
+                }, 500);
+            });
+        });
+    }
+}
+
 function finishSuspense() {
-    console.log('✅ Suspense Mode Finished');
+    console.log('✅ BABA SUSPENSE MODE FINISHED!');
+    
+    // 🔥 RESUME AUTO SPIN
+    autoSpinPaused = false;
+    window.gameState.suspenseMode = false;
+    enableSpinButton();
+    
+    if (window.gameState.autoSpinActive) {
+        console.log('▶️ Resuming auto spin after BABA suspense');
+        setTimeout(() => {
+            performAutoSpin();
+        }, 500);
+    }
+    
     removeAllBorders();
     document.dispatchEvent(new CustomEvent('animationComplete'));
 }
 
 // ============================================
-// LOCK & REVEAL JACKPOT SEQUENCE (REAL CHECK)
+// JACKPOT SEQUENCE (5 Baba)
 // ============================================
-
 let lockedColumns = [];
 let pendingColumns = [];
 let jackpotFinalResult = null;
 let isJackpotMode = false;
 
-// ============================================
-// MAIN ENTRY: Spin Result ရလာတဲ့အခါ ခေါ်မယ်
-// ============================================
-function processSpinResult(finalResult) {
-   
-    var babaColumns = [];
-    var nonBabaColumns = [];
-    
-    for (var col = 0; col < finalResult.length; col++) {
-        var hasBaba = finalResult[col].some(function(symbol) {
-            return symbol === 'baba';
-        });
-        
-        if (hasBaba) {
-            babaColumns.push(col);
-        } else {
-            nonBabaColumns.push(col);
-        }
-    }
-    
-    var babaCount = babaColumns.length;
-    
-    console.log(`📊 BaBa Columns: ${babaColumns} (Total: ${babaCount})`);
-    console.log(`📊 Non-BaBa Columns: ${nonBabaColumns}`);
-    
-    // 2. BaBa Count အလိုက် ဆုံးဖြတ်မယ်
-    if (babaCount === 5) {
-        // 5 Column လုံး BaBa ပါရင် -> Jackpot Mode
-        startJackpotSequence(finalResult, babaColumns, nonBabaColumns);
-    } else if (babaCount >= 3) {
-        // 3-4 BaBa ဆိုရင် Suspense Mode (မင်းရဲ့ မူရင်း Logic)
-        startSuspenseAnimation(finalResult, {
-            babaLocations: getBabaLocations(finalResult),
-            columnsToCheck: nonBabaColumns
-        });
-    } else {
-        // 2 BaBa အောက်ဆိုရင် ပုံမှန် Reveal
-        revealAllColumnsInstantly(finalResult);
-    }
-}
-
-// ============================================
-// Get BaBa Locations (Row, Col)
-// ============================================
-function getBabaLocations(finalResult) {
-    var locations = [];
-    for (var col = 0; col < finalResult.length; col++) {
-        for (var row = 0; row < finalResult[col].length; row++) {
-            if (finalResult[col][row] === 'baba') {
-                locations.push({ col: col, row: row });
-            }
-        }
-    }
-    return locations;
-}
-
-// ============================================
-// JACKPOT SEQUENCE (5 Columns have BaBa)
-// ============================================
 function startJackpotSequence(finalResult, babaColumns, nonBabaColumns) {
     isJackpotMode = true;
     lockedColumns = [];
@@ -1388,43 +1377,38 @@ function startJackpotSequence(finalResult, babaColumns, nonBabaColumns) {
     
     console.log("🎰🎰🎰 JACKPOT SEQUENCE STARTED! 🎰🎰🎰");
     
+    // 🔥 PAUSE AUTO SPIN
+    if (window.gameState.autoSpinActive) {
+        autoSpinPaused = true;
+        console.log('✅✅✅ autoSpinPaused SET to TRUE (JACKPOT) ✅✅✅');
+    }
+    
+    window.gameState.suspenseMode = true;
+    disableSpinButton();
 
     var firstThreeBabaColumns = babaColumns.slice(0, 3);
-    
     firstThreeBabaColumns.forEach(function(col) {
         lockAndRevealColumnWithResult(col, finalResult[col]);
     });
     
-  
-    pendingColumns = babaColumns.slice(3); // Index 3,4 (4th and 5th BaBa columns)
-    
-    // အဆင့် ၃: ပထမဆုံး Pending Column ကို စစ်မယ်
+    pendingColumns = babaColumns.slice(3);
     processNextPendingColumn();
 }
 
-// ============================================
-// Column တစ်ခုကို Result နဲ့ Lock ချပြီး Reveal လုပ်မယ်
-// ============================================
 function lockAndRevealColumnWithResult(col, targetSymbols) {
     lockedColumns.push(col);
-    
     var cells = getColumnCells(col);
     
-    // Row တစ်ခုချင်းစီကို သူ့ Symbol အတိုင်း ပြမယ်
     cells.forEach(function(cell, row) {
         var img = cell.querySelector('img');
         var symbol = targetSymbols[row];
-        
         if (img && symbol) {
             img.src = 'images/' + symbol + '.png';
             img.style.opacity = '1';
             img.style.transition = 'all 0.3s ease';
             cell.dataset.symbol = symbol;
-            
-            // BaBa ဆိုရင် Yellow Border
             if (symbol === 'baba') {
                 addYellowBorderToBabaImg(cell);
-                // BaBa အတွက် Boom အသံ
                 if (typeof SoundManager !== 'undefined' && SoundManager.boom) {
                     SoundManager.boom();
                 }
@@ -1432,22 +1416,15 @@ function lockAndRevealColumnWithResult(col, targetSymbols) {
         }
     });
     
-    // Locked Column Visual Effect
     cells.forEach(function(cell) {
         cell.classList.add('locked-column');
         cell.style.opacity = '0.9';
         cell.style.filter = 'brightness(1.1)';
     });
-    
-    console.log(`🔒 Column ${col} LOCKED with: ${targetSymbols.join(', ')}`);
 }
 
-// ============================================
-// နောက်ထပ် Pending Column တစ်ခုကို Suspense နဲ့ စစ်မယ်
-// ============================================
 function processNextPendingColumn() {
     if (pendingColumns.length === 0) {
-        // အကုန်ပြီးပြီ - Jackpot ပေါက်ပြီ
         finishJackpotSequence();
         return;
     }
@@ -1456,46 +1433,27 @@ function processNextPendingColumn() {
     var isLastColumn = (pendingColumns.length === 0);
     var targetSymbols = jackpotFinalResult[col];
     
-    console.log(`🔍 Suspense for Column ${col} ${isLastColumn ? '(FINAL COLUMN!)' : ''}`);
-    console.log(`   Target symbols: ${targetSymbols.join(', ')}`);
-    
-    // Sound Effect
     if (typeof SoundManager !== 'undefined') {
         SoundManager.lion();
         SoundManager.boom();
     }
     
-    // Visual Effects
     addRedBorderToColumn(col);
     var cells = getColumnCells(col);
-    cells.forEach(function(cell) {
-        cell.classList.add('rise-column');
-    });
+    cells.forEach(function(cell) { cell.classList.add('rise-column'); });
     
-    // Spin Duration (နောက်ဆုံး Column ဆိုရင် ပိုကြာမယ်)
     var spinDuration = isLastColumn ? 8000 : 5000;
     
-    // Fast Spin လုပ်မယ် (Random Symbols)
     fastRandomSpin(col, spinDuration, function() {
-        // Spin ပြီးရင် Slow Reveal
         slowRevealColumnWithResult(col, targetSymbols, function() {
-            // Reveal ပြီးသွားပြီ
             removeRedBorderFromColumn(col);
-            cells.forEach(function(c) {
-                c.classList.remove('rise-column');
-            });
-            
-            // Lock ချမယ်
+            cells.forEach(function(c) { c.classList.remove('rise-column'); });
             lockedColumns.push(col);
             cells.forEach(function(cell) {
                 cell.classList.add('locked-column');
                 cell.style.opacity = '0.9';
                 cell.style.filter = 'brightness(1.1)';
             });
-            
-            console.log(`🔒 Column ${col} LOCKED after suspense`);
-            
-            // နောက် Column ကို ဆက်စစ်မယ်
             setTimeout(function() {
                 processNextPendingColumn();
             }, isLastColumn ? 1000 : 600);
@@ -1503,9 +1461,6 @@ function processNextPendingColumn() {
     });
 }
 
-// ============================================
-// Slow Reveal (Result အတိုင်း အတိအကျ ပြမယ်)
-// ============================================
 function slowRevealColumnWithResult(col, targetSymbols, onComplete) {
     var colCells = getColumnCells(col);
     var rowIndex = 0;
@@ -1513,9 +1468,7 @@ function slowRevealColumnWithResult(col, targetSymbols, onComplete) {
 
     function revealNextRow() {
         if (rowIndex >= colCells.length) {
-            setTimeout(function() {
-                if (onComplete) onComplete();
-            }, 300);
+            setTimeout(function() { if (onComplete) onComplete(); }, 300);
             return;
         }
 
@@ -1536,7 +1489,6 @@ function slowRevealColumnWithResult(col, targetSymbols, onComplete) {
                     targetImg.style.transform = 'translateY(0) scale(1)';
                     targetCell.dataset.symbol = targetSymbol;
                     
-                    // BaBa ဆိုရင် Yellow Border + Boom
                     if (targetSymbol === 'baba') {
                         addYellowBorderToBabaImg(targetCell);
                         if (typeof SoundManager !== 'undefined' && SoundManager.boom) {
@@ -1544,13 +1496,9 @@ function slowRevealColumnWithResult(col, targetSymbols, onComplete) {
                         }
                     }
                     
-                    // နောက်ဆုံး Column ရဲ့ နောက်ဆုံး Row မှာ Special Effect
                     if (isLastColumn && rowIdx === colCells.length - 1) {
                         document.body.classList.add('jackpot-flash');
-                        setTimeout(function() {
-                            document.body.classList.remove('jackpot-flash');
-                        }, 500);
-                        
+                        setTimeout(function() { document.body.classList.remove('jackpot-flash'); }, 500);
                         if (typeof SoundManager !== 'undefined' && SoundManager.lion) {
                             SoundManager.lion();
                         }
@@ -1566,56 +1514,33 @@ function slowRevealColumnWithResult(col, targetSymbols, onComplete) {
 
     revealNextRow();
 }
-// ============================================
-// Jackpot Sequence ပြီးဆုံးချိန်
-// ============================================
+
 function finishJackpotSequence() {
     console.log("🎉🎉🎉 BABA 5 JACKPOT COMPLETE! 🎉🎉🎉");
 
     const jackpotAmount = window.gameState?.babaJackpotMode?.jackpotAmount ||
-                          window.gameState?.pendingJackpotAmount ||
-                          0;
+                          window.gameState?.pendingJackpotAmount || 0;
 
-    console.log(`💰 Jackpot Amount: ${jackpotAmount}`);
-
-    // ===== FORCE BALANCE UPDATE =====
     if (window.gameState) {
-        let oldBalance = window.gameState.balance;
         window.gameState.balance = (window.gameState.balance || 0) + jackpotAmount;
         window.gameState.displayBalance = window.gameState.balance;
+        window.gameState.suspenseMode = false;
         
-        console.log(`💰 OLD Balance: ${oldBalance}`);
-        console.log(`💰 NEW Balance: ${window.gameState.balance}`);
-        
-        // Force UI update - တိုက်ရိုက် DOM ကိုပြောင်း
         const balanceEl = document.getElementById('balanceDisplay');
-        if (balanceEl) {
-            balanceEl.innerText = window.gameState.balance.toLocaleString();
-            console.log("✅ Force updated balance UI:", balanceEl.innerText);
-        }
+        if (balanceEl) balanceEl.innerText = window.gameState.balance.toLocaleString();
         
-        // Storage ကိုလည်း force update
         if (window.currentUser) {
             window.currentUser.balance = window.gameState.balance;
             localStorage.setItem('currentUser', JSON.stringify(window.currentUser));
-            console.log("✅ Force updated localStorage");
         }
         
-        updateBalanceDisplay();  // ပုံမှန် update
+        updateBalanceDisplay();
         updateUserBalanceInStorage();
-       updateUI(window.gameState.balance); 
         showNotification(`🎉 ဂျက်ပေါ့ဆုကြေး ${formatNumber(jackpotAmount)} ကျပ် ရရှိပါသည်။`, 'success');
     }
 
-    // Animation & Sound
-    if (typeof showJackpotAnimation === 'function') {
-        showJackpotAnimation(jackpotAmount, jackpotFinalResult);
-    }
-
-    if (typeof GlobalTopManager !== 'undefined') {
-        GlobalTopManager.submitWin(jackpotAmount, 'jackpot');
-    }
-
+    if (typeof showJackpotAnimation === 'function') showJackpotAnimation(jackpotAmount, jackpotFinalResult);
+    if (typeof GlobalTopManager !== 'undefined') GlobalTopManager.submitWin(jackpotAmount, 'jackpot');
     if (typeof SoundManager !== 'undefined') {
         SoundManager.jackpot();
         SoundManager.lion();
@@ -1626,66 +1551,29 @@ function finishJackpotSequence() {
         SoundManager.boom();
     }
 
-    // ============================================
-    // 🔥🔥🔥 SPIN FUNCTION ထဲက RESET အတိုင်း လုပ်မယ် 🔥🔥🔥
-    // ============================================
-
-    // 1. Firebase Update (လိုအပ်ရင်)
-    if (window.gameState.babaJackpotMode?.notifId) {
-        try {
-            const db = firebase.firestore();
-            db.collection('notifications').doc(window.gameState.babaJackpotMode.notifId).update({
-                read: true,
-                completedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-        } catch(e) {
-            console.log('Firebase update error:', e);
-        }
-    }
-
-    // 2. Reset Baba mode
+    // Reset Baba mode
     window.gameState.babaJackpotMode = {
-        enabled: false,
-        targetSpins: 0,
-        currentSpinCount: 0,
-        isReady: false,
-        jackpotAmount: 0,
-        notifId: null
+        enabled: false, targetSpins: 0, currentSpinCount: 0,
+        isReady: false, jackpotAmount: 0, notifId: null
     };
     window.gameState.babaJackpotTriggered = false;
     window.gameState.pendingJackpotAmount = 0;
     window.gameState.pendingJackpotSpinsLeft = 0;
 
-    // 3. ⭐ အရေးကြီးဆုံး - isSpinning ကို false လုပ်
     window.gameState.isSpinning = false;
     window.gameState.waitingForJackpotComplete = false;
-
-    // 4. Internal Flags
     isJackpotMode = false;
     lockedColumns = [];
     pendingColumns = [];
     jackpotFinalResult = null;
 
-    // 5. Ready State
-    if (typeof ready !== 'undefined') ready = true;
-    if (typeof canSpin !== 'undefined') canSpin = true;
-    if (typeof spinLock !== 'undefined') spinLock = false;
-
-    // ============================================
-    // 🧹 UI Cleanup
-    // ============================================
-    console.log("🧹 Cleaning up UI locks...");
-
-    // Column တွေရဲ့ Lock Styles ရှင်း
+    // Clean up UI locks
     for (var col = 0; col < 5; col++) {
         var cells = getColumnCells(col);
         cells.forEach(function(cell) {
             cell.classList.remove('locked-column', 'rise-column', 'suspense-glow');
             cell.style.opacity = '';
             cell.style.filter = '';
-            cell.style.boxShadow = '';
-            cell.style.border = '';
-            
             var img = cell.querySelector('img');
             if (img) {
                 img.style.borderRadius = '';
@@ -1694,56 +1582,72 @@ function finishJackpotSequence() {
                 img.style.backgroundColor = '';
             }
         });
-        
-        if (typeof removeRedBorderFromColumn === 'function') {
-            removeRedBorderFromColumn(col);
-        }
+        removeRedBorderFromColumn(col);
     }
-
-    // Borders အကုန်ဖျက်
-    removeAllBorders();  // ⭐ ခေါ်ဖို့ မမေ့နဲ့
-
-    // Body Classes
-    document.body.classList.remove('jackpot-flash', 'jackpot-active', 'spin-locked');
-
-    // Spin Button Enable
-    var spinButton = document.querySelector('#spin-button, .spin-btn, [data-action="spin"], button.spin');
-    if (spinButton) {
-        spinButton.disabled = false;
-        spinButton.style.opacity = '1';
-        spinButton.style.pointerEvents = 'auto';
-        spinButton.classList.remove('disabled', 'locked');
-        console.log("✅ Spin button enabled");
+    
+    removeAllBorders();
+    
+    // 🔥 RESUME AUTO SPIN
+    autoSpinPaused = false;
+    window.gameState.suspenseMode = false;
+    
+    if (window.gameState.autoSpinActive) {
+        console.log('▶️ Resuming auto spin after JACKPOT sequence');
+        setTimeout(() => {
+            performAutoSpin();
+        }, 1000);
     }
-
-    console.log('✅ BABA JACKPOT MODE RESET COMPLETED from finishJackpotSequence');
-    console.log("✅✅✅ READY FOR NEXT SPIN! ✅✅✅");
+    
+    enableSpinButton();
+    console.log('✅ BABA JACKPOT MODE RESET COMPLETED');
 }
 
-// အားလုံးဖျက်
-function removeAllBorders() {
-    var cells = document.querySelectorAll('.grid-cell');
-    for (var i = 0; i < cells.length; i++) {
-        var cell = cells[i];
-        var img = cell.querySelector('img');
-
-        cell.style.borderRadius = '';
-        cell.style.boxShadow = '';
-        cell.style.transform = '';
-        cell.style.transition = '';
-        cell.style.backgroundColor = '';
-        cell.classList.remove('red-border-line', 'yellow-border-line', 'locked-column', 'rise-column');
-
-        if (img) {
-            img.style.borderRadius = '';
-            img.style.boxShadow = '';
-            img.style.padding = '';
-            img.style.backgroundColor = '';
-            img.style.transform = '';
-            img.style.opacity = '';
+// ============================================
+// PROCESS SPIN RESULT (MAIN ENTRY)
+// ============================================
+function processSpinResult(finalResult) {
+    var babaColumns = [];
+    var nonBabaColumns = [];
+    
+    for (var col = 0; col < finalResult.length; col++) {
+        var hasBaba = finalResult[col].some(function(symbol) { return symbol === 'baba'; });
+        if (hasBaba) {
+            babaColumns.push(col);
+        } else {
+            nonBabaColumns.push(col);
+        }
+    }
+    
+   var babaCount = babaColumns.length;
+    console.log(`📊 BaBa Columns: ${babaColumns} (Total: ${babaCount})`);
+    
+    if (babaCount === 5) {
+        startJackpotSequence(finalResult, babaColumns, nonBabaColumns);
+    } else if (babaCount >= 3) {
+        startSuspenseAnimation(finalResult, {
+            babaLocations: getBabaLocations(finalResult),
+            columnsToCheck: nonBabaColumns
+        });
+    } else {
+        // Normal reveal - no suspense
+        if (typeof revealAllColumnsInstantly === 'function') {
+            revealAllColumnsInstantly(finalResult);
         }
     }
 }
+
+function getBabaLocations(finalResult) {
+    var locations = [];
+    for (var col = 0; col < finalResult.length; col++) {
+        for (var row = 0; row < finalResult[col].length; row++) {
+            if (finalResult[col][row] === 'baba') {
+                locations.push({ col: col, row: row });
+            }
+        }
+    }
+    return locations;
+}
+
 // ============================================
 // 11. FIXED WIN CALCULATION (COMPLETE WITH BABA 5 JACKPOT)
 // ============================================
@@ -1968,33 +1872,61 @@ if (totalWin > 0) {
     }
 
     // Win animations & Global Top (ဒါက ရှိပြီးသား ဆက်ထားပါ)
-    if (typeof WinAnimation !== 'undefined') {
-        if (winPercentage >= 1500) {
-            WinAnimation.mega(totalWin);
-            GlobalTopManager.submitWin(totalWin, 'mega');
-            if (typeof SoundManager !== 'undefined') {
-                SoundManager.congratulations();
-                SoundManager.lion();
-                SoundManager.coin();
+   // Win animations & Global Top
+if (typeof WinAnimation !== 'undefined') {
+    if (winPercentage >= 1500) {
+        // 🔥 Mega win with callback
+        WinAnimation.mega(totalWin, () => {
+            console.log('✅ Mega animation completed from calculateWinnings');
+            window.gameState.waitingForWinAnimation = false;
+            if (typeof window._pendingAutoSpinResume === 'function') {
+                window._pendingAutoSpinResume();
             }
-        } else if (winPercentage >= 1000) {
-            WinAnimation.super(totalWin);
-            GlobalTopManager.submitWin(totalWin, 'super');
-            if (typeof SoundManager !== 'undefined') {
-                SoundManager.congratulations();
-                SoundManager.lion();
-                SoundManager.coin();
+        });
+        window.gameState.waitingForWinAnimation = true;
+        
+        GlobalTopManager.submitWin(totalWin, 'mega');
+        if (typeof SoundManager !== 'undefined') {
+            SoundManager.congratulations();
+            SoundManager.lion();
+            SoundManager.coin();
+        }
+    } else if (winPercentage >= 1000) {
+        // 🔥 Super win with callback
+        WinAnimation.super(totalWin, () => {
+            console.log('✅ Super animation completed from calculateWinnings');
+            window.gameState.waitingForWinAnimation = false;
+            if (typeof window._pendingAutoSpinResume === 'function') {
+                window._pendingAutoSpinResume();
             }
-        } else if (winPercentage >= 500) {
-            WinAnimation.big(totalWin);
-            GlobalTopManager.submitWin(totalWin, 'big');
-            if (typeof SoundManager !== 'undefined') {
-                SoundManager.congratulations();
-                SoundManager.lion();
-                SoundManager.coin();
+        });
+        window.gameState.waitingForWinAnimation = true;
+        
+        GlobalTopManager.submitWin(totalWin, 'super');
+        if (typeof SoundManager !== 'undefined') {
+            SoundManager.congratulations();
+            SoundManager.lion();
+            SoundManager.coin();
+        }
+    } else if (winPercentage >= 500) {
+        // 🔥 Big win with callback
+        WinAnimation.big(totalWin, () => {
+            console.log('✅ Big animation completed from calculateWinnings');
+            window.gameState.waitingForWinAnimation = false;
+            if (typeof window._pendingAutoSpinResume === 'function') {
+                window._pendingAutoSpinResume();
             }
+        });
+        window.gameState.waitingForWinAnimation = true;
+        
+        GlobalTopManager.submitWin(totalWin, 'big');
+        if (typeof SoundManager !== 'undefined') {
+            SoundManager.congratulations();
+            SoundManager.lion();
+            SoundManager.coin();
         }
     }
+}
 
     if (typeof checkLevelUp === 'function') checkLevelUp();
 } else {
@@ -2401,12 +2333,6 @@ function celebrateBabaInColumn(col) {
         SoundManager.lion();
        SoundManager.boom();
     }
-}
-
-// ===== GET COLUMN CELLS HELPER =====
-function getColumnCells(col) {
-    return Array.from(document.querySelectorAll('.grid-cell'))
-        .filter(cell => parseInt(cell.dataset.col) === col);
 }
 
 // ===== CHECK THREE MATCH RATE =====
@@ -2996,6 +2922,8 @@ function addPremiumStyles() {
     `;
     document.head.appendChild(style);
 }
+
+
 // ============================================
 // FREE SPIN SUSPENSE MODE (Jackpot Mode Style)
 // ============================================
@@ -3004,7 +2932,7 @@ function addPremiumStyles() {
 function checkScatterWithSuspense(result) {
     let bonusColumns = [];
     let nonBonusColumns = [];
-    
+
     for (let col = 0; col < 5; col++) {
         let hasBonus = false;
         for (let row = 0; row < 4; row++) {
@@ -3019,10 +2947,10 @@ function checkScatterWithSuspense(result) {
             nonBonusColumns.push(col);
         }
     }
-    
+
     let bonusCount = bonusColumns.length;
     console.log(`📊 Bonus Columns: ${bonusColumns} (Total: ${bonusCount})`);
-    
+
     // ===== FREE SPIN အတွင်း BONUS ထပ်ကျရင် (Bonus 2 လုံးကျရင်တောင် ရမယ်) =====
     if (window.gameState.isFreeSpinning && bonusCount >= 2) {
         let extraSpins = calculateExtraSpins(bonusCount);
@@ -3033,112 +2961,93 @@ function checkScatterWithSuspense(result) {
         showExtraFreeSpinAnimation(extraSpins);
         return bonusCount;
     }
-    
+
     // ===== ပုံမှန် Suspense Mode (Bonus 2 လုံးကျရင် စမယ်) =====
     if (!window.gameState.isFreeSpinning && bonusCount >= 2) {
+        console.log('🎯 Calling startFreeSpinSuspense (bonusCount:', bonusCount, ')');
         startFreeSpinSuspense(result, bonusColumns, nonBonusColumns, bonusCount);
     }
-    
+
     return bonusCount;
 }
+
 // ===== FREE SPIN SUSPENSE SEQUENCE START =====
 function startFreeSpinSuspense(finalResult, bonusColumns, nonBonusColumns, bonusCount) {
     console.log('🎬 FREE SPIN SUSPENSE MODE ACTIVATED!');
-    
-    // Bonus ပါတဲ့ Column တွေကို ချက်ချင်း Lock+Reveal
+    console.log('📌 BEFORE - autoSpinPaused:', autoSpinPaused);
+    console.log('📌 window.gameState.autoSpinActive:', window.gameState.autoSpinActive);
+
+    // 🔥 SET SUSPENSE MODE FLAG
+    window.gameState.suspenseMode = true;
+
+    // 🔥🔥🔥 PAUSE AUTO SPIN 🔥🔥🔥
+    if (window.gameState.autoSpinActive) {
+        autoSpinPaused = true;
+        console.log('✅✅✅ autoSpinPaused SET to TRUE ✅✅✅');
+    } else {
+        console.log('⚠️ autoSpinActive is false, cannot pause');
+    }
+    console.log('📌 AFTER - autoSpinPaused:', autoSpinPaused);
+
+    // Disable spin button
+    disableSpinButton();
+
+    // Bonus Columns ကို Lock + Reveal
     bonusColumns.forEach(col => {
         lockAndRevealBonusColumn(col, finalResult[col]);
     });
-    
-    // Bonus မပါတဲ့ Column တွေကို Suspense နဲ့ ဆက်စစ်မယ်
+
     if (nonBonusColumns.length > 0) {
-        // Free Spin ပမာဏကို ကြိုသိမ်းထား
         let freeSpinCount = calculateFreeSpinCount(bonusCount);
-        
-        // Suspense စမယ်
         startFreeSpinSuspenseSequence(finalResult, nonBonusColumns, 0, bonusCount, freeSpinCount);
     } else {
-        // အကုန်လုံး Bonus ပါရင် ချက်ချင်း Free Spin စ
         initializeFreeSpinsDirect(bonusCount, calculateFreeSpinCount(bonusCount));
     }
 }
+
 // ===== SUSPENSE SEQUENCE: Column တစ်ခုချင်းစီ စစ်မယ် =====
 function startFreeSpinSuspenseSequence(finalResult, columnsToCheck, index, bonusCount, freeSpinCount) {
+    console.log(`🔍 Suspense sequence: index=${index}, total=${columnsToCheck.length}`);
+
     if (index >= columnsToCheck.length) {
-        // အကုန်စစ်ပြီးရင် - စုစုပေါင်း Bonus အရေအတွက် ပြန်ရေတွက်မယ်
+        console.log('✅✅✅ ALL COLUMNS CHECKED! ✅✅✅');
         let totalBonusCount = countTotalBonuses(finalResult);
-        console.log(`📊 Total Bonus Count after suspense: ${totalBonusCount}`);
-        
-        if (totalBonusCount >= 3) {
-            // Bonus 3 လုံးနဲ့အထက်ဆိုရင် Free Spin ပေးမယ်
-            let finalFreeSpinCount = calculateFreeSpinCount(totalBonusCount);
-            finishFreeSpinSuspense(totalBonusCount, finalFreeSpinCount);
-        } else {
-            // Bonus 2 လုံးပဲရှိရင် Free Spin မပေးဘူး
-            console.log('⚠️ Only 2 bonuses total → NO free spins');
-            removeAllBorders();
-            disableButtons(false);
-            window.gameState.isSpinning = false;
-        }
+        console.log(`📊 Total Bonus Count: ${totalBonusCount}`);
+
+        console.log('🎯 Calling finishFreeSpinSuspense NOW...');
+        finishFreeSpinSuspense(totalBonusCount, calculateFreeSpinCount(totalBonusCount));
         return;
     }
-   
 
-    // ===== Bonus စုစုပေါင်း အရေအတွက် ပြန်ရေတွက်မယ် =====
-function countTotalBonuses(result) {
-    let count = 0;
-    for (let col = 0; col < 5; col++) {
-        for (let row = 0; row < 4; row++) {
-            if (result[col][row] === 'bonus') {
-                count++;
-            }
-        }
-    }
-    return count;
-} 
     let col = columnsToCheck[index];
     let isLastColumn = (index === columnsToCheck.length - 1);
     let targetSymbols = finalResult[col];
     let hasBonusInThisCol = targetSymbols.some(s => s === 'bonus');
-    
+
     if (hasBonusInThisCol) {
-        // Bonus ပါရင် ချက်ချင်းပြ
         console.log(`⏩ Column ${col} has Bonus, revealing instantly...`);
         revealColumnInstantly(col, targetSymbols);
         lockColumn(col);
-        
         setTimeout(() => {
             startFreeSpinSuspenseSequence(finalResult, columnsToCheck, index + 1, bonusCount, freeSpinCount);
         }, 400);
     } else {
-        // Bonus မပါရင် Suspense နဲ့ စစ်မယ်
         console.log(`🔍 Column ${col} suspense check...`);
-        
-        // Visual Effect
         addRedBorderToColumn(col);
         let cells = getColumnCells(col);
         cells.forEach(cell => cell.classList.add('rise-column'));
-        
-        // Sound Effect (Jackpot Mode အတိုင်း)
+
         if (typeof SoundManager !== 'undefined') {
             SoundManager.lion();
             SoundManager.coin();
         }
-        
-        // Spin Duration (နောက်ဆုံး Column ဆိုရင် ပိုကြာ)
+
         let spinDuration = isLastColumn ? 7000 : 5000;
-        
-        // Fast Random Spin
         fastRandomSpin(col, spinDuration, () => {
-            // Slow Reveal
             slowRevealColumn(col, targetSymbols, (hasBonus) => {
                 removeRedBorderFromColumn(col);
                 cells.forEach(c => c.classList.remove('rise-column'));
-                
-                if (hasBonus) {
-                    lockColumn(col);
-                }
-                
+                if (hasBonus) lockColumn(col);
                 setTimeout(() => {
                     startFreeSpinSuspenseSequence(finalResult, columnsToCheck, index + 1, bonusCount, freeSpinCount);
                 }, 500);
@@ -3147,20 +3056,72 @@ function countTotalBonuses(result) {
     }
 }
 
+// ===== FINISH FREE SPIN SUSPENSE =====
+function finishFreeSpinSuspense(bonusCount, freeSpinCount) {
+    console.log('🔥🔥🔥 FINISH FREE SPIN SUSPENSE CALLED 🔥🔥🔥');
+    console.log('📌 bonusCount:', bonusCount, 'freeSpinCount:', freeSpinCount);
+    console.log('📌 autoSpinPaused BEFORE:', autoSpinPaused);
+
+    removeAllBorders();
+    setTimeout(() => removeAllBorders(), 100);
+
+    if (bonusCount >= 3) {
+        initializeFreeSpinsDirect(bonusCount, freeSpinCount);
+    } else {
+        enableSpinButton();
+
+        // 🔥 RESET FLAGS
+        autoSpinPaused = false;
+        window.gameState.suspenseMode = false;
+        console.log('📌 autoSpinPaused AFTER:', autoSpinPaused);
+        console.log('📌 suspenseMode AFTER:', window.gameState.suspenseMode);
+
+        isWaitingForWin = false;
+        window.gameState.waitingForWinAnimation = false;
+
+        // 🔥 RESUME AUTO SPIN
+        if (window.gameState.autoSpinActive) {
+            console.log('▶️▶️▶️ RESUMING AUTO SPIN ◀️◀️◀️');
+            setTimeout(() => {
+                console.log('🔄 Calling performAutoSpin()');
+                performAutoSpin();
+            }, 100);
+        }
+
+        if (typeof disableButtons === 'function') disableButtons(false);
+        window.gameState.isSpinning = false;
+        removeAllBorders();
+    }
+}
+
+// ===== COUNT TOTAL BONUSES =====
+function countTotalBonuses(result) {
+    let count = 0;
+    for (let col = 0; col < 5; col++) {
+        for (let row = 0; row < 4; row++) {
+            if (result[col] && result[col][row] === 'bonus') {
+                count++;
+            }
+        }
+    }
+    console.log(`🔢 countTotalBonuses: ${count} bonuses found`);
+    return count;
+}
+
 // ===== BONUS COLUMN ကို ချက်ချင်း Lock + Reveal =====
 function lockAndRevealBonusColumn(col, targetSymbols) {
     let cells = getColumnCells(col);
-    
+
     cells.forEach((cell, row) => {
         let img = cell.querySelector('img');
         let symbol = targetSymbols[row];
-        
+
         if (img && symbol) {
             img.src = 'images/' + symbol + '.png';
             img.style.opacity = '1';
             img.style.transition = 'all 0.3s ease';
             cell.dataset.symbol = symbol;
-            
+
             if (symbol === 'bonus') {
                 addBonusGlow(cell);
                 if (typeof SoundManager !== 'undefined' && SoundManager.boom) {
@@ -3169,14 +3130,13 @@ function lockAndRevealBonusColumn(col, targetSymbols) {
             }
         }
     });
-    
-    // Lock Column Visual
+
     cells.forEach(cell => {
         cell.classList.add('locked-column');
         cell.style.opacity = '0.9';
         cell.style.filter = 'brightness(1.1)';
     });
-    
+
     console.log(`🔒 Bonus Column ${col} LOCKED`);
 }
 
@@ -3190,36 +3150,54 @@ function lockColumn(col) {
     });
 }
 
+// ===== REVEAL COLUMN INSTANTLY =====
+function revealColumnInstantly(col, targetSymbols) {
+    let cells = getColumnCells(col);
+    cells.forEach((cell, row) => {
+        let img = cell.querySelector('img');
+        let symbol = targetSymbols[row];
+        if (img && symbol) {
+            img.src = 'images/' + symbol + '.png';
+            img.style.opacity = '1';
+            cell.dataset.symbol = symbol;
+            if (symbol === 'bonus') {
+                addBonusGlow(cell);
+            }
+        }
+    });
+}
+
 // ===== SLOW REVEAL (Row by Row) =====
 function slowRevealColumn(col, targetSymbols, onComplete) {
     let colCells = getColumnCells(col);
     let rowIndex = 0;
     let hasBonus = false;
-    
+
     function revealNextRow() {
         if (rowIndex >= colCells.length) {
+            console.log(`🐌 slowRevealColumn COMPLETED for column ${col}, hasBonus: ${hasBonus}`);
             setTimeout(() => {
                 if (onComplete) onComplete(hasBonus);
             }, 300);
             return;
         }
-        
+
         let cell = colCells[rowIndex];
         let img = cell.querySelector('img');
         let symbol = targetSymbols[rowIndex];
-        
+
         if (img && symbol) {
             img.src = 'images/' + symbol + '.png';
             img.style.transition = 'none';
             img.style.opacity = '0';
             img.style.transform = 'translateY(-50px) scale(0.8)';
-            
+
             setTimeout(() => {
                 img.style.transition = 'all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
                 img.style.opacity = '1';
                 img.style.transform = 'translateY(0) scale(1)';
                 cell.dataset.symbol = symbol;
-                
+
                 if (symbol === 'bonus') {
                     hasBonus = true;
                     addBonusGlow(cell);
@@ -3229,84 +3207,61 @@ function slowRevealColumn(col, targetSymbols, onComplete) {
                 }
             }, 50);
         }
-        
+
         rowIndex++;
         setTimeout(revealNextRow, 150);
     }
-    
+
     revealNextRow();
 }
+
+// ===== ADD BONUS GLOW =====
 function addBonusGlow(cell) {
     const img = cell.querySelector('img');
     if (img) {
-        // Inline styles
         img.style.borderRadius = '50%';
         img.style.boxShadow = '0 0 0 4px #ffd700, 0 0 25px #ffd700';
         img.style.padding = '4px';
         img.style.backgroundColor = 'rgba(255, 215, 0, 0.3)';
-        
-        // Cell background
         cell.style.backgroundColor = 'rgba(255, 215, 0, 0.1)';
         cell.dataset.symbol = 'bonus';
-        
-        // Add a class for easier cleanup
         cell.classList.add('bonus-glow-cell');
         img.classList.add('bonus-glow-img');
     }
 }
-function finishFreeSpinSuspense(bonusCount, freeSpinCount) {
-    console.log('✅ Free Spin Suspense Finished!');
-    
-    // ⭐ Borders အကုန်ရှင်းမယ်
-    removeAllBorders();
-    
-    // ⭐ နောက်ထပ် သေချာအောင် ထပ်ရှင်းမယ်
-    setTimeout(() => {
-        removeAllBorders();  // ထပ်ခေါ်
-    }, 100);
-    
-    if (bonusCount >= 3) {
-        initializeFreeSpinsDirect(bonusCount, freeSpinCount);
-    } else {
-        disableButtons(false);
-        window.gameState.isSpinning = false;
-        removeAllBorders();  // ထပ်ရှင်း
-    }
-}
+
 // ===== FREE SPIN ပမာဏ တွက်မယ် =====
 function calculateFreeSpinCount(bonusCount) {
-    let freeSpinCount = 10;  // Bonus 3 လုံးအတွက် 10 ကြိမ်
-    if (bonusCount >= 4) freeSpinCount = 15;
-    if (bonusCount >= 5) freeSpinCount = 20;
-    if (bonusCount >= 6) freeSpinCount = 25;
-    if (bonusCount >= 7) freeSpinCount = 30;
-    if (bonusCount >= 8) freeSpinCount = 40;
-    if (bonusCount >= 9) freeSpinCount = 50;
-    if (bonusCount >= 10) freeSpinCount = 60;
-    return freeSpinCount;
+    if (bonusCount >= 10) return 60;
+    if (bonusCount >= 9) return 50;
+    if (bonusCount >= 8) return 40;
+    if (bonusCount >= 7) return 30;
+    if (bonusCount >= 6) return 25;
+    if (bonusCount >= 5) return 20;
+    if (bonusCount >= 4) return 15;
+    return 10;
 }
 
 // ===== EXTRA SPINS တွက်မယ် =====
 function calculateExtraSpins(bonusCount) {
-    let extraSpins = 5;
-    if (bonusCount >= 4) extraSpins = 8;
-    if (bonusCount >= 5) extraSpins = 12;
-    if (bonusCount >= 6) extraSpins = 15;
-    return extraSpins;
+    if (bonusCount >= 6) return 15;
+    if (bonusCount >= 5) return 12;
+    if (bonusCount >= 4) return 8;
+    return 5;
 }
 
-// ===== DIRECT FREE SPIN INIT (Suspense မပါ) =====
+// ===== DIRECT FREE SPIN INIT =====
 function initializeFreeSpinsDirect(bonusCount, freeSpinCount) {
     window.gameState.isFreeSpinning = true;
     window.gameState.freeSpins = freeSpinCount;
     window.gameState.totalFreeSpins = freeSpinCount;
     window.gameState.freeSpinBonusCount = bonusCount;
-    
+
     disableButtons(true);
     showFreeSpinIndicator();
     showFreeSpinStartAnimation(freeSpinCount);
     showNotification(`✨ Free Spin ${freeSpinCount} ကြိမ် ရရှိပါသည်။ (Bonus ${bonusCount} လုံး)`, 'success');
-    
+
     setTimeout(() => {
         spin();
     }, 1500);
@@ -3326,7 +3281,6 @@ function addRedBorderToColumn(col) {
     const cells = getColumnCells(col);
     cells.forEach(cell => {
         cell.classList.add('suspense-glow');
-        // ဒါ့အပြင် inline style ထပ်ထည့်မယ်
         cell.style.boxShadow = '0 0 0 3px #ff0000, 0 0 20px rgba(255,0,0,0.5)';
         cell.style.border = '2px solid #ff0000';
         cell.style.borderRadius = '8px';
@@ -3337,25 +3291,16 @@ function removeRedBorderFromColumn(col) {
     const cells = getColumnCells(col);
     cells.forEach(cell => {
         cell.classList.remove('suspense-glow');
-        // Inline style တွေကို ရှင်းမယ်
         cell.style.boxShadow = '';
         cell.style.border = '';
         cell.style.borderRadius = '';
     });
 }
+
 function removeAllBorders() {
-    console.log('🧹 Removing all borders, glows, and bonus effects...');
-    
     const allCells = document.querySelectorAll('.grid-cell');
-    
     allCells.forEach(cell => {
-        // Remove all CSS classes
-        cell.classList.remove(
-            'suspense-glow', 'locked-column', 'rise-column', 
-            'red-border-line', 'yellow-border-line', 'bonus-glow-cell'
-        );
-        
-        // Reset cell inline styles
+        cell.classList.remove('suspense-glow', 'locked-column', 'rise-column', 'red-border-line', 'yellow-border-line', 'bonus-glow-cell');
         cell.style.border = '';
         cell.style.borderRadius = '';
         cell.style.boxShadow = '';
@@ -3364,10 +3309,7 @@ function removeAllBorders() {
         cell.style.backgroundColor = '';
         cell.style.opacity = '';
         cell.style.filter = '';
-        cell.style.outline = '';
         cell.dataset.symbol = '';
-        
-        // 🔥 Reset image styles (THIS IS KEY FOR BONUS GLOW)
         const img = cell.querySelector('img');
         if (img) {
             img.style.borderRadius = '';
@@ -3376,35 +3318,35 @@ function removeAllBorders() {
             img.style.backgroundColor = '';
             img.style.transform = '';
             img.style.opacity = '';
-            img.style.transition = '';
-            img.style.border = '';
-            img.style.outline = '';
             img.classList.remove('bonus-glow-img');
         }
     });
-    
-    console.log('✅ All borders, glows, and bonus effects removed');
-}
-// Bonus Glow ပျောက်သွားလား စစ်ဖို့
-function checkForRemainingBonusGlow() {
-    const allImages = document.querySelectorAll('.grid-cell img');
-    let hasGlow = false;
-    
-    allImages.forEach(img => {
-        if (img.style.borderRadius === '50%' || img.style.boxShadow.includes('ffd700')) {
-            console.warn('⚠️ Bonus glow still present on:', img);
-            hasGlow = true;
-        }
-    });
-    
-    if (!hasGlow) {
-        console.log('✅ No bonus glow found - clean!');
-    }
 }
 
-// Suspense ပြီးတိုင်း ဒီလိုခေါ်ပါ
-removeAllBorders();
-checkForRemainingBonusGlow();
+function disableSpinButton() {
+    const spinBtn = document.getElementById('spinBtn');
+    if (spinBtn) {
+        spinBtn.disabled = true;
+        spinBtn.style.opacity = '0.4';
+        spinBtn.style.pointerEvents = 'none';
+        spinBtn.classList.add('spinning-disabled');
+    }
+    console.log('🔒 SPIN BUTTON LOCKED');
+}
+
+function enableSpinButton() {
+    const spinBtn = document.getElementById('spinBtn');
+    if (spinBtn) {
+        spinBtn.disabled = false;
+        spinBtn.style.opacity = '1';
+        spinBtn.style.pointerEvents = 'auto';
+        spinBtn.classList.remove('spinning-disabled');
+    }
+    console.log('🔓 SPIN BUTTON UNLOCKED');
+}
+
+
+
 // ============================================
 // 18. FREE SPIN FUNCTIONS (FIXED - NO SUSPENSE)
 // ============================================
@@ -3498,7 +3440,6 @@ function continueFreeSpinAfterWin() {
         endFreeSpins();
     }
 }
-
 // ===== END FREE SPINS =====
 function endFreeSpins() {
     console.log('🎰 Free Spins ended');
@@ -3551,8 +3492,23 @@ function endFreeSpins() {
 
     // Update Firestore
     updateUserBalanceInStorage();
-}
 
+    // 🔥🔥🔥 RESUME AUTO SPIN IF IT WAS PAUSED 🔥🔥🔥
+    if (typeof autoSpinPaused !== 'undefined' && autoSpinPaused === true) {
+        autoSpinPaused = false;
+        console.log('▶️ Resuming auto spin after free spins ended');
+        
+        // Small delay to let UI settle
+        setTimeout(() => {
+            if (window.gameState.autoSpinActive === true && window.gameState.isSpinning === false) {
+                console.log('🔄 Auto spin resuming now');
+                if (typeof performAutoSpin === 'function') {
+                    performAutoSpin();
+                }
+            }
+        }, 1500);
+    }
+}
 // ===== CHECK SCATTER (BONUS) - UPDATED: 3 BONUS = START =====
 function checkScatter(result) {
     let bonusCount = 0;
@@ -3571,11 +3527,11 @@ function checkScatter(result) {
     if (window.gameState.isFreeSpinning && bonusCount >= 3) {
         // အပို Free Spin ထပ်ထည့်
         let extraSpins = 5;
-        
+
         if (bonusCount >= 4) extraSpins = 8;
         if (bonusCount >= 5) extraSpins = 12;
         if (bonusCount >= 6) extraSpins = 15;
-        
+
         window.gameState.freeSpins += extraSpins;
         window.gameState.totalFreeSpins += extraSpins;
 
@@ -3810,6 +3766,7 @@ function showExtraFreeSpinAnimation(extraSpins) {
     }, 2000);
 }
 
+
 function showFreeSpinEndAnimation(totalWin) {
     const overlay = document.createElement('div');
     overlay.style.cssText = `
@@ -3902,21 +3859,23 @@ if (!document.querySelector('#free-spin-animation-styles')) {
 // ===== DIRECT FREE SPIN INIT (Suspense မပါ - ဒါပေမယ့် Free Spin စဖို့သုံးတယ်) =====
 function initializeFreeSpinsDirect(bonusCount, freeSpinCount) {
     console.log(`🎰 Initializing Free Spins: ${freeSpinCount} spins for ${bonusCount} bonuses`);
-    
+
     window.gameState.isFreeSpinning = true;
     window.gameState.freeSpins = freeSpinCount;
     window.gameState.totalFreeSpins = freeSpinCount;
     window.gameState.freeSpinBonusCount = bonusCount;
-    
+
     disableButtons(true);
     showFreeSpinIndicator();
     showFreeSpinStartAnimation(freeSpinCount);
     showNotification(`✨ Free Spin ${freeSpinCount} ကြိမ် ရရှိပါသည်။ (Bonus ${bonusCount} လုံး)`, 'success');
-    
+
     setTimeout(() => {
         spin();
     }, 1500);
 }
+
+
 // ============================================
 // 20. AUTO SPIN (LONG PRESS) WITH INDICATOR
 // ============================================
@@ -3926,6 +3885,7 @@ let autoSpinCount = 0;
 let autoSpinMax = 0;
 let autoSpinInterval;
 let isWaitingForWin = false;
+let autoSpinPaused = false;
 const longPressDuration = 500;
 
 function setupLongPress(btn) {
@@ -4087,28 +4047,61 @@ function hideAutoSpinIndicator() {
 }
 
 function performAutoSpin() {
-    if (!window.gameState.autoSpinActive) return;
+    console.log('🔄🔁 performAutoSpin CALLED at:', new Date().toLocaleTimeString());
+    console.log('   autoSpinActive:', window.gameState.autoSpinActive);
+    console.log('   autoSpinPaused:', autoSpinPaused);
+    console.log('   isSpinning:', window.gameState.isSpinning);
+    console.log('   waitingForWinAnimation:', window.gameState.waitingForWinAnimation);
+    console.log('   isWaitingForWin:', isWaitingForWin);
+    console.log('   suspenseMode:', window.gameState.suspenseMode);
+    console.log('   isFreeSpinning:', window.gameState.isFreeSpinning);
+    
+    if (!window.gameState.autoSpinActive) {
+        console.log('❌ Auto spin not active, exiting');
+        return;
+    }
+
+    // 🔥 Auto spin paused စစ်ဆေး
+    if (autoSpinPaused === true) {
+        console.log('⏸️ Auto spin is paused, waiting 500ms...');
+        setTimeout(performAutoSpin, 500);
+        return;
+    }
 
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
     if (!currentUser || currentUser.balance < window.gameState.betAmount) {
+        console.log('💰 Balance insufficient, stopping auto spin');
         stopAutoSpin('balance');
         showNotification('လက်ကျန်ငွေ မလုံလောက်ပါ။ Auto Spin ရပ်ဆိုင်းလိုက်သည်။', 'error');
         return;
     }
 
     if (window.gameState.isSpinning) {
+        console.log('🎰 Game is spinning, waiting...');
         setTimeout(performAutoSpin, 500);
         return;
     }
 
-    // ✅ Win Animation ပြနေရင် စောင့်မယ်
     if (window.gameState.waitingForWinAnimation || isWaitingForWin) {
+        console.log('🎬 Win animation playing, waiting...');
         setTimeout(performAutoSpin, 500);
         return;
     }
-    
-    clearAllWinHighlights();
 
+    if (window.gameState.suspenseMode === true) {
+        console.log('⏳ Suspense mode active, waiting...');
+        setTimeout(performAutoSpin, 500);
+        return;
+    }
+
+    if (window.gameState.isFreeSpinning === true) {
+        console.log('🎰 Free spin mode active, waiting...');
+        setTimeout(performAutoSpin, 500);
+        return;
+    }
+
+    console.log('✅ ALL CONDITIONS CLEAR! Starting next auto spin...');
+    clearAllWinHighlights();
     isWaitingForWin = true;
     spin();
 }
@@ -4126,28 +4119,29 @@ function handleAutoSpinComplete(winAmount) {
         stopAutoSpin('completed');
         showNotification(`Auto Spin ပြီးဆုံးပါသည်။ (${autoSpinCount} ကြိမ်)`, 'success');
     } else {
-        let delay = 2000;
-
+        // 🔥 Animation ရဲ့ အတိအကျကြာချိန်အတိုင်း delay ထားမယ်
+        let delay = 2000; // default
+        
         if (winAmount >= 50000) {
-            delay = 6000;  // 6 စက္ကန့်
+            delay = 11000;  // Mega win → 11 စက္ကန့်
         } else if (winAmount >= 15000) {
-            delay = 5000;  // 5 စက္ကန့်
+            delay = 11000;   // Super win → 9 စက္ကန့်
         } else if (winAmount >= 5000) {
-            delay = 4000;  // 4 စက္ကန့်
+            delay = 11000;   // Big win → 7 စက္ကန့်
         } else if (winAmount > 0) {
-            delay = 3000;  // 3 စက္ကန့်
+            delay = 4000;   // Normal win → 4 စက္ကန့်
         }
 
-        // ✅ Win Animation ပြီးရင် ဆက်ဖို့
-        if (autoSpinInterval) clearTimeout(autoSpinInterval);
+        console.log(`💰 Win amount: ${winAmount}, delay: ${delay}ms (animation duration)`);
 
+        if (autoSpinInterval) clearTimeout(autoSpinInterval);
         autoSpinInterval = setTimeout(() => {
+            console.log('▶️ Animation delay completed, resuming auto spin');
             isWaitingForWin = false;
             performAutoSpin();
         }, delay);
     }
 }
-
 function stopAutoSpin(reason = 'manual') {
     window.gameState.autoSpinActive = false;
     isWaitingForWin = false;

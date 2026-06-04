@@ -460,15 +460,20 @@
             console.log('✅ Animation complete');
         }
     }
+   
+
+// ========== MAIN PLAY FUNCTION (WITH CALLBACK) ==========
     
-    // ========== MAIN PLAY FUNCTION ==========
-    
-    function playAnimation(type, amount) {
+    function playAnimation(type, amount, onComplete) {
+            let onCompleteCallback = null;
         if (isAnimating) {
             // Clear previous
             cancelAnimationFrame(animationId);
             gsap.killTweensOf([winText, amountText, subText]);
         }
+        
+        // Save callback
+        onCompleteCallback = onComplete || null;
         
         isAnimating = true;
         frameCount = 0;
@@ -613,6 +618,13 @@
                     container.classList.remove('active');
                     cancelAnimationFrame(animationId);
                     canvas.style.transform = 'translate(0, 0)';
+                    
+                    // 🔥 Fire callback when animation is fully done
+                    if (onCompleteCallback && typeof onCompleteCallback === 'function') {
+                        console.log('✅ WinAnimation completed, calling callback');
+                        onCompleteCallback();
+                        onCompleteCallback = null;
+                    }
                 }
             });
         }, 4.5);
@@ -620,17 +632,17 @@
     
     // ========== PUBLIC API ==========
     global.WinAnimation = {
-        mega: function(amount) {
+        mega: function(amount, onComplete) {
             console.log('🚀 MEGA WIN:', amount);
-            playAnimation('mega', amount || 0);
+            playAnimation('mega', amount || 0, onComplete);
         },
-        big: function(amount) {
+        big: function(amount, onComplete) {
             console.log('🚀 BIG WIN:', amount);
-            playAnimation('big', amount || 0);
+            playAnimation('big', amount || 0, onComplete);
         },
-        super: function(amount) {
+        super: function(amount, onComplete) {
             console.log('🚀 SUPER WIN:', amount);
-            playAnimation('super', amount || 0);
+            playAnimation('super', amount || 0, onComplete);
         },
         clear: function() {
             console.log('🧹 Clearing');
@@ -639,11 +651,12 @@
             cancelAnimationFrame(animationId);
             gsap.killTweensOf([winText, amountText, subText]);
             canvas.style.transform = 'translate(0, 0)';
+            onCompleteCallback = null;
         }
     };
     
     // Handle resize
     window.addEventListener('resize', resize);
     
-    console.log('✅ WinAnimation ready! Try: WinAnimation.mega(100000)');
+    console.log('✅ WinAnimation ready! Try: WinAnimation.mega(100000, () => console.log("done"))');
 })(window);
