@@ -1,3 +1,5 @@
+
+
 /* Withdraw Modal အတွက် သီးသန့်စတိုင်လ် */
 #withdrawModal .modal-content {
     background: linear-gradient(180deg, #1a0d0d 0%, #0d0505 100%); /* Withdraw အတွက် နည်းနည်းအရောင်ပြောင်းမယ် */
@@ -47,7 +49,7 @@
     background: rgba(0, 0, 0, 0.85); /* ပိုမိုက်တဲ့ အမည်းရောင် */
     backdrop-filter: blur(15px); /* ပိုကြည်သွားအောင် blur လုပ်မယ် */
     display: flex; justify-content: center; align-items: center;
-    z-index: 9999;
+    z-index: 10005;
 }
 
 .modal-content {
@@ -181,7 +183,7 @@
     width: 100vw;
     height: 100vh;
     background: linear-gradient(180deg, #5a1a1a 0%, #2d0808 100%);
-    z-index: 10000;
+    z-index: 10005;
     align-items: center;
     justify-content: center;
     overflow: hidden;
@@ -228,6 +230,7 @@
     background: rgba(139, 69, 19, 0.2);
     border: 1px solid #8B4513;
     color: #ffffff;
+     z-index: 10005;
     font-size: 20px;
     cursor: pointer;
     width: 38px;
@@ -452,220 +455,6 @@
 #win-text { font-size: clamp(40px, 8vw, 80px); color: #fff; }
 #amount-text { font-size: clamp(60px, 12vw, 120px); color: #FFD700; }
 
-
-/* Bottom Nav Styling */
-.bottom-nav {
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    height: 65px;
-    background: linear-gradient(180deg, rgba(30, 0, 0, 0.95) 0%, rgba(10, 0, 0, 1) 100%);
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    border-top: 1px solid rgba(212, 175, 55, 0.2);
-    backdrop-filter: blur(10px);
-    z-index: 999;
-}
-
-.nav-item {
-    position: relative;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    padding: 10px;
-    opacity: 0.6;
-}
-
-/* Icon တွေကို ပို "Mature" ဖြစ်စေမယ့် Style */
-.nav-icon i {
-    font-size: 22px; /* Icon အရွယ်အစားကို သေးလိုက်တာက ပို Premium ဆန်တယ် */
-    color: #b0b0b0; 
-    transition: all 0.3s ease;
-}
-
-/* Active ဖြစ်တဲ့အချိန်မှာ ရွှေရောင် တောက်တောက်ဖြစ်မယ် */
-.nav-item.active {
-    opacity: 1;
-    transform: translateY(-5px);
-}
-
-.nav-item.active .nav-icon i {
-    color: #ffd700;
-    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-}
-
-/* Badge လေးတွေကို သေးသေးလေးနဲ့ ပိုလှအောင် */
-.nav-badge {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    background: #ff4d4d;
-    color: white;
-    font-size: 8px;
-    padding: 2px 5px;
-    border-radius: 10px;
-    font-family: sans-serif;
-    border: 1px solid #000;
-}
-
-/* ===== BOTTOM NAVIGATION – CASINO METAL STYLE ===== */
-.bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    background: linear-gradient(135deg, #8B4513, #5a1a1a);
-    backdrop-filter: blur(24px);
-    border-top: 2px solid rgba(212, 175, 55, 0.6);
-    padding: 12px 16px 24px;
-    z-index: 200;
-    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 215, 0, 0.1);
-}
-
-.nav-item {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    padding: 10px;
-    border-radius: 50%;
-    transition: all 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-    background: transparent;
-    width: 64px;
-    height: 64px;
-}
-
-.nav-item:hover {
-    transform: translateY(-6px);
-    background: radial-gradient(circle at 30% 20%, rgba(212, 175, 55, 0.25), transparent 70%);
-}
-
-.nav-item.active {
-    background: radial-gradient(circle at 30% 20%, rgba(212, 175, 55, 0.35), rgba(212, 175, 55, 0.05));
-    box-shadow: 0 0 20px rgba(212, 175, 55, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-}
-
-.nav-icon {
-    font-size: 32px;
-    color: #c0cbe0;
-    transition: all 0.2s;
-    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
-}
-
-.nav-item.active .nav-icon {
-    color: #ffdf6c;
-    text-shadow: 0 0 15px rgba(212, 175, 55, 0.9);
-    transform: scale(1.08);
-}
-
-.nav-badge {
-    position: absolute;
-    top: 6px;
-    right: 8px;
-    background: linear-gradient(145deg, #e63232, #9b0f0f);
-    color: white;
-    font-size: 11px;
-    font-weight: 900;
-    min-width: 22px;
-    height: 22px;
-    border-radius: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 6px;
-    border: 1.5px solid #fff;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-    font-family: monospace;
-    letter-spacing: 0.5px;
-    animation: badgePulse 1.2s infinite;
-}
-
-@keyframes badgePulse {
-    0%, 100% { transform: scale(1); background: #e63232; }
-    50% { transform: scale(1.12); background: #ff4a4a; }
-}
-
-/* Mobile responsive */
-@media (max-width: 560px) {
-    .bottom-nav {
-        padding: 8px 12px 18px;
-    }
-    .nav-item {
-        width: 64px;
-        height: 64px;
-    }
-    .nav-icon {
-        font-size: 38px;
-    }
-    .nav-badge {
-        top: 4px;
-        right: 4px;
-        min-width: 30px;
-        height: 30px;
-        font-size: 20px;
-    }
-}
-
-@media (orientation: landscape) and (max-height: 480px) {
-    .bottom-nav {
-        padding: 6px 10px 14px;
-    }
-    .nav-item {
-        width: 58px;
-        height: 58px;
-    }
-    .nav-icon {
-        font-size: 34px;
-    }
-}
-.bottom-nav {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    background: linear-gradient(180deg, #1f0808 0%, #0d0202 100%);
-    border-top: 1px solid #4a3b30;
-    padding: 10px 0;
-}
-
-.nav-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    padding: 5px;
-    opacity: 0.5; /* ပုံမှန်ဆိုရင် မှိန်ထားမယ် */
-    transition: 0.3s;
-}
-
-.nav-item i {
-    font-size: 20px; /* Icon တွေကို သေးလိုက်ပါ */
-    color: #ffd700; /* ရွှေရောင်ကို ဖျော့ပြီး သုံးမယ် */
-    opacity: 0.8;
-}
-
-.nav-item.active {
-    opacity: 1;
-    transform: translateY(-5px); /* ပေါ်ထွက်လာမယ် */
-}
-
-/* Badge လေးတွေကို ပိုလှအောင် */
-.nav-badge {
-    position: absolute;
-    top: 2px;
-    right: 25%;
-    background: #ff0000;
-    color: #fff;
-    font-size: 9px;
-    padding: 2px 4px;
-    border-radius: 50%;
-    font-weight: bold;
-    border: 1px solid #000;
-}
-
 /* ===== JACKPOT BADGE ON GAME CARD ===== */
 .card-jackpot-badge {
     position: absolute;
@@ -772,7 +561,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 8px 12px;
-    background: linear-gradient(145deg, #1e1a2f, #141024);
+    background: #663399;
     border-bottom: 2px solid rgba(255, 215, 0, 0.5);
 }
 
@@ -991,4 +780,90 @@
     backface-visibility: hidden;
     perspective: 1000px;
 }
+
+/* ==================== NAV CASHBACK STYLES ==================== */
+
+.nav-cashback {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.nav-cashback .nav-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #ffd700, #ff8c00);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #000;
+    font-size: 22px;
+    margin-top: -20px;
+    box-shadow: 
+        0 4px 15px rgba(255, 215, 0, 0.4),
+        0 0 30px rgba(255, 215, 0, 0.2);
+    border: 3px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s;
+    position: relative;
+}
+
+.nav-cashback:hover .nav-icon {
+    transform: scale(1.1) translateY(-5px);
+    box-shadow: 
+        0 6px 25px rgba(255, 215, 0, 0.6),
+        0 0 40px rgba(255, 215, 0, 0.3);
+}
+
+.nav-cashback .nav-label {
+    color: #ffd700;
+    font-weight: 700;
+    font-size: 10px;
+}
+
+/* Badge for ready to claim */
+#cashbackNavBadge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    width: 18px;
+    height: 18px;
+    background: #ff4444;
+    border-radius: 50%;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #000;
+    animation: badgePulse 2s infinite;
+}
+
+#cashbackNavBadge.active {
+    display: flex;
+}
+
+@keyframes badgePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+}
+
+/* Ready state glow */
+.nav-cashback.cashback-ready .nav-icon {
+    animation: readyGlow 1.5s ease-in-out infinite;
+}
+
+@keyframes readyGlow {
+    0%, 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.4); }
+    50% { box-shadow: 0 0 40px rgba(255, 215, 0, 0.8), 0 0 60px rgba(255, 215, 0, 0.4); }
+}
+
+/* ==================== CASHBACK MODAL STYLES ==================== */
 

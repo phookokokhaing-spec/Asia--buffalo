@@ -4735,3 +4735,55 @@ window.stopAutoSpin = stopAutoSpin;
 window.startAutoSpin = startAutoSpin;
 window.highlightWinsPremium = highlightWinsPremium;
 console.log('✅ Game.js ULTIMATE VERSION fully loaded with all features!');
+
+
+// ========== FIX: INIT GAME FUNCTION FOR LOBBY ==========
+function initGame() {
+    console.log("🎰 initGame() called from Lobby");
+    
+    // ရှိပြီးသား grid ကို ပြန်ဆောက်မယ်
+    if (typeof initSlotGrid === 'function') {
+        initSlotGrid();
+    } else {
+        console.warn("initSlotGrid not found, creating grid manually");
+        const grid = document.getElementById('slotGrid');
+        if (grid && grid.children.length === 0) {
+            for (let i = 0; i < 20; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'grid-cell';
+                cell.style.cssText = 'background: #2d0808; border-radius: 10px;';
+                grid.appendChild(cell);
+            }
+        }
+    }
+    
+    // Bet controls ပြန်စီမယ်
+    if (typeof initBetControls === 'function') initBetControls();
+    
+    // Event listeners ပြန်ချိတ်မယ်
+    if (typeof initEventListeners === 'function') initEventListeners();
+    
+    // Balance ကို UI မှာ ပြန်ပြမယ်
+    if (typeof updateBalanceDisplay === 'function') updateBalanceDisplay();
+    
+    console.log("✅ initGame completed, grid should be visible");
+}
+
+// showGameContainer ကို override လုပ်မယ် (သေချာအောင်)
+const originalShowGameContainer = window.showGameContainer;
+window.showGameContainer = function() {
+    const lobby = document.getElementById('lobbyScreen');
+    const game = document.getElementById('gameContainer');
+    if (lobby && game) {
+        lobby.style.display = 'none';
+        game.style.display = 'flex';
+        // initGame ကို သေချာခေါ်
+        if (typeof initGame === 'function') {
+            initGame();
+        } else {
+            console.error('initGame still missing!');
+        }
+    } else {
+        console.error('Lobby or Game Container not found');
+    }
+};
