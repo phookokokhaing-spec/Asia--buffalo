@@ -1,5 +1,5 @@
 // ============================================
-// PAYMENT.JS - CLEAN VERSION WITH SOUNDS
+// PAYMENT.JS - WITH BONUS & CASHBACK SYSTEM
 // ============================================
 
 (function() {
@@ -16,9 +16,420 @@
         MIN_WITHDRAW: 5000,
         MAX_WITHDRAW: 500000,
         WITHDRAW_FEE: 0.05,
-       LOSS_POOL_PERCENT: 0.2,
-        SOUND_ENABLED: true
+        LOSS_POOL_PERCENT: 0.2,
+        SOUND_ENABLED: true,
+        
+        // 🔥 BONUS CONFIG
+        CASHBACK_PERCENT: 0.05,      // 5% cashback
+        CASHBACK_DAYS: 5,            // 5 days streak
+        MIN_DEPOSIT_PER_DAY: 1000,   // Min per day
+        DELAY_BONUS_PERCENT: 0.05,  // 5% of total deposits
+        DELAY_BONUS_INTERVAL: 24 * 60 * 60 * 1000 // 24 hours
     };
+
+    // ============================================
+    // BONUS DATA STORAGE
+    // ============================================
+    let bonusData = {
+        deposits: {},           // { "2024-06-07": 5000 }
+        lastDepositDate: null,
+        cashbackClaimed: false,
+        totalCashbackClaimed: 0,
+        totalDeposits: 0,
+        delayBonusAmount: 0,
+        delayBonusClaimed: false,
+        lastDelayClaim: null,
+        // Journey
+        currentWorld: 1,
+        worldsProgress: { 1: 0, 2: 0, 3: 0, 4: 0 },
+        worldsCompleted: [],
+        totalSpins: 0,
+        biggestWin: 0,
+        totalBet: 0,
+        totalWin: 0
+    };
+
+    // ============================================
+    // BONUS FUNCTIONS
+    // ============================================
+
+    // Load bonus data
+    function loadBonusData() {
+        const saved = localStorage.getItem('asiaBuffaloBonusData');
+        if (saved) bonusData = JSON.parse(saved);
+    }
+
+    function saveBonusData() {
+        localStorage.setItem('asiaBuffaloBonusData', JSON.stringify(bonusData));
+    }
+
+    // Save to Firebase
+    function saveBonusToFirebase() {
+        const currentUser = localStorage.getItem('currentUser');
+        if (!currentUser || !firebase.firestore) return;
+        
+        const user = JSON.parse(currentUser);
+        if (!user || !user.uid) return;
+        
+        firebase.firestore().collection('users').doc(user.uid).update({
+            bonusData: bonusData,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }).catch(e => console.warn('Bonus save error:', e));
+    }
+
+    // Record deposit for bonus
+    function recordBonusDeposit(amount) {
+        const today = new Date().toISOString().split('T')[0];
+        
+        if (!bonusData.deposits[today]) bonusData.deposits[today] = 0;
+        bonusData.deposits[today] += amount;
+        bonusData.lastDepositDate = today;
+        bonusData.totalDeposits += amount;
+        
+        // Calculate delay bonus (5% of total deposits)
+        bonusData.delayBonusAmount = Math.floor(bonusData.totalDeposits * CONFIG.DELAY_BONUS_PERCENT);
+        
+        saveBonusData();
+        saveBonusToFirebase();
+        
+        // Update UI if on daily tab
+        if (document.getElementById('daily-content')?.style.display !== 'none') {
+            updateCashbackUI();
+            updateDelayBonusUI();
+        }
+        
+        console.log('💰 Bonus deposit recorded:', amount, 'Total:', bonusData.totalDeposits);
+    }
+
+    // Get 5-day total
+    function get5DayTotal() {
+        let total = 0;
+        const today = new Date();
+        for (let i = 0; i < 5; i++) {
+            const d = new Date(today);
+            d.setDate(d.getDate() - i);
+            const key = d.toISOString().split('T')[0];
+            if (bonusData.deposits[key]) total += bonusData.deposits[key];
+        }
+        return total;
+    }
+
+    // Calculate cashback
+    function calculateCashback() {
+        return Math.floor(get5DayTotal() * CONFIG.CASHBACK_PERCENT);
+    }
+
+    // Get streak
+    function getStreak() {
+        let streak = 0;
+        for (let i = 0; i < 5; i++) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            const key = d.toISOString().split('T')[0];
+            if (bonusData.deposits[key] && bonusData.deposits[key] >= CONFIG.MIN_DEPOSIT_PER_DAY) {
+                streak++;
+            } else if (i > 0) break;
+        }
+        return streak;
+    }
+
+    // Claim cashback
+    window.claimCashback = function() {
+        const streak = getStreak();
+        if (streak < 5) {
+            showNotification('❌ 5 ရက်ပြည့်အောင် ငွေသွင်းပါ!', 'error');
+            return;
+        }
+        if (bonusData.cashbackClaimed) {
+            showNotification('❌ ယူခဲ့ပြီးပါပြီ!', 'error');
+            return;
+        }
+        
+        const amount = calculateCashback();
+        addBonusToBalance(amount);
+        
+        bonusData.cashbackClaimed = true;
+        bonusData.totalCashbackClaimed += amount;
+        
+        saveBonusData();
+        saveBonusToFirebase();
+        updateCashbackUI();
+        
+        showBonusCelebration('🎉 5% CASHBACK!', `+${amount.toLocaleString()} KS`, amount);
+    };
+
+    // Claim delay bonus
+    window.claimDelayBonus = function() {
+        if (bonusData.delayBonusAmount <= 0) {
+            showNotification('❌ Bonus မရှိသေးပါ!', 'error');
+            return;
+        }
+        
+        const lastClaim = bonusData.lastDelayClaim ? new Date(bonusData.lastDelayClaim) : null;
+        const now = new Date();
+        if (lastClaim && (now - lastClaim) < CONFIG.DELAY_BONUS_INTERVAL) {
+            const hoursLeft = Math.ceil((CONFIG.DELAY_BONUS_INTERVAL - (now - lastClaim)) / 3600000);
+            showNotification(`⏳ ${hoursLeft} နာရီ ထပ်စောင့်ပါ!`, 'error');
+            return;
+        }
+        
+        const amount = bonusData.delayBonusAmount;
+        addBonusToBalance(amount);
+        
+        bonusData.delayBonusClaimed = true;
+        bonusData.lastDelayClaim = now.toISOString();
+        bonusData.delayBonusAmount = 0; // Reset for next cycle
+        
+        saveBonusData();
+        saveBonusToFirebase();
+        updateDelayBonusUI();
+        
+        showBonusCelebration('🎁 DELAY BONUS!', `+${amount.toLocaleString()} KS`, amount);
+    };
+
+    // Add bonus to balance
+    function addBonusToBalance(amount) {
+        const current = getCurrentBalance();
+        const newBalance = current + amount;
+        
+        // Update DOM
+        const lobbyEl = document.getElementById('lobbyBalance');
+        const gameEl = document.getElementById('balanceAmount');
+        if (lobbyEl) lobbyEl.innerText = newBalance.toLocaleString();
+        if (gameEl) gameEl.innerText = newBalance.toLocaleString();
+        
+        // Update gameState
+        if (window.gameState) {
+            window.gameState.balance = newBalance;
+            window.gameState.displayBalance = newBalance;
+        }
+        
+        // Save to localStorage
+        const userData = localStorage.getItem('currentUser');
+        if (userData) {
+            const user = JSON.parse(userData);
+            user.balance = newBalance;
+            localStorage.setItem('currentUser', JSON.stringify(user));
+            
+            // Firebase
+            if (firebase.firestore && user.uid) {
+                firebase.firestore().collection('users').doc(user.uid).update({
+                    balance: newBalance,
+                    displayBalance: newBalance
+                }).catch(e => console.warn(e));
+            }
+        }
+    }
+
+    function getCurrentBalance() {
+        if (window.gameState && typeof window.gameState.balance === 'number') {
+            return window.gameState.balance;
+        }
+        const lobbyEl = document.getElementById('lobbyBalance');
+        if (lobbyEl) {
+            return parseInt(lobbyEl.innerText.replace(/,/g, '')) || 0;
+        }
+        return 0;
+    }
+
+    // Update Cashback UI
+    function updateCashbackUI() {
+        const total = get5DayTotal();
+        const cashback = calculateCashback();
+        const streak = getStreak();
+        
+        const elTotal = document.getElementById('totalDeposits');
+        const elCashback = document.getElementById('cashbackReady');
+        const elDay = document.getElementById('currentDay');
+        const elStreak = document.getElementById('streakText');
+        
+        if (elTotal) elTotal.innerText = total.toLocaleString() + ' KS';
+        if (elCashback) elCashback.innerText = cashback.toLocaleString() + ' KS';
+        if (elDay) elDay.innerText = streak + ' / 5';
+        if (elStreak) elStreak.innerText = streak + ' Day Streak';
+        
+        // Day cards
+        const today = new Date();
+        for (let i = 1; i <= 5; i++) {
+            const d = new Date(today);
+            d.setDate(d.getDate() - (5 - i));
+            const key = d.toISOString().split('T')[0];
+            const deposit = bonusData.deposits[key] || 0;
+            const isComplete = deposit >= CONFIG.MIN_DEPOSIT_PER_DAY;
+            
+            const progress = document.getElementById('day' + i + 'Progress');
+            const btn = document.getElementById('day' + i + 'Btn');
+            const depositText = document.getElementById('day' + i + 'Deposit');
+            const card = document.getElementById('day' + i + 'Card');
+            
+            if (depositText) depositText.innerText = deposit.toLocaleString() + ' KS';
+            if (progress) progress.style.width = Math.min((deposit / CONFIG.MIN_DEPOSIT_PER_DAY) * 100, 100) + '%';
+            
+            if (card) {
+                if (isComplete) {
+                    card.classList.add('completed');
+                    if (btn) {
+                        btn.innerHTML = '<i class="fas fa-check"></i> Done';
+                        btn.disabled = true;
+                    }
+                } else {
+                    card.classList.remove('completed');
+                    if (btn) {
+                        if (i === 5) {
+                            btn.innerText = 'Locked';
+                            btn.disabled = true;
+                        } else {
+                            btn.innerText = 'Deposit Now';
+                            btn.disabled = false;
+                            btn.onclick = () => openDepositModal();
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Day 5 claim button
+        const day5Btn = document.getElementById('day5Btn');
+        const day5Cashback = document.getElementById('day5Cashback');
+        if (day5Cashback) day5Cashback.innerText = cashback.toLocaleString() + ' KS';
+        
+        if (day5Btn) {
+            if (streak >= 5 && !bonusData.cashbackClaimed) {
+                day5Btn.disabled = false;
+                day5Btn.innerHTML = '<i class="fas fa-crown"></i> CLAIM ' + cashback.toLocaleString() + ' KS';
+                day5Btn.style.background = 'linear-gradient(135deg, #ff4757, #ff6348)';
+                day5Btn.onclick = window.claimCashback;
+            } else if (bonusData.cashbackClaimed) {
+                day5Btn.disabled = true;
+                day5Btn.innerHTML = '<i class="fas fa-check"></i> Claimed';
+                day5Btn.style.background = 'linear-gradient(135deg, #00ff7f, #00cc66)';
+            } else {
+                day5Btn.disabled = true;
+                day5Btn.innerHTML = '<i class="fas fa-lock"></i> Locked';
+            }
+        }
+        
+        updateDepositHistory();
+    }
+
+    // Update Delay Bonus UI
+    function updateDelayBonusUI() {
+        const elTotal = document.getElementById('delayTotalDeposits');
+        const elBonus = document.getElementById('delayBonusAmount');
+        const elClaimable = document.getElementById('delayClaimable');
+        const btn = document.getElementById('delayClaimBtn');
+        
+        if (elTotal) elTotal.innerText = bonusData.totalDeposits.toLocaleString() + ' KS';
+        if (elBonus) elBonus.innerText = bonusData.delayBonusAmount.toLocaleString() + ' KS';
+        
+        const lastClaim = bonusData.lastDelayClaim ? new Date(bonusData.lastDelayClaim) : null;
+        const now = new Date();
+        const canClaim = bonusData.delayBonusAmount > 0 && 
+            (!lastClaim || (now - lastClaim) >= CONFIG.DELAY_BONUS_INTERVAL);
+        
+        if (elClaimable) elClaimable.innerText = canClaim ? bonusData.delayBonusAmount.toLocaleString() + ' KS' : '0 KS';
+        
+        if (btn) {
+            btn.disabled = !canClaim;
+            if (canClaim) {
+                btn.innerHTML = '<i class="fas fa-gift"></i> Claim ' + bonusData.delayBonusAmount.toLocaleString() + ' KS';
+                btn.style.background = 'linear-gradient(135deg, #00ff7f, #00cc66)';
+                btn.onclick = window.claimDelayBonus;
+            } else {
+                btn.innerHTML = '<i class="fas fa-lock"></i> Not Available';
+                btn.style.background = 'linear-gradient(135deg, #333, #222)';
+            }
+        }
+    }
+
+    function updateDepositHistory() {
+        const list = document.getElementById('depositHistoryList');
+        if (!list) return;
+        
+        const dates = Object.keys(bonusData.deposits).sort().reverse();
+        if (dates.length === 0) {
+            list.innerHTML = '<div style="color:#666;text-align:center;padding:20px;">No deposits yet</div>';
+            return;
+        }
+        
+        list.innerHTML = dates.slice(0, 10).map(date => {
+            const d = new Date(date);
+            const formatted = d.toLocaleDateString('my-MM', { month: 'short', day: 'numeric' });
+            return `
+                <div class="deposit-history-item">
+                    <span class="date">${formatted}</span>
+                    <span class="amount">${bonusData.deposits[date].toLocaleString()} KS</span>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // Countdown timer
+    let countdownInterval;
+    function startCountdownTimer() {
+        if (countdownInterval) clearInterval(countdownInterval);
+        
+        const timer = document.getElementById('nextReset');
+        if (!timer) return;
+        
+        countdownInterval = setInterval(() => {
+            const now = new Date();
+            const tomorrow = new Date(now);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(0, 0, 0, 0);
+            
+            const diff = tomorrow - now;
+            const h = Math.floor(diff / 3600000);
+            const m = Math.floor((diff % 3600000) / 60000);
+            const s = Math.floor((diff % 60000) / 1000);
+            
+            timer.innerText = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        }, 1000);
+    }
+
+    // Show celebration
+    function showBonusCelebration(title, message, amount) {
+        // Confetti
+        for (let i = 0; i < 50; i++) {
+            const c = document.createElement('div');
+            c.style.cssText = `
+                position:fixed;
+                width:8px;height:8px;
+                background:${['#ffd700','#ff9500','#00ff7f','#00bfff','#ff4757'][Math.floor(Math.random()*5)]};
+                left:${Math.random()*100}%;
+                top:-10px;
+                border-radius:50%;
+                animation:confettiFall ${2+Math.random()*2}s ease-out forwards;
+                z-index:10000;
+                pointer-events:none;
+            `;
+            document.body.appendChild(c);
+            setTimeout(() => c.remove(), 4000);
+        }
+        
+        // Notification
+        showNotification(`${title} ${message}`, 'success');
+        
+        // Celebration modal
+        const cel = document.getElementById('celebrationNotification');
+        if (cel) {
+            document.getElementById('celebrationTitle').innerText = title;
+            document.getElementById('celebrationMessage').innerText = message;
+            document.getElementById('celebrationAmount').innerText = amount.toLocaleString() + ' KS';
+            cel.style.display = 'block';
+            setTimeout(() => cel.style.display = 'none', 5000);
+        }
+    }
+
+    // Add confetti animation style
+    const confettiStyle = document.createElement('style');
+    confettiStyle.innerHTML = `
+        @keyframes confettiFall {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(confettiStyle);
 
     // ============================================
     // STATE MANAGEMENT
@@ -43,7 +454,6 @@
         if (!CONFIG.SOUND_ENABLED) return;
         
         try {
-            // Try SoundManager first
             if (window.SoundManager) {
                 if (soundId === 'button') SoundManager.button();
                 if (soundId === 'noti') SoundManager.noti();
@@ -51,7 +461,6 @@
                 return;
             }
             
-            // Fallback to audio elements
             const audioMap = {
                 'button': 'allbuttonSound',
                 'noti': 'notiSound',
@@ -77,7 +486,6 @@
     async function sendToTelegram(message, imageBase64 = null) {
         try {
             if (imageBase64) {
-                // Convert base64 to blob
                 const byteCharacters = atob(imageBase64.split(',')[1]);
                 const byteNumbers = new Array(byteCharacters.length);
                 for (let i = 0; i < byteCharacters.length; i++) {
@@ -182,7 +590,6 @@
             state.bankAccounts.forEach((account, index) => {
                 if (!account) return;
 
-                // Safe key creation
                 let key = 'bank';
                 if (account.type && typeof account.type === 'string') {
                     key = account.type;
@@ -389,137 +796,126 @@
         document.getElementById('fileInput').value = '';
     };
 
-      // ============================================
-    // DEPOSIT WITH 20% LOSS POOL
     // ============================================
-    
-     // ============================================
-// DEPOSIT WITH 20% LOSS POOL (FIXED)
-// ============================================
-window.submitDeposit = async function() {
-    playSound('button');
+    // DEPOSIT WITH BONUS SYSTEM
+    // ============================================
+    window.submitDeposit = async function() {
+        playSound('button');
 
-    const user = firebase.auth().currentUser;
-    if (!user) {
-        showNotification('ကျေးဇူးပြု၍ Login ဝင်ပါ။', 'error');
-        return;
-    }
-
-    const phone = document.getElementById('senderPhone').value.trim();
-    const txId = document.getElementById('transferId').value.trim();
-
-    // Validation
-    if (!window.paymentState.selectedAmount) {
-        showNotification('ငွေပမာဏ ရွေးချယ်ပါ။', 'error');
-        return;
-    }
-    if (!phone || phone.length < 9) {
-        showNotification('ဖုန်းနံပါတ် မှန်ကန်စွာထည့်ပါ။', 'error');
-        return;
-    }
-    if (!txId || txId.length !== 5) {
-        showNotification('ငွေလွှဲ ID သည် ၅လုံး ဖြစ်ရပါမည်။', 'error');
-        return;
-    }
-    if (!window.paymentState.selectedFile) {
-        showNotification('Screenshot တင်ပေးပါ။', 'error');
-        return;
-    }
-
-    try {
-        const screenshotBase64 = await fileToBase64(window.paymentState.selectedFile);
-        const db = firebase.firestore();
-        const accounts = getBankAccountsObject();
-        const username = user.displayName || user.email?.split('@')[0] || 'User';
-
-        // 20% Loss Pool Calculation
-        const depositAmount = window.paymentState.selectedAmount;
-        const lossPoolContribution = Math.floor(depositAmount * CONFIG.LOSS_POOL_PERCENT);
-        const userCredit = depositAmount - lossPoolContribution;
-        const maxWin = Math.floor(depositAmount * 0.5);
-
-        const deposit = {
-            userId: user.uid,
-            username: username,
-            amount: depositAmount,
-            actualCredit: userCredit,
-            lossPoolContribution: lossPoolContribution,
-            maxWin: maxWin,
-            method: window.paymentState.selectedMethod,
-            bankInfo: accounts[window.paymentState.selectedMethod] || {},
-            senderPhone: phone,
-            transferId: txId,
-            screenshot: screenshotBase64,
-            status: 'pending',
-            createdAt: new Date().toISOString()
-        };
-
-        // Save deposit
-        await db.collection('deposits').add(deposit);
-
-        // // ❌ ဒီနေရာကိုဖျက်လိုက်ပြီ (ချက်ချင်း balance မတိုးတော့ဘူး)
-        // const userRef = db.collection('users').doc(user.uid);
-        // await userRef.update({
-        //     balance: firebase.firestore.FieldValue.increment(userCredit),
-        //     displayBalance: firebase.firestore.FieldValue.increment(depositAmount),
-        //     maxWin: maxWin,
-        //     totalDeposit: firebase.firestore.FieldValue.increment(depositAmount)
-        // });
-
-        // ✅ ဒီအစား pendingDeposit အနေနဲ့ သိမ်းမယ်
-        const userRef = db.collection('users').doc(user.uid);
-        await userRef.update({
-            pendingDeposit: firebase.firestore.FieldValue.increment(userCredit),
-            pendingDepositAmount: depositAmount,
-            pendingDepositTime: new Date().toISOString()
-        });
-
-        // Update loss pool
-        const lossPoolRef = db.collection('admin').doc('lossPool');
-        const lossPoolDoc = await lossPoolRef.get();
-
-        if (lossPoolDoc.exists) {
-            await lossPoolRef.update({
-                totalAmount: firebase.firestore.FieldValue.increment(lossPoolContribution),
-                [`contributions.${user.uid}`]: firebase.firestore.FieldValue.increment(lossPoolContribution),
-                updatedAt: new Date().toISOString()
-            });
-        } else {
-            await lossPoolRef.set({
-                totalAmount: lossPoolContribution,
-                contributions: { [user.uid]: lossPoolContribution },
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-            });
+        const user = firebase.auth().currentUser;
+        if (!user) {
+            showNotification('ကျေးဇူးပြု၍ Login ဝင်ပါ။', 'error');
+            return;
         }
 
-        // Update local state (UI အတွက် display balance ကိုပဲပြမယ်)
-        if (window.gameState) {
-            window.gameState.displayBalance = (window.gameState.displayBalance || 0) + depositAmount;
+        const phone = document.getElementById('senderPhone').value.trim();
+        const txId = document.getElementById('transferId').value.trim();
+
+        if (!state.selectedAmount) {
+            showNotification('ငွေပမာဏ ရွေးချယ်ပါ။', 'error');
+            return;
+        }
+        if (!phone || phone.length < 9) {
+            showNotification('ဖုန်းနံပါတ် မှန်ကန်စွာထည့်ပါ။', 'error');
+            return;
+        }
+        if (!txId || txId.length !== 5) {
+            showNotification('ငွေလွှဲ ID သည် ၅လုံး ဖြစ်ရပါမည်။', 'error');
+            return;
+        }
+        if (!state.selectedFile) {
+            showNotification('Screenshot တင်ပေးပါ။', 'error');
+            return;
         }
 
-        // Notify
-        await notifyNewDeposit(deposit);
+        try {
+            const screenshotBase64 = await fileToBase64(state.selectedFile);
+            const db = firebase.firestore();
+            const accounts = getBankAccountsObject();
+            const username = user.displayName || user.email?.split('@')[0] || 'User';
 
-        showSuccessModal(
-            'ငွေသွင်းတောင်းဆိုမှု အောင်မြင်ပါသည်။',
-            'Admin မှ စစ်ဆေးပြီးပါက ငွေဖြည့်သွင်းပေးပါမည်။',
-            [
-                'ငွေပမာဏ: ' + formatNumber(depositAmount) + ' ကျပ်',
-                'Gameunitရရှိ‌ေငွ: ' + formatNumber(userCredit) + ' ကျပ် (80%)',
-                'ငွေလွှဲ ID: ' + txId,
-                'အခြေအနေ: စောင့်ဆိုင်းဆဲ'
-            ]
-        );
+            // 20% Loss Pool Calculation
+            const depositAmount = state.selectedAmount;
+            const lossPoolContribution = Math.floor(depositAmount * CONFIG.LOSS_POOL_PERCENT);
+            const userCredit = depositAmount - lossPoolContribution;
+            const maxWin = Math.floor(depositAmount * 0.5);
 
-        resetDepositForm();
-        setTimeout(() => closeModal('depositModal'), 2000);
+            const deposit = {
+                userId: user.uid,
+                username: username,
+                amount: depositAmount,
+                actualCredit: userCredit,
+                lossPoolContribution: lossPoolContribution,
+                maxWin: maxWin,
+                method: state.selectedMethod,
+                bankInfo: accounts[state.selectedMethod] || {},
+                senderPhone: phone,
+                transferId: txId,
+                screenshot: screenshotBase64,
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            };
 
-    } catch (error) {
-        console.error('Deposit error:', error);
-        showNotification('မအောင်မြင်ပါ။ ထပ်ကြိုးစားပါ။', 'error');
-    }
-};
+            // Save deposit
+            await db.collection('deposits').add(deposit);
+
+            // Pending deposit (admin approve လုပ်မှ balance တိုး)
+            const userRef = db.collection('users').doc(user.uid);
+            await userRef.update({
+                pendingDeposit: firebase.firestore.FieldValue.increment(userCredit),
+                pendingDepositAmount: depositAmount,
+                pendingDepositTime: new Date().toISOString()
+            });
+
+            // Update loss pool
+            const lossPoolRef = db.collection('admin').doc('lossPool');
+            const lossPoolDoc = await lossPoolRef.get();
+
+            if (lossPoolDoc.exists) {
+                await lossPoolRef.update({
+                    totalAmount: firebase.firestore.FieldValue.increment(lossPoolContribution),
+                    [`contributions.${user.uid}`]: firebase.firestore.FieldValue.increment(lossPoolContribution),
+                    updatedAt: new Date().toISOString()
+                });
+            } else {
+                await lossPoolRef.set({
+                    totalAmount: lossPoolContribution,
+                    contributions: { [user.uid]: lossPoolContribution },
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                });
+            }
+
+            // 🔥 RECORD FOR BONUS SYSTEM
+            recordBonusDeposit(depositAmount);
+
+            // Update local state
+            if (window.gameState) {
+                window.gameState.displayBalance = (window.gameState.displayBalance || 0) + depositAmount;
+            }
+
+            // Notify
+            await notifyNewDeposit(deposit);
+
+            showSuccessModal(
+                'ငွေသွင်းတောင်းဆိုမှု အောင်မြင်ပါသည်။',
+                'Admin မှ စစ်ဆေးပြီးပါက ငွေဖြည့်သွင်းပေးပါမည်။',
+                [
+                    'ငွေပမာဏ: ' + formatNumber(depositAmount) + ' ကျပ်',
+                    'Gameunitရရှိ‌ေငွ: ' + formatNumber(userCredit) + ' ကျပ် (80%)',
+                    'ငွေလွှဲ ID: ' + txId,
+                    'အခြေအနေ: စောင့်ဆိုင်းဆဲ'
+                ]
+            );
+
+            resetDepositForm();
+            setTimeout(() => closeModal('depositModal'), 2000);
+
+        } catch (error) {
+            console.error('Deposit error:', error);
+            showNotification('မအောင်မြင်ပါ။ ထပ်ကြိုးစားပါ။', 'error');
+        }
+    };
 
     // ============================================
     // WITHDRAW FUNCTIONS
@@ -659,13 +1055,22 @@ window.submitDeposit = async function() {
 
     function showNotification(msg, type = 'info') {
         const n = document.getElementById('notification');
-        if (!n) return;
+        if (!n) {
+            console.log(msg);
+            return;
+        }
         
-        n.querySelector('#notificationMessage').textContent = msg;
-        n.style.background = type === 'success' ? '#00c853' : type === 'error' ? '#ff5252' : '#2196f3';
+        const msgEl = n.querySelector('#notificationMessage');
+        const iconEl = n.querySelector('#notificationIcon');
+        
+        if (msgEl) msgEl.textContent = msg;
+        if (iconEl) iconEl.className = type === 'success' ? 'fas fa-check-circle' : type === 'error' ? 'fas fa-exclamation-circle' : 'fas fa-info-circle';
+        
+        n.style.background = type === 'success' ? 'rgba(0,255,127,0.9)' : 
+                            type === 'error' ? 'rgba(255,71,87,0.9)' : 'rgba(0,191,255,0.9)';
         n.style.display = 'flex';
         
-        setTimeout(() => n.style.display = 'none', 3000);
+        setTimeout(() => { n.style.display = 'none'; }, 3000);
     }
 
     function showSuccessModal(title, msg, details) {
@@ -690,31 +1095,25 @@ window.submitDeposit = async function() {
         });
     }
 
-    
-
     // ============================================
     // MODAL CONTROLS
     // ============================================
-     // Force define
-window.playButtonSound = function() {
-    console.log('✅ playButtonSound is working');
-    try {
-        if (window.SoundManager) {
-            window.SoundManager.button();
-        } else {
-            const audio = document.getElementById('allbuttonSound');
-            if (audio) {
-                audio.currentTime = 0;
-                audio.play().catch(() => {});
+    window.playButtonSound = function() {
+        console.log('✅ playButtonSound is working');
+        try {
+            if (window.SoundManager) {
+                window.SoundManager.button();
+            } else {
+                const audio = document.getElementById('allbuttonSound');
+                if (audio) {
+                    audio.currentTime = 0;
+                    audio.play().catch(() => {});
+                }
             }
+        } catch (error) {
+            console.log('Sound error:', error);
         }
-    } catch (error) {
-        console.log('Sound error:', error);
-    }
-};
-console.log('✅ playButtonSound defined');
-
-     
+    };
 
     window.closeModal = function(modalId) {
         playSound('button');
@@ -764,6 +1163,9 @@ console.log('✅ playButtonSound defined');
     // ============================================
     function init() {
         console.log('💰 Payment system initializing...');
+        
+        // Load bonus data
+        loadBonusData();
 
         // Setup listeners
         document.getElementById('withdrawAmount')?.addEventListener('input', calculateWithdrawFee);
@@ -772,6 +1174,17 @@ console.log('✅ playButtonSound defined');
         firebase.auth().onAuthStateChanged(async (user) => {
             if (user) {
                 setupBankAccountsListener();
+                
+                // Load bonus from Firebase
+                try {
+                    const doc = await firebase.firestore().collection('users').doc(user.uid).get();
+                    if (doc.exists && doc.data().bonusData) {
+                        bonusData = doc.data().bonusData;
+                        saveBonusData();
+                    }
+                } catch (e) {
+                    console.warn('Bonus load error:', e);
+                }
             } else {
                 if (unsubscribeBankAccounts) {
                     unsubscribeBankAccounts();
@@ -796,6 +1209,9 @@ console.log('✅ playButtonSound defined');
     window.formatNumber = formatNumber;
     window.showNotification = showNotification;
     window.calculateWithdrawFee = calculateWithdrawFee;
+    
+    // 🔥 BONUS EXPORTS
+    window.recordBonusDeposit = recordBonusDeposit;
+    window.bonusData = bonusData;
 
 })();
-

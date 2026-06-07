@@ -789,7 +789,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'lion': {3: 0.4, 4: 1.6, 5: 1.6},
             'zebra': {3: 0.6, 4: 1.2, 5: 1.8},
             'tha': {3: 0.48, 4: 0.36, 5: 1},
-            'seven': {3: 0.12, 4: 0.8, 5: 1.2},
+            'pig': {3: 0.12, 4: 0.8, 5: 1.2},
             'jack': {3: 0.12, 4: 0.8, 5: 2},
             'queen': {3: 0.6, 4: 0.88, 5: 4.8},
             'nine': {3: 0.4, 4: 0.64, 5: 2.8},
@@ -799,7 +799,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         const IMAGE_PATHS = {
-    'seven': 'images/seven.png',
+    'pig': 'images/pig.png',
     'jack': 'images/jack.png',      // အသစ်
     'queen': 'images/queen.png',    // အသစ်
     'nine': 'images/nine.png',      // အသစ်
@@ -817,19 +817,19 @@ document.addEventListener('DOMContentLoaded', function() {
 };
 
         const REELS = [
-            ['seven', 'jack', 'queen', 'nine', 'lion', 'buffalos', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'ten', 'ten'],
-            ['seven', 'jack', 'queen', 'nine', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'ten'],
-            ['seven', 'jack', 'queen', 'nine', 'tha', 'zebra', 'buffalos', 'coin', 'ten', 'ten', 'wild'],
-            ['seven', 'jack', 'queen', 'bonus', 'lion', 'wild', 'ele', 'tha', 'buffalos', 'ayeaye', 'coin', 'ele', 'ten'],
-            ['seven', 'jack', 'queen', 'nine', 'wild', 'tha', 'zebra', 'ayeaye', 'buffalos', 'ele', 'bonus']
+            ['pig', 'jack', 'queen', 'nine', 'lion', 'buffalos', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'ten', 'ten'],
+            ['pig', 'jack', 'queen', 'nine', 'tha', 'zebra', 'ayeaye', 'coin', 'bonus', 'ten'],
+            ['pig', 'jack', 'queen', 'nine', 'tha', 'zebra', 'buffalos', 'coin', 'ten', 'ten', 'wild'],
+            ['pig', 'jack', 'queen', 'bonus', 'lion', 'wild', 'ele', 'tha', 'buffalos', 'ayeaye', 'coin', 'ele', 'ten'],
+            ['pig', 'jack', 'queen', 'nine', 'wild', 'tha', 'zebra', 'ayeaye', 'buffalos', 'ele', 'bonus']
         ];
 
         const FREE_SPIN_REELS = [
-            ['seven', 'lion', 'tha', 'ele', 'zebra', 'coin', 'ayeaye', 'ten', 'wild'],
-            ['seven', 'lion', 'jack', 'ele', 'zebra', 'coin', 'ayeaye', 'ten', 'wild'],
-            ['seven', 'lion', 'buffalos', 'ele', 'zebra', 'coin', 'ayeaye', 'queen', 'wild'],
-            ['seven', 'lion', 'buffalos', 'ele', 'zebra', 'coin', 'ayeaye', 'ten', 'wild'],
-             ['seven', 'lion', 'tha', 'ele', 'zebra', 'coin', 'ayeaye', 'nine', 'wild']
+            ['pig', 'lion', 'tha', 'ele', 'zebra', 'coin', 'ayeaye', 'ten', 'wild'],
+            ['pig', 'lion', 'jack', 'ele', 'zebra', 'coin', 'ayeaye', 'ten', 'wild'],
+            ['pig', 'lion', 'buffalos', 'ele', 'zebra', 'coin', 'ayeaye', 'queen', 'wild'],
+            ['pig', 'lion', 'buffalos', 'ele', 'zebra', 'coin', 'ayeaye', 'ten', 'wild'],
+             ['pig', 'lion', 'tha', 'ele', 'zebra', 'coin', 'ayeaye', 'nine', 'wild']
         ];
         
            function formatNumber(num) { return num.toLocaleString(); }
@@ -1096,10 +1096,10 @@ function addBonusGlow(cell) {
 
 function fastRandomSpin(col, duration, onComplete) {
     const cells = getColumnCells(col);
-    const symbols = ['seven', 'jack', 'queen', 'nine', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'ten'];
+    const symbols = ['pig', 'jack', 'queen', 'nine', 'lion', 'buffalo', 'ele', 'tha', 'zebra', 'ayeaye', 'coin', 'ten'];
     const startTime = Date.now();
     const IMG_PATHS = window.IMAGE_PATHS || {
-        'seven': 'images/seven.png', 'jack': 'images/jack.png', 'queen': 'images/queen.png',
+        'pig': 'images/pig.png', 'jack': 'images/jack.png', 'queen': 'images/queen.png',
         'nine': 'images/nine.png', 'lion': 'images/lion.png', 'buffalo': 'images/buffalo.png',
         'ele': 'images/ele.png', 'tha': 'images/tha.png', 'zebra': 'images/zebra.png',
         'ayeaye': 'images/ayeaye.png', 'coin': 'images/coin.png', 'ten': 'images/ten.png'
@@ -2216,7 +2216,7 @@ function shouldForceNoWin() {
 // ============================================
 function forceTrueNoWin(result) {
     // Wild မပါတဲ့ symbol pool
-    const symbolsNoWild = ['lion', 'buffalo', 'ele', 'zebra', 'tha', 'seven', 'jack', 'queen', 'nine', 'ten', 'coin'];
+    const symbolsNoWild = ['lion', 'buffalo', 'ele', 'zebra', 'tha', 'pig', 'jack', 'queen', 'nine', 'ten', 'coin'];
     
     // === COL 0 (Wild မပါ) ===
     for (let row = 0; row < 4; row++) {

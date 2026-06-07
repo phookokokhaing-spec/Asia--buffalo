@@ -47,6 +47,10 @@ window.addEventListener('DOMContentLoaded', () => {
 const winners = [
     'Player "MgMg" won 1,200,000 KS in African Buffalo! 🎰',
     'Player "ZawZaw" hit 800,000 KS in Grand Dragons! 💎',
+    'Player "MgMyo" won 1,200,000 KS in African Buffalo! 🎰',
+    'Player "WaiYanTun" hit 800,000 KS in Grand Dragons! 💎',
+    'Player "Wai788" won 1,200,000 KS in African Buffalo! 🎰',
+    'Player "MayHtetLu" hit 800,000 KS in Grand Dragons! 💎',
     'Player "NuNu" won 3,500,000 KS in Ultimate Fire Link! 🔥'
 ];
 
