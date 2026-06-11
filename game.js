@@ -654,55 +654,50 @@ function initEventListeners() {
     }
 }
 
-// ၁။ User Data တင်တဲ့အခါ (Jackpot Pool ကို သီးသန့် သိမ်းထားပါ)
+
 function loadCurrentUserData() {
     const savedUser = localStorage.getItem('currentUser');
     if (savedUser) {
         currentUser = JSON.parse(savedUser);
 
-        // Data တွေကို Assign လုပ်
+       
         window.gameState.balance = currentUser.balance || 0;
         
-        // Jackpot Pool ကို displayBalance ထဲမှာ သိမ်းထားမယ် (ဒါကို UI update မှာ မထိရဘူး)
         window.gameState.displayBalance = currentUser.displayBalance || currentUser.balance || 0;
         
         window.gameState.userLevel = currentUser.level || 1;
         window.gameState.vipLevel = currentUser.vip || 0;
 
-        // UI ကို User Balance နဲ့ပဲ Update လုပ်
+     
         updateUI(window.gameState.balance);
     }
 }
 
-// ၂။ Balance ပြောင်းတိုင်း (ဂိမ်းနိုင်/ရှုံး) ဒီ Function ကိုပဲ သုံးပါ
 function setBalance(newAmount) {
-    window.gameState.balance = newAmount; // Data ကို Update လုပ်
-    updateUI(newAmount);                  // UI ကို Update လုပ် (Jackpot ကို မထိပါ)
+    window.gameState.balance = newAmount;
+    updateUI(newAmount);
 }
 
-// ၃။ UI Update လုပ်တဲ့ Function (ဒီမှာ displayBalance မပါရဘူး)
 function updateUI(amount) {
     const formattedAmount = Number(amount).toLocaleString();
 
-    // ဂိမ်းထဲက Balance UI ကို ပြင်မယ်
     const gameElement = document.getElementById('balanceAmount');
     if (gameElement) {
         gameElement.innerText = formattedAmount;
     }
 
-    // Lobby က Balance UI ကိုပါ တစ်ခါတည်း လှမ်းပြင်မယ်
+   const walletElement = document.getElementById('gameBalance');
+    if (walletElement) {
+        walletElement.innerText = formattedAmount;
+    }
     const lobbyElement = document.getElementById('lobbyBalance');
     if (lobbyElement) {
         lobbyElement.innerText = formattedAmount;
     }
 }
 
-// ၄။ Jackpot Pool အတွက် သီးသန့် Function (Jackpot ပြောင်းမှသာ သုံးပါ)
 function updateJackpotPool(newPoolAmount) {
     window.gameState.displayBalance = newPoolAmount;
-    // လိုအပ်ရင် Jackpot UI ကို ဒီမှာ သီးသန့်ပြင်ပေးပါ
-    // const jackpotEl = document.getElementById('jackpotDisplay');
-    // if (jackpotEl) jackpotEl.innerText = Number(newPoolAmount).toLocaleString();
 }
 
 
@@ -757,9 +752,52 @@ function generateBabaJackpotResult() {
     console.log('🎰 BABA 5 JACKPOT RESULT GENERATED!');
     return result;
 }
+// ============================================
+// GET BABA CELLS FROM RESULT (ဘယ် cells မှာ baba ရှိလဲ)
+// ============================================
+function getBabaCellsFromResult(result) {
+    const babaCells = [];
+    
+    for (let col = 0; col < 5; col++) {
+        for (let row = 0; row < 4; row++) {
+            if (result[col] && result[col][row] === 'baba') {
+                const cell = document.querySelector(`.grid-cell[data-col="${col}"][data-row="${row}"]`);
+                if (cell) {
+                    babaCells.push(cell);
+                }
+            }
+        }
+    }
+    
+    console.log(`🎯 Found ${babaCells.length} baba cells for animation`);
+    return babaCells;
+}
+
+
 
 // ============================================
-// 9. MAIN SPIN FUNCTION (FIXED WITH AUTO SPIN & ANIMATION CALLBACK)
+// COMMON FUNCTION FOR COIN ANIMATION (အပြင်မှာထား)
+// ============================================
+function handleCoinAnimation(totalWin, winEl, balanceEl, oldBalance, newBalance, callback) {
+    if (typeof animateWinCoins === 'function') {
+        animateWinCoins(totalWin, winEl, balanceEl, function() {
+            if (balanceEl) {
+                animateNumber(balanceEl, oldBalance, newBalance, 500, callback);
+            } else {
+                callback();
+            }
+        });
+    } else {
+        if (balanceEl) {
+            animateNumber(balanceEl, oldBalance, newBalance, 500, callback);
+        } else {
+            callback();
+        }
+    }
+}
+
+// ============================================
+// 9. MAIN SPIN FUNCTION (COMPLETE v5.0 - ERROR FREE)
 // ============================================
 function spin() {
     console.log('🔥 spin() called');
@@ -794,7 +832,7 @@ function spin() {
     updateBalanceDisplay();
     updateUI(window.gameState.balance);
 
-    // ===== BABA JACKPOT MODE COUNTER (if enabled) =====
+    // ===== BABA JACKPOT MODE COUNTER =====
     if (window.gameState.babaJackpotMode?.enabled) {
         window.gameState.babaJackpotMode.currentSpinCount++;
         console.log(`🎯 Baba Jackpot Counter: ${window.gameState.babaJackpotMode.currentSpinCount} / ${window.gameState.babaJackpotMode.targetSpins}`);
@@ -806,7 +844,7 @@ function spin() {
         }
     }
 
-    // Legacy pending jackpot spins (if any)
+    // Legacy pending jackpot spins
     if (window.gameState.pendingJackpotSpinsLeft > 0) {
         window.gameState.pendingJackpotSpinsLeft--;
         console.log(`🎯 Jackpot pending spins left: ${window.gameState.pendingJackpotSpinsLeft}`);
@@ -824,10 +862,15 @@ function spin() {
         console.log('💰 Calculating winnings...');
         const winResult = calculateWinnings(result);
         const totalWin = winResult.totalWin || 0;
+        const isBabaJackpot = winResult && winResult.isBabaJackpot === true;
+        
+        console.log('🔍 winResult.winLines:', winResult.winLines);
+        console.log('🔍 winResult.winLines positions:', winResult.winLines?.map(l => l.positions));
 
         // ===== WIN HANDLING =====
         if (totalWin > 0) {
             if (window.gameState.isFreeSpinning) {
+                // ===== FREE SPIN HANDLING =====
                 window.gameState.freeSpinTotalWin = (window.gameState.freeSpinTotalWin || 0) + totalWin;
                 console.log(`🎰 Free Spin win accumulated: ${window.gameState.freeSpinTotalWin}`);
                 updateWinDisplay(window.gameState.freeSpinTotalWin);
@@ -843,116 +886,172 @@ function spin() {
                     continueFreeSpinAfterWin();
                 }, 2000);
 
-            } else {
-                // ✅ Baba Jackpot မဟုတ်ရင်မှ balance ထည့်
-                if (!winResult.isBabaJackpot) {
-                    window.gameState.balance += totalWin;
-                    window.gameState.displayBalance += totalWin;
-                    updateBalanceDisplay();
-                    updateUserBalanceInStorage();
-                }
-                updateWinDisplay(totalWin);
+            } else if (isBabaJackpot) {
+                // ===== BABA JACKPOT - SECRET MODE =====
+                console.log('🎯 BABA JACKPOT detected - entering secret mode');
 
                 if (winResult.indices?.length > 0) {
                     highlightWinsPremium(winResult.indices, winResult.buffaloIndices || []);
                     showWinWithRise(totalWin, winResult.indices);
                 }
 
-                // 🔥 WIN ANIMATION WITH CALLBACK (FOR AUTO SPIN)
+                window.gameState.waitingForWinAnimation = true;
+                // BabaJackpot animation will handle everything
+
+            } else {
+                // ===== NORMAL WIN =====
+                const oldBalance = window.gameState.balance;
+                const newBalance = oldBalance + totalWin;
+                const winEl = document.getElementById('winAmount');
+                const balanceEl = document.getElementById('balanceAmount');
                 const winPercentage = (totalWin / window.gameState.betAmount) * 100;
                 const parentWinAnim = window.parent?.WinAnimation;
 
+                // Win highlight first
+                if (winResult.indices?.length > 0) {
+                    highlightWinsPremium(winResult.indices, winResult.buffaloIndices || []);
+                    showWinWithRise(totalWin, winResult.indices);
+                }
+
                 window.gameState.waitingForWinAnimation = true;
 
-                if (parentWinAnim) {
-                    if (winPercentage >= 1500) {
-                        parentWinAnim.mega(totalWin, () => {
-                            console.log('✅ Mega animation completed');
+                // Get winline data for symbol positions
+                const winlineData = winResult.winLines || [];
+
+                // Check if we should show WinAnimation
+                const shouldShowWinAnim = parentWinAnim && winPercentage >= 500;
+
+           if (shouldShowWinAnim) {
+            // ===== BIG WIN =====
+            let animCallback = function() {
+                console.log('✅ Win animation completed');
+                window.gameState.balance = newBalance;
+                window.gameState.displayBalance = newBalance;
+                if (winEl) winEl.textContent = formatNumber(totalWin);
+
+                // 🔥 NEW: Animate coins from winning symbols
+                if (typeof animateWinCoinsFromSymbols === 'function' && winlineData.length > 0 && balanceEl) {
+                    animateWinCoinsFromSymbols(totalWin, winlineData, balanceEl, function() {
+                        console.log('✅ Coin animation from symbols completed');
+                        if (balanceEl && typeof animateNumber === 'function') {
+                            animateNumber(balanceEl, oldBalance, newBalance, 500, function() {
+                                window.gameState.waitingForWinAnimation = false;
+                                updateUserBalanceInStorage();
+                                if (typeof window._pendingAutoSpinResume === 'function') {
+                                    window._pendingAutoSpinResume();
+                                }
+                            });
+                        } else {
                             window.gameState.waitingForWinAnimation = false;
+                            updateUserBalanceInStorage();
                             if (typeof window._pendingAutoSpinResume === 'function') {
-                                console.log('📢 Calling pending auto spin resume from mega callback');
                                 window._pendingAutoSpinResume();
                             }
-                        });
-                        console.log('🎬 Mega Win Animation started');
-                    } else if (winPercentage >= 1000) {
-                        parentWinAnim.super(totalWin, () => {
-                            console.log('✅ Super animation completed');
+                        }
+                    });
+                } else {
+                    // Fallback to simple coin animation
+                    handleCoinAnimation(totalWin, winEl, balanceEl, oldBalance, newBalance, function() {
+                        window.gameState.waitingForWinAnimation = false;
+                        updateUserBalanceInStorage();
+                        if (typeof window._pendingAutoSpinResume === 'function') {
+                            window._pendingAutoSpinResume();
+                        }
+                    });
+                }
+            };
+
+            if (winPercentage >= 1500) {
+                parentWinAnim.mega(totalWin, animCallback);
+                console.log('🎬 Mega Win Animation started');
+            } else if (winPercentage >= 1000) {
+                parentWinAnim.super(totalWin, animCallback);
+                console.log('🎬 Super Win Animation started');
+            } else if (winPercentage >= 500) {
+                parentWinAnim.big(totalWin, animCallback);
+                console.log('🎬 Big Win Animation started');
+            }
+
+        } else {
+            // ===== SMALL WIN =====
+            console.log('🎯 Small win - direct flying coins from symbols');
+            window.gameState.balance = newBalance;
+            window.gameState.displayBalance = newBalance;
+            if (winEl) winEl.textContent = formatNumber(totalWin);
+
+            // 🔥 NEW: Animate coins from winning symbols
+            if (typeof animateWinCoinsFromSymbols === 'function' && winlineData.length > 0 && balanceEl) {
+                animateWinCoinsFromSymbols(totalWin, winlineData, balanceEl, function() {
+                    console.log('✅ Coin animation from symbols completed');
+                    if (balanceEl && typeof animateNumber === 'function') {
+                        animateNumber(balanceEl, oldBalance, newBalance, 500, function() {
                             window.gameState.waitingForWinAnimation = false;
-                            if (typeof window._pendingAutoSpinResume === 'function') {
-                                console.log('📢 Calling pending auto spin resume from super callback');
-                                window._pendingAutoSpinResume();
-                            }
+                            updateUserBalanceInStorage();
                         });
-                        console.log('🎬 Super Win Animation started');
-                    } else if (winPercentage >= 500) {
-                        parentWinAnim.big(totalWin, () => {
-                            console.log('✅ Big animation completed');
-                            window.gameState.waitingForWinAnimation = false;
-                            if (typeof window._pendingAutoSpinResume === 'function') {
-                                console.log('📢 Calling pending auto spin resume from big callback');
-                                window._pendingAutoSpinResume();
-                            }
-                        });
-                        console.log('🎬 Big Win Animation started');
                     } else {
                         window.gameState.waitingForWinAnimation = false;
+                        updateUserBalanceInStorage();
                     }
-                } else {
+                });
+            } else {
+                // Fallback to simple coin animation
+                handleCoinAnimation(totalWin, winEl, balanceEl, oldBalance, newBalance, function() {
                     window.gameState.waitingForWinAnimation = false;
-                }
+                    updateUserBalanceInStorage();
+                });
             }
-        } else {
-            updateWinDisplay(0);
-            window.gameState.waitingForWinAnimation = false;
+        }
+    }
+} else {
+    // ===== NO WIN =====
+    updateWinDisplay(0);
+    window.gameState.waitingForWinAnimation = false;
+}
+
+        // ===== POST-WIN UPDATES =====
+        
+        if (typeof checkScatterWithSuspense === 'function') {
+            checkScatterWithSuspense(result);
         }
 
-        updateUserBalanceInStorage();
-        checkScatterWithSuspense(result);
-
-        const buffaloCount = countBuffalo(result);
+        const buffaloCount = countBuffalo ? countBuffalo(result) : 0;
         if (buffaloCount >= 20) {
             if (typeof premiumBuffaloStampede !== 'undefined') {
                 premiumBuffaloStampede.startStampede(window.gameState.jackpot, buffaloCount);
             } else if (typeof buffaloStampede !== 'undefined') {
                 buffaloStampede.startStampede(window.gameState.jackpot, buffaloCount);
             }
-            showBuffaloJackpot(window.gameState.jackpot, buffaloCount);
+            if (typeof showBuffaloJackpot === 'function') {
+                showBuffaloJackpot(window.gameState.jackpot, buffaloCount);
+            }
         }
 
         window.gameState.isSpinning = false;
 
-        checkPendingGiftOnSpin();
-        checkPendingBoxSetOnSpin();
+        if (typeof checkPendingGiftOnSpin === 'function') checkPendingGiftOnSpin();
+        if (typeof checkPendingBoxSetOnSpin === 'function') checkPendingBoxSetOnSpin();
 
         // Free Spin Handling
         if (window.gameState.isFreeSpinning && window.gameState.freeSpins > 0) {
             window.gameState.freeSpins--;
-            updateFreeSpinIndicator();
+            if (typeof updateFreeSpinIndicator === 'function') updateFreeSpinIndicator();
             if (window.gameState.freeSpins > 0) {
-                setTimeout(() => spin(), 2000);
+                setTimeout(function() { spin(); }, 2000);
             } else {
-                endFreeSpins();
+                if (typeof endFreeSpins === 'function') endFreeSpins();
             }
         }
 
-        // 🔥 AUTO SPIN HANDLING (with fallback)
-        if (window.gameState.autoSpinActive) {
-            handleAutoSpinComplete(totalWin);
+        // AUTO SPIN HANDLING
+        if (window.gameState.autoSpinActive && !isBabaJackpot) {
+            if (typeof handleAutoSpinComplete === 'function') {
+                handleAutoSpinComplete(totalWin);
+            }
         }
 
-        // ===== BABA JACKPOT MODE RESET (after trigger) =====
-        if (window.gameState.babaJackpotTriggered) {
-            finishJackpotSequence();
-            if (window.gameState.babaJackpotMode?.notifId) {
-                try {
-                    const db = firebase.firestore();
-                    db.collection('notifications').doc(window.gameState.babaJackpotMode.notifId).update({
-                        read: true,
-                        completedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                } catch(e) { console.log('Firebase update error:', e); }
-            }
+        // BABA JACKPOT MODE RESET
+        if (window.gameState.babaJackpotTriggered && !isBabaJackpot) {
+            if (typeof finishJackpotSequence === 'function') finishJackpotSequence();
             window.gameState.babaJackpotMode = {
                 enabled: false,
                 targetSpins: 0,
@@ -967,8 +1066,8 @@ function spin() {
             console.log('✅ BABA JACKPOT MODE RESET COMPLETED');
         }
 
-        // ===== NORMAL JACKPOT HANDLING =====
-        if (window.gameState.pendingJackpotSpinsLeft === 0 && window.gameState.pendingJackpotAmount > 0) {
+        // NORMAL JACKPOT HANDLING
+        if (window.gameState.pendingJackpotSpinsLeft === 0 && window.gameState.pendingJackpotAmount > 0 && !isBabaJackpot) {
             const jackpotAmount = window.gameState.pendingJackpotAmount;
             if (jackpotAmount > 0) {
                 window.gameState.balance += jackpotAmount;
@@ -977,30 +1076,32 @@ function spin() {
                 updateUserBalanceInStorage();
             }
 
-            finalizeJackpot();
+            if (typeof finalizeJackpot === 'function') finalizeJackpot();
 
             if (typeof JackpotFX !== 'undefined') {
-                document.querySelectorAll('canvas').forEach(c => c.remove());
-                JackpotFX.show(jackpotAmount);
-                showJackpotAnimation();
+                document.querySelectorAll('canvas').forEach(function(c) { c.remove(); });
+                if (typeof showJackpotAnimation === 'function') showJackpotAnimation();
                 if (typeof GlobalTopManager !== 'undefined') {
                     GlobalTopManager.submitWin(jackpotAmount);
                 }
             }
             if (typeof SoundManager !== 'undefined') {
-                SoundManager.jackpotSpin();
-                SoundManager.jackpot();
-                SoundManager.lion();
-                SoundManager.congratulations();
-                SoundManager.coin();
-                SoundManager.coinRain();
-                SoundManager.sixCoin();
-                SoundManager.boom();
+                if (SoundManager.jackpotSpin) SoundManager.jackpotSpin();
+                if (SoundManager.jackpot) SoundManager.jackpot();
+                if (SoundManager.lion) SoundManager.lion();
+                if (SoundManager.congratulations) SoundManager.congratulations();
+                if (SoundManager.coin) SoundManager.coin();
+                if (SoundManager.coinRain) SoundManager.coinRain();
+                if (SoundManager.sixCoin) SoundManager.sixCoin();
+                if (SoundManager.boom) SoundManager.boom();
             }
 
-            showNotification(`🎉 ဂျက်ပေါ့ဆုကြေး ${formatNumber(jackpotAmount)} ကျပ် ရရှိပါသည်။`, 'success');
+            if (typeof showNotification === 'function') {
+                showNotification(`🎉 ဂျက်ပေါ့ဆုကြေး ${formatNumber(jackpotAmount)} ကျပ် ရရှိပါသည်။`, 'success');
+            }
+            
             window.gameState.waitingForJackpotComplete = true;
-            setTimeout(() => {
+            setTimeout(function() {
                 window.gameState.waitingForJackpotComplete = false;
                 console.log('✅ Jackpot completed');
             }, 60000);
@@ -1009,6 +1110,229 @@ function spin() {
             window.gameState.Lucky_Money = 0;
         }
     });
+}
+// ============================================
+// WINNING SYMBOLS ကိုရှာယူရန်
+// ============================================
+function getWinningSymbols(winlineData) {
+    const symbols = [];
+    const processedCells = new Set();
+    
+    for (const line of winlineData) {
+        if (line.positions && line.positions.length > 0) {
+            for (const pos of line.positions) {
+                const cellIndex = pos.row * 5 + pos.col;
+                if (processedCells.has(cellIndex)) continue;
+                processedCells.add(cellIndex);
+                
+                const cell = document.querySelector(`.grid-cell[data-row="${pos.row}"][data-col="${pos.col}"]`);
+                if (cell) {
+                    const rect = cell.getBoundingClientRect();
+                    // Determine glow color based on symbol type
+                    let glowColor = '#FFD700'; // gold default
+                    if (line.symbol === 'buffalo') glowColor = '#8B4513';
+                    else if (line.symbol === 'lion') glowColor = '#FF6600';
+                    else if (line.symbol === 'ele') glowColor = '#00BFFF';
+                    
+                    symbols.push({
+                        element: cell,
+                        x: rect.left + rect.width / 2,
+                        y: rect.top + rect.height / 2,
+                        symbol: line.symbol,
+                        glow: glowColor
+                    });
+                }
+            }
+        }
+    }
+    
+    return symbols;
+}
+
+
+// ============================================
+// GROUP BURST ANIMATION (Symbol တစ်ခုအတွက် အကုန်တစ်ခါတည်းပျံ)
+// ============================================
+async function animateWinCoinsFromSymbols(winAmount, winlineData, balanceElement, onComplete) {
+    if (!balanceElement || !winlineData?.length) {
+        if (onComplete) onComplete();
+        return;
+    }
+
+    const startBalance = parseInt(balanceElement.innerText.replace(/[^0-9]/g, '')) || 0;
+    const finalBalance = startBalance + winAmount;
+    const mainBalanceEl = document.getElementById('balanceAmount');
+
+    const balanceRect = balanceElement.getBoundingClientRect();
+    const endX = balanceRect.left + balanceRect.width / 2;
+    const endY = balanceRect.top + balanceRect.height / 2;
+    const winningSymbols = getWinningSymbols(winlineData);
+
+    const coinsPerSymbol = Math.min(Math.floor(winAmount / 500) + 5, 20);
+    const totalCoins = winningSymbols.length * coinsPerSymbol;
+    let completedCoins = 0;
+
+    // Coin ဖန်တီးပေးသည့် Function
+    function createCoin(symbol) {
+      if (typeof SoundManager !== 'undefined') {
+            SoundManager.coin();
+            SoundManager.noti();
+        }
+        const coin = document.createElement('div');
+        coin.innerHTML = '<img src="images/bonus.png" style="width: 35px; height: 35px;">';
+        coin.style.cssText = `position: fixed; left: ${symbol.x}px; top: ${symbol.y}px; z-index: 9999; pointer-events: none;`;
+        document.body.appendChild(coin);
+
+        const startX = symbol.x, startY = symbol.y;
+        const targetX = endX + (Math.random() - 0.5) * 40;
+        const targetY = endY + (Math.random() - 0.5) * 20;
+        const midX = (startX + targetX) / 2;
+        const midY = Math.min(startY, targetY) - 150;
+
+        let startTime = null;
+        const duration = 600 + Math.random() * 300;
+
+        function animate(timestamp) {
+            if (!startTime) startTime = timestamp;
+            const progress = Math.min((timestamp - startTime) / duration, 1);
+
+            // Bezier Curve calculation
+            const x = Math.pow(1 - progress, 2) * startX + 2 * (1 - progress) * progress * midX + Math.pow(progress, 2) * targetX;
+            const y = Math.pow(1 - progress, 2) * startY + 2 * (1 - progress) * progress * midY + Math.pow(progress, 2) * targetY;
+
+            coin.style.left = `${x}px`;
+            coin.style.top = `${y}px`;
+            coin.style.transform = `rotate(${progress * 720}deg) scale(${1 - progress * 0.2})`;
+
+            if (progress < 1) {
+                if (progress > 0.2 && Math.random() > 0.8) createTrail(x, y);
+                requestAnimationFrame(animate);
+            } else {
+                coin.remove();
+                completedCoins++;
+                if (completedCoins === totalCoins) countUpBalance();
+            }
+        }
+        requestAnimationFrame(animate);
+    }
+// Trail Effect
+    function createTrail(x, y) {
+        const trail = document.createElement('div');
+        trail.style.cssText = `position: fixed; left: ${x}px; top: ${y}px; width: 4px; height: 4px; background: gold; border-radius: 50%; pointer-events: none; z-index: 9998;`;
+        document.body.appendChild(trail);
+        trail.animate([{ opacity: 0.5, transform: 'scale(1)' }, { opacity: 0, transform: 'scale(0)' }], { duration: 300 }).onfinish = () => trail.remove();
+    }
+
+    // Balance Count Up Logic
+    function countUpBalance() {
+        balanceElement.style.textShadow = '0 0 15px #FF8C00';
+        let startTime = null;
+        
+        function step(timestamp) {
+            if (!startTime) startTime = timestamp;
+            const progress = Math.min((timestamp - startTime) / 1200, 1);
+            const currentVal = Math.floor(startBalance + (winAmount * progress));
+            balanceElement.innerText = currentVal.toLocaleString();
+            
+            if (progress < 1) requestAnimationFrame(step);
+            else {
+                balanceElement.innerText = finalBalance.toLocaleString();
+                balanceElement.style.textShadow = '';
+                balanceElement.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.1)' }, { transform: 'scale(1)' }], { duration: 300 });
+                if (onComplete) onComplete();
+            }
+        }
+        requestAnimationFrame(step);
+    }
+
+   
+    // Helper: Coin တစ်ခုချင်းစီကို စောင့်ပြီးမှ နောက်တစ်ခုသွားရန်
+    const launchCoinSequence = (symbol) => {
+        return new Promise((resolve) => {
+            let coinsLaunched = 0;
+            for (let i = 0; i < coinsPerSymbol; i++) {
+                setTimeout(() => {
+                    createCoin(symbol); // createCoin function ကို အရင်အတိုင်းထားပါ
+                    coinsLaunched++;
+                    if (coinsLaunched === coinsPerSymbol) {
+                        setTimeout(resolve, 300); // ဒီ Symbol ပြီးရင် နည်းနည်းရပ်ပြီးမှ နောက်တစ်ခုသွား
+                    }
+                }, i * 50);
+            }                                                                                                       });
+    };
+
+    // Symbol တစ်ခုချင်းစီကို အစဉ်လိုက်လုပ်ဆောင်ခြင်း
+    for (const symbol of winningSymbols) {
+        await launchCoinSequence(symbol);
+    }
+
+    // အားလုံးပြီးမှ လက်ကျန်ငွေ တက်သွားခြင်း
+    countUpBalance(winAmount, balanceElement, onComplete);
+}
+// ============================================
+// COUNTING ANIMATION UTILITY
+// ============================================
+function animateNumber(element, start, end, duration = 800, onComplete = null) {
+    if (!element) return;
+    
+    const startVal = start;
+    const endVal = end;
+    const steps = 40;
+    const stepTime = duration / steps;
+    const increment = (endVal - startVal) / steps;
+    
+    let current = startVal;
+    let step = 0;
+    
+    if (element._animInterval) clearInterval(element._animInterval);
+    
+    element._animInterval = setInterval(() => {
+        step++;
+        current += increment;
+        
+        if (step >= steps) {
+
+            element.textContent = formatNumber(Math.floor(endVal));
+            clearInterval(element._animInterval);
+            element._animInterval = null;
+            if (onComplete) onComplete();
+        } else {
+            element.textContent = formatNumber(Math.floor(current));
+        }
+    }, stepTime);
+}
+
+// ============================================
+// FORMAT NUMBER UTILITY
+// ============================================
+function formatNumber(num) {
+    if (num === undefined || num === null) return '0';
+    return num.toLocaleString();
+}
+// ============================================
+// WIN + BALANCE ANIMATION TOGETHER
+// ============================================
+function animateWinAndBalance(winAmount, oldBalance, newBalance, onComplete) {
+    const winEl = document.getElementById('winAmount');
+    const balanceEl = document.getElementById('balanceAmount');
+
+    let completed = 0;
+    const checkComplete = () => {
+        completed++;
+        if (completed === 2 && onComplete) onComplete();
+    };
+
+    if (winEl) {
+        animateNumber(winEl, 0, winAmount, 800, checkComplete);
+    } else {
+        checkComplete();
+    }
+
+    if (balanceEl) {
+        animateNumber(balanceEl, oldBalance, newBalance, 800, checkComplete);
+    } else {
+        checkComplete();
+    }
 }
 // ============================================
 // 10. SHOW NOTIFICATION
@@ -1514,33 +1838,31 @@ function slowRevealColumnWithResult(col, targetSymbols, onComplete) {
 
     revealNextRow();
 }
-
 function finishJackpotSequence() {
     console.log("🎉🎉🎉 BABA 5 JACKPOT COMPLETE! 🎉🎉🎉");
 
     const jackpotAmount = window.gameState?.babaJackpotMode?.jackpotAmount ||
                           window.gameState?.pendingJackpotAmount || 0;
 
-    if (window.gameState) {
-        window.gameState.balance = (window.gameState.balance || 0) + jackpotAmount;
-        window.gameState.displayBalance = window.gameState.balance;
-        window.gameState.suspenseMode = false;
-        
-        const balanceEl = document.getElementById('balanceDisplay');
-        if (balanceEl) balanceEl.innerText = window.gameState.balance.toLocaleString();
-        
-        if (window.currentUser) {
-            window.currentUser.balance = window.gameState.balance;
-            localStorage.setItem('currentUser', JSON.stringify(window.currentUser));
-        }
-        
-        updateBalanceDisplay();
-        updateUserBalanceInStorage();
-        showNotification(`🎉 ဂျက်ပေါ့ဆုကြေး ${formatNumber(jackpotAmount)} ကျပ် ရရှိပါသည်။`, 'success');
+    if (!jackpotAmount || jackpotAmount <= 0) {
+        console.error("❌ Invalid jackpot amount");
+        resetJackpotState();
+        return;
     }
 
-    if (typeof showJackpotAnimation === 'function') showJackpotAnimation(jackpotAmount, jackpotFinalResult);
-    if (typeof GlobalTopManager !== 'undefined') GlobalTopManager.submitWin(jackpotAmount, 'jackpot');
+    // 🔒 SUSPEND MODE - animation မပြီးခင် update မလုပ်
+    window.gameState.suspenseMode = true;
+    window.gameState.waitingForJackpotComplete = true;
+
+    // Store original balance (for animation)
+    const originalBalance = window.gameState?.balance || 0;
+    const finalBalance = originalBalance + jackpotAmount;
+
+    // 🔒 DON'T update balance yet (secret!)
+    // DON'T show notification yet!
+    // DON'T update UI yet!
+
+    // Start sound effects
     if (typeof SoundManager !== 'undefined') {
         SoundManager.jackpot();
         SoundManager.lion();
@@ -1551,6 +1873,71 @@ function finishJackpotSequence() {
         SoundManager.boom();
     }
 
+    // Get baba cells for animation
+    const babaCells = document.querySelectorAll('.slot-cell.baba, .game-symbol.baba, [data-symbol="baba"]');
+    
+    // 🎰 START ANIMATION (win amount is still secret!)
+    if (typeof BabaJackpot !== 'undefined') {
+        BabaJackpot.show(babaCells, jackpotAmount, 'mega', {
+            soundUrl: null, // Already playing sounds above
+            winBoxSelector: '#winAmount, .win-display, [id*="win"]', // Your win box selector
+            userBalanceSelector: '#balanceDisplay, .balance-display, [id*="balance"]', // Your balance selector
+            startBalance: originalBalance,
+            onComplete: (revealedAmount, finalBal) => {
+                // ✅ Animation finished - NOW update everything!
+                completeJackpotUpdate(jackpotAmount, finalBalance);
+            }
+        });
+    } else {
+        // Fallback if animation library not loaded
+        completeJackpotUpdate(jackpotAmount, finalBalance);
+    }
+}
+
+// ============================================
+// UPDATE AFTER ANIMATION COMPLETES
+// ============================================
+function completeJackpotUpdate(jackpotAmount, finalBalance) {
+    console.log("✅ Animation complete - updating state");
+
+    if (window.gameState) {
+        // NOW update balance
+        window.gameState.balance = finalBalance;
+        window.gameState.displayBalance = finalBalance;
+        window.gameState.suspenseMode = false;
+
+        // Update UI
+        const balanceEl = document.getElementById('balanceDisplay');
+        if (balanceEl) {
+            balanceEl.innerText = finalBalance.toLocaleString();
+        }
+
+        // Save to storage
+        if (window.currentUser) {
+            window.currentUser.balance = finalBalance;
+            localStorage.setItem('currentUser', JSON.stringify(window.currentUser));
+        }
+
+        updateBalanceDisplay();
+        updateUserBalanceInStorage();
+    }
+
+    // Show notification AFTER animation
+    showNotification(`🎉 ဂျက်ပေါ့ဆုကြေး ${formatNumber(jackpotAmount)} ကျပ် ရရှိပါသည်။`, 'success');
+
+    // Submit to leaderboard
+    if (typeof GlobalTopManager !== 'undefined') {
+        GlobalTopManager.submitWin(jackpotAmount, 'jackpot');
+    }
+
+    // Reset state
+    resetJackpotState();
+}
+
+// ============================================
+// RESET STATE
+// ============================================
+function resetJackpotState() {
     // Reset Baba mode
     window.gameState.babaJackpotMode = {
         enabled: false, targetSpins: 0, currentSpinCount: 0,
@@ -1567,7 +1954,7 @@ function finishJackpotSequence() {
     pendingColumns = [];
     jackpotFinalResult = null;
 
-    // Clean up UI locks
+    // Clean up UI
     for (var col = 0; col < 5; col++) {
         var cells = getColumnCells(col);
         cells.forEach(function(cell) {
@@ -1584,20 +1971,20 @@ function finishJackpotSequence() {
         });
         removeRedBorderFromColumn(col);
     }
-    
+
     removeAllBorders();
-    
-    // 🔥 RESUME AUTO SPIN
+
+    // Resume auto spin
     autoSpinPaused = false;
     window.gameState.suspenseMode = false;
-    
+
     if (window.gameState.autoSpinActive) {
         console.log('▶️ Resuming auto spin after JACKPOT sequence');
         setTimeout(() => {
             performAutoSpin();
         }, 1000);
     }
-    
+
     enableSpinButton();
     console.log('✅ BABA JACKPOT MODE RESET COMPLETED');
 }
@@ -1689,37 +2076,66 @@ function calculateWinnings(result) {
         }
     }
 
-     if (babaCount === 5) {
-        // Admin က သတ်မှတ်ထားတဲ့ Jackpot Amount ကို ဦးစားပေးယူမယ်
-        const jackpotAmount = window.gameState?.babaJackpotMode?.jackpotAmount ||
-                              window.gameState.pendingJackpotAmount ||
-                              0;
+   if (babaCount === 5) {
+    const jackpotAmount = window.gameState?.babaJackpotMode?.jackpotAmount ||
+                          window.gameState.pendingJackpotAmount ||
+                          0;
 
-        console.log(` BABA 5 JACKPOT! Amount: ${jackpotAmount}`);
+    console.log(`🎉 BABA 5 JACKPOT! Amount: ${jackpotAmount}`);
 
-        // Premium Animation + Global Top + Sound
-        showJackpotAnimation(jackpotAmount, result);
-        GlobalTopManager.submitWin(jackpotAmount, 'jackpot');
+    // ===== 🔥 Collect Baba cells =====
+    const babaCells = getBabaCellsFromResult(result);
+    
+    // 🔥 Save original balance (will be updated after animation)
+    const originalBalance = window.gameState.balance;
+    const finalBalance = originalBalance + jackpotAmount;
 
-        if (typeof SoundManager !== 'undefined') {
-            SoundManager.play('jackpotSound'); // Jackpot အတွက် သီးသန့်အသံ
-        }
-
-        window.gameState.babaJackpotTriggered = true;
-
-        return {
-            totalWin: jackpotAmount,
-            indices: babaIndices,
-            buffaloIndices: [],
-            winLines: [{
-                symbol: 'baba',
-                name: 'BABA JACKPOT',
-                count: 5,
-                win: jackpotAmount
-            }],
-            isBabaJackpot: true
-        };
+    if (typeof BabaJackpot !== 'undefined' && babaCells.length === 5) {
+      
+        // Pass original balance to animation for rolling update
+        BabaJackpot.show(babaCells, jackpotAmount, 'mega', {
+            startBalance: originalBalance,
+            onComplete: () => {
+                // Update balance after animation completes
+                window.gameState.balance = finalBalance;
+                window.gameState.displayBalance = finalBalance;
+                updateBalanceDisplay();
+                updateUserBalanceInStorage();
+                console.log('✅ Balance updated after jackpot animation');
+            }
+        });
+    } else {
+        // Fallback: update balance immediately
+        window.gameState.balance += jackpotAmount;
+        window.gameState.displayBalance += jackpotAmount;
+        updateBalanceDisplay();
+        updateUserBalanceInStorage();
     }
+
+    // Premium Animation + Global Top + Sound
+    if (typeof GlobalTopManager !== 'undefined') {
+        GlobalTopManager.submitWin(jackpotAmount, 'jackpot');
+    }
+
+    if (typeof SoundManager !== 'undefined') {
+        SoundManager.play('jackpotSound');
+    }
+
+    window.gameState.babaJackpotTriggered = true;
+
+    return {
+        totalWin: jackpotAmount,
+        indices: babaIndices,
+        buffaloIndices: [],
+        winLines: [{
+            symbol: 'baba',
+            name: 'BABA JACKPOT',
+            count: 5,
+            win: jackpotAmount
+        }],
+        isBabaJackpot: true
+    };
+}
     // ===== ကျွဲရေတွက် =====
     for (let c = 0; c < cols; c++) {
         for (let r = 0; r < rows; r++) {
@@ -1783,21 +2199,31 @@ function calculateWinnings(result) {
                     }
                 }
 
-                const finalMultiplier = getFinalMultiplier(symbol0, streak);
-                if (finalMultiplier > 0) {
-                    const winAmount = Math.floor(bet * finalMultiplier);
-                    totalWin += winAmount;
+            const finalMultiplier = getFinalMultiplier(symbol0, streak);
+             if (finalMultiplier > 0) {
+             const winAmount = Math.floor(bet * finalMultiplier);
+                   totalWin += winAmount;
 
-                    winLines.push({
-                        symbol: symbol0,
-                        count: streak,
-                        win: winAmount,
-                        multiplier: finalMultiplier
-                    });
+               // 🔥 ဒီမှာ positions ထည့်ပေးရမယ်
+              const positions = [];
+             for (let i = 0; i < winRowIndices.length; i++) {
+              const idx = winRowIndices[i];
+               const row = Math.floor(idx / cols);
+              const col = idx % cols;
+              positions.push({ row: row, col: col });
+           }
 
-                    winIndices.push(...winRowIndices);
-                    console.log(`✅ Win found: ${symbol0} x${streak} = ${winAmount}`);
-                }
+           winLines.push({
+             symbol: symbol0,
+             count: streak,
+              win: winAmount,
+               multiplier: finalMultiplier,
+               positions: positions  // ← ဒါကို ထည့်ပါ
+            });
+
+            winIndices.push(...winRowIndices);
+                console.log(`✅ Win found: ${symbol0} x${streak} = ${winAmount}`);
+              }
             }
         }
     }
@@ -1846,8 +2272,7 @@ function calculateWinnings(result) {
     const maxWinPerDeposit = window.gameState.maxWin || 500000;
     let cappedWin = Math.min(totalWin, maxWinPerDeposit);
     totalWin = cappedWin;
-
-    // ===== UI updates =====
+// ===== UI updates =====
 if (totalWin > 0) {
     window.gameState.consecutiveWins++;
     window.gameState.winAmount = totalWin;
@@ -1858,91 +2283,204 @@ if (totalWin > 0) {
     if (typeof showWinLinesInfo === 'function') showWinLinesInfo(winLines);
 
     const winPercentage = (totalWin / bet) * 100;
-    
+
     // Win Type သတ်မှတ်မယ်
     let winType = 'big';
     if (winPercentage >= 1500) winType = 'mega';
     else if (winPercentage >= 1000) winType = 'super';
     else if (winPercentage >= 500) winType = 'big';
 
-    // ⭐⭐⭐ ဒါပဲ ထပ်ထည့်ပေးပါ ⭐⭐⭐
-    // History ထဲ ထည့်မယ် (LocalStorage - Stats Cards အတွက်)
+    // History ထဲ ထည့်မယ်
     if (typeof GameHistory !== 'undefined') {
         GameHistory.addEntry(bet, totalWin, winType);
     }
 
-    // Win animations & Global Top (ဒါက ရှိပြီးသား ဆက်ထားပါ)
-   // Win animations & Global Top
-if (typeof WinAnimation !== 'undefined') {
-    if (winPercentage >= 1500) {
-        // 🔥 Mega win with callback
-        WinAnimation.mega(totalWin, () => {
-            console.log('✅ Mega animation completed from calculateWinnings');
-            window.gameState.waitingForWinAnimation = false;
-            if (typeof window._pendingAutoSpinResume === 'function') {
-                window._pendingAutoSpinResume();
+    // ===== 🔥 FIXED: isBabaJackpot ကို ဒီ function ထဲမှာ ပြန်သတ်မှတ် 🔥 =====
+    const isBabaJackpot = (babaCount === 5);  // baba 5 လုံးဆိုရင် true
+
+    // ===== Win animations & Global Top (Baba Jackpot မဟုတ်မှ ခေါ်ပါ) =====
+    if (!isBabaJackpot && typeof WinAnimation !== 'undefined') {
+
+        if (winPercentage >= 1500) {
+            WinAnimation.mega(totalWin, () => {
+                console.log('✅ Mega animation completed from calculateWinnings');
+                window.gameState.waitingForWinAnimation = false;
+                if (typeof window._pendingAutoSpinResume === 'function') {
+                    window._pendingAutoSpinResume();
+                }
+            });
+            window.gameState.waitingForWinAnimation = true;
+
+            if (typeof GlobalTopManager !== 'undefined') {
+                GlobalTopManager.submitWin(totalWin, 'mega');
             }
-        });
-        window.gameState.waitingForWinAnimation = true;
-        
-        GlobalTopManager.submitWin(totalWin, 'mega');
-        if (typeof SoundManager !== 'undefined') {
-            SoundManager.congratulations();
-            SoundManager.lion();
-            SoundManager.coin();
-        }
-    } else if (winPercentage >= 1000) {
-        // 🔥 Super win with callback
-        WinAnimation.super(totalWin, () => {
-            console.log('✅ Super animation completed from calculateWinnings');
-            window.gameState.waitingForWinAnimation = false;
-            if (typeof window._pendingAutoSpinResume === 'function') {
-                window._pendingAutoSpinResume();
+            if (typeof SoundManager !== 'undefined') {
+                SoundManager.congratulations();
+                SoundManager.lion();
+                SoundManager.coin();
             }
-        });
-        window.gameState.waitingForWinAnimation = true;
-        
-        GlobalTopManager.submitWin(totalWin, 'super');
-        if (typeof SoundManager !== 'undefined') {
-            SoundManager.congratulations();
-            SoundManager.lion();
-            SoundManager.coin();
-        }
-    } else if (winPercentage >= 500) {
-        // 🔥 Big win with callback
-        WinAnimation.big(totalWin, () => {
-            console.log('✅ Big animation completed from calculateWinnings');
-            window.gameState.waitingForWinAnimation = false;
-            if (typeof window._pendingAutoSpinResume === 'function') {
-                window._pendingAutoSpinResume();
+
+        } else if (winPercentage >= 1000) {
+            WinAnimation.super(totalWin, () => {
+                console.log('✅ Super animation completed from calculateWinnings');
+                window.gameState.waitingForWinAnimation = false;
+                if (typeof window._pendingAutoSpinResume === 'function') {
+                    window._pendingAutoSpinResume();
+                }
+            });
+            window.gameState.waitingForWinAnimation = true;
+
+            if (typeof GlobalTopManager !== 'undefined') {
+                GlobalTopManager.submitWin(totalWin, 'super');
             }
-        });
-        window.gameState.waitingForWinAnimation = true;
-        
-        GlobalTopManager.submitWin(totalWin, 'big');
-        if (typeof SoundManager !== 'undefined') {
-            SoundManager.congratulations();
-            SoundManager.lion();
-            SoundManager.coin();
+            if (typeof SoundManager !== 'undefined') {
+                SoundManager.congratulations();
+                SoundManager.lion();
+                SoundManager.coin();
+            }
+
+        } else if (winPercentage >= 500) {
+            WinAnimation.big(totalWin, () => {
+                console.log('✅ Big animation completed from calculateWinnings');
+                window.gameState.waitingForWinAnimation = false;
+                if (typeof window._pendingAutoSpinResume === 'function') {
+                    window._pendingAutoSpinResume();
+                }
+            });
+            window.gameState.waitingForWinAnimation = true;
+
+            if (typeof GlobalTopManager !== 'undefined') {
+                GlobalTopManager.submitWin(totalWin, 'big');
+            }
+            if (typeof SoundManager !== 'undefined') {
+                SoundManager.congratulations();
+                SoundManager.lion();
+                SoundManager.coin();
+            }
         }
+
+    } else if (isBabaJackpot) {
+        // ===== BABA JACKPOT - WinAnimation မခေါ်ပါ =====
+        console.log('🎯 BABA JACKPOT - Skipping WinAnimation in calculateWinnings');
+        console.log('🎯 BabaJackpot.show() will handle the animation');
+
+        if (typeof GlobalTopManager !== 'undefined') {
+            GlobalTopManager.submitWin(totalWin, 'jackpot');
+        }
+
+        if (typeof SoundManager !== 'undefined') {
+            SoundManager.jackpot();
+            SoundManager.lion();
+            SoundManager.congratulations();
+        }
+
+        window.gameState.waitingForWinAnimation = false;
     }
-}
 
     if (typeof checkLevelUp === 'function') checkLevelUp();
+
 } else {
     window.gameState.consecutiveWins = 0;
     console.log('❌ No win');
 }
 
-    // Remove duplicate indices
-    winIndices = [...new Set(winIndices)];
 
+      winIndices = [...new Set(winIndices)];
+
+    // ===== FINAL RETURN (NORMAL WIN) =====
     return {
         totalWin: totalWin,
         indices: winIndices,
         buffaloIndices: buffaloIndices,
-        winLines: winLines
+        winLines: winLines,
+        isBabaJackpot: false   // ← ထည့်ရမယ်
     };
+}
+// ============================================
+// JACKPOT STATE UPDATE (After Animation)
+// ============================================
+function completeJackpotStateUpdate(jackpotAmount, finalBalance) {
+    console.log("✅ Jackpot animation complete - updating state");
+
+    if (window.gameState) {
+        // NOW update balance
+        window.gameState.balance = finalBalance;
+        window.gameState.displayBalance = finalBalance;
+        window.gameState.suspenseMode = false;
+
+        // Update UI
+        const balanceEl = document.getElementById('balanceDisplay');
+        if (balanceEl) {
+            balanceEl.innerText = finalBalance.toLocaleString();
+        }
+
+        // Save to storage
+        if (window.currentUser) {
+            window.currentUser.balance = finalBalance;
+            localStorage.setItem('currentUser', JSON.stringify(window.currentUser));
+        }
+
+        updateBalanceDisplay();
+        updateUserBalanceInStorage();
+    }
+
+    // Show notification AFTER animation
+    showNotification(`🎉 ဂျက်ပေါ့ဆုကြေး ${formatNumber(jackpotAmount)} ကျပ် ရရှိပါသည်။`, 'success');
+
+    // Submit to leaderboard
+    if (typeof GlobalTopManager !== 'undefined') {
+        GlobalTopManager.submitWin(jackpotAmount, 'jackpot');
+    }
+
+    // Reset Baba mode
+    window.gameState.babaJackpotMode = {
+        enabled: false, targetSpins: 0, currentSpinCount: 0,
+        isReady: false, jackpotAmount: 0, notifId: null
+    };
+    window.gameState.babaJackpotTriggered = false;
+    window.gameState.pendingJackpotAmount = 0;
+    window.gameState.pendingJackpotSpinsLeft = 0;
+
+    window.gameState.isSpinning = false;
+    window.gameState.waitingForJackpotComplete = false;
+    isJackpotMode = false;
+    lockedColumns = [];
+    pendingColumns = [];
+    jackpotFinalResult = null;
+
+    // Clean up UI
+    for (var col = 0; col < 5; col++) {
+        var cells = getColumnCells(col);
+        cells.forEach(function(cell) {
+            cell.classList.remove('locked-column', 'rise-column', 'suspense-glow');
+            cell.style.opacity = '';
+            cell.style.filter = '';
+            var img = cell.querySelector('img');
+            if (img) {
+                img.style.borderRadius = '';
+                img.style.boxShadow = '';
+                img.style.padding = '';
+                img.style.backgroundColor = '';
+            }
+        });
+        removeRedBorderFromColumn(col);
+    }
+
+    removeAllBorders();
+
+    // Resume auto spin
+    autoSpinPaused = false;
+    window.gameState.suspenseMode = false;
+
+    if (window.gameState.autoSpinActive) {
+        console.log('▶️ Resuming auto spin after JACKPOT sequence');
+        setTimeout(() => {
+            performAutoSpin();
+        }, 1000);
+    }
+
+    enableSpinButton();
+    console.log('✅ BABA JACKPOT MODE RESET COMPLETED');
 }
 
 

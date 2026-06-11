@@ -135,13 +135,12 @@ html, body {
 /* ============================================
    ORIENTATION WARNING
    ============================================ */
+/* ===== LANDSCAPE WARNING ===== */
 .orientation-warning {
     display: none;
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
     background: #1a1a2e;
     z-index: 100000;
     align-items: center;
@@ -149,13 +148,45 @@ html, body {
     text-align: center;
 }
 
+/* Portrait device + wallet NOT open = warning show */
 @media (orientation: portrait) {
-    .orientation-warning {
+    body:not(.wallet-open) .orientation-warning {
         display: flex;
     }
+    body:not(.wallet-open) .game-container {
+        display: none !important;
+    }
+}
+
+/* ===== WALLET OPEN STATE ===== */
+body.wallet-open {
+    /* Game container ပျောက် */
     .game-container {
         display: none !important;
     }
+    
+    /* Warning ပျောက် (even in portrait) */
+    .orientation-warning {
+        display: none !important;
+    }
+    
+    /* Wallet modal ပြင် */
+    #walletModal {
+        display: flex !important;
+    }
+}
+
+/* ===== WALLET MODAL ===== */
+#walletModal {
+    /* သင့် existing styles */
+}
+
+/* Landscape မှာ wallet content ကို portrait-style */
+body.wallet-open #walletModal .glass-panel {
+    width: 100%;
+    max-width: 420px; /* phone width */
+    max-height: 90vh;
+    /* height: auto; */
 }
 
 .warning-content {

@@ -302,6 +302,12 @@ function formatNumber(num) {
 function checkOrientation() {
     const warning = document.getElementById('orientationWarning');
     if (!warning) return;
+
+    if (document.body.classList.contains('wallet-open')) {
+        warning.style.display = 'none';
+        return;
+    }
+    
     warning.style.display = window.innerHeight > window.innerWidth ? 'flex' : 'none';
 }
 // Make update balance function globally available for wheel game

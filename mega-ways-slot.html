@@ -77,7 +77,7 @@
             width: 100vw;
             height: 100vh;
             background: linear-gradient(145deg, #1a0f0a, #0d0705);
-            padding: 8px;
+            padding: 1px;
             border: 1px solid rgba(255, 215, 0, 0.25);
         }
 
@@ -88,28 +88,28 @@
             background: linear-gradient(145deg, rgba(0,0,0,0.8), rgba(20,10,5,0.9));
             backdrop-filter: blur(10px);
             padding: 6px 20px;
-            border-radius: 50px;
+            border-radius: 30px;
             border: 1px solid rgba(255, 215, 0, 0.3);
             flex-shrink: 0;
         }
         .stat-box {
             text-align: center;
             background: linear-gradient(145deg, rgba(0,0,0,0.6), rgba(30,20,10,0.5));
-            padding: 4px 20px;
-            border-radius: 30px;
-            min-width: 100px;
+            padding: 3px 8px;
+            border-radius: 10px;
+            min-width: 70px;
             border: 1px solid rgba(255, 215, 0, 0.15);
         }
         .stat-label { 
-            font-size: 9px; 
+            font-size: 7px; 
             letter-spacing: 2px; 
             color: #ffaa00; 
             font-family: 'Orbitron', sans-serif;
             text-transform: uppercase;
         }
         .stat-value { 
-            font-size: 20px; 
-            font-weight: 900; 
+            font-size: 15px; 
+            font-weight: 600; 
             color: #ffd700; 
             text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
             font-family: 'Orbitron', sans-serif;
@@ -117,28 +117,28 @@
 
         .middle-section {
             display: flex;
-            gap: 8px;
+            gap: 5px;
             flex: 1;
             min-height: 0;
             overflow: hidden;
         }
 
         .jackpot-panel {
-            width: 140px;
+            width: 100px;
             background: linear-gradient(145deg, rgba(0,0,0,0.8), rgba(20,10,5,0.9));
             backdrop-filter: blur(10px);
             border-radius: 20px;
             padding: 10px;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 3px;
             border: 1px solid rgba(255, 215, 0, 0.2);
             flex-shrink: 0;
         }
         .jackpot-item {
             background: linear-gradient(145deg, rgba(20,10,5,0.8), rgba(10,5,2,0.9));
-            border-radius: 12px;
-            padding: 8px;
+            border-radius: 8px;
+            padding: 5px;
             text-align: center;
             border-left: 3px solid;
             position: relative;
@@ -167,8 +167,8 @@
         .jackpot-item.minor { border-left-color: #33ff33; }
         .jackpot-item.mini { border-left-color: #33ccff; }
         .jackpot-name { 
-            font-size: 40px; 
-            font-weight: 900; 
+            font-size: 18px; 
+            font-weight: 600; 
              color: #ffd700;
             font-family: 'Orbitron', sans-serif;
         }
@@ -177,8 +177,8 @@
         .jackpot-name.minor { color: #55ff55; }
         .jackpot-name.mini { color: #55ccff; }
         .jackpot-amount { 
-            font-size: 40px; 
-            font-weight: 800; 
+            font-size: 18px; 
+            font-weight: 600; 
             color: #ffd700;
             font-family: 'Orbitron', sans-serif;
         }
@@ -187,7 +187,7 @@
             flex: 1;
             background: linear-gradient(145deg, rgba(0,0,0,0.7), rgba(15,8,4,0.8));
             backdrop-filter: blur(8px);
-            border-radius: 20px;
+            border-radius: 10px;
             padding: 10px;
             border: 1px solid rgba(255, 215, 0, 0.2);
             display: flex;
@@ -199,18 +199,18 @@
             display: flex;
             flex: 1;
             background: linear-gradient(145deg, #0d0705, #1a0f0a);
-            border-radius: 14px;
-            border: 2px solid #ffd700;
+            border-radius: 5px;
+            border: 0px solid #000000;
             overflow: hidden;
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.2), inset 0 0 30px rgba(0,0,0,0.5);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.2), inset 0 0 30px rgba(0,0,0,0.5);
             position: relative;
         }
         .grid-5x4::before {
             content: '';
             position: absolute;
-            inset: -2px;
-            border-radius: 16px;
-            padding: 2px;
+            inset: -1px;
+            border-radius: 6px;
+            padding: 1px;
             background: linear-gradient(135deg, #ffd700, #ffaa00, #ffd700, #ffcc00);
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -248,8 +248,8 @@
             min-height: 0;
         }
         .grid-cell img, .reel-cell .symbol-text {
-            width: 75%;
-            height: 75%;
+            width: 100%;
+            height: 100%;
             object-fit: contain;
             filter: drop-shadow(0 0 3px rgba(255,215,0,0.3));
             display: flex;
@@ -278,11 +278,11 @@
         }
 
         .ways-panel {
-            width: 140px;
+            width: 100px;
             background: linear-gradient(145deg, rgba(0,0,0,0.8), rgba(20,10,5,0.9));
             backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 10px;
+            border-radius: 8px;
+            padding: 8px;
             text-align: center;
             border: 1px solid rgba(255, 215, 0, 0.2);
             display: flex;
@@ -290,14 +290,14 @@
             flex-shrink: 0;
         }
         .ways-number { 
-            font-size: 42px; 
-            font-weight: 900; 
+            font-size: 18px; 
+            font-weight: 600; 
             color: #ffd700; 
             font-family: 'Orbitron', sans-serif;
         }
         .ways-label { 
-            font-size: 10px; 
-            letter-spacing: 3px; 
+            font-size: 7px; 
+            letter-spacing: 2px; 
             color: #ffaa00; 
             font-family: 'Orbitron', sans-serif;
         }
@@ -440,16 +440,16 @@
         .modal-content {
             background: linear-gradient(145deg, #1a0f0a, #0d0705);
             border: 2px solid #ffd700;
-            border-radius: 30px;
-            padding: 25px 30px;
+            border-radius: 15px;
+            padding: 15px 20px;
             text-align: center;
-            min-width: 300px;
+            min-width: 200px;
         }
         .modal-title {
             color: #ffd700;
             font-family: 'Orbitron', sans-serif;
-            font-size: 20px;
-            margin-bottom: 20px;
+            font-size: 10px;
+            margin-bottom: 10px;
         }
         .c-options {
             display: grid;
@@ -1431,6 +1431,295 @@ function startFreeSpinSuspense(finalResult, bonusColumns, nonBonusColumns, bonus
         initializeFreeSpinsDirect(bonusCount, calculateFreeSpinCount(bonusCount));
     }
 }
+// ============================================
+// DISABLE BUTTONS DURING FREE SPIN (COMPLETE)
+// ============================================
+function disableButtons(disable) {
+    // 1. SPIN button
+    const spinBtn = document.getElementById('spinBtn');
+    if (spinBtn) {
+        spinBtn.disabled = disable;
+        spinBtn.style.opacity = disable ? '0.5' : '1';
+        spinBtn.style.pointerEvents = disable ? 'none' : 'auto';
+        if (disable) spinBtn.classList.add('free-spin-disabled');
+        else spinBtn.classList.remove('free-spin-disabled');
+    }
+
+    // 2. BET buttons (increase/decrease)
+    const betButtons = document.querySelectorAll('#decBet, #incBet, .bet-option');
+    betButtons.forEach(btn => {
+        if (btn) {
+            btn.disabled = disable;
+            btn.style.opacity = disable ? '0.5' : '1';
+            btn.style.pointerEvents = disable ? 'none' : 'auto';
+        }
+    });
+
+    // 3. C BUTTON (Unit Select / Coin Value) - 🔥 အရေးကြီးဆုံး
+    const unitSelectBtn = document.getElementById('unitSelectBtn');
+    if (unitSelectBtn) {
+        unitSelectBtn.disabled = disable;
+        unitSelectBtn.style.opacity = disable ? '0.5' : '1';
+        unitSelectBtn.style.pointerEvents = disable ? 'none' : 'auto';
+        if (disable) unitSelectBtn.classList.add('free-spin-disabled');
+        else unitSelectBtn.classList.remove('free-spin-disabled');
+    }
+
+    // 4. C MODAL (if open, close it)
+    const cModal = document.getElementById('cModalOverlay');
+    if (cModal && disable) {
+        cModal.classList.remove('show');
+    }
+
+    // 5. AUTO SPIN button (if separate from spin)
+    const autoSpinBtn = document.getElementById('autoSpinBtn');
+    if (autoSpinBtn) {
+        autoSpinBtn.disabled = disable;
+        autoSpinBtn.style.opacity = disable ? '0.5' : '1';
+        autoSpinBtn.style.pointerEvents = disable ? 'none' : 'auto';
+    }
+
+    // 6. MAX BET button
+    const maxBetBtn = document.getElementById('maxBetBtn');
+    if (maxBetBtn) {
+        maxBetBtn.disabled = disable;
+        maxBetBtn.style.opacity = disable ? '0.5' : '1';
+        maxBetBtn.style.pointerEvents = disable ? 'none' : 'auto';
+    }
+
+    // 7. BET AMOUNT LABEL (visual only, not clickable)
+    const betLabel = document.getElementById('betAmountLabel');
+    if (betLabel) {
+        betLabel.style.opacity = disable ? '0.5' : '1';
+    }
+
+    console.log(disable ? '🔒 ALL BUTTONS DISABLED (Free Spin)' : '🔓 ALL BUTTONS ENABLED');
+}
+
+// ===== CSS for disabled state =====
+if (!document.querySelector('#free-spin-disabled-styles')) {
+    const style = document.createElement('style');
+    style.id = 'free-spin-disabled-styles';
+    style.textContent = `
+        .free-spin-disabled {
+            cursor: not-allowed !important;
+            filter: grayscale(0.5) !important;
+            transform: none !important;
+        }
+        .free-spin-disabled:hover {
+            transform: none !important;
+            box-shadow: none !important;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// ===== FREE SPIN POPUP (Complete with countdown) =====
+function showFreeSpinPopup(message, type = 'info') {
+    // Remove existing popup
+    const existingPopup = document.getElementById('free-spin-popup');
+    if (existingPopup) existingPopup.remove();
+
+    const popup = document.createElement('div');
+    popup.id = 'free-spin-popup';
+    popup.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0);
+        background: linear-gradient(135deg, #1a0f0a 0%, #2d1b0e 100%);
+        border: 3px solid #ffd700;
+        color: #ffd700;
+        padding: 40px 60px;
+        border-radius: 25px;
+        font-size: 28px;
+        font-weight: 900;
+        text-align: center;
+        z-index: 99999;
+        box-shadow: 0 0 60px rgba(255, 215, 0, 0.4), 0 15px 50px rgba(0,0,0,0.5);
+        min-width: 350px;
+        font-family: 'Bangers', cursive;
+        letter-spacing: 2px;
+        animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    `;
+
+    popup.innerHTML = `
+        <div style="font-size: 60px; margin-bottom: 15px; animation: bounce 0.6s infinite alternate;">🎰</div>
+        <div style="font-size: 36px; margin-bottom: 10px; color: #fff; text-shadow: 0 0 20px #ffd700;">${message}</div>
+        <div id="free-spin-countdown" style="font-size: 20px; color: #00ffaa; margin-top: 15px;"></div>
+    `;
+
+    document.body.appendChild(popup);
+
+    // Auto remove
+    setTimeout(() => {
+        popup.style.animation = 'fadeOut 0.5s ease forwards';
+        setTimeout(() => popup.remove(), 500);
+    }, 3000);
+
+    return popup;
+}
+
+// ===== FREE SPIN START (Complete) =====
+function startFreeSpin(spinCount) {
+    console.log(`🎰 Starting Free Spins: ${spinCount} spins`);
+
+    // 🔒 Disable ALL buttons immediately
+    disableButtons(true);
+
+    // Show popup
+    showFreeSpinPopup(`✨ FREE SPIN ${spinCount} ✨`);
+
+    // Add confetti
+    createConfetti();
+
+    // Set game state
+    window.gameState.isFreeSpinning = true;
+    window.gameState.freeSpins = spinCount;
+    window.gameState.totalFreeSpins = spinCount;
+    window.gameState.freeSpinTotalWin = 0;
+
+    // Show indicator
+    showFreeSpinIndicator();
+
+    // Start countdown
+    let remaining = spinCount;
+    const countdownEl = document.getElementById('free-spin-countdown');
+
+    function doFreeSpin() {
+        if (remaining <= 0) {
+            endFreeSpin();
+            return;
+        }
+
+        if (countdownEl) {
+            countdownEl.textContent = `${remaining} spins remaining...`;
+        }
+
+        // Perform spin (call your existing spin function)
+        if (typeof spin === 'function') {
+            spin();
+        }
+
+        remaining--;
+
+        // Wait for spin to complete before next (adjust delay as needed)
+        setTimeout(doFreeSpin, 2500);
+    }
+
+    // Start first spin after popup animation
+    setTimeout(doFreeSpin, 1500);
+}
+
+// ===== FREE SPIN END (Complete with auto spin resume) =====
+function endFreeSpin() {
+    console.log('🎰 Free Spins Complete');
+
+    const totalWin = window.gameState.freeSpinTotalWin || 0;
+
+    // Add win to balance
+    if (totalWin > 0) {
+        window.gameState.balance += totalWin;
+        window.gameState.displayBalance += totalWin;
+        updateBalanceDisplay();
+        updateWinDisplay(totalWin);
+        showNotification(`🎉 Free Spin Complete! Total: ${formatNumber(totalWin)} KS`, 'success');
+    }
+
+    // Reset state
+    window.gameState.isFreeSpinning = false;
+    window.gameState.freeSpins = 0;
+    window.gameState.totalFreeSpins = 0;
+    window.gameState.freeSpinTotalWin = 0;
+
+    // Hide indicator
+    hideFreeSpinIndicator();
+
+    // Show end popup
+    showFreeSpinPopup(`🎊 ${formatNumber(totalWin)} KS WON! 🎊`);
+
+    // 🔓 Re-enable ALL buttons
+    disableButtons(false);
+
+    // Clear win display after delay
+    setTimeout(() => {
+        updateWinDisplay(0);
+    }, 3000);
+
+    // 🔥🔥🔥 CRITICAL: Resume auto spin if it was active before free spin
+    if (typeof autoSpinPaused !== 'undefined' && autoSpinPaused === true) {
+        autoSpinPaused = false;
+        console.log('▶️ Resuming auto spin after free spins');
+
+        setTimeout(() => {
+            if (window.gameState.autoSpinActive && !window.gameState.isSpinning) {
+                if (typeof performAutoSpin === 'function') {
+                    performAutoSpin();
+                }
+            }
+        }, 2000);
+    }
+
+    // Update storage
+    if (typeof updateUserBalanceInStorage === 'function') {
+        updateUserBalanceInStorage();
+    }
+}
+
+// ===== CONFETTI EFFECT =====
+function createConfetti() {
+    const colors = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#FF00FF', '#00FF00'];
+
+    for (let i = 0; i < 60; i++) {
+        const confetti = document.createElement('div');
+        confetti.style.cssText = `
+            position: fixed;
+            top: -20px;
+            left: ${Math.random() * 100}vw;
+            width: ${8 + Math.random() * 12}px;
+            height: ${8 + Math.random() * 12}px;
+            background: ${colors[Math.floor(Math.random() * colors.length)]};
+            border-radius: ${Math.random() > 0.5 ? '50%' : '0'};
+            z-index: 99998;
+            animation: confettiFall ${2 + Math.random() * 3}s linear forwards;
+            animation-delay: ${Math.random() * 1.5}s;
+            transform: rotate(${Math.random() * 360}deg);
+        `;
+        document.body.appendChild(confetti);
+
+        setTimeout(() => confetti.remove(), 6000);
+    }
+}
+
+// ===== KEYFRAMES (Complete) =====
+if (!document.querySelector('#free-spin-animation-styles')) {
+    const style = document.createElement('style');
+    style.id = 'free-spin-animation-styles';
+    style.textContent = `
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-25px); }
+        }
+        @keyframes confettiFall {
+            0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(105vh) rotate(720deg); opacity: 0; }
+        }
+        @keyframes fadeOut {
+            0% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0.8); }
+        }
+        @keyframes popIn {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            70% { transform: translate(-50%, -50%) scale(1.15); }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+        }
+    `;
+    document.head.appendChild(style);
+}
 
 // ============================================
 // 18. FREE SPIN FUNCTIONS (FIXED - NO SUSPENSE)
@@ -1894,53 +2183,213 @@ function showFreeSpinEndAnimation(totalWin) {
     }, 3500);
 }
 
-// ===== DISABLE BUTTONS DURING FREE SPIN =====
-function disableButtons(disable) {
-    const spinBtn = document.getElementById('spinBtn');
-    const betButtons = document.querySelectorAll('.bet-option, #decreaseBetBtn, #increaseBetBtn');
+// ===== FREE SPIN POPUP (Complete with countdown) =====
+function showFreeSpinPopup(message, type = 'info') {
+    // Remove existing popup
+    const existingPopup = document.getElementById('free-spin-popup');
+    if (existingPopup) existingPopup.remove();
 
-    if (spinBtn) {
-        spinBtn.disabled = disable;
-        spinBtn.style.opacity = disable ? '0.5' : '1';
-        spinBtn.style.pointerEvents = disable ? 'none' : 'auto';
-    }
+    const popup = document.createElement('div');
+    popup.id = 'free-spin-popup';
+    popup.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0);
+        background: linear-gradient(135deg, #1a0f0a 0%, #2d1b0e 100%);
+        border: 3px solid #ffd700;
+        color: #ffd700;
+        padding: 40px 60px;
+        border-radius: 25px;
+        font-size: 28px;
+        font-weight: 900;
+        text-align: center;
+        z-index: 99999;
+        box-shadow: 0 0 60px rgba(255, 215, 0, 0.4), 0 15px 50px rgba(0,0,0,0.5);
+        min-width: 350px;
+        font-family: 'Bangers', cursive;
+        letter-spacing: 2px;
+        animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    `;
 
-    betButtons.forEach(btn => {
-        btn.disabled = disable;
-        btn.style.opacity = disable ? '0.5' : '1';
-        btn.style.pointerEvents = disable ? 'none' : 'auto';
-    });
+    popup.innerHTML = `
+        <div style="font-size: 60px; margin-bottom: 15px; animation: bounce 0.6s infinite alternate;">🎰</div>
+        <div style="font-size: 36px; margin-bottom: 10px; color: #fff; text-shadow: 0 0 20px #ffd700;">${message}</div>
+        <div id="free-spin-countdown" style="font-size: 20px; color: #00ffaa; margin-top: 15px;"></div>
+    `;
+
+    document.body.appendChild(popup);
+
+    // Auto remove
+    setTimeout(() => {
+        popup.style.animation = 'fadeOut 0.5s ease forwards';
+        setTimeout(() => popup.remove(), 500);
+    }, 3000);
+
+    return popup;
 }
 
-// Add missing keyframes if not already in style
+// ===== FREE SPIN START (Complete) =====
+function startFreeSpin(spinCount) {
+    console.log(`🎰 Starting Free Spins: ${spinCount} spins`);
+
+    // 🔒 Disable ALL buttons immediately
+    disableButtons(true);
+
+    // Show popup
+    showFreeSpinPopup(`✨ FREE SPIN ${spinCount} ✨`);
+
+    // Add confetti
+    createConfetti();
+
+    // Set game state
+    window.gameState.isFreeSpinning = true;
+    window.gameState.freeSpins = spinCount;
+    window.gameState.totalFreeSpins = spinCount;
+    window.gameState.freeSpinTotalWin = 0;
+
+    // Show indicator
+    showFreeSpinIndicator();
+
+    // Start countdown
+    let remaining = spinCount;
+    const countdownEl = document.getElementById('free-spin-countdown');
+
+    function doFreeSpin() {
+        if (remaining <= 0) {
+            endFreeSpin();
+            return;
+        }
+
+        if (countdownEl) {
+            countdownEl.textContent = `${remaining} spins remaining...`;
+        }
+
+        // Perform spin (call your existing spin function)
+        if (typeof spin === 'function') {
+            spin();
+        }
+
+        remaining--;
+
+        // Wait for spin to complete before next (adjust delay as needed)
+        setTimeout(doFreeSpin, 2500);
+    }
+
+    // Start first spin after popup animation
+    setTimeout(doFreeSpin, 1500);
+}
+
+// ===== FREE SPIN END (Complete with auto spin resume) =====
+function endFreeSpin() {
+    console.log('🎰 Free Spins Complete');
+
+    const totalWin = window.gameState.freeSpinTotalWin || 0;
+
+    // Add win to balance
+    if (totalWin > 0) {
+        window.gameState.balance += totalWin;
+        window.gameState.displayBalance += totalWin;
+        updateBalanceDisplay();
+        updateWinDisplay(totalWin);
+        showNotification(`🎉 Free Spin Complete! Total: ${formatNumber(totalWin)} KS`, 'success');
+    }
+
+    // Reset state
+    window.gameState.isFreeSpinning = false;
+    window.gameState.freeSpins = 0;
+    window.gameState.totalFreeSpins = 0;
+    window.gameState.freeSpinTotalWin = 0;
+
+    // Hide indicator
+    hideFreeSpinIndicator();
+
+    // Show end popup
+    showFreeSpinPopup(`🎊 ${formatNumber(totalWin)} KS WON! 🎊`);
+
+    // 🔓 Re-enable ALL buttons
+    disableButtons(false);
+
+    // Clear win display after delay
+    setTimeout(() => {
+        updateWinDisplay(0);
+    }, 3000);
+
+    // 🔥🔥🔥 CRITICAL: Resume auto spin if it was active before free spin
+    if (typeof autoSpinPaused !== 'undefined' && autoSpinPaused === true) {
+        autoSpinPaused = false;
+        console.log('▶️ Resuming auto spin after free spins');
+
+        setTimeout(() => {
+            if (window.gameState.autoSpinActive && !window.gameState.isSpinning) {
+                if (typeof performAutoSpin === 'function') {
+                    performAutoSpin();
+                }
+            }
+        }, 2000);
+    }
+
+    // Update storage
+    if (typeof updateUserBalanceInStorage === 'function') {
+        updateUserBalanceInStorage();
+    }
+}
+
+// ===== CONFETTI EFFECT =====
+function createConfetti() {
+    const colors = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#FF00FF', '#00FF00'];
+
+    for (let i = 0; i < 60; i++) {
+        const confetti = document.createElement('div');
+        confetti.style.cssText = `
+            position: fixed;
+            top: -20px;
+            left: ${Math.random() * 100}vw;
+            width: ${8 + Math.random() * 12}px;
+            height: ${8 + Math.random() * 12}px;
+            background: ${colors[Math.floor(Math.random() * colors.length)]};
+            border-radius: ${Math.random() > 0.5 ? '50%' : '0'};
+            z-index: 99998;
+            animation: confettiFall ${2 + Math.random() * 3}s linear forwards;
+            animation-delay: ${Math.random() * 1.5}s;
+            transform: rotate(${Math.random() * 360}deg);
+        `;
+        document.body.appendChild(confetti);
+
+        setTimeout(() => confetti.remove(), 6000);
+    }
+}
+
+// ===== KEYFRAMES (Complete) =====
 if (!document.querySelector('#free-spin-animation-styles')) {
     const style = document.createElement('style');
     style.id = 'free-spin-animation-styles';
     style.textContent = `
         @keyframes bounce {
-            0% { transform: translateY(0); }
-            100% { transform: translateY(-20px); }
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-25px); }
         }
         @keyframes confettiFall {
-            0% { transform: translateY(-50px) rotate(0deg); opacity: 1; }
-            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+            0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(105vh) rotate(720deg); opacity: 0; }
         }
         @keyframes fadeOut {
-            0% { opacity: 1; }
-            100% { opacity: 0; }
+            0% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0.8); }
         }
         @keyframes popIn {
-            0% { transform: scale(0); opacity: 0; }
-            80% { transform: scale(1.1); }
-            100% { transform: scale(1); opacity: 1; }
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            70% { transform: translate(-50%, -50%) scale(1.15); }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
         }
         @keyframes pulse {
-            0% { transform: scale(1); }
-            100% { transform: scale(1.05); }
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.08); }
         }
     `;
     document.head.appendChild(style);
 }
+
 // ===== DIRECT FREE SPIN INIT (Suspense မပါ - ဒါပေမယ့် Free Spin စဖို့သုံးတယ်) =====
 function initializeFreeSpinsDirect(bonusCount, freeSpinCount) {
     console.log(`🎰 Initializing Free Spins: ${freeSpinCount} spins for ${bonusCount} bonuses`);
@@ -1996,7 +2445,6 @@ function initializeFreeSpinsDirect(bonusCount, freeSpinCount) {
         }
 
         
-
 // ===== MAIN SPIN (FIXED WITH LOBBY SYNC & ANIMATION CALLBACK) =====
 function spin() {
     if (gameState.isSpinning) return;
@@ -2065,10 +2513,38 @@ function spin() {
                 gameState.freeSpinTotalWin += totalWin;
                 updateWinDisplay(gameState.freeSpinTotalWin);
             } else {
-                gameState.balance += totalWin;
+                const oldBalance = gameState.balance;
+                const newBalance = oldBalance + totalWin;
+                gameState.balance = newBalance;
                 reportWin(totalWin);
                 updateBalanceDisplay();
                 updateWinDisplay(totalWin);
+                
+                // Get elements for coin animation
+                const winEl = document.getElementById('winDisplay') || document.getElementById('winAmount');
+                const balanceEl = document.getElementById('balanceDisplay') || document.getElementById('balanceAmount');
+                
+                // 🔥 COIN ANIMATION (if function exists)
+                if (typeof animateWinCoins === 'function' && winEl && balanceEl && !gameState.isFreeSpinning) {
+                    // Don't show win number yet, let coins fly first
+                    // But we need to update balance after animation
+                    const finalBalance = newBalance;
+                    const finalWin = totalWin;
+                    
+                    animateWinCoins(totalWin, winEl, balanceEl, function() {
+                        // After coins fly, update balance number
+                        if (typeof animateNumber === 'function' && balanceEl) {
+                            animateNumber(balanceEl, oldBalance, finalBalance, 500, function() {
+                                console.log('✅ Balance animation completed');
+                            });
+                        } else {
+                            balanceEl.textContent = formatNumber(finalBalance);
+                        }
+                        if (winEl) {
+                            winEl.textContent = formatNumber(finalWin);
+                        }
+                    });
+                }
             }
 
             highlightWins(winIndices);
@@ -2076,38 +2552,39 @@ function spin() {
             showToast(`🎉 WIN! +${formatNumber(totalWin)} KS`);
 
            // ===== WIN ANIMATION (WITH CALLBACK FOR AUTO SPIN) =====
-if (parentWinAnim) {
+if (parentWinAnim && winPercentage >= 500) {
     try {
         window.gameState.waitingForWinAnimation = true;
         
-        // Helper function to resume auto spin after animation
         const onAnimationComplete = () => {
-            console.log('🎬 Animation finished, resuming auto spin if needed');
+            console.log('🎬 Animation finished');
             window.gameState.waitingForWinAnimation = false;
             
-            // 🔥 Resume auto spin if active
-            if (window.gameState.autoSpinActive && !window.gameState.isSpinning) {
-                console.log('▶️ Resuming auto spin after animation');
-                setTimeout(() => {
-                    if (typeof performAutoSpin === 'function') {
-                        performAutoSpin();
+            // 🔥 NEW: Animate coins from winning symbols
+            const winlineData = [{ symbol: 'win', indices: winIndices }];
+            
+            if (typeof animateWinCoinsFromSymbols === 'function' && winIndices.length > 0) {
+                animateWinCoinsFromSymbols(totalWin, winlineData, () => {
+                    console.log('✅ Coin animation completed');
+                    if (window.gameState.autoSpinActive && !window.gameState.isSpinning) {
+                        setTimeout(() => performAutoSpin(), 500);
                     }
-                }, 500);
+                });
+            } else {
+                if (window.gameState.autoSpinActive && !window.gameState.isSpinning) {
+                    setTimeout(() => performAutoSpin(), 500);
+                }
             }
         };
         
         if (winPercentage >= 1500) {
             parentWinAnim.mega(totalWin, onAnimationComplete);
-            console.log('🎬 Mega Win Animation started');
         } else if (winPercentage >= 1000) {
             parentWinAnim.super(totalWin, onAnimationComplete);
-            console.log('🎬 Super Win Animation started');
         } else if (winPercentage >= 500) {
             parentWinAnim.big(totalWin, onAnimationComplete);
-            console.log('🎬 Big Win Animation started');
-        } else {
-            window.gameState.waitingForWinAnimation = false;
         }
+        
     } catch(e) {
         console.warn('Animation error:', e);
         window.gameState.waitingForWinAnimation = false;
@@ -2145,14 +2622,15 @@ if (parentWinAnim) {
 
         if (gameState.isFreeSpinning && gameState.freeSpins > 0) {
             gameState.freeSpins--;
-            document.getElementById('freeSpinsCount').textContent = gameState.freeSpins;
+            const freeSpinsEl = document.getElementById('freeSpinsCount');
+            if (freeSpinsEl) freeSpinsEl.textContent = gameState.freeSpins;
             if (gameState.freeSpins > 0) {
                 setTimeout(() => spin(), 1000);
             } else {
                 endFreeSpins();
             }
         }
-        
+
         // 🔥 CRITICAL: Auto spin completion handler
         if (window.gameState.autoSpinActive) {
             console.log('🔄 Auto spin: spin completed, win:', totalWin);
@@ -2164,7 +2642,192 @@ if (parentWinAnim) {
     });
 }
 
-     // ============================================
+// ============================================
+// WINNING SYMBOLS ကိုရှာယူရန်
+// ============================================
+function getWinningSymbols(winlineData) {
+    const symbols = [];
+    const processedCells = new Set();
+    
+    for (const line of winlineData) {
+        if (line.indices && line.indices.length > 0) {
+            for (const idx of line.indices) {
+                if (processedCells.has(idx)) continue;
+                processedCells.add(idx);
+                
+                const row = Math.floor(idx / 5);
+                const col = idx % 5;
+                let cell = document.getElementById(`cell-${row}-${col}`);
+                if (!cell) cell = document.querySelector(`.grid-cell[data-row="${row}"][data-col="${col}"]`);
+                if (!cell) continue;
+                
+                const rect = cell.getBoundingClientRect();
+                let glowColor = '#FFD700';
+                if (line.symbol === 'buffalo') glowColor = '#8B4513';
+                else if (line.symbol === 'lion') glowColor = '#FF6600';
+                else if (line.symbol === 'ele') glowColor = '#00BFFF';
+                
+                symbols.push({
+                    element: cell,
+                    x: rect.left + rect.width / 2,
+                    y: rect.top + rect.height / 2,
+                    symbol: line.symbol,
+                    glow: glowColor
+                });
+            }
+        }
+    }
+    
+    return symbols;
+}
+
+// ============================================
+// COIN ANIMATION FROM WINNING SYMBOLS (for creditValue)
+// ============================================
+function animateWinCoinsFromSymbols(winAmount, winlineData, onComplete) {
+    // 🔥 balanceElement က creditValue ဖြစ်တယ်
+    const balanceElement = document.getElementById('creditValue');
+    if (!balanceElement || !winlineData?.length) {
+        if (onComplete) onComplete();
+        return;
+    }
+
+    const startBalance = parseInt(balanceElement.innerText.replace(/[^0-9]/g, '')) || 0;
+    const finalBalance = startBalance + winAmount;
+    const balanceRect = balanceElement.getBoundingClientRect();
+    const endX = balanceRect.left + balanceRect.width / 2;
+    const endY = balanceRect.top + balanceRect.height / 2;
+    const winningSymbols = getWinningSymbols(winlineData);
+
+    let coinsPerSymbol = Math.min(Math.floor(winAmount / 500) + 5, 20);
+    let currentSymbolIndex = 0;
+    let completedCoins = 0;
+    const totalCoins = winningSymbols.length * coinsPerSymbol;
+
+    const applyGlowStyle = (active) => {
+        if (active) {
+            balanceElement.style.color = '#FFD700';
+            balanceElement.style.textShadow = '0 0 15px #FF8C00, 0 0 25px #FF4500';
+            balanceElement.style.transition = 'all 0.2s';
+        } else {
+            balanceElement.style.color = '';
+            balanceElement.style.textShadow = '';
+        }
+    };
+
+    const updateWinValue = (amount) => {
+        const winEl = document.getElementById('winValue');
+        if (winEl) winEl.textContent = amount.toLocaleString();
+    };
+
+    const countUpBalance = () => {
+        applyGlowStyle(true);
+        updateWinValue(winAmount);
+        
+        let startTime = null;
+        const duration = 1500;
+        
+        function step(timestamp) {
+            if (!startTime) startTime = timestamp;
+            const progress = Math.min((timestamp - startTime) / duration, 1);
+            const currentVal = Math.floor(startBalance + (winAmount * progress));
+            balanceElement.innerText = currentVal.toLocaleString();
+            
+            if (progress < 1) {
+                requestAnimationFrame(step);
+            } else {
+                balanceElement.innerText = finalBalance.toLocaleString();
+                applyGlowStyle(false);
+                balanceElement.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.1)' }, { transform: 'scale(1)' }], { duration: 300 });
+                
+                // Update gameState balance
+                if (window.gameState) window.gameState.balance = finalBalance;
+                if (typeof updateBalanceDisplay === 'function') updateBalanceDisplay();
+                
+                if (onComplete) onComplete();
+            }
+        }
+        requestAnimationFrame(step);
+    };
+
+    const createTrail = (x, y) => {
+        const trail = document.createElement('div');
+        trail.style.cssText = `position: fixed; left: ${x}px; top: ${y}px; width: 4px; height: 4px; background: gold; border-radius: 50%; pointer-events: none; z-index: 9998;`;
+        document.body.appendChild(trail);
+        trail.animate([{ opacity: 0.5 }, { opacity: 0, transform: 'scale(0)' }], { duration: 300 }).onfinish = () => trail.remove();
+    };
+
+    function createCoin(symbol, onDone) {
+        const coin = document.createElement('div');
+        const coinImg = document.createElement('img');
+        coinImg.src = 'images/coin.png';
+        coinImg.style.cssText = 'width: 30px; height: 30px; display: block;';
+        coin.appendChild(coinImg);
+        
+        coinImg.onerror = () => {
+            coinImg.remove();
+            coin.innerHTML = '🪙';
+            coin.style.fontSize = '28px';
+        };
+        
+        coin.style.cssText = `position: fixed; left: ${symbol.x}px; top: ${symbol.y}px; z-index: 9999; pointer-events: none; transition: transform 0.1s linear;`;
+        document.body.appendChild(coin);
+
+        const startX = symbol.x, startY = symbol.y;
+        const targetX = endX + (Math.random() - 0.5) * 40;
+        const targetY = endY + (Math.random() - 0.5) * 20;
+        const midX = (startX + targetX) / 2;
+        const midY = Math.min(startY, targetY) - 150;
+
+        let progress = 0;
+        const duration = 500 + Math.random() * 300;
+
+        function update() {
+            progress += 16 / duration;
+            if (progress > 1) {
+                coin.remove();
+                if (onDone) onDone();
+                return;
+            }
+            const x = Math.pow(1 - progress, 2) * startX + 2 * (1 - progress) * progress * midX + Math.pow(progress, 2) * targetX;
+            const y = Math.pow(1 - progress, 2) * startY + 2 * (1 - progress) * progress * midY + Math.pow(progress, 2) * targetY;
+            coin.style.left = `${x}px`;
+            coin.style.top = `${y}px`;
+            coin.style.transform = `rotate(${progress * 720}deg)`;
+            if (progress > 0.2 && Math.random() > 0.7) createTrail(x, y);
+            requestAnimationFrame(update);
+        }
+        requestAnimationFrame(update);
+    }
+
+    function processSymbols() {
+        if (currentSymbolIndex >= winningSymbols.length) {
+            countUpBalance();
+            return;
+        }
+
+        const symbol = winningSymbols[currentSymbolIndex];
+        let coinCount = 0;
+        
+        function createNextCoin() {
+            if (coinCount >= coinsPerSymbol) {
+                currentSymbolIndex++;
+                setTimeout(processSymbols, 150);
+                return;
+            }
+            createCoin(symbol, () => {
+                completedCoins++;
+            });
+            coinCount++;
+            setTimeout(createNextCoin, 60);
+        }
+        
+        createNextCoin();
+    }
+    
+    processSymbols();
+}
+ // ============================================
 // NO WIN CYCLE (Normal 2 → No Win 2)
 // ============================================
 const noWinCycle = {

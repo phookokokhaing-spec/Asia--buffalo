@@ -21,7 +21,7 @@ const SoundManager = (function() {
         spinSound: { src: 'sounds/spin.mp3', volume: 0.4, loop: false },
         winlineSound: { src: 'sounds/winline.mp3', volume: 0.5, loop: false },
         nowinSound: { src: 'sounds/nowin.mp3', volume: 0.7, loop: false },
-        
+       balanceSound: { src: 'sounds/balance.mp3', volume: 0.6, loop: false }, 
         // Animal sounds
         buffaloSound: { src: 'sounds/buffalo.mp3', volume: 0.5, loop: false },
         lionSound: { src: 'sounds/lion.mp3', volume: 0.5, loop: false },
@@ -303,6 +303,7 @@ const SoundManager = (function() {
         congrats: function() { return play('congratsSound'); },
 
         // Notifications
+        balance: function() { return play('balanceSound'); },
         noti: function() { return play('notiSound'); },
         notification: function() { return play('notificationSound'); }
     };
@@ -339,6 +340,15 @@ if (window.SoundManager) {
         return this.play('boomSound');
     };
     console.log("🚀 Boom function manually injected into SoundManager!");
+}
+
+
+// SoundManager အပြင်ဘက်ကနေ boom ကို အတင်းထည့်ပေးမယ်
+if (window.SoundManager) {
+    window.SoundManager.balance = function() {
+        return this.play('balanceSound');
+    };
+    console.log("🚀 Balance function manually injected into SoundManager!");
 }
 
 // ===== Make it global =====

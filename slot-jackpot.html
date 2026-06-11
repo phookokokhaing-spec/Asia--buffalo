@@ -1241,7 +1241,7 @@ function showToast(msg) {
 // ============================================
 // MAIN SPIN
 // ============================================
-  function spin() {
+function spin() {
     if (window.gameState.isSpinning) return;
     let bet = window.gameState.betAmount;
     let isFreeSpin = (freeSpinsRemaining > 0);
@@ -1271,10 +1271,10 @@ function showToast(msg) {
     animateDrop(currentGrid, () => {
         // 1) ပုံမှန် winline win (အမြဲတမ်း)
         const lineResult = calculateWinlineWin(currentGrid, bet);
-        
+
         // 2) Scatter win – Free Spin အတွင်းမှသာ ချက်ချင်းငွေပေးမယ်
         const scatterResult = calculateScatterWins(currentGrid, cMultiplier, isFreeSpin);
-        
+
         let totalWin = lineResult.totalWin + scatterResult.totalWin;
         let freeSpinsEarned = 0;
 
@@ -1312,18 +1312,53 @@ function showToast(msg) {
             }
         }
 
-        // Win handling
+        // ===== WIN HANDLING (with Coin Animation) =====
         if (totalWin > 0) {
             if (window.parent?.SoundManager?.win) window.parent.SoundManager.win();
-            window.gameState.balance += totalWin;
+            
+            // Save old balance for animation
+            const oldBalance = window.gameState.balance;
+            const newBalance = oldBalance + totalWin;
+            
+            // Get elements for coin animation
+            const winEl = document.getElementById('winAmount') || document.querySelector('.win-display');
+            const balanceEl = document.getElementById('balanceAmount') || document.querySelector('.balance-display');
+            
+            // Update balance (will be animated)
+            window.gameState.balance = newBalance;
             window.gameState.winAmount = totalWin;
-            updateUI();
+            
+            // 🔥 COIN ANIMATION (if function exists and not free spin)
+            if (typeof animateWinCoins === 'function' && winEl && balanceEl && !isFreeSpin) {
+                // First, update win display
+                if (winEl) winEl.textContent = formatNumber(totalWin);
+                
+                // Animate coins flying to balance
+                animateWinCoins(totalWin, winEl, balanceEl, function() {
+                    console.log('✅ Coin animation completed');
+                    // After coins fly, animate balance number
+                    if (typeof animateNumber === 'function' && balanceEl) {
+                        animateNumber(balanceEl, oldBalance, newBalance, 500, function() {
+                            console.log('✅ Balance number animation completed');
+                            updateUI();
+                        });
+                    } else {
+                        updateUI();
+                    }
+                });
+            } else {
+                // Fallback: direct update
+                updateUI();
+            }
+            
             addToHistory(totalWin, bet, isFreeSpin);
             const allPositions = [...lineResult.winPositions, ...scatterResult.positions];
             highlightWins(allPositions);
             showScatterWinPopup(totalWin, lineResult.winningLines, scatterResult, isFreeSpin);
+            
         } else {
             addToHistory(0, bet, isFreeSpin);
+            updateUI();
         }
 
         if (isFreeSpin) {
@@ -1342,6 +1377,228 @@ function showToast(msg) {
         spinButton.classList.remove('spinning');
         spinButton.disabled = false;
     });
+}
+
+/**
+ * Win Box ကနေ Balance Box ဆီကို Coin များ ပန်းထွက်သွားစေမည့် Function
+ * (နှေးကွေးသော လှုပ်ရှားမှု)
+ */
+function animateWinCoins(winAmount, fromElement, toElement, onComplete) {
+    if (!fromElement || !toElement) {
+        if (onComplete) onComplete();
+        return;
+    }
+    
+    const fromRect = fromElement.getBoundingClientRect();
+    const toRect = toElement.getBoundingClientRect();
+
+    const startX = fromRect.left + fromRect.width / 2;
+    const startY = fromRect.top + fromRect.height / 2;
+    const endX = toRect.left + toRect.width / 2;
+    const endY = toRect.top + toRect.height / 2;
+
+    // Win amount အလိုက် coin အရေအတွက်
+    let coinCount = 20;
+    if (winAmount >= 100000) coinCount = 60;
+    else if (winAmount >= 50000) coinCount = 50;
+    else if (winAmount >= 25000) coinCount = 40;
+    else if (winAmount >= 10000) coinCount = 35;
+    else if (winAmount >= 5000) coinCount = 30;
+    else if (winAmount >= 1000) coinCount = 25;
+    else coinCount = 20;
+    
+    let completed = 0;
+    let activeCoins = 0;
+    
+    const checkComplete = () => {
+        completed++;
+        if (completed >= coinCount && activeCoins === 0 && onComplete) {
+            onComplete();
+        }
+    };
+
+    // Balance box flash effect
+    const flashBalance = () => {
+        toElement.style.transition = 'all 0.2s';
+        toElement.style.transform = 'scale(1.1)';
+        toElement.style.textShadow = '0 0 20px gold, 0 0 40px orange';
+        setTimeout(() => {
+            if (toElement) {
+                toElement.style.transform = 'scale(1)';
+                toElement.style.textShadow = '';
+            }
+        }, 250);
+    };
+
+    for (let i = 0; i < coinCount; i++) {
+        // အနည်းငယ် ပြန့်ကျဲနေအောင်
+        const spreadX = (Math.sin(i * 0.5) * 50) + (Math.random() - 0.5) * 30;
+        const spreadY = (Math.cos(i * 0.3) * 30) - 40;
+        
+        const coin = document.createElement('div');
+        const coinIcons = ['🪙', '💰', '🪙', '💎', '🪙'];
+        const coinIcon = coinIcons[i % coinIcons.length];
+        
+        coin.innerHTML = coinIcon;
+        coin.style.cssText = `
+            position: fixed;
+            left: ${startX + (Math.random() - 0.5) * 50}px;
+            top: ${startY + (Math.random() - 0.5) * 40}px;
+            font-size: ${24 + (i % 5) * 3}px;
+            z-index: ${20000 + i};
+            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            pointer-events: none;
+            filter: drop-shadow(0 0 8px gold);
+            opacity: 0;
+            transform: scale(0.5);
+        `;
+        document.body.appendChild(coin);
+        
+        activeCoins++;
+        
+        // Fade in
+        setTimeout(() => {
+            coin.style.opacity = '1';
+            coin.style.transform = 'scale(1)';
+        }, 50);
+        
+        // လမ်းကြောင်း: အောက်ကနေ အပေါ်ကို ကွေးပျံ
+        const targetX = endX + spreadX;
+        const targetY = endY - 30 + (Math.random() - 0.5) * 40;
+        
+        // Mid point for arc (ပိုမြင့်အောင်)
+        const midX = (startX + targetX) / 2 + (i % 10 - 5) * 20;
+        const midY = startY - 120 - (i * 1.5);
+        
+        let startTime = null;
+        const duration = 2200;
+        
+        function animateCoin(currentTime) {
+            if (!startTime) startTime = currentTime;
+            const elapsed = currentTime - startTime;
+            let t = Math.min(1, elapsed / duration);
+            
+            // Ease in-out for smoother motion
+            const easeInOut = t < 0.5 
+                ? 2 * t * t 
+                : 1 - Math.pow(-2 * t + 2, 2) / 2;
+            
+            // Quadratic bezier curve
+            const x = (1 - easeInOut) * (1 - easeInOut) * startX + 
+                      2 * (1 - easeInOut) * easeInOut * midX + 
+                      easeInOut * easeInOut * targetX;
+            const y = (1 - easeInOut) * (1 - easeInOut) * startY + 
+                      2 * (1 - easeInOut) * easeInOut * midY + 
+                      easeInOut * easeInOut * targetY;
+            
+            const rotation = easeInOut * 720;
+            const scale = 1 - easeInOut * 0.3;
+            
+            coin.style.left = x + 'px';
+            coin.style.top = y + 'px';
+            coin.style.transform = `rotate(${rotation}deg) scale(${scale})`;
+            
+            if (t < 1) {
+                requestAnimationFrame(animateCoin);
+            } else {
+                coin.remove();
+                activeCoins--;
+                if (i === coinCount - 1) {
+                    flashBalance();
+                }
+                checkComplete();
+            }
+        }
+        
+        requestAnimationFrame(animateCoin);
+        
+        setTimeout(function() {}, i * 40);
+    }
+}
+// ============================================
+// COUNTING ANIMATION UTILITY
+// ============================================
+function animateNumber(element, start, end, duration = 800, onComplete = null) {
+    if (!element) return;
+
+    const startVal = start;
+    const endVal = end;
+    const steps = 40;
+    const stepTime = duration / steps;
+    const increment = (endVal - startVal) / steps;
+
+    let current = startVal;
+    let step = 0;
+
+    if (element._animInterval) clearInterval(element._animInterval);
+
+    element._animInterval = setInterval(() => {
+        step++;
+        current += increment;
+
+        if (step >= steps) {
+            element.textContent = formatNumber(Math.floor(endVal));
+            clearInterval(element._animInterval);
+            element._animInterval = null;
+            if (onComplete) onComplete();
+        } else {
+            element.textContent = formatNumber(Math.floor(current));
+        }
+    }, stepTime);
+}
+
+// ============================================
+// COMMON FUNCTION FOR COIN ANIMATION (အပြင်မှာထား)
+// ============================================
+function handleCoinAnimation(totalWin, winEl, balanceEl, oldBalance, newBalance, callback) {
+    if (typeof animateWinCoins === 'function') {
+        animateWinCoins(totalWin, winEl, balanceEl, function() {
+            if (balanceEl) {
+                animateNumber(balanceEl, oldBalance, newBalance, 500, callback);
+            } else {
+                callback();
+            }
+        });
+    } else {
+        if (balanceEl) {
+            animateNumber(balanceEl, oldBalance, newBalance, 500, callback);
+        } else {
+            callback();
+        }
+    }
+}
+// ============================================
+// FORMAT NUMBER UTILITY
+// ============================================
+function formatNumber(num) {
+    if (num === undefined || num === null) return '0';
+    return num.toLocaleString();
+}
+
+// ============================================
+// WIN + BALANCE ANIMATION TOGETHER
+// ============================================
+function animateWinAndBalance(winAmount, oldBalance, newBalance, onComplete) {
+    const winEl = document.getElementById('winAmount');
+    const balanceEl = document.getElementById('balanceAmount');
+
+    let completed = 0;
+    const checkComplete = () => {
+        completed++;
+        if (completed === 2 && onComplete) onComplete();
+    };
+
+    if (winEl) {
+        animateNumber(winEl, 0, winAmount, 800, checkComplete);
+    } else {
+        checkComplete();
+    }
+
+    if (balanceEl) {
+        animateNumber(balanceEl, oldBalance, newBalance, 800, checkComplete);
+    } else {
+        checkComplete();
+    }
 }
 
 function reset() {

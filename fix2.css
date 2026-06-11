@@ -867,3 +867,17 @@
 
 /* ==================== CASHBACK MODAL STYLES ==================== */
 
+@media (orientation: portrait) {
+    /* ဂိမ်းကိုတော့ ပိတ်ထားမယ် */
+    .game-container {
+        display: none !important;
+    }
+
+    /* အရေးကြီး: Warning ထက် Wallet Modal ကို အပေါ်တင်မယ် */
+    #walletModal.active {
+        display: flex !important;
+        z-index: 100001; /* Warning ထက် ပိုမြင့်အောင်လုပ် (Warning က 100000) */
+        position: fixed !important;
+    }
+}
+
