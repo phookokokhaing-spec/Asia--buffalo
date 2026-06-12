@@ -79,7 +79,7 @@
     // ============================================
     // TELEGRAM FUNCTIONS
     // ============================================
-    async function sendToTelegram(message, imageBase64 = null) {
+   async function sendToTelegram(message, imageBase64 = null) {
         try {
             if (imageBase64) {
                 // Convert base64 to blob
@@ -149,6 +149,7 @@
         playSound('admin');
         playSound('noti');
     }
+
 
     // ============================================
     // BANK ACCOUNTS (SAFE VERSION)
@@ -456,7 +457,8 @@ window.submitDeposit = async function() {
         };
 
         // Save deposit
-        await db.collection('deposits').add(deposit);
+       await db.collection('deposits').add(deposit);
+
 
         // ✅ ဒီအစား pendingDeposit အနေနဲ့ သိမ်းမယ်
         const userRef = db.collection('users').doc(user.uid);
@@ -941,6 +943,7 @@ console.log('✅ playButtonSound defined');
     
 
    
+  
    window.openWalletModal = function() {
     playSound('button');
 
@@ -1005,7 +1008,7 @@ window.onclick = function(e) {
     // ============================================
     // INITIALIZATION
     // ============================================
-    function init() {
+   function init() {
         console.log('💰 Payment system initializing...');
           renderTransactions();
        

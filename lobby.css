@@ -3685,3 +3685,9 @@ body.wallet-open {
     width: 100%;
     height: 100%;
 }
+
+/* ===== SCROLLBAR ===== */
+.modal-content::-webkit-scrollbar,
+.history-table tbody::-webkit-scrollbar {
+    width: 6px;
+}
