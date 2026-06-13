@@ -30,7 +30,216 @@
 
 </style>
 </head>
+
 <body oncontextmenu="return false" ondragstart="return false" onselectstart="return false" oncopy="return false">
+
+    <!-- Trigger Button -->
+    <button onclick="openWalletModal()" class="fixed bottom-6 right-6 w-16 h-16 rounded-full btn-primary flex items-center justify-center shadow-lg z-50 hover:scale-110 transition-transform">
+        <i class="fas fa-wallet text-white text-2xl"></i>
+    </button>
+
+   <!-- WALLET MODAL (Neon Glass Style with Original IDs) -->
+<div id="walletModal" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+    <div class="glass-panel w-full max-w-md rounded-3xl overflow-hidden animate-fade-in relative flex flex-col max-h-[90vh]">
+        
+        <!-- Header -->
+        <div class="p-4 border-b border-white/10 flex justify-between items-center bg-slate-900/50 shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg">
+                    <i class="fas fa-coins text-white"></i>
+                </div>
+                <div>
+                    <h2 class="font-bold text-lg neon-text">Wallet</h2>
+                    <p class="text-xs text-slate-400">ID: GM-7843291</p>
+                </div>
+            </div>
+            <button onclick="closeModal('walletModal')" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition">
+                <i class="fas fa-times text-slate-300"></i>
+            </button>
+        </div>
+
+        <!-- Balance Card -->
+        <div class="p-4 pb-2 shrink-0">
+            <div class="glass-panel rounded-2xl p-4 neon-border mb-3 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-violet-500/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+                <p class="text-xs text-slate-400 mb-1">Game Balance</p>
+                <div class="flex items-baseline gap-2">
+                    <i class="fas fa-coins text-amber-400 text-xl"></i>
+                    <span id="gameBalance" class="text-3xl font-bold text-white neon-text">0</span>
+                    <span class="text-sm text-slate-500">Ks</span>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="flex bg-slate-800/50 rounded-xl p-1">
+                <button onclick="switchModalTab('deposit')" id="tab-deposit" class="flex-1 py-2 rounded-lg text-xs font-bold transition bg-violet-500/20 text-white">
+                    <i class="fas fa-arrow-down mr-1"></i> ငွေသွင်း
+                </button>
+                <button onclick="switchModalTab('withdraw')" id="tab-withdraw" class="flex-1 py-2 rounded-lg text-xs font-bold transition text-slate-400">
+                    <i class="fas fa-arrow-up mr-1"></i> ငွေထုတ်
+                </button>
+                <button onclick="switchModalTab('history')" id="tab-history" class="flex-1 py-2 rounded-lg text-xs font-bold transition text-slate-400">
+                    <i class="fas fa-list mr-1"></i> မှတ်တမ်း
+                </button>
+            </div>
+        </div>
+
+        <!-- Content Area (Scrollable) -->
+        <div class="flex-1 overflow-y-auto p-4 custom-scrollbar">
+            
+            <!-- DEPOSIT FORM (Original IDs Preserved) -->            <div id="form-deposit" class="space-y-4 animate-fade-in">
+                <!-- Amount Chips -->
+                <div>
+                    <label class="text-xs text-slate-400 font-medium mb-2 block">Amount (MMK)</label>
+                    <div class="grid grid-cols-3 gap-2 mb-3">
+                        <div class="amount-chip active rounded-xl p-2 text-center" onclick="selectAmount(this, 3000)">
+                            <div class="font-bold text-white text-sm">3K</div>
+                        </div>
+                        <div class="amount-chip rounded-xl p-2 text-center" onclick="selectAmount(this, 5000)">
+                            <div class="font-bold text-white text-sm">5K</div>
+                        </div>
+                        <div class="amount-chip rounded-xl p-2 text-center" onclick="selectAmount(this, 10000)">
+                            <div class="font-bold text-white text-sm">10K</div>
+                        </div>
+                        <div class="amount-chip rounded-xl p-2 text-center" onclick="selectAmount(this, 20000)">
+                            <div class="font-bold text-white text-sm">20K</div>
+                        </div>
+                        <div class="amount-chip rounded-xl p-2 text-center" onclick="selectAmount(this, 50000)">
+                            <div class="font-bold text-white text-sm">50K</div>
+                        </div>
+                        <div class="amount-chip rounded-xl p-2 text-center" onclick="selectAmount(this, 100000)">
+                            <div class="font-bold text-white text-sm">100K</div>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="number" id="customAmount" placeholder="Custom Amount" class="game-input flex-1 px-3 py-2.5 rounded-xl text-sm">
+                        <button onclick="useCustomAmount()" class="btn-primary px-4 rounded-xl text-white font-bold text-sm">Set</button>
+                    </div>
+                </div>
+
+                <!-- Payment Methods -->
+                <div>
+                    <label class="text-xs text-slate-400 font-medium mb-2 block">Payment Method</label>
+                    <div class="grid grid-cols-3 gap-2 method-grid">
+                        <!-- Dynamically populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Bank Info Card -->
+                <div class="glass-panel rounded-xl p-3 border-l-4 border-violet-500 text-xs space-y-2">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-university text-violet-400"></i>
+                        <span class="font-bold text-white" id="bankName">KBZ Pay</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-400"><i class="fas fa-user mr-1"></i> Name:</span>
+                        <span class="text-white" id="accountName">ဒေါ်အေးအေး</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-400"><i class="fas fa-phone mr-1"></i> Phone:</span>                        <div class="flex items-center gap-2">
+                            <span class="text-white font-mono" id="accountPhone">09-123456789</span>
+                            <button onclick="copyToClipboard('accountPhone')" class="text-violet-400 hover:text-violet-300"><i class="fas fa-copy"></i></button>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-400"><i class="fas fa-id-card mr-1"></i> Ref ID:</span>
+                        <span class="text-amber-400 font-mono" id="accountRef">KBZ12345</span>
+                    </div>
+                    <div class="mt-2 p-2 bg-amber-500/10 border border-amber-500/20 rounded-lg text-amber-400 text-[10px] flex items-center gap-2">
+                        <i class="fas fa-exclamation-triangle"></i> အကောင့်သို့သာ ငွေလွှဲပါ။
+                    </div>
+                </div>
+
+                <!-- User Inputs -->
+                <input type="tel" id="senderPhone" placeholder="သင့်ဖုန်းနံပါတ်" maxlength="11" class="game-input w-full px-3 py-2.5 rounded-xl text-sm">
+                <input type="text" id="transferId" placeholder="ငွေလွှဲ ID (၅လုံး)" maxlength="5" class="game-input w-full px-3 py-2.5 rounded-xl text-sm">
+
+                <!-- Upload Screenshot -->
+                <div>
+                    <label class="text-xs text-slate-400 font-medium mb-2 block">Screenshot</label>
+                    <div class="upload-area rounded-xl p-4 text-center" id="uploadArea" onclick="triggerFileUpload()">
+                        <i class="fas fa-cloud-upload-alt text-violet-400 text-2xl mb-1"></i>
+                        <p class="text-xs text-white">Screenshot တင်ရန် နှိပ်ပါ</p>
+                        <small class="text-[10px] text-slate-500">Max 5MB</small>
+                    </div>
+                    <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="handleFileSelect(event)">
+                    <div class="preview-container hidden mt-2 relative" id="previewContainer">
+                        <img class="w-full h-24 object-cover rounded-xl border border-slate-700" id="previewImage" src="#" alt="Preview">
+                        <button onclick="removeImage()" class="absolute top-2 right-2 w-6 h-6 bg-rose-500 rounded-full flex items-center justify-center text-white text-xs hover:bg-rose-600 transition">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button onclick="submitDeposit()" class="btn-primary w-full py-3 rounded-xl text-white font-bold flex items-center justify-center gap-2 mt-2">
+                    <i class="fas fa-paper-plane"></i> ငွေသွင်းရန် တင်ပြမည်
+                </button>
+            </div>
+
+            <!-- WITHDRAW FORM (Original IDs Preserved) -->
+            <div id="form-withdraw" class="hidden space-y-4 animate-fade-in">
+                <div class="glass-panel rounded-xl p-4 border border-amber-500/20 text-center">
+                    <p class="text-xs text-slate-400 mb-1">ထုတ်ယူနိုင်သည့်ပမာဏ</p>
+                    <p class="text-2xl font-bold text-amber-400" id="withdrawBalanceDisplay">5,000,000 Ks</p>
+                    <p class="text-[10px] text-slate-500 mt-1">Min: 5K | Max: 500K | Fee: 5%</p>
+                </div>
+                
+                <div>                    <label class="text-xs text-slate-400 font-medium mb-2 block">Withdraw Amount</label>
+                    <input type="number" id="withdrawAmount" placeholder="Enter amount" class="game-input w-full px-3 py-3 rounded-xl text-lg font-bold text-center">
+                    <div class="flex justify-between mt-2 text-xs text-slate-500 px-1">
+                        <span>Fee: <span id="feeAmount" class="text-rose-400">0 Ks</span></span>
+                        <span>Net: <span id="netAmount" class="text-emerald-400">0 Ks</span></span>
+                    </div>
+                </div>
+
+                <select id="withdrawBank" class="game-input w-full px-3 py-2.5 rounded-xl text-sm mb-2">
+                    <option value="KBZ Pay">KBZ Pay</option>
+                    <option value="Wave Pay">Wave Pay</option>
+                    <option value="CB Pay">CB Pay</option>
+                    <option value="AYA Pay">AYA Pay</option>
+                </select>
+                <input type="text" id="withdrawAccount" placeholder="Account / Phone number" class="game-input w-full px-3 py-2.5 rounded-xl text-sm mb-2">
+                <input type="text" id="withdrawName" placeholder="Account holder name" class="game-input w-full px-3 py-2.5 rounded-xl text-sm">
+
+                <button onclick="submitWithdraw()" class="btn-gold w-full py-3 rounded-xl text-white font-bold flex items-center justify-center gap-2 mt-2">
+                    <i class="fas fa-money-check-alt"></i> ွေထုတ်ယူရန် တောင်းဆိုမည်
+                </button>
+            </div>
+
+            <!-- HISTORY TAB (New Function) -->
+            <div id="form-history" class="hidden space-y-3 animate-fade-in">
+                <div class="flex gap-2 mb-2 overflow-x-auto pb-1">
+                    <button onclick="filterTx('all')" class="px-3 py-1 bg-violet-500/20 text-violet-400 rounded-lg text-xs font-bold border border-violet-500/30 whitespace-nowrap">All</button>
+                    <button onclick="filterTx('deposit')" class="px-3 py-1 bg-slate-800 text-slate-400 rounded-lg text-xs font-bold border border-slate-700 whitespace-nowrap">Deposits</button>
+                    <button onclick="filterTx('withdraw')" class="px-3 py-1 bg-slate-800 text-slate-400 rounded-lg text-xs font-bold border border-slate-700 whitespace-nowrap">Withdrawals</button>
+                </div>
+                <div id="txList" class="space-y-2">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- SUCCESS MODAL (Original ID) -->
+<div id="successModal" class="fixed inset-0 z-[10000] hidden items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+    <div class="glass-panel rounded-3xl w-full max-w-sm p-6 text-center animate-fade-in border border-emerald-500/30">
+        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-emerald-500/20 flex items-center justify-center">
+            <i class="fas fa-check-circle text-emerald-400 text-3xl"></i>
+        </div>
+        <h3 id="successTitle" class="text-xl font-bold text-white mb-2">Success!</h3>
+        <p id="successMessage" class="text-sm text-slate-400 mb-4">Your request has been submitted.</p>
+        <div id="modalDetails" class="glass-panel rounded-xl p-4 mb-4 text-left space-y-2 text-sm"></div>
+        <button onclick="closeModal('successModal')" class="btn-primary w-full py-3 rounded-xl text-white font-bold">OK</button>
+    </div>
+</div>
+<!-- NOTIFICATION TOAST (Original ID) -->
+<div id="notification" class="fixed top-4 right-4 z-[10001] hidden px-4 py-3 rounded-xl text-white font-medium shadow-lg backdrop-blur-md border border-white/10 animate-fade-in">
+    <i class="fas fa-info-circle mr-2" id="notificationIcon"></i>
+    <span id="notificationMessage"></span>
+</div>
  
     <!-- LOGIN SCREEN -->
     <div class="login-container" id="loginScreen">
@@ -346,23 +555,6 @@
                             <div class="game-title-overlay">
                                 <div class="game-title-text">JACKPOT<br>WAYS</div>
                                 <div class="game-subtitle-text">1024 Ways Slot</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- WHEEL GAME CARD -->
-                <div class="game-card" onclick="openWheelGameFromLobby()">
-                    <div class="game-frame">
-                        <div class="game-frame-inner" style="background: linear-gradient(145deg, #6c5ce7, #4a3ba7);">
-                            <div class="card-jackpot-badge jackpot">JACKPOT</div>
-                            <div style="font-size: 80px; text-align: center; padding: 30px 0;">
-                                <i class="fas fa-dharmachakra" style="color: #ffd966; text-shadow: 0 0 20px gold;"></i>
-                            </div>
-                            <img src="images/wheel.png" alt="Wheel" class="game-card-img">
-                            <div class="game-title-overlay">
-                                <div class="game-title-text">LUCKY<br>SPIN WHEEL</div>
-                                <div class="game-subtitle-text">Win up to 100,000 KS</div>
                             </div>
                         </div>
                     </div>
@@ -790,214 +982,6 @@
 
 </div> <!-- end lobbyScreen -->
 
-    <!-- Trigger Button -->
-    <button onclick="openWalletModal()" class="fixed bottom-6 right-6 w-16 h-16 rounded-full btn-primary flex items-center justify-center shadow-lg z-50 hover:scale-110 transition-transform">
-        <i class="fas fa-wallet text-white text-2xl"></i>
-    </button>
-
-   <!-- WALLET MODAL (Neon Glass Style with Original IDs) -->
-<div id="walletModal" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-    <div class="glass-panel w-full max-w-md rounded-3xl overflow-hidden animate-fade-in relative flex flex-col max-h-[90vh]">
-        
-        <!-- Header -->
-        <div class="p-4 border-b border-white/10 flex justify-between items-center bg-slate-900/50 shrink-0">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg">
-                    <i class="fas fa-coins text-white"></i>
-                </div>
-                <div>
-                    <h2 class="font-bold text-lg neon-text">Wallet</h2>
-                    <p class="text-xs text-slate-400">ID: GM-7843291</p>
-                </div>
-            </div>
-            <button onclick="closeModal('walletModal')" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition">
-                <i class="fas fa-times text-slate-300"></i>
-            </button>
-        </div>
-
-        <!-- Balance Card -->
-        <div class="p-4 pb-2 shrink-0">
-            <div class="glass-panel rounded-2xl p-4 neon-border mb-3 relative overflow-hidden">
-                <div class="absolute top-0 right-0 w-24 h-24 bg-violet-500/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
-                <p class="text-xs text-slate-400 mb-1">Game Balance</p>
-                <div class="flex items-baseline gap-2">
-                    <i class="fas fa-coins text-amber-400 text-xl"></i> 
-                   <span id="gameBalance" class="balance-amount text-3xl font-bold text-white neon-text">Aisa-buffalo</span>
-                    <span class="text-sm text-slate-500"></span>
-               
-                </div>
-            </div>
-
-            <!-- Tabs -->
-            <div class="flex bg-slate-800/50 rounded-xl p-1">
-                <button onclick="switchModalTab('deposit')" id="tab-deposit" class="flex-1 py-2 rounded-lg text-xs font-bold transition bg-violet-500/20 text-white">
-                    <i class="fas fa-arrow-down mr-1"></i> ‌ငွေသွင်း
-                </button>
-                <button onclick="switchModalTab('withdraw')" id="tab-withdraw" class="flex-1 py-2 rounded-lg text-xs font-bold transition text-slate-400">
-                    <i class="fas fa-arrow-up mr-1"></i> ‌ငွေထုတ်
-                </button>
-                <button onclick="switchModalTab('history')" id="tab-history" class="flex-1 py-2 rounded-lg text-xs font-bold transition text-slate-400">
-                    <i class="fas fa-list mr-1"></i> မှတ်တမ်း
-                </button>
-            </div>
-        </div>
-
-        <!-- Content Area (Scrollable) -->
-        <div class="flex-1 overflow-y-auto p-4 custom-scrollbar">
-            
-            <!-- DEPOSIT FORM (Original IDs Preserved) -->            <div id="form-deposit" class="space-y-4 animate-fade-in">
-                <!-- Amount Chips -->
-                <div>
-                    <label class="text-xs text-slate-400 font-medium mb-2 block">Amount (MMK)</label>
-                    <div class="grid grid-cols-3 gap-2 mb-3">
-                        <div class="amount-chip active rounded-xl p-2 text-center" onclick="selectAmount(this, 3000)">
-                            <div class="font-bold text-white text-sm">3K</div>
-                        </div>
-                        <div class="amount-chip rounded-xl p-2 text-center" onclick="selectAmount(this, 5000)">
-                            <div class="font-bold text-white text-sm">5K</div>
-                        </div>
-                        <div class="amount-chip rounded-xl p-2 text-center" onclick="selectAmount(this, 10000)">
-                            <div class="font-bold text-white text-sm">10K</div>
-                        </div>
-                        <div class="amount-chip rounded-xl p-2 text-center" onclick="selectAmount(this, 20000)">
-                            <div class="font-bold text-white text-sm">20K</div>
-                        </div>
-                        <div class="amount-chip rounded-xl p-2 text-center" onclick="selectAmount(this, 50000)">
-                            <div class="font-bold text-white text-sm">50K</div>
-                        </div>
-                        <div class="amount-chip rounded-xl p-2 text-center" onclick="selectAmount(this, 100000)">
-                            <div class="font-bold text-white text-sm">100K</div>
-                        </div>
-                    </div>
-                    <div class="flex gap-2">
-                        <input type="number" id="customAmount" placeholder="Custom Amount" class="game-input flex-1 px-3 py-2.5 rounded-xl text-sm">
-                        <button onclick="useCustomAmount()" class="btn-primary px-4 rounded-xl text-white font-bold text-sm">Set</button>
-                    </div>
-                </div>
-
-                <!-- Payment Methods -->
-                <div>
-                    <label class="text-xs text-slate-400 font-medium mb-2 block">Payment Method</label>
-                    <div class="grid grid-cols-3 gap-2 method-grid">
-                        <!-- Dynamically populated by JS -->
-                    </div>
-                </div>
-
-                <!-- Bank Info Card -->
-                <div class="glass-panel rounded-xl p-3 border-l-4 border-violet-500 text-xs space-y-2">
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-university text-violet-400"></i>
-                        <span class="font-bold text-white" id="bankName">KBZ Pay</span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-slate-400"><i class="fas fa-user mr-1"></i> Name:</span>
-                        <span class="text-white" id="accountName">ဒေါ်အေးအေး</span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-slate-400"><i class="fas fa-phone mr-1"></i> Phone:</span>                        <div class="flex items-center gap-2">
-                            <span class="text-white font-mono" id="accountPhone">09-123456789</span>
-                            <button onclick="copyToClipboard('accountPhone')" class="text-violet-400 hover:text-violet-300"><i class="fas fa-copy"></i></button>
-                        </div>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-slate-400"><i class="fas fa-id-card mr-1"></i> Ref ID:</span>
-                        <span class="text-amber-400 font-mono" id="accountRef">KBZ12345</span>
-                    </div>
-                    <div class="mt-2 p-2 bg-amber-500/10 border border-amber-500/20 rounded-lg text-amber-400 text-[10px] flex items-center gap-2">
-                        <i class="fas fa-exclamation-triangle"></i> အကောင့်သို့သာ ငွေလွှဲပါ။
-                    </div>
-                </div>
-
-                <!-- User Inputs -->
-                <input type="tel" id="senderPhone" placeholder="သင့်ဖုန်းနံပါတ်" maxlength="11" class="game-input w-full px-3 py-2.5 rounded-xl text-sm">
-                <input type="text" id="transferId" placeholder="ငွေလွှဲ ID (၅လုံး)" maxlength="5" class="game-input w-full px-3 py-2.5 rounded-xl text-sm">
-
-                <!-- Upload Screenshot -->
-                <div>
-                    <label class="text-xs text-slate-400 font-medium mb-2 block">Screenshot</label>
-                    <div class="upload-area rounded-xl p-4 text-center" id="uploadArea" onclick="triggerFileUpload()">
-                        <i class="fas fa-cloud-upload-alt text-violet-400 text-2xl mb-1"></i>
-                        <p class="text-xs text-white">Screenshot တင်ရန် နှိပ်ပါ</p>
-                        <small class="text-[10px] text-slate-500">Max 5MB</small>
-                    </div>
-                    <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="handleFileSelect(event)">
-                    <div class="preview-container hidden mt-2 relative" id="previewContainer">
-                        <img class="w-full h-24 object-cover rounded-xl border border-slate-700" id="previewImage" src="#" alt="Preview">
-                        <button onclick="removeImage()" class="absolute top-2 right-2 w-6 h-6 bg-rose-500 rounded-full flex items-center justify-center text-white text-xs hover:bg-rose-600 transition">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Submit Button -->
-                <button onclick="submitDeposit()" class="btn-primary w-full py-3 rounded-xl text-white font-bold flex items-center justify-center gap-2 mt-2">
-                    <i class="fas fa-paper-plane"></i> ငွေသွင်းရန် တင်ပြမည်
-                </button>
-            </div>
-
-            <!-- WITHDRAW FORM (Original IDs Preserved) -->
-            <div id="form-withdraw" class="hidden space-y-4 animate-fade-in">
-                <div class="glass-panel rounded-xl p-4 border border-amber-500/20 text-center">
-                    <p class="text-xs text-slate-400 mb-1">ထုတ်ယူနိုင်မည့်ပမာဏ</p>
-                    <p class="text-2xl font-bold text-amber-400" id="withdrawBalanceDisplay">5,000,000 Ks</p>
-                    <p class="text-[10px] text-slate-500 mt-1">Min: 5K | Max: 500K | Fee: 5%</p>
-                </div>
-                
-                <div>                    <label class="text-xs text-slate-400 font-medium mb-2 block">Withdraw Amount</label>
-                    <input type="number" id="withdrawAmount" placeholder="Enter amount" class="game-input w-full px-3 py-3 rounded-xl text-lg font-bold text-center">
-                    <div class="flex justify-between mt-2 text-xs text-slate-500 px-1">
-                        <span>Fee: <span id="feeAmount" class="text-rose-400">0 Ks</span></span>
-                        <span>Net: <span id="netAmount" class="text-emerald-400">0 Ks</span></span>
-                    </div>
-                </div>
-
-                <select id="withdrawBank" class="game-input w-full px-3 py-2.5 rounded-xl text-sm mb-2">
-                    <option value="KBZ Pay">KBZ Pay</option>
-                    <option value="Wave Pay">Wave Pay</option>
-                    <option value="CB Pay">CB Pay</option>
-                    <option value="AYA Pay">AYA Pay</option>
-                </select>
-                <input type="text" id="withdrawAccount" placeholder="Account / Phone number" class="game-input w-full px-3 py-2.5 rounded-xl text-sm mb-2">
-                <input type="text" id="withdrawName" placeholder="Account holder name" class="game-input w-full px-3 py-2.5 rounded-xl text-sm">
-
-                <button onclick="submitWithdraw()" class="btn-gold w-full py-3 rounded-xl text-white font-bold flex items-center justify-center gap-2 mt-2">
-                    <i class="fas fa-money-check-alt"></i> ွေထုတ်ယူရန် တောင်းဆိုမည်
-                </button>
-            </div>
-
-            <!-- HISTORY TAB (New Function) -->
-            <div id="form-history" class="hidden space-y-3 animate-fade-in">
-                <div class="flex gap-2 mb-2 overflow-x-auto pb-1">
-                    <button onclick="filterTx('all')" class="px-3 py-1 bg-violet-500/20 text-violet-400 rounded-lg text-xs font-bold border border-violet-500/30 whitespace-nowrap">All</button>
-                    <button onclick="filterTx('deposit')" class="px-3 py-1 bg-slate-800 text-slate-400 rounded-lg text-xs font-bold border border-slate-700 whitespace-nowrap">Deposits</button>
-                    <button onclick="filterTx('withdraw')" class="px-3 py-1 bg-slate-800 text-slate-400 rounded-lg text-xs font-bold border border-slate-700 whitespace-nowrap">Withdrawals</button>
-                </div>
-                <div id="txList" class="space-y-2">
-                    <!-- Populated by JS -->
-                </div>
-            </div>
-
-        </div>
-    </div>
-</div>
-
-<!-- SUCCESS MODAL (Original ID) -->
-<div id="successModal" class="fixed inset-0 z-[10000] hidden items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-    <div class="glass-panel rounded-3xl w-full max-w-sm p-6 text-center animate-fade-in border border-emerald-500/30">
-        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-emerald-500/20 flex items-center justify-center">
-            <i class="fas fa-check-circle text-emerald-400 text-3xl"></i>
-        </div>
-        <h3 id="successTitle" class="text-xl font-bold text-white mb-2">Success!</h3>
-        <p id="successMessage" class="text-sm text-slate-400 mb-4">Your request has been submitted.</p>
-        <div id="modalDetails" class="glass-panel rounded-xl p-4 mb-4 text-left space-y-2 text-sm"></div>
-        <button onclick="closeModal('successModal')" class="btn-primary w-full py-3 rounded-xl text-white font-bold">OK</button>
-    </div>
-</div>
-<!-- NOTIFICATION TOAST (Original ID) -->
-<div id="notification" class="fixed top-4 right-4 z-[10001] hidden px-4 py-3 rounded-xl text-white font-medium shadow-lg backdrop-blur-md border border-white/10 animate-fade-in">
-    <i class="fas fa-info-circle mr-2" id="notificationIcon"></i>
-    <span id="notificationMessage"></span>
-</div>
 <!-- ==================== MAIN GAME CONTAINER ==================== -->
 <div class="game-container" id="gameContainer">
     <!-- TOP PANEL -->
@@ -1403,12 +1387,6 @@
 
 <!-- ==================== IFRAME GAME CONTAINERS ==================== -->
 
-<!-- WHEEL GAME CONTAINER -->
-<div id="wheelGameContainer" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100000; background: #0a0718;">
-    <iframe id="wheelIframe" src="spin-wheel-casino.html" style="width: 100%; height: 100%; border: none;"></iframe>
-    <button onclick="closeWheelGame()" style="position: absolute; top: 15px; right: 15px; background: #ff4444; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 20px; cursor: pointer; z-index: 100001;">✕</button>
-</div>
-
 <!-- JACKPOT GAME CONTAINER -->
 <div id="jackpotGameContainer" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100000; background: #0d0705;">
     <iframe id="jackpotframe" src="slot-jackpot.html" style="width: 100%; height: 100%; border: none;"></iframe>
@@ -1422,196 +1400,7 @@
 </div>
 
 <script> 
-    // ========== SPIN WHEEL WITH PROPER NUMBER HANDLING (CONTAINER VERSION) ==========
-    const wheelContainer = document.getElementById('wheelGameContainer');
-    const wheelIframe = document.getElementById('wheelIframe');
-
-    // 🔥 Safe number parser - remove commas and ensure number
-    function safeNumber(value) {
-        if (value === undefined || value === null) return 0;
-        if (typeof value === 'number' && !isNaN(value)) return value;
-
-        let str = String(value).replace(/,/g, '').trim();
-        let num = parseFloat(str);
-
-        if (isNaN(num)) {
-            console.warn('⚠️ safeNumber received NaN for:', value);
-            return 0;
-        }
-        return num;
-    }
-
-   function updateLobbyBalance(newBalance) {
-    let safeBalance = safeNumber(newBalance);
     
-    if (isNaN(safeBalance)) {
-        console.error('❌ Attempted to update lobby with NaN! Ignoring...');
-        return false;
-    }
-
-    let formattedBalance = safeBalance.toLocaleString();
-
-    // Update DOM
-    const lobbyElem = document.getElementById('lobbyBalance');
-    if (lobbyElem) lobbyElem.innerText = formattedBalance;
-    
-    const gameElem = document.getElementById('balanceAmount');
-    if (gameElem) gameElem.innerText = formattedBalance;
-    
-    // Update gameState
-    if (window.gameState) {
-        window.gameState.balance = safeBalance;
-        window.gameState.displayBalance = safeBalance;
-    }
-    
-    // Update UI
-    if (typeof updateUI === 'function') updateUI(safeBalance);
-    
-    // 🔥 FIX: Update Firebase if user is logged in
-    if (typeof window.updateBalanceInFirebase === 'function') {
-        window.updateBalanceInFirebase(safeBalance);
-    } else if (typeof updateUserBalanceInStorage === 'function') {
-        updateUserBalanceInStorage();
-    } else {
-        // Try to find current user and update directly
-        const currentUser = localStorage.getItem('currentUser');
-        if (currentUser) {
-            const user = JSON.parse(currentUser);
-            user.balance = safeBalance;
-            localStorage.setItem('currentUser', JSON.stringify(user));
-            console.log('💰 Balance saved to localStorage:', safeBalance);
-            
-            // Also try Firebase if available
-            if (window.db && user.uid) {
-                window.db.collection('users').doc(user.uid).update({
-                    balance: safeBalance,
-                    displayBalance: safeBalance
-                }).catch(e => console.warn('Firebase update error:', e));
-            }
-        }
-    }
-    
-    return true;
-}
-
-
-    function getCurrentBalance() {
-        // First try from gameState
-        if (window.gameState && typeof window.gameState.balance === 'number' && !isNaN(window.gameState.balance)) {
-            return window.gameState.balance;
-        }
-
-        // Try from lobby DOM
-        const lobbyElem = document.getElementById('lobbyBalance');
-        if (lobbyElem) {
-            let rawText = lobbyElem.innerText || '0';
-            return safeNumber(rawText);
-        }
-
-        return 10000;
-    }
-
-    function openWheelGameFromLobby() {
-        if (!wheelContainer) return;
-
-        // Hide lobby screen
-        const lobbyScreen = document.getElementById('lobbyScreen');
-        if (lobbyScreen) lobbyScreen.style.display = 'none';
-
-        // Show wheel container
-        wheelContainer.style.display = 'block';
-
-        let currentBalance = getCurrentBalance();
-        console.log('🎡 Opening wheel, balance:', currentBalance);
-
-        // Refresh iframe and send balance
-        if (wheelIframe) {
-            wheelIframe.src = wheelIframe.src;
-            wheelIframe.onload = function() {
-                setTimeout(() => {
-                    wheelIframe.contentWindow.postMessage({
-                        type: 'SYNC_BALANCE',
-                        balance: currentBalance
-                    }, '*');
-                }, 500);
-            };
-        }
-    }
-
-    function closeWheelGame() {
-        if (wheelContainer) wheelContainer.style.display = 'none';
-        
-        // Show lobby screen back
-        const lobbyScreen = document.getElementById('lobbyScreen');
-        if (lobbyScreen) lobbyScreen.style.display = 'block';
-    }
-
-    // Listen for messages from wheel game
-    window.addEventListener('message', function(event) {
-        const data = event.data;
-        console.log('📨 Lobby received:', data);
-
-        if (data && data.type === 'WIN_AMOUNT') {
-            let currentBalance = getCurrentBalance();
-            let winAmount = safeNumber(data.amount);
-            let newBalance = currentBalance + winAmount;
-
-            console.log(`💰 WIN: ${currentBalance} + ${winAmount} = ${newBalance}`);
-
-            updateLobbyBalance(newBalance);
-
-            if (typeof updateUserBalanceInStorage === 'function') {
-                updateUserBalanceInStorage();
-            }
-
-            showWinNotification(winAmount);
-        }
-        else if (data && data.type === 'BET_DEDUCT') {
-            let currentBalance = getCurrentBalance();
-            let betAmount = safeNumber(data.amount);
-            let newBalance = currentBalance - betAmount;
-
-            if (newBalance < 0) newBalance = 0;
-
-            console.log(`💸 BET: ${currentBalance} - ${betAmount} = ${newBalance}`);
-
-            updateLobbyBalance(newBalance);
-
-            if (typeof updateUserBalanceInStorage === 'function') {
-                updateUserBalanceInStorage();
-            }
-        }
-        else if (data && data.type === 'REQUEST_BALANCE') {
-            let currentBalance = getCurrentBalance();
-            if (wheelIframe && wheelIframe.contentWindow) {
-                wheelIframe.contentWindow.postMessage({
-                    type: 'SYNC_BALANCE',
-                    balance: currentBalance
-                }, '*');
-            }
-        }
-    });
-
-    function showWinNotification(amount) {
-        let safeAmount = safeNumber(amount);
-        const notif = document.createElement('div');
-        notif.innerText = `🎉 Spin Wheel မှ ${safeAmount.toLocaleString()} KS ရရှိပါသည်! 🎉`;
-        notif.style.cssText = 'position:fixed;top:20%;left:50%;transform:translateX(-50%);background:#ffd966;color:#1e1a2f;padding:12px 24px;border-radius:50px;font-weight:bold;z-index:40001;font-size:16px;box-shadow:0 0 20px gold;white-space:nowrap';
-        document.body.appendChild(notif);
-        setTimeout(() => notif.remove(), 3000);
-    }
-
-    // When iframe loads, send balance
-    if (wheelIframe) {
-        wheelIframe.addEventListener('load', function() {
-            let currentBalance = getCurrentBalance();
-            wheelIframe.contentWindow.postMessage({
-                type: 'SYNC_BALANCE',
-                balance: currentBalance
-            }, '*');
-        });
-    }
-
 // ============================================
 // JACKPOT GAME - LOBBY INTEGRATION
 // ============================================

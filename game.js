@@ -1174,10 +1174,6 @@ async function animateWinCoinsFromSymbols(winAmount, winlineData, balanceElement
 
     // Coin ဖန်တီးပေးသည့် Function
     function createCoin(symbol) {
-      if (typeof SoundManager !== 'undefined') {
-            SoundManager.coin();
-            SoundManager.noti();
-        }
         const coin = document.createElement('div');
         coin.innerHTML = '<img src="images/bonus.png" style="width: 35px; height: 35px;">';
         coin.style.cssText = `position: fixed; left: ${symbol.x}px; top: ${symbol.y}px; z-index: 9999; pointer-events: none;`;

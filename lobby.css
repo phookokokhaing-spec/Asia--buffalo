@@ -3651,33 +3651,7 @@ css_js_content = '''/* ============================================
     text-align: center;
 }
 
-/* Portrait device + wallet NOT open = warning show */
-@media (orientation: portrait) {
-    body:not(.wallet-open) .orientation-warning {
-        display: flex;
-    }
-    body:not(.wallet-open) .game-container {
-        display: none !important;
-    }
-}
 
-/* ===== WALLET OPEN STATE ===== */
-body.wallet-open {
-    /* Game container ပျောက် */
-    .game-container {
-        display: none !important;
-    }
-    
-    /* Warning ပျောက် (even in portrait) */
-    .orientation-warning {
-        display: none !important;
-    }
-    
-    /* Wallet modal ပြင် */
-    #walletModal {
-        display: flex !important;
-    }
-}
 /* Modal ပွင့်ချိန်မှာ body ကို lock လုပ်မယ် */
 body.wallet-open {
     overflow: hidden;
