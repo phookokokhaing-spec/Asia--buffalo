@@ -224,7 +224,7 @@ const VIP_CONFIG = {
 // ============================================
 function checkUserCanPlay() {
     // ၁. ငွေရှိမရှိ စစ်
-    if (window.gameState.displayBalance <= 0 || window.gameState.balance <= 0) {
+    if (window.gameState.balance <= 0) {
         alert('ကျေးဇူးပြု၍ ငွေသွင်းပြီးမှဆော့ပါ');
         return false;
     }
@@ -287,7 +287,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     initSlotGrid();
     initBetControls();
     initEventListeners();
-
+    loadDisplayBalance();
     loadCurrentUserData();
     updateBalanceDisplay();
     updateJackpotDisplay();
@@ -297,7 +297,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 });
 
 // ============================================
-// 6. PREMIUM GRID INITIALIZATION
+// 6. PREMIUM GRID INITIALIZATION (CLEAN VERSION)
 // ============================================
 function initSlotGrid() {
     const slotGrid = document.getElementById('slotGrid');
@@ -306,129 +306,91 @@ function initSlotGrid() {
     slotGrid.innerHTML = '';
     slotGrid.className = 'grid-5x4';
 
-    // Premium grid styles
-   slotGrid.style.cssText = `
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    grid-template-rows: repeat(4, 1fr);
-    gap: 1px;
-    /* မူလ Lobby အရောင် သို့မဟုတ် အနီရင့်ရင့် Theme Gradient */
-    background: linear-gradient(165deg, #2d0808, #1a0505);
-    border-radius: 2px;
-    box-shadow: 
-        inset 0 -4px 0 #c5a028,
-        0 15px 30px rgba(0,0,0,0.3),
-        0 0 0 2px #ffd70044;
-    border: 1px solid #ffd70066;
-    position: relative;
-    z-index: 1;
-    overflow: hidden;
-`;
-
-    // Ambient light
-    const ambientLight = document.createElement('div');
-    ambientLight.style.cssText = `
-        position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: radial-gradient(circle at 30% 30%,
-        rgba(255,215,0,0.15), transparent 70%);
-        animation: ambientRotate 20s linear infinite;
-        pointer-events: none;
-        z-index: 0;
+    // Clean grid styles - Gold border + vertical dividers
+    slotGrid.style.cssText = `
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        grid-template-rows: repeat(4, 1fr);
+        gap: 3px;
+        padding: 4px;
+        background: radial-gradient(ellipse at center, #1a0a05, #0d0502);
+        border-radius: 12px;
+        border: 2px solid #ffd700;
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.15), inset 0 0 30px rgba(0,0,0,0.5);
+        position: relative;
+        z-index: 1;
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
     `;
-    slotGrid.appendChild(ambientLight);
 
-    // Create cells
+    // Create 20 cells (5x4)
     for (let i = 0; i < 20; i++) {
-        const cell = createPremiumCell(i);
+        const cell = createCleanCell(i);
         slotGrid.appendChild(cell);
     }
 
-    // Corner decorations
-    addCornerDecorations(slotGrid);
+    // Add 4 vertical gold dividers between columns
+    for (let col = 1; col <= 4; col++) {
+        const divider = createVerticalDivider(col);
+        slotGrid.appendChild(divider);
+    }
 
-    console.log('✅ Premium 5x4 grid initialized');
+    console.log('✅ Clean 5x4 grid initialized (seamless bg)');
 }
 
-function createPremiumCell(index) {
+function createVerticalDivider(columnIndex) {
+    const divider = document.createElement('div');
+    divider.className = 'vertical-divider';
+    
+    divider.style.cssText = `
+        position: absolute;
+        top: 8px;
+        bottom: 8px;
+        left: calc(${columnIndex * 20}% - 1px);
+        width: 2px;
+        background: linear-gradient(to bottom, 
+            transparent 0%, 
+            #ffd700 10%, 
+            #ffec8b 40%, 
+            #ffd700 60%, 
+            #b8860b 90%, 
+            transparent 100%
+        );
+        box-shadow: 0 0 6px rgba(255, 215, 0, 0.4), 0 0 12px rgba(255, 215, 0, 0.2);
+        z-index: 5;
+        pointer-events: none;
+        border-radius: 1px;
+    `;
+    
+    return divider;
+}
+
+function createCleanCell(index) {
     const cell = document.createElement('div');
-    cell.className = 'grid-cell premium-cell';
+    cell.className = 'grid-cell';
     cell.dataset.index = index;
     cell.dataset.row = Math.floor(index / 5);
     cell.dataset.col = index % 5;
 
-   cell.style.cssText = `
-    background: linear-gradient(145deg, #4a1515, #2d0808);
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1px;
-    box-shadow: 
-        inset 0 -4px 0 #d4af37,
-        0 8px 15px rgba(0,0,0,0.2),
-        0 0 0 1px #ffd70066;
-    border: 2px solid #ffd70044;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    aspect-ratio: 1 / 1;
-    position: relative;
-    overflow: hidden;
-    z-index: 1;
-`;
-
-
-    // Shine effect
-    const shine = document.createElement('div');
-    shine.className = 'cell-shine';
-    shine.style.cssText = `
-        position: absolute;
-        top: -100%;
-        left: -100%;
-        width: 300%;
-        height: 300%;
-        background: linear-gradient(45deg, transparent 30%, rgba(255,215,0,0.15) 50%, transparent 70%);
-        transform: rotate(25deg);
-        animation: shineMove 8s ease-in-out infinite;
-        pointer-events: none;
-        z-index: 2;
-    `;
-    cell.appendChild(shine);
-
-    // Glow effect
-    const glow = document.createElement('div');
-    glow.className = 'cell-glow';
-    glow.style.cssText = `
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        border-radius: 18px;
-        box-shadow: 0 0 20px #00ffff;
-        opacity: 0;
-        transition: opacity 0.3s;
-        pointer-events: none;
-        z-index: 1;
-    `;
-    cell.appendChild(glow);
-
-    // Image container
-    const imgContainer = document.createElement('div');
-    imgContainer.style.cssText = `
-        position: relative;
-        width: 100%;
-        height: 100%;
+    // Cell background = grid background seamless (NO separate bg color)
+    cell.style.cssText = `
+        background: transparent;
+        border-radius: 0px;
         display: flex;
         align-items: center;
         justify-content: center;
-        z-index: 3;
-        transform-style: preserve-3d;
-        transition: transform 0.3s;
+        padding: 0px;
+        border: none;
+        box-shadow: none;
+        transition: all 0.2s ease;
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
     `;
 
+    // Image - seamless with cell background
     const img = document.createElement('img');
     img.src = 'images/coin.png';
     img.alt = 'slot symbol';
@@ -437,100 +399,31 @@ function createPremiumCell(index) {
     img.style.cssText = `
         width: 100%;
         height: 100%;
-        object-fit: contain;
-        filter: drop-shadow(0 0 8px rgba(255,215,0,0.5));
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        transform: translateZ(10px);
+        object-fit: cover;
+        padding: 0px;
+        margin: 0px;
+        border: none;
+        outline: none;
+        box-shadow: none;
+        background: transparent;
+        filter: none;
+        display: block;
+        border-radius: 0px;
     `;
+    
     img.onerror = function() {
         this.style.display = 'none';
         const fallback = document.createElement('span');
-        fallback.textContent = getSymbolEmoji('coin');
+        fallback.textContent = '🪙';
         fallback.style.cssText = `
-            font-size: clamp(24px, 6vw, 40px);
-            filter: drop-shadow(0 0 10px gold);
-            text-shadow: 0 0 20px rgba(255,215,0,0.5);
+            font-size: clamp(24px, 5vw, 40px);
+            filter: drop-shadow(0 0 5px rgba(255,215,0,0.2));
         `;
-        imgContainer.appendChild(fallback);
+        cell.appendChild(fallback);
     };
 
-    imgContainer.appendChild(img);
-    cell.appendChild(imgContainer);
-
-    // Win overlay
-    const winOverlay = document.createElement('div');
-    winOverlay.className = 'win-overlay';
-  // Win overlay (အဝါရောင်အစား Electric Cyan ပြောင်းခြင်း)
-winOverlay.style.cssText = `
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    /* အဝါရောင် radial-gradient အစား အပြာရောင်တောက်တောက်ကို ပြောင်းလိုက်တယ် */
-    background: radial-gradient(circle at 30% 30%, rgba(0, 255, 255, 0.6), rgba(0, 150, 255, 0.2) 70%);
-    border-radius: 18px;
-    opacity: 0;
-    transition: opacity 0.2s;
-    pointer-events: none;
-    z-index: 4;
-    mix-blend-mode: screen; /* Overlay အစား screen ကိုသုံးရင် ပိုလင်းတယ် */
-`;
-
-    // Corner sparkles
-    for (let i = 0; i < 4; i++) {
-        
-const sparkle = document.createElement('div');
-sparkle.className = 'corner-sparkle';
-sparkle.style.cssText = `
-    position: absolute;
-    width: 6px;
-    height: 6px;
-    /* အဝါရောင်အစား အပြာရောင် တောက်တောက် */
-    background: #00ffff; 
-    border-radius: 50%;
-    filter: blur(2px);
-    opacity: 0;
-    transition: opacity 0.3s;
-            pointer-events: none;
-            z-index: 5;
-            ${i === 0 ? 'top: 5px; left: 5px;' : ''}
-            ${i === 1 ? 'top: 5px; right: 5px;' : ''}
-            ${i === 2 ? 'bottom: 5px; left: 5px;' : ''}
-            ${i === 3 ? 'bottom: 5px; right: 5px;' : ''}
-        `;
-        cell.appendChild(sparkle);
-    }
-
+    cell.appendChild(img);
     return cell;
-}
-
-function addCornerDecorations(grid) {
-    const positions = [
-        { top: '-5px', left: '-5px' },
-        { top: '-5px', right: '-5px' },
-        { bottom: '-5px', left: '-5px' },
-        { bottom: '-5px', right: '-5px' }
-    ];
-
-    positions.forEach((pos, i) => {
-        const corner = document.createElement('div');
-        corner.className = `grid-corner`;
-        corner.style.cssText = `
-            position: absolute;
-            width: 30px;
-            height: 30px;
-            ${Object.entries(pos).map(([k,v]) => `${k}: ${v};`).join('')}
-            border-${i === 0 ? 'top' : i === 1 ? 'top' : i === 2 ? 'bottom' : 'bottom'}-left-radius: ${i % 2 === 0 ? '30px' : '0'};
-            border-${i === 0 ? 'top' : i === 1 ? 'top' : i === 2 ? 'bottom' : 'bottom'}-right-radius: ${i % 2 === 1 ? '30px' : '0'};
-            border-${i < 2 ? 'top' : 'bottom'}: 3px solid #00ffff;
-            border-${i % 2 === 0 ? 'left' : 'right'}: 3px solid #00ffff;
-            filter: drop-shadow(0 0 10px gold);
-            z-index: 5;
-            pointer-events: none;
-        `;
-        grid.appendChild(corner);
-    });
 }
 
 // ============================================
@@ -663,7 +556,7 @@ function loadCurrentUserData() {
        
         window.gameState.balance = currentUser.balance || 0;
         
-        window.gameState.displayBalance = currentUser.displayBalance || currentUser.balance || 0;
+      
         
         window.gameState.userLevel = currentUser.level || 1;
         window.gameState.vipLevel = currentUser.vip || 0;
@@ -685,7 +578,11 @@ function updateUI(amount) {
     if (gameElement) {
         gameElement.innerText = formattedAmount;
     }
-
+    
+    const displayBalanceEl = document.getElementById('displayBalance');
+   if (displayBalanceEl) {
+    displayBalanceEl.innerText = (window.gameState.displayBalance || 0).toLocaleString();
+  }
    const walletElement = document.getElementById('gameBalance');
     if (walletElement) {
         walletElement.innerText = formattedAmount;
@@ -926,7 +823,7 @@ function spin() {
             let animCallback = function() {
                 console.log('✅ Win animation completed');
                 window.gameState.balance = newBalance;
-                window.gameState.displayBalance = newBalance;
+                 updateUI(window.gameState.balance);
                 if (winEl) winEl.textContent = formatNumber(totalWin);
 
                 // 🔥 NEW: Animate coins from winning symbols
@@ -976,7 +873,7 @@ function spin() {
             // ===== SMALL WIN =====
             console.log('🎯 Small win - direct flying coins from symbols');
             window.gameState.balance = newBalance;
-            window.gameState.displayBalance = newBalance;
+            updateUI(window.gameState.balance);
             if (winEl) winEl.textContent = formatNumber(totalWin);
 
             // 🔥 NEW: Animate coins from winning symbols
@@ -1071,7 +968,7 @@ function spin() {
             const jackpotAmount = window.gameState.pendingJackpotAmount;
             if (jackpotAmount > 0) {
                 window.gameState.balance += jackpotAmount;
-                window.gameState.displayBalance += jackpotAmount;
+                updateUI(window.gameState.balance);
                 updateBalanceDisplay();
                 updateUserBalanceInStorage();
             }
@@ -1899,7 +1796,7 @@ function completeJackpotUpdate(jackpotAmount, finalBalance) {
     if (window.gameState) {
         // NOW update balance
         window.gameState.balance = finalBalance;
-        window.gameState.displayBalance = finalBalance;
+      
         window.gameState.suspenseMode = false;
 
         // Update UI
@@ -2094,7 +1991,7 @@ function calculateWinnings(result) {
             onComplete: () => {
                 // Update balance after animation completes
                 window.gameState.balance = finalBalance;
-                window.gameState.displayBalance = finalBalance;
+              
                 updateBalanceDisplay();
                 updateUserBalanceInStorage();
                 console.log('✅ Balance updated after jackpot animation');
@@ -2103,7 +2000,7 @@ function calculateWinnings(result) {
     } else {
         // Fallback: update balance immediately
         window.gameState.balance += jackpotAmount;
-        window.gameState.displayBalance += jackpotAmount;
+    
         updateBalanceDisplay();
         updateUserBalanceInStorage();
     }
@@ -2401,7 +2298,7 @@ function completeJackpotStateUpdate(jackpotAmount, finalBalance) {
     if (window.gameState) {
         // NOW update balance
         window.gameState.balance = finalBalance;
-        window.gameState.displayBalance = finalBalance;
+      
         window.gameState.suspenseMode = false;
 
         // Update UI
@@ -3983,7 +3880,7 @@ function endFreeSpins() {
     // Add total win to balance
     if (totalWin > 0) {
         window.gameState.balance += totalWin;
-        window.gameState.displayBalance += totalWin;
+     
         updateBalanceDisplay();
 
         // Win Box မှာ စုစုပေါင်းကို ပြပြီးမှ ပြန်ရှင်းမယ်
@@ -4739,7 +4636,7 @@ function updateUserBalanceInStorage() {
     if (savedUser) {
         const currentUser = JSON.parse(savedUser);
         currentUser.balance = window.gameState.balance;
-        currentUser.displayBalance = window.gameState.displayBalance || window.gameState.balance;
+      
         currentUser.level = window.gameState.userLevel;
         currentUser.vip = window.gameState.vipLevel;
 
@@ -5120,7 +5017,7 @@ function listenToUserData(userId) {
         if (doc.exists) {
             const userData = doc.data();
             window.gameState.balance = userData.balance || 0;
-            window.gameState.displayBalance = userData.displayBalance || userData.balance || 0;
+           
             updateBalanceDisplay();
             console.log('🔄 Balance updated from Firebase:', window.gameState.balance);
         }
@@ -5321,3 +5218,51 @@ window.showGameContainer = function() {
         console.error('Lobby or Game Container not found');
     }
 };
+
+
+// ============================================
+// LOAD DISPLAY BALANCE ON PAGE LOAD
+// ============================================
+(function loadDisplayBalanceOnStart() {
+    // Try from localStorage first
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    if (currentUser && currentUser.displayBalance) {
+        if (window.gameState) {
+            window.gameState.displayBalance = currentUser.displayBalance;
+        }
+        const el = document.getElementById('displayBalance');
+        if (el) {
+            el.innerText = currentUser.displayBalance.toLocaleString();
+        }
+        console.log('✅ displayBalance loaded from localStorage:', currentUser.displayBalance);
+    }
+    
+    // Then try from Firebase
+    setTimeout(() => {
+        if (firebase.auth && firebase.auth().currentUser) {
+            const db = firebase.firestore();
+            db.collection('users').doc(firebase.auth().currentUser.uid).get()
+                .then(doc => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        const displayBalance = data.displayBalance || 0;
+                        if (window.gameState) {
+                            window.gameState.displayBalance = displayBalance;
+                        }
+                        const el = document.getElementById('displayBalance');
+                        if (el) {
+                            el.innerText = displayBalance.toLocaleString();
+                        }
+                        // Save to localStorage
+                        const user = JSON.parse(localStorage.getItem('currentUser'));
+                        if (user) {
+                            user.displayBalance = displayBalance;
+                            localStorage.setItem('currentUser', JSON.stringify(user));
+                        }
+                        console.log('✅ displayBalance loaded from Firebase:', displayBalance);
+                    }
+                })
+                .catch(() => {});
+        }
+    }, 500);
+})();

@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="my">
 <head>
@@ -7,28 +6,21 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title> Asia -Buffalo</title>
-     <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
-     <link rel="stylesheet" href="fix.css">
-     <link rel="stylesheet" href="fix2.css">
-       <link rel="stylesheet" href="lobby.css">
-           <script src="https://cdn.tailwindcss.com"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="fix.css">
+    <link rel="stylesheet" href="fix2.css">
+    <link rel="stylesheet" href="lobby.css">
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Myanmar:wght@400;500;700&display=swap">
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">       
-  
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-</style>
+     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js"></script>
 </head>
 
 <body oncontextmenu="return false" ondragstart="return false" onselectstart="return false" oncopy="return false">
@@ -223,6 +215,28 @@
     </div>
 </div>
 
+<!-- ===== LOADING OVERLAY ===== -->
+<div id="loadingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index: 99999; display: none; justify-content: center; align-items: center; flex-direction: column;">
+    <div id="loadingContent" style="text-align: center;">
+        <!-- Loading Spinner -->
+        <div id="loadingSpinner" style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
+            <div style="width: 60px; height: 60px; border: 4px solid rgba(255,215,0,0.1); border-top-color: #ffd700; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+            <div style="color: #ffd700; font-size: 18px; font-weight: 700; font-family: 'Orbitron', sans-serif;">ငွေသွင်းနေပါသည်...</div>
+            <div style="color: #888; font-size: 14px;">ကျေးဇူးပြု၍ စောင့်ဆိုင်းပါ</div>
+        </div>
+        
+        <!-- Success Checkmark -->
+        <div id="loadingSuccess" style="display: none; flex-direction: column; align-items: center; gap: 20px;">
+            <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #00c853, #00e676); border-radius: 50%; display: flex; align-items: center; justify-content: center; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+                <i class="fas fa-check" style="font-size: 40px; color: white;"></i>
+            </div>
+            <div style="color: #00e676; font-size: 24px; font-weight: 900; font-family: 'Orbitron', sans-serif;">အောင်မြင်ပါသည်!</div>
+            <div style="color: #888; font-size: 14px;" id="loadingSuccessMessage">Admin မှ စစ်ဆေးပြီးပါက ငွေဖြည့်သွင်းပေးပါမည်။</div>
+        </div>
+    </div>
+</div>
+
+
 <!-- SUCCESS MODAL (Original ID) -->
 <div id="successModal" class="fixed inset-0 z-[10000] hidden items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
     <div class="glass-panel rounded-3xl w-full max-w-sm p-6 text-center animate-fade-in border border-emerald-500/30">
@@ -240,7 +254,7 @@
     <i class="fas fa-info-circle mr-2" id="notificationIcon"></i>
     <span id="notificationMessage"></span>
 </div>
- 
+    
     <!-- LOGIN SCREEN -->
     <div class="login-container" id="loginScreen">
         <!-- LOGIN FORM -->
@@ -407,8 +421,13 @@
                 <svg viewBox="0 0 24 24"><path d="M19 5c-1.5 0-2.8 1.4-3 2-3.5-1.5-11-.3-11 5 0 1.8 0 3 2 4.5V20h4v-2h3v2h4v-4c1-.5 1.7-1 2-2h2v-4h-2c0-1-.5-1.5-1-2h0V5z"/><circle cx="7.5" cy="9.5" r="1.5" fill="#000" opacity="0.3"/></svg>
             </button>
                 <span></span>
-                <span class="daily-amount" id="dailyAmount">20000</span>
+                <span class="display-balance" id="displayBalance">0</span>
             </div>
+
+            <!-- 🔥 NEW: Fullscreen Button (Lobby ထဲမှာ ထည့်ထားတယ်) -->
+        <button class="icon-btn fullscreen-btn" id="lobbyFullscreenBtn" onclick="toggleFullScreen()">
+            <i class="fas fa-expand"></i>
+        </button>
             <button class="settings-btn" onclick="openSettingsModal()">
                 <i class="fas fa-cog"></i>
             </button>
@@ -1074,37 +1093,6 @@
 
 <!-- ==================== MODALS ==================== -->
 
-<!-- MAIN MENU MODAL -->
-<div class="modal" id="mainMenuModal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3><i class="fas fa-bars"></i> MAIN MENU</h3>
-            <span class="close-btn" onclick="closeMainMenu()">&times;</span>
-        </div>
-        <div class="modal-body">
-          <button class="menu-item" onclick="openDepositModal()">
-            <i class="fas fa-wallet"></i><span>ငွေသွင်း / Deposit</span>
-        </button>
-
-        <button class="menu-item" onclick="openWithdrawModal()">
-            <i class="fas fa-money-bill-wave"></i><span>ငွေထုတ် / Withdraw</span>
-        </button>
-
-        <button class="menu-item" onclick="openSettingsModal()">
-            <i class="fas fa-sliders-h"></i><span>ဆက်တင်များ / Settings</span>
-        </button>
-
-        <button class="menu-item" onclick="openHistoryModal()">
-            <i class="fas fa-history"></i><span>မှတ်တမ်း / History</span>
-        </button>
-
-        <button class="menu-item" id="logoutBtn">
-            <i class="fas fa-sign-out-alt"></i><span>ထွက်မည် / Logout</span>
-        </button>
-    </div>
-</div>
-</div>
-
 <!-- SETTINGS MODAL -->
 <div id="settingsModal" class="modal-glass" style="display: none;">
     <div class="modal-content glass-panel">
@@ -1165,73 +1153,6 @@
     </div>
 </div>
 
-<!-- HISTORY MODAL -->
-<div id="historyModal" class="modal-glass" style="display: none;">
-    <div class="modal-content glass-panel" style="max-width: 550px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h2 style="color:#0ff; margin:0;"> History</h2>
-            <span onclick="closeHistoryModal()" style="cursor:pointer; font-size:28px; color:#fff; line-height:1;">&times;</span>
-        </div>
-
-        <div style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid rgba(0,255,255,0.3);">
-            <button id="tabMyHistory" class="history-tab active" style="background:none; border:none; color:#0ff; padding:8px 20px; cursor:pointer; font-size:16px;"> My History</button>
-            <button id="tabGlobalTop" class="history-tab" style="background:none; border:none; color:#aac8ff; padding:8px 20px; cursor:pointer; font-size:16px;"> Global Top 10</button>
-        </div>
-
-        <div id="myHistoryPanel" class="history-panel">
-            <div style="display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; margin-bottom: 24px;">
-                <div class="stat-card"><div class="stat-value" id="biggestWin">0</div><div class="stat-label">Biggest Win</div></div>
-                <div class="stat-card"><div class="stat-value" id="jackpotCount">0</div><div class="stat-label">Jackpot</div></div>
-                <div class="stat-card"><div class="stat-value" id="megaWinCount">0</div><div class="stat-label">Mega Win</div></div>
-                <div class="stat-card"><div class="stat-value" id="superWinCount">0</div><div class="stat-label">Super Win</div></div>
-                <div class="stat-card"><div class="stat-value" id="bigWinCount">0</div><div class="stat-label">Big Win</div></div>
-                <div class="stat-card"><div class="stat-value" id="lastPlayed">-</div><div class="stat-label">Last Played</div></div>
-            </div>
-
-            <h3 style="color:#0ff; font-size:14px; margin:10px 0;"> Recent Spins</h3>
-            <div style="max-height: 250px; overflow-y: auto;">
-                <table class="history-table" id="historyTable">
-                    <thead>
-                        <tr>
-                            <th>Time</th>
-                            <th>Bet</th>
-                            <th>Total Win</th>
-                            <th>Result</th>
-                        </tr>
-                    </thead>
-                    <tbody id="historyBody">
-                        <tr><td colspan="4" style="text-align:center;">No history yet</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div id="globalTopPanel" class="history-panel" style="display: none;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h3 style="color:#0ff; font-size:16px;"> Global Top 10 Wins</h3>
-                <span style="font-size:11px; color:#aac8ff;" id="lastUpdateTime">Last update: -</span>
-            </div>
-            <div style="max-height: 400px; overflow-y: auto;">
-                <table class="history-table" id="globalTopTable">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Player</th>
-                            <th>Win Amount</th>
-                            <th>Date</th>
-                        </tr>
-                    </thead>
-                    <tbody id="globalTopBody">
-                        <tr><td colspan="4" style="text-align:center;">Loading...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <button id="closeHistoryBtn" class="neon-btn" style="margin-top: 20px; width:100%;">Close</button>
-    </div>
-</div>
-
 <!-- USER CHAT MODAL -->
 <div class="user-chat-modal" id="userChatModal">
     <div class="user-chat-header">
@@ -1258,117 +1179,8 @@
         </button>
     </div>
 </div>
-    <div class="bg-particles" id="bgParticles"></div>
-    <div class="game-container">
-        <div class="top-row">
-            <div class="stat-box"><div class="stat-label">CREDIT</div><div class="stat-value" id="balanceDisplay">0</div></div>
-            <div class="stat-box"><div class="stat-label">DEPOSIT</div><div class="stat-value" id="totalDeposit">0</div></div>
-            <div class="stat-box"><div class="stat-label">WITHDRAW</div><div class="stat-value" id="totalWithdraw">0</div></div>
-        </div>
-        <div class="middle-section">
-            <div class="action-panel">
-                <div class="action-btn-card deposit" onclick="openDepositModal()"><i class="fas fa-arrow-down"></i><span>Deposit</span></div>
-                <div class="action-btn-card withdraw" onclick="openWithdrawModal()"><i class="fas fa-arrow-up"></i><span>Withdraw</span></div>
-                <div class="action-btn-card" onclick="openHistoryModal()"><i class="fas fa-history"></i><span>History</span></div>
-            </div>
-            <div class="center-panel">
-                <div class="glass-card">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
-                        <div><span class="stat-label">Current Balance</span><div id="currentBalance" class="stat-value" style="font-size: 28px;">0</div></div>
-                        <div><span class="stat-label">Pending</span><div id="pendingAmount" class="stat-value" style="font-size: 28px; color: #ffaa00;">0</div></div>
-                    </div>
-                    <div id="txHistoryContainer" style="max-height: 300px; overflow-y: auto;">
-                        <div class="text-center text-slate-400 py-8">No transactions</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-      
-<!-- CELEBRATION NOTIFICATION -->
-<div class="celebration-notification" id="celebrationNotification">
-    <div class="celebration-content">
-        <div class="celebration-icon" id="celebrationIcon"><i class="fas fa-gift"></i></div>
-        <div class="celebration-text">
-            <div id="celebrationTitle" class="celebration-title">ဆုလက်ဆောင်</div>
-            <div id="celebrationMessage" class="celebration-message"></div>
-            <div id="celebrationAmount" class="celebration-amount">0 ကျပ်</div>
-        </div>
-        <div class="celebration-close" onclick="closeCelebration()"><i class="fas fa-times"></i></div>
-    </div>
-    <div class="celebration-confetti" id="celebrationConfetti"></div>
-</div>
+ 
 
-<!-- Floating numbers animation container -->
-<div id="floatingNumbers" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10000;"></div>
-
-<!-- USER SURPRISE BOX MODAL -->
-<div class="modal" id="userSurpriseModal">
-    <div class="modal-content surprise-modal-content">
-        <div class="modal-header-compact">
-            <div class="modal-title">
-                <i class="fas fa-gift"></i> Surprise Box ရွေးချယ်ရန်
-            </div>
-            <div class="selection-progress-compact">
-                <span id="userSelectionCount">ကျန် ၅ ခု</span>
-                <div class="progress-bar-small">
-                    <div id="selectionProgress" class="progress-fill"></div>
-                </div>
-            </div>
-            <button class="close-btn" onclick="closeUserSurpriseModal()">×</button>
-        </div>
-
-        <div class="modal-body surprise-modal-body">
-            <div class="box-grid-container">
-                <div id="userBoxGrid" class="surprise-box-grid"></div>
-            </div>
-
-            <div class="selected-boxes-container">
-                <h4><i class="fas fa-check-circle"></i> သင်ရွေးချယ်ထားသော Box များ</h4>
-                <div id="userSelectedBoxes" class="selected-boxes-list">
-                    <span>Box မရွေးရသေးပါ။</span>
-                </div>
-            </div>
-
-            <div id="userSurpriseResult" class="surprise-result" style="display: none;">
-                <i id="resultIcon" class="fas fa-gift"></i>
-                <h3 id="resultTitle"></h3>
-                <p id="resultMessage"></p>
-            </div>
-
-            <div class="surprise-buttons">
-                <button id="claimUserSurpriseBtn" class="primary-btn" onclick="claimUserSurprise()" disabled>
-                    <i class="fas fa-check-circle"></i> ရွေးချယ်မှုအတည်ပြုမည်
-                </button>
-                <button onclick="closeUserSurpriseModal()" class="secondary-btn">ပိတ်မည်</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Win Animation Container -->
-<div id="win-animation-container">
-    <canvas id="animCanvas"></canvas>
-    <div id="ui-layer">
-        <div class="casino-text-group">
-            <div id="win-text">MEGA WIN</div>
-            <div id="amount-text">$0</div>
-            <div id="sub-text">Congratulations!</div>
-        </div>
-    </div>
-</div>
-
- <!-- Background Stars -->
-<div class="stars" id="stars"></div>
-
-<!-- Lightning Flash -->
-<div class="lightning" id="lightning"></div>
-
-<!-- Explosion Rings -->
-<div class="explosion-ring" id="explosionRing"></div>
-<div class="shockwave-multi" id="shockwaveMulti"></div>
-
-<!-- MEGA JACKPOT Display -->
 <div class="mega-jackpot-container" id="megaJackpot">
     <div class="crown" style="top: 15%; left: 20%;"></div>
     <div class="crown" style="top: 15%; right: 20%;"></div>
@@ -1385,6 +1197,15 @@
     </div>
 </div>
 
+<!-- Win Animation Overlay (Required for win-animation.js) -->
+<div id="win-animation-container" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:9999;">
+    <canvas id="animCanvas" style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:9998;"></canvas>
+    <div id="win-text" style="position:fixed; top:40%; left:50%; transform:translate(-50%,-50%); font-size:clamp(32px, 8vw, 64px); font-weight:bold; color:#ffd700; text-shadow:0 0 20px rgba(255,215,0,0.8), 0 0 40px rgba(255,140,0,0.5); z-index:10000; pointer-events:none; opacity:0; white-space:nowrap;"></div>
+    <div id="amount-text" style="position:fixed; top:52%; left:50%; transform:translate(-50%,-50%); font-size:clamp(24px, 6vw, 48px); font-weight:bold; color:#00ffff; text-shadow:0 0 15px rgba(0,255,255,0.8); z-index:10000; pointer-events:none; opacity:0; white-space:nowrap;"></div>
+    <div id="sub-text" style="position:fixed; top:62%; left:50%; transform:translate(-50%,-50%); font-size:clamp(14px, 3vw, 20px); color:#fff; text-shadow:0 0 10px rgba(255,255,255,0.5); z-index:10000; pointer-events:none; opacity:0; white-space:nowrap;"></div>
+</div>
+
+
 <!-- ==================== IFRAME GAME CONTAINERS ==================== -->
 
 <!-- JACKPOT GAME CONTAINER -->
@@ -1394,13 +1215,15 @@
 </div>
 
 <!-- MEGA WAYS Game Container -->
+
+
 <div id="megaWaysContainer" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100000; background: #0a0718;">
     <iframe id="megaWaysIframe" src="mega-ways-slot.html" style="width: 100%; height: 100%; border: none;"></iframe>
     <button onclick="closeMegaWaysGame()" style="position: absolute; top: 15px; right: 15px; background: #ff4444; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 20px; cursor: pointer; z-index: 100001;">✕</button>
 </div>
 
 <script> 
-    
+
 // ============================================
 // JACKPOT GAME - LOBBY INTEGRATION
 // ============================================
@@ -1813,7 +1636,6 @@ function switchLobbyTab(element, tabName) {
             const selectedTab = document.getElementById(tabName + '-content');
             if (selectedTab) selectedTab.style.display = 'block';
         }
-
 </script>
    <!-- Core Libraries & Helpers -->
   <script src="firebase-config.js"></script>

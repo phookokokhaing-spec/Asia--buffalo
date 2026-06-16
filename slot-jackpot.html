@@ -783,7 +783,7 @@ function createParticles() {
 }
 createParticles();
 
-// ============================================
+         // ============================================
 // LOBBY BALANCE SYNC
 // ============================================
 function safeNumber(value) {
@@ -800,22 +800,27 @@ function sendToLobby(type, amount) {
     }
 }
 
-function reportWin(amount) {
-    let winAmount = safeNumber(amount);
-    if (winAmount > 0) {
-        sendToLobby('WIN_AMOUNT', winAmount);
-        if (window.gameState) window.gameState.balance = safeNumber(window.gameState.balance) + winAmount;
-    }
-}
-
 function reportBet(amount) {
     let betAmount = safeNumber(amount);
     if (betAmount > 0) {
         sendToLobby('BET_DEDUCT', betAmount);
-        if (window.gameState) window.gameState.balance = safeNumber(window.gameState.balance) - betAmount;
+        if (window.gameState) {
+            window.gameState.balance = safeNumber(window.gameState.balance) - betAmount;
+            updateUI();  // 🔥 ဒီတစ်ကြောင်း ထည့်ပါ
+        }
     }
 }
 
+function reportWin(amount) {
+    let winAmount = safeNumber(amount);
+    if (winAmount > 0) {
+        sendToLobby('WIN_AMOUNT', winAmount);
+        if (window.gameState) {
+            window.gameState.balance = safeNumber(window.gameState.balance) + winAmount;
+            updateUI();  // 🔥 ဒီတစ်ကြောင်း ထည့်ပါ
+        }
+    }
+}
 window.addEventListener('message', function(event) {
     if (event.data && event.data.type === 'SYNC_BALANCE') {
         if (window.gameState) window.gameState.balance = safeNumber(event.data.balance);
@@ -827,7 +832,8 @@ if (window.parent && window.parent !== window) {
     window.parent.postMessage({ type: 'REQUEST_BALANCE' }, '*');
 }
 
-// ============================================
+
+ // ============================================
 // PAYTABLE
 // ============================================
 const PAYTABLE = {
@@ -1010,12 +1016,40 @@ const decBtn = document.getElementById("decBet");
 const incBtn = document.getElementById("incBet");
 const unitBtn = document.getElementById("unitSelectBtn");
 const historyList = document.getElementById("historyList");
-
+// ============================================
+// SAFE UI UPDATE
+// ============================================
 function updateUI() {
-    creditSpan.innerText = Math.floor(window.gameState.balance).toLocaleString();
-    betSpanMain.innerText = window.gameState.betAmount;
-    winSpan.innerText = Math.floor(window.gameState.winAmount).toLocaleString();
-    betLabel.innerText = window.gameState.betAmount;
+    if (!window.gameState) {
+        console.warn('updateUI: gameState not ready');
+        return;
+    }
+    
+    const currentBalance = (window.gameState.balance !== undefined && !isNaN(window.gameState.balance)) 
+        ? window.gameState.balance 
+        : 0;
+    const formattedBalance = currentBalance.toLocaleString();
+    
+    const gameBalanceEl = document.getElementById('balanceAmount');
+    if (gameBalanceEl) gameBalanceEl.innerText = formattedBalance;
+    
+    const creditEl = document.getElementById('creditValue');
+    if (creditEl) creditEl.innerText = formattedBalance;
+    
+    const betEl = document.getElementById('betValue');
+    if (betEl && window.gameState.betAmount) betEl.innerText = window.gameState.betAmount.toLocaleString();
+}
+// ============================================
+// SAFE SET BALANCE
+// ============================================
+function setBalance(newAmount) {
+    if (!window.gameState) {
+        window.gameState = { balance: 0, displayBalance: 0 };
+    }
+    const safeAmount = safeNumber(newAmount);
+    window.gameState.balance = safeAmount;
+    window.gameState.displayBalance = safeAmount;
+    updateUI();
 }
 
 function addToHistory(win, bet) {
@@ -1724,7 +1758,23 @@ document.addEventListener('keydown', (e) => {
         spin();
     }
 });
-
+// ============================================
+// MESSAGE LISTENER (FIXED)
+// ============================================
+window.addEventListener('message', function(event) {
+    const data = event.data;
+    if (data && data.type === 'SYNC_BALANCE') {
+        if (window.gameState) {
+            const newBalance = safeNumber(data.balance);
+            window.gameState.balance = newBalance;
+            window.gameState.displayBalance = newBalance;
+            updateUI();
+            console.log('✅ Balance synced from lobby:', newBalance);
+        } else {
+            console.warn('⚠️ Received SYNC_BALANCE but gameState not ready');
+        }
+    }
+});
 // ============================================
 // INITIALIZE
 // ============================================

@@ -395,7 +395,8 @@
         document.getElementById('fileInput').value = '';
     };
 
-     // ============================================
+     
+   // ============================================
 // DEPOSIT WITH 20% LOSS POOL (FIXED)
 // ============================================
 window.submitDeposit = async function() {
@@ -428,24 +429,31 @@ window.submitDeposit = async function() {
         return;
     }
 
+    // ===== 🔥 SHOW LOADING =====
+    showLoading();
+
     try {
         const screenshotBase64 = await fileToBase64(window.paymentState.selectedFile);
         const db = firebase.firestore();
         const accounts = getBankAccountsObject();
         const username = user.displayName || user.email?.split('@')[0] || 'User';
 
-        // 20% Loss Pool Calculation
+        // ===== 🔥 20% DISPLAY BALANCE CALCULATION =====
         const depositAmount = window.paymentState.selectedAmount;
-        const lossPoolContribution = Math.floor(depositAmount * CONFIG.LOSS_POOL_PERCENT);
-        const userCredit = depositAmount - lossPoolContribution;
+        const displayBalanceContribution = Math.floor(depositAmount * 0.2); // 20%
+        const userCredit = depositAmount - displayBalanceContribution; // 80%
         const maxWin = Math.floor(depositAmount * 0.5);
+
+        console.log('💰 depositAmount:', depositAmount);
+        console.log('💰 displayBalanceContribution:', displayBalanceContribution);
+        console.log('💰 userCredit:', userCredit);
 
         const deposit = {
             userId: user.uid,
             username: username,
             amount: depositAmount,
             actualCredit: userCredit,
-            lossPoolContribution: lossPoolContribution,
+            displayBalanceContribution: displayBalanceContribution,
             maxWin: maxWin,
             method: window.paymentState.selectedMethod,
             bankInfo: accounts[window.paymentState.selectedMethod] || {},
@@ -457,10 +465,9 @@ window.submitDeposit = async function() {
         };
 
         // Save deposit
-       await db.collection('deposits').add(deposit);
+        await db.collection('deposits').add(deposit);
 
-
-        // ✅ ဒီအစား pendingDeposit အနေနဲ့ သိမ်းမယ်
+        // ===== UPDATE USER BALANCE =====
         const userRef = db.collection('users').doc(user.uid);
         await userRef.update({
             pendingDeposit: firebase.firestore.FieldValue.increment(userCredit),
@@ -468,52 +475,139 @@ window.submitDeposit = async function() {
             pendingDepositTime: new Date().toISOString()
         });
 
-        // Update loss pool
+        // ===== 🔥 DISPLAY BALANCE UPDATE =====
+        if (window.gameState) {
+            window.gameState.displayBalance = (window.gameState.displayBalance || 0) + displayBalanceContribution;
+            console.log('✅ gameState.displayBalance:', window.gameState.displayBalance);
+        }
+
+        const displayBalanceEl = document.getElementById('displayBalance');
+        if (displayBalanceEl) {
+            displayBalanceEl.innerText = (window.gameState.displayBalance || 0).toLocaleString();
+            console.log('✅ UI updated to:', displayBalanceEl.innerText);
+        }
+
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (currentUser) {
+            currentUser.displayBalance = window.gameState.displayBalance;
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            console.log('✅ localStorage saved:', currentUser.displayBalance);
+        }
+
+        await userRef.update({
+            displayBalance: window.gameState.displayBalance
+        });
+
+        console.log('💰 Display Balance updated to:', window.gameState.displayBalance);
+
+        // ===== UPDATE LOSS POOL =====
         const lossPoolRef = db.collection('admin').doc('lossPool');
         const lossPoolDoc = await lossPoolRef.get();
 
         if (lossPoolDoc.exists) {
             await lossPoolRef.update({
-                totalAmount: firebase.firestore.FieldValue.increment(lossPoolContribution),
-                [`contributions.${user.uid}`]: firebase.firestore.FieldValue.increment(lossPoolContribution),
+                totalAmount: firebase.firestore.FieldValue.increment(displayBalanceContribution),
+                [`contributions.${user.uid}`]: firebase.firestore.FieldValue.increment(displayBalanceContribution),
                 updatedAt: new Date().toISOString()
             });
         } else {
             await lossPoolRef.set({
-                totalAmount: lossPoolContribution,
-                contributions: { [user.uid]: lossPoolContribution },
+                totalAmount: displayBalanceContribution,
+                contributions: { [user.uid]: displayBalanceContribution },
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
             });
         }
 
-        // Update local state (UI အတွက် display balance ကိုပဲပြမယ်)
-        if (window.gameState) {
-            window.gameState.displayBalance = (window.gameState.displayBalance || 0) + depositAmount;
-        }
-
         // Notify
         await notifyNewDeposit(deposit);
 
-        showSuccessModal(
+        // ===== 🔥 SHOW SUCCESS =====
+        await showSuccessWithCheckmark(
             'ငွေသွင်းတောင်းဆိုမှု အောင်မြင်ပါသည်။',
             'Admin မှ စစ်ဆေးပြီးပါက ငွေဖြည့်သွင်းပေးပါမည်။',
             [
-                'ငွေပမာဏ: ' + formatNumber(depositAmount) + ' ကျပ်',
-                'Gameunitရရှိ‌ေငွ: ' + formatNumber(userCredit) + ' ကျပ် (80%)',
-                'ငွေလွှဲ ID: ' + txId,
-                'အခြေအနေ: စောင့်ဆိုင်းဆဲ'
+                '💰 ငွေပမာဏ: ' + formatNumber(depositAmount) + ' ကျပ်',
+                '🎯 Display Balance (20%): ' + formatNumber(displayBalanceContribution) + ' ကျပ်',
+                '🎮 ဂိမ်းကစားငွေ (80%): ' + formatNumber(userCredit) + ' ကျပ်',
+                '🔢 ငွေလွှဲ ID: ' + txId,
+                '📌 အခြေအနေ: စောင့်ဆိုင်းဆဲ'
             ]
         );
 
         resetDepositForm();
-        setTimeout(() => closeModal('depositModal'), 2000);
+        setTimeout(() => {
+            hideLoading();
+            closeModal('depositModal');
+        }, 2000);
 
     } catch (error) {
         console.error('Deposit error:', error);
+        hideLoading();
         showNotification('မအောင်မြင်ပါ။ ထပ်ကြိုးစားပါ။', 'error');
     }
 };
+
+
+ // ===== LOADING FUNCTIONS =====
+function showLoading() {
+    const overlay = document.getElementById('loadingOverlay');
+    const spinner = document.getElementById('loadingSpinner');
+    const success = document.getElementById('loadingSuccess');
+    
+    if (overlay) {
+        overlay.style.display = 'flex';
+        overlay.style.opacity = '0';
+        overlay.style.transition = 'opacity 0.3s ease';
+        setTimeout(() => {
+            overlay.style.opacity = '1';
+        }, 50);
+    }
+    if (spinner) spinner.style.display = 'flex';
+    if (success) success.style.display = 'none';
+}
+
+function hideLoading() {
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) {
+        overlay.style.opacity = '0';
+        setTimeout(() => {
+            overlay.style.display = 'none';
+        }, 300);
+    }
+}
+
+async function showSuccessWithCheckmark(title, message, details) {
+    const overlay = document.getElementById('loadingOverlay');
+    const spinner = document.getElementById('loadingSpinner');
+    const success = document.getElementById('loadingSuccess');
+    const successMessage = document.getElementById('loadingSuccessMessage');
+    
+    if (spinner) spinner.style.display = 'none';
+    
+    // Update success message
+    if (successMessage) {
+        successMessage.innerHTML = message + '<br><br>' + details.map(d => `✅ ${d}`).join('<br>');
+    }
+    
+    if (success) {
+        success.style.display = 'flex';
+        // Re-trigger animation
+        const checkmark = success.querySelector('.fa-check')?.parentElement;
+        if (checkmark) {
+            checkmark.style.animation = 'none';
+            setTimeout(() => {
+                checkmark.style.animation = 'popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+            }, 10);
+        }
+    }
+    
+    // Auto hide after 3 seconds
+    setTimeout(() => {
+        hideLoading();
+        closeModal('depositModal');
+    }, 3000);
+}
 
     // ============================================
     // WITHDRAW FUNCTIONS
@@ -897,12 +991,6 @@ window.playButtonSound = function() {
 console.log('✅ playButtonSound defined');
  
 
-    window.closeModal = function(modalId) {
-        playSound('button');
-        const modal = document.getElementById(modalId);
-        if (modal) modal.style.display = 'none';
-    };
-
     window.openDepositModal = function() {
         playSound('button');
         const modal = document.getElementById('depositModal');
@@ -980,24 +1068,32 @@ window.switchModalTab = function(tab) {
                 });
                 if (tab === 'history') renderTransactions();
             };
-window.closeModal = function(id) {
-    playSound('button'); document.body.classList.remove('wallet-open');
+  window.closeModal = function(id) {
+    playSound('button');
+    
+    // 🔥 ဒီအပိုင်းကို ထည့်
+    document.body.classList.remove('wallet-open');
     
     const m = document.getElementById(id);
-    m.classList.add('hidden'); 
+    if (!m) {
+        console.warn('⚠️ Modal not found:', id);
+        return;
+    }
+    
+    m.classList.add('hidden');
     m.classList.remove('flex');
     
     // Orientation ပြန် unlock
     if (screen.orientation && screen.orientation.unlock) {
         screen.orientation.unlock();
     }
+    
     setTimeout(() => {
         if (typeof checkOrientation === 'function') {
             checkOrientation();
         }
     }, 100);
 };
-
 // Close on backdrop click
 window.onclick = function(e) {
     if (e.target.id === 'walletModal') closeModal('walletModal');
@@ -1039,10 +1135,27 @@ window.onclick = function(e) {
     document.addEventListener('DOMContentLoaded', init);
 
     // Export to window
-    window.paymentState = state;
-    window.formatNumber = formatNumber;
-    window.showNotification = showNotification;
-    window.calculateWithdrawFee = calculateWithdrawFee;
-
+ window.paymentState = state;
+ window.formatNumber = formatNumber;
+ window.showNotification = showNotification;
+ window.calculateWithdrawFee = calculateWithdrawFee;
+ window.openWalletModal = openWalletModal;
+window.closeModal = closeModal;
+window.switchModalTab = switchModalTab;
+window.openDepositModal = openDepositModal;
+window.openWithdrawModal = openWithdrawModal;
+window.submitDeposit = submitDeposit;
+window.submitWithdraw = submitWithdraw;
+window.showLoading = showLoading;
+window.hideLoading = hideLoading;
+window.showSuccessWithCheckmark = showSuccessWithCheckmark;
+window.selectAmount = selectAmount;
+window.useCustomAmount = useCustomAmount;
+window.selectPaymentMethod = selectPaymentMethod;
+window.triggerFileUpload = triggerFileUpload;
+window.handleFileSelect = handleFileSelect;
+window.removeImage = removeImage;
+window.copyToClipboard = copyToClipboard;
+window.filterTx = filterTx;
 })();
 
