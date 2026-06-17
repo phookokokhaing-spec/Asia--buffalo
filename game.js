@@ -287,9 +287,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     initSlotGrid();
     initBetControls();
     initEventListeners();
-    loadDisplayBalance();
     loadCurrentUserData();
-    updateBalanceDisplay();
     updateJackpotDisplay();
     loadJackpotFromAdmin();
   
@@ -579,10 +577,6 @@ function updateUI(amount) {
         gameElement.innerText = formattedAmount;
     }
     
-    const displayBalanceEl = document.getElementById('displayBalance');
-   if (displayBalanceEl) {
-    displayBalanceEl.innerText = (window.gameState.displayBalance || 0).toLocaleString();
-  }
    const walletElement = document.getElementById('gameBalance');
     if (walletElement) {
         walletElement.innerText = formattedAmount;
@@ -592,11 +586,6 @@ function updateUI(amount) {
         lobbyElement.innerText = formattedAmount;
     }
 }
-
-function updateJackpotPool(newPoolAmount) {
-    window.gameState.displayBalance = newPoolAmount;
-}
-
 
 // ============================================
 // BA BA Control Mode Function
@@ -726,7 +715,6 @@ function spin() {
 
     window.gameState.spinCount++;
     window.gameState.spinCounter = (window.gameState.spinCounter || 0) + 1;
-    updateBalanceDisplay();
     updateUI(window.gameState.balance);
 
     // ===== BABA JACKPOT MODE COUNTER =====
@@ -969,7 +957,7 @@ function spin() {
             if (jackpotAmount > 0) {
                 window.gameState.balance += jackpotAmount;
                 updateUI(window.gameState.balance);
-                updateBalanceDisplay();
+                
                 updateUserBalanceInStorage();
             }
 
@@ -1799,11 +1787,6 @@ function completeJackpotUpdate(jackpotAmount, finalBalance) {
       
         window.gameState.suspenseMode = false;
 
-        // Update UI
-        const balanceEl = document.getElementById('balanceDisplay');
-        if (balanceEl) {
-            balanceEl.innerText = finalBalance.toLocaleString();
-        }
 
         // Save to storage
         if (window.currentUser) {
@@ -1811,7 +1794,6 @@ function completeJackpotUpdate(jackpotAmount, finalBalance) {
             localStorage.setItem('currentUser', JSON.stringify(window.currentUser));
         }
 
-        updateBalanceDisplay();
         updateUserBalanceInStorage();
     }
 
@@ -1992,7 +1974,6 @@ function calculateWinnings(result) {
                 // Update balance after animation completes
                 window.gameState.balance = finalBalance;
               
-                updateBalanceDisplay();
                 updateUserBalanceInStorage();
                 console.log('✅ Balance updated after jackpot animation');
             }
@@ -2001,7 +1982,6 @@ function calculateWinnings(result) {
         // Fallback: update balance immediately
         window.gameState.balance += jackpotAmount;
     
-        updateBalanceDisplay();
         updateUserBalanceInStorage();
     }
 
@@ -2301,11 +2281,6 @@ function completeJackpotStateUpdate(jackpotAmount, finalBalance) {
       
         window.gameState.suspenseMode = false;
 
-        // Update UI
-        const balanceEl = document.getElementById('balanceDisplay');
-        if (balanceEl) {
-            balanceEl.innerText = finalBalance.toLocaleString();
-        }
 
         // Save to storage
         if (window.currentUser) {
@@ -2313,7 +2288,7 @@ function completeJackpotStateUpdate(jackpotAmount, finalBalance) {
             localStorage.setItem('currentUser', JSON.stringify(window.currentUser));
         }
 
-        updateBalanceDisplay();
+       
         updateUserBalanceInStorage();
     }
 
@@ -4603,23 +4578,6 @@ function stopAutoSpin(reason = 'manual') {
 }
 
 
-// ============================================
-// 22. BALANCE & JACKPOT FUNCTIONS
-// ============================================
-function updateBalanceDisplay() {
-    const balanceEl = document.getElementById('balanceAmount');
-    const creditDisplay = document.getElementById('credit-display');
-    
-    const actualAmount = window.gameState.balance;
-    
-    if (balanceEl) {
-        balanceEl.textContent = formatNumber(actualAmount);
-    }
-    if (creditDisplay) {
-        creditDisplay.textContent = formatNumber(actualAmount);
-    }
-}
-
 function updateWinDisplay(amount) {
     const winEl = document.getElementById('winAmount');
     if (winEl) {
@@ -4646,7 +4604,6 @@ function updateUserBalanceInStorage() {
         if (db && currentUser.id) {
             db.collection('users').doc(currentUser.id).update({
                 balance: window.gameState.balance,
-                displayBalance: window.gameState.displayBalance || window.gameState.balance,
                 level: window.gameState.userLevel,
                 vip: window.gameState.vipLevel,
                 lastSpin: new Date().toISOString()
@@ -4874,6 +4831,24 @@ function listenToLossPool() {
     });
 }
 
+
+// ============================================
+// 27. LISTEN FOR USER BALANCE (REAL-TIME)
+// ============================================
+function listenToUserData(userId) {
+    if (!userId || !db) return;
+
+    const userRef = db.collection('users').doc(userId);
+    return userRef.onSnapshot((doc) => {
+        if (doc.exists) {
+            const userData = doc.data();
+            window.gameState.balance = userData.balance || 0;
+           
+        }
+    }, (error) => {
+        console.error('Error listening to user data:', error);
+    });
+}
 // ============================================
 // 24. PENDING GIFT FUNCTIONS
 // ============================================
@@ -5007,26 +4982,6 @@ async function finalizeJackpot() {
 }
 
 // ============================================
-// 27. LISTEN FOR USER BALANCE (REAL-TIME)
-// ============================================
-function listenToUserData(userId) {
-    if (!userId || !db) return;
-
-    const userRef = db.collection('users').doc(userId);
-    return userRef.onSnapshot((doc) => {
-        if (doc.exists) {
-            const userData = doc.data();
-            window.gameState.balance = userData.balance || 0;
-           
-            updateBalanceDisplay();
-            console.log('🔄 Balance updated from Firebase:', window.gameState.balance);
-        }
-    }, (error) => {
-        console.error('Error listening to user data:', error);
-    });
-}
-
-// ============================================
 // 29. LEVEL UP FUNCTIONS
 // ============================================
 function checkLevelUp() {
@@ -5108,7 +5063,6 @@ async function loadUserFromFirebase() {
             window.gameState.vipLevel = data.vip || 0;
             window.currentUser = { uid: user.uid, ...data };
             localStorage.setItem('currentUser', JSON.stringify(window.currentUser));
-            updateBalanceDisplay();
             listenToLossPool();
         }
     } catch (error) {
@@ -5194,8 +5148,6 @@ function initGame() {
     // Event listeners ပြန်ချိတ်မယ်
     if (typeof initEventListeners === 'function') initEventListeners();
     
-    // Balance ကို UI မှာ ပြန်ပြမယ်
-    if (typeof updateBalanceDisplay === 'function') updateBalanceDisplay();
     
     console.log("✅ initGame completed, grid should be visible");
 }
@@ -5220,49 +5172,3 @@ window.showGameContainer = function() {
 };
 
 
-// ============================================
-// LOAD DISPLAY BALANCE ON PAGE LOAD
-// ============================================
-(function loadDisplayBalanceOnStart() {
-    // Try from localStorage first
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    if (currentUser && currentUser.displayBalance) {
-        if (window.gameState) {
-            window.gameState.displayBalance = currentUser.displayBalance;
-        }
-        const el = document.getElementById('displayBalance');
-        if (el) {
-            el.innerText = currentUser.displayBalance.toLocaleString();
-        }
-        console.log('✅ displayBalance loaded from localStorage:', currentUser.displayBalance);
-    }
-    
-    // Then try from Firebase
-    setTimeout(() => {
-        if (firebase.auth && firebase.auth().currentUser) {
-            const db = firebase.firestore();
-            db.collection('users').doc(firebase.auth().currentUser.uid).get()
-                .then(doc => {
-                    if (doc.exists) {
-                        const data = doc.data();
-                        const displayBalance = data.displayBalance || 0;
-                        if (window.gameState) {
-                            window.gameState.displayBalance = displayBalance;
-                        }
-                        const el = document.getElementById('displayBalance');
-                        if (el) {
-                            el.innerText = displayBalance.toLocaleString();
-                        }
-                        // Save to localStorage
-                        const user = JSON.parse(localStorage.getItem('currentUser'));
-                        if (user) {
-                            user.displayBalance = displayBalance;
-                            localStorage.setItem('currentUser', JSON.stringify(user));
-                        }
-                        console.log('✅ displayBalance loaded from Firebase:', displayBalance);
-                    }
-                })
-                .catch(() => {});
-        }
-    }, 500);
-})();

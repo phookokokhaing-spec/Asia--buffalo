@@ -559,6 +559,23 @@
                         </div>
                     </div>
                 </div>
+                
+                
+                <!-- ===== THREE CARD POKER GAME CARD ===== -->
+<div class="game-card" onclick="openCardGame()">
+    <div class="game-frame purple-border">
+        <div class="game-frame-inner" style="background: linear-gradient(145deg, #1a0a3a, #0d0520);">
+            <div class="card-jackpot-badge major">
+                <span class="badge-name">MAJOR</span>
+                <span class="badge-value" id="cardGameJackpot">1,234,567</span>
+            </div>
+                            <img src="images/cover.png" alt="Cover" class="game-card-img">                                                                     <div class="game-title-overlay">
+                                <div class="game-title-text">WHITE<br>ShanKoeMee</div>
+                                <div class="game-subtitle-text">3Card</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- slot-jackpot.html Game Card -->
                 <div class="game-card" onclick="openJackpotWaysGame()">
@@ -1221,24 +1238,24 @@
     <iframe id="megaWaysIframe" src="mega-ways-slot.html" style="width: 100%; height: 100%; border: none;"></iframe>
     <button onclick="closeMegaWaysGame()" style="position: absolute; top: 15px; right: 15px; background: #ff4444; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 20px; cursor: pointer; z-index: 100001;">✕</button>
 </div>
-
+<!-- ===== CARD GAME CONTAINER ===== -->
+<div id="cardGameContainer" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100000; background: #0a0718;">
+    <iframe id="cardGameIframe" src="card-game.html" style="width: 100%; height: 100%; border: none;"></iframe>
+    <button onclick="closeCardGame()" style="position: absolute;">
+    </button>
+</div>
 <script> 
 
+
 // ============================================
-// JACKPOT GAME - LOBBY INTEGRATION
+// SHARED FUNCTIONS - 3i frame အတွက် 
 // ============================================
 
-const jackpotContainer = document.getElementById('jackpotGameContainer');
-const jackpotIframe = document.getElementById('jackpotframe');
-
-// 🔥 Safe number parser - remove commas and ensure number
 function safeNumber(value) {
     if (value === undefined || value === null) return 0;
     if (typeof value === 'number' && !isNaN(value)) return value;
-
     let str = String(value).replace(/,/g, '').trim();
     let num = parseFloat(str);
-
     if (isNaN(num)) {
         console.warn('⚠️ safeNumber received NaN for:', value);
         return 0;
@@ -1248,39 +1265,25 @@ function safeNumber(value) {
 
 function updateLobbyBalance(newBalance) {
     let safeBalance = safeNumber(newBalance);
-    
     if (isNaN(safeBalance)) {
         console.error('❌ Attempted to update lobby with NaN! Ignoring...');
         return false;
     }
-
     let formattedBalance = safeBalance.toLocaleString();
-
-    // Update DOM
     const lobbyElem = document.getElementById('lobbyBalance');
     if (lobbyElem) lobbyElem.innerText = formattedBalance;
-    
     const gameElem = document.getElementById('balanceAmount');
     if (gameElem) gameElem.innerText = formattedBalance;
-    
-    // Update gameState
     if (window.gameState) {
         window.gameState.balance = safeBalance;
         window.gameState.displayBalance = safeBalance;
     }
-    
-    // Update UI
     if (typeof updateUI === 'function') updateUI(safeBalance);
-    
-    // Update localStorage
     const currentUser = localStorage.getItem('currentUser');
     if (currentUser) {
         const user = JSON.parse(currentUser);
         user.balance = safeBalance;
         localStorage.setItem('currentUser', JSON.stringify(user));
-        console.log('💰 Balance saved to localStorage:', safeBalance);
-        
-        // Update Firebase if available
         if (window.db && user.uid) {
             window.db.collection('users').doc(user.uid).update({
                 balance: safeBalance,
@@ -1288,354 +1291,236 @@ function updateLobbyBalance(newBalance) {
             }).catch(e => console.warn('Firebase update error:', e));
         }
     }
-    
     return true;
 }
 
 function getCurrentBalance() {
-    // First try from gameState
     if (window.gameState && typeof window.gameState.balance === 'number' && !isNaN(window.gameState.balance)) {
         return window.gameState.balance;
     }
-
-    // Try from lobby DOM
     const lobbyElem = document.getElementById('lobbyBalance');
     if (lobbyElem) {
         let rawText = lobbyElem.innerText || '0';
         return safeNumber(rawText);
     }
-
     return 10000;
 }
 
-// ========== OPEN JACKPOT GAME ==========
+// ========== JACKPOT GAME ==========
+const jackpotContainer = document.getElementById('jackpotGameContainer');
+const jackpotIframe = document.getElementById('jackpotframe');
+
 function openJackpotWaysGame() {
     if (!jackpotContainer) return;
-
-    // Hide lobby screen
     const lobbyScreen = document.getElementById('lobbyScreen');
     if (lobbyScreen) lobbyScreen.style.display = 'none';
-
-    // Show jackpot container
     jackpotContainer.style.display = 'block';
-
     let currentBalance = getCurrentBalance();
     console.log('🎰 Opening Jackpot Game, balance:', currentBalance);
-
-    // Refresh iframe and send balance
     if (jackpotIframe) {
         jackpotIframe.src = jackpotIframe.src;
         jackpotIframe.onload = function() {
             setTimeout(() => {
-                jackpotIframe.contentWindow.postMessage({
-                    type: 'SYNC_BALANCE',
-                    balance: currentBalance
-                }, '*');
+                jackpotIframe.contentWindow.postMessage({ type: 'SYNC_BALANCE', balance: currentBalance }, '*');
             }, 500);
         };
     }
 }
 
-// ========== CLOSE JACKPOT GAME ==========
 function closeJackpotWaysGame() {
     if (jackpotContainer) jackpotContainer.style.display = 'none';
-    
-    // Show lobby screen back
     const lobbyScreen = document.getElementById('lobbyScreen');
     if (lobbyScreen) lobbyScreen.style.display = 'block';
 }
 
-// ========== LISTEN FOR MESSAGES FROM JACKPOT GAME ==========
-window.addEventListener('message', function(event) {
-    const data = event.data;
-    console.log('📨 Lobby received from Jackpot:', data);
-
-    if (data && data.type === 'WIN_AMOUNT') {
-        let currentBalance = getCurrentBalance();
-        let winAmount = safeNumber(data.amount);
-        let newBalance = currentBalance + winAmount;
-
-        console.log(`💰 JACKPOT WIN: ${currentBalance} + ${winAmount} = ${newBalance}`);
-
-        updateLobbyBalance(newBalance);
-
-        if (typeof updateUserBalanceInStorage === 'function') {
-            updateUserBalanceInStorage();
-        }
-
-        showJackpotWinNotification(winAmount);
-    }
-    else if (data && data.type === 'BET_DEDUCT') {
-        let currentBalance = getCurrentBalance();
-        let betAmount = safeNumber(data.amount);
-        let newBalance = currentBalance - betAmount;
-
-        if (newBalance < 0) newBalance = 0;
-
-        console.log(`💸 JACKPOT BET: ${currentBalance} - ${betAmount} = ${newBalance}`);
-
-        updateLobbyBalance(newBalance);
-
-        if (typeof updateUserBalanceInStorage === 'function') {
-            updateUserBalanceInStorage();
-        }
-    }
-    else if (data && data.type === 'REQUEST_BALANCE') {
-        let currentBalance = getCurrentBalance();
-        if (jackpotIframe && jackpotIframe.contentWindow) {
-            jackpotIframe.contentWindow.postMessage({
-                type: 'SYNC_BALANCE',
-                balance: currentBalance
-            }, '*');
-        }
-    }
-});
-
-// ========== SHOW WIN NOTIFICATION ==========
-function showJackpotWinNotification(amount) {
-    let safeAmount = safeNumber(amount);
-    const notif = document.createElement('div');
-    notif.innerText = `🎰 Jackpot Game မှ ${safeAmount.toLocaleString()} KS ရရှိပါသည်! 🎰`;
-    notif.style.cssText = 'position:fixed;top:20%;left:50%;transform:translateX(-50%);background:#ffd700;color:#1a0f0a;padding:12px 24px;border-radius:50px;font-weight:bold;z-index:40001;font-size:16px;box-shadow:0 0 20px gold;white-space:nowrap';
-    document.body.appendChild(notif);
-    setTimeout(() => notif.remove(), 3000);
-}
-
-// When iframe loads, send balance
-if (jackpotIframe) {
-    jackpotIframe.addEventListener('load', function() {
-        let currentBalance = getCurrentBalance();
-        jackpotIframe.contentWindow.postMessage({
-            type: 'SYNC_BALANCE',
-            balance: currentBalance
-        }, '*');
-    });
-}
-
-// ============================================
-// MEGA WAYS GAME - LOBBY INTEGRATION (1024 Ways)
-// ============================================
-
+// ========== MEGA WAYS GAME ==========
 const megaWaysContainer = document.getElementById('megaWaysContainer');
 const megaWaysIframe = document.getElementById('megaWaysIframe');
 
-// 🔥 Safe number parser - remove commas and ensure number
-function safeNumber(value) {
-    if (value === undefined || value === null) return 0;
-    if (typeof value === 'number' && !isNaN(value)) return value;
-
-    let str = String(value).replace(/,/g, '').trim();
-    let num = parseFloat(str);
-
-    if (isNaN(num)) {
-        console.warn('⚠️ safeNumber received NaN for:', value);
-        return 0;
-    }
-    return num;
-}
-
-function updateLobbyBalance(newBalance) {
-    let safeBalance = safeNumber(newBalance);
-    
-    if (isNaN(safeBalance)) {
-        console.error('❌ Attempted to update lobby with NaN! Ignoring...');
-        return false;
-    }
-
-    let formattedBalance = safeBalance.toLocaleString();
-
-    // Update DOM
-    const lobbyElem = document.getElementById('lobbyBalance');
-    if (lobbyElem) lobbyElem.innerText = formattedBalance;
-    
-    const gameElem = document.getElementById('balanceAmount');
-    if (gameElem) gameElem.innerText = formattedBalance;
-    
-    // Update gameState
-    if (window.gameState) {
-        window.gameState.balance = safeBalance;
-        window.gameState.displayBalance = safeBalance;
-    }
-    
-    // Update UI
-    if (typeof updateUI === 'function') updateUI(safeBalance);
-    
-    // Update localStorage
-    const currentUser = localStorage.getItem('currentUser');
-    if (currentUser) {
-        const user = JSON.parse(currentUser);
-        user.balance = safeBalance;
-        localStorage.setItem('currentUser', JSON.stringify(user));
-        console.log('💰 Balance saved to localStorage:', safeBalance);
-        
-        // Update Firebase if available
-        if (window.db && user.uid) {
-            window.db.collection('users').doc(user.uid).update({
-                balance: safeBalance,
-                displayBalance: safeBalance
-            }).catch(e => console.warn('Firebase update error:', e));
-        }
-    }
-    
-    return true;
-}
-
-function getCurrentBalance() {
-    // First try from gameState
-    if (window.gameState && typeof window.gameState.balance === 'number' && !isNaN(window.gameState.balance)) {
-        return window.gameState.balance;
-    }
-
-    // Try from lobby DOM
-    const lobbyElem = document.getElementById('lobbyBalance');
-    if (lobbyElem) {
-        let rawText = lobbyElem.innerText || '0';
-        return safeNumber(rawText);
-    }
-
-    return 10000;
-}
-
-// ========== OPEN MEGA WAYS GAME ==========
 function openMegaWaysGame() {
     if (!megaWaysContainer) return;
+    const lobbyScreen = document.getElementById('lobbyScreen');
+    if (lobbyScreen) lobbyScreen.style.display = 'none';
+    megaWaysContainer.style.display = 'block';
+    let currentBalance = getCurrentBalance();
+    console.log('🎰 Opening Mega Ways Game, balance:', currentBalance);
+    if (megaWaysIframe) {
+        megaWaysIframe.src = megaWaysIframe.src;
+        megaWaysIframe.onload = function() {
+            setTimeout(() => {
+                megaWaysIframe.contentWindow.postMessage({ type: 'SYNC_BALANCE', balance: currentBalance }, '*');
+            }, 500);
+        };
+    }
+}
+
+function closeMegaWaysGame() {
+    if (megaWaysContainer) megaWaysContainer.style.display = 'none';
+    const lobbyScreen = document.getElementById('lobbyScreen');
+    if (lobbyScreen) lobbyScreen.style.display = 'block';
+}
+
+
+     // ============================================
+// CARD GAME - LOBBY INTEGRATION (Three Card Poker)
+// ============================================
+
+const cardGameContainer = document.getElementById('cardGameContainer');
+const cardGameIframe = document.getElementById('cardGameIframe');
+
+// ========== OPEN CARD GAME ==========
+function openCardGame() {
+    if (!cardGameContainer) return;
 
     // Hide lobby screen
     const lobbyScreen = document.getElementById('lobbyScreen');
     if (lobbyScreen) lobbyScreen.style.display = 'none';
 
-    // Show mega ways container
-    megaWaysContainer.style.display = 'block';
+    // Show card game container
+    cardGameContainer.style.display = 'block';
 
     let currentBalance = getCurrentBalance();
-    console.log('🎰 Opening Mega Ways Game, balance:', currentBalance);
+    console.log('🃏 Opening Card Game, balance:', currentBalance);
 
     // Refresh iframe and send balance
-    if (megaWaysIframe) {
-        megaWaysIframe.src = megaWaysIframe.src;
-        megaWaysIframe.onload = function() {
+    if (cardGameIframe) {
+        cardGameIframe.src = cardGameIframe.src;
+        cardGameIframe.onload = function() {
             setTimeout(() => {
-                megaWaysIframe.contentWindow.postMessage({
+                cardGameIframe.contentWindow.postMessage({
                     type: 'SYNC_BALANCE',
                     balance: currentBalance
+
                 }, '*');
             }, 500);
         };
     }
 }
 
-// ========== CLOSE MEGA WAYS GAME ==========
-function closeMegaWaysGame() {
-    if (megaWaysContainer) megaWaysContainer.style.display = 'none';
-    
+// ========== CLOSE CARD GAME ==========
+function closeCardGame() {
+    if (cardGameContainer) cardGameContainer.style.display = 'none';
+
     // Show lobby screen back
     const lobbyScreen = document.getElementById('lobbyScreen');
     if (lobbyScreen) lobbyScreen.style.display = 'block';
 }
 
-// ========== LISTEN FOR MESSAGES FROM MEGA WAYS GAME ==========
+// ========== SINGLE MESSAGE LISTENER (ထပ်မခံရအောင် တစ်ခုတည်း) ==========
 window.addEventListener('message', function(event) {
     const data = event.data;
-    console.log('📨 Lobby received from MegaWays:', data);
+    console.log('📨 Lobby received:', data);
 
-    if (data && data.type === 'WIN_AMOUNT') {
-        let currentBalance = getCurrentBalance();
-        let winAmount = safeNumber(data.amount);
-        let newBalance = currentBalance + winAmount;
+    if (!data || !data.type) return;
 
-        console.log(`💰 MEGA WAYS WIN: ${currentBalance} + ${winAmount} = ${newBalance}`);
+    let currentBalance, winAmount, betAmount, newBalance;
 
-        updateLobbyBalance(newBalance);
+    switch (data.type) {
+        case 'WIN_AMOUNT':
+            currentBalance = getCurrentBalance();
+            winAmount = safeNumber(data.amount);
+            newBalance = currentBalance + winAmount;
+            console.log(`💰 WIN: ${currentBalance} + ${winAmount} = ${newBalance}`);
+            updateLobbyBalance(newBalance);
+            if (typeof updateUserBalanceInStorage === 'function') updateUserBalanceInStorage();
+            showWinNotification(winAmount, data.game);
+            break;
 
-        if (typeof updateUserBalanceInStorage === 'function') {
-            updateUserBalanceInStorage();
-        }
+        case 'BET_DEDUCT':
+            currentBalance = getCurrentBalance();
+            betAmount = safeNumber(data.amount);
+            newBalance = currentBalance - betAmount;
+            if (newBalance < 0) newBalance = 0;
+            console.log(`💸 BET: ${currentBalance} - ${betAmount} = ${newBalance}`);
+            updateLobbyBalance(newBalance);
+            if (typeof updateUserBalanceInStorage === 'function') updateUserBalanceInStorage();
+            break;
+         // Chip ပျံတဲ့ effect
+        const loserPos = { x: 100, y: 100 };
+        const winnerPos = { x: 500, y: 500 };
+         for(let i = 0; i < 10; i++) {
+        setTimeout(() => createFlyingChip(loserPos, winnerPos), i * 80);
+      }
+      break;
+      case 'REQUEST_BALANCE':
+    currentBalance = getCurrentBalance();
+    let targetIframe = null;
+    if (data.game === 'jackpot') targetIframe = jackpotIframe;
+    else if (data.game === 'megaWays') targetIframe = megaWaysIframe;
+    else if (data.game === 'cardGame') targetIframe = cardGameIframe;
 
-        showMegaWaysWinNotification(winAmount);
+    if (targetIframe && targetIframe.contentWindow) {
+        targetIframe.contentWindow.postMessage({ type: 'SYNC_BALANCE', balance: currentBalance }, '*');
     }
-    else if (data && data.type === 'BET_DEDUCT') {
-        let currentBalance = getCurrentBalance();
-        let betAmount = safeNumber(data.amount);
-        let newBalance = currentBalance - betAmount;
-
-        if (newBalance < 0) newBalance = 0;
-
-        console.log(`💸 MEGA WAYS BET: ${currentBalance} - ${betAmount} = ${newBalance}`);
-
-        updateLobbyBalance(newBalance);
-
-        if (typeof updateUserBalanceInStorage === 'function') {
-            updateUserBalanceInStorage();
-        }
-    }
-    else if (data && data.type === 'REQUEST_BALANCE') {
-        let currentBalance = getCurrentBalance();
-        if (megaWaysIframe && megaWaysIframe.contentWindow) {
-            megaWaysIframe.contentWindow.postMessage({
-                type: 'SYNC_BALANCE',
-                balance: currentBalance
-            }, '*');
-        }
+    break;
+    
     }
 });
 
-// ========== SHOW WIN NOTIFICATION ==========
-function showMegaWaysWinNotification(amount) {
+function showWinNotification(amount, gameType = '') {
     let safeAmount = safeNumber(amount);
+    let message = gameType === 'jackpot' 
+        ? `🎰 Jackpot Game မှ ${safeAmount.toLocaleString()} KS ရရှိပါသည်! 🎰`
+        : `🎰 Mega Ways 1024 မှ ${safeAmount.toLocaleString()} KS ရရှိပါသည်! 🎰`;
     const notif = document.createElement('div');
-    notif.innerText = `🎰 Mega Ways 1024 မှ ${safeAmount.toLocaleString()} KS ရရှိပါသည်! 🎰`;
+    notif.innerText = message;
     notif.style.cssText = 'position:fixed;top:20%;left:50%;transform:translateX(-50%);background:#ffd700;color:#1a0f0a;padding:12px 24px;border-radius:50px;font-weight:bold;z-index:40001;font-size:16px;box-shadow:0 0 20px gold;white-space:nowrap';
     document.body.appendChild(notif);
     setTimeout(() => notif.remove(), 3000);
 }
 
-// When iframe loads, send balance
+// ========== IFRAME LOAD SYNC ==========
+if (jackpotIframe) {
+    jackpotIframe.addEventListener('load', function() {
+        jackpotIframe.contentWindow.postMessage({ type: 'SYNC_BALANCE', balance: getCurrentBalance(), game: 'jackpot' }, '*');
+    });
+}
 if (megaWaysIframe) {
     megaWaysIframe.addEventListener('load', function() {
-        let currentBalance = getCurrentBalance();
-        megaWaysIframe.contentWindow.postMessage({
-            type: 'SYNC_BALANCE',
-            balance: currentBalance
-        }, '*');
+        megaWaysIframe.contentWindow.postMessage({ type: 'SYNC_BALANCE', balance: getCurrentBalance(), game: 'megaWays' }, '*');
     });
 }
 
-// Lobby ထဲမှာ ဒီ function ကို ထည့်ပါ
+if (cardGameIframe) {
+    cardGameIframe.addEventListener('load', function() {
+             cardGameIframe.contentWindow.postMessage({ type: 'SYNC_BALANCE', balance: getCurrentBalance(), game: 'cardGame' }, '*');
+    });
+}
+
+// ========== EXTRA LOBBY FUNCTIONS ==========
 function updateBalance(amount) {
-    // Lobby ရဲ့ balance ကို update လုပ်တဲ့ နည်းလမ်းအတိုင်း
-    const currentBalance = getUserBalance();
+    const currentBalance = getCurrentBalance();
     const newBalance = currentBalance + amount;
-    
-    // Lobby UI ကို update လုပ်
     document.getElementById('lobbyBalance').innerText = newBalance.toLocaleString();
-    
-    // Local storage သို့ save
     const user = JSON.parse(localStorage.getItem('currentUser'));
     if (user) {
         user.balance = newBalance;
         localStorage.setItem('currentUser', JSON.stringify(user));
     }
-    
-    // Slot game ကို ပြန် sync လုပ် (optional)
-    iframe.contentWindow.postMessage({
-        type: 'SYNC_BALANCE',
-        balance: newBalance
-    }, '*');
+    if (jackpotIframe && jackpotIframe.contentWindow) {
+        jackpotIframe.contentWindow.postMessage({ type: 'SYNC_BALANCE', balance: newBalance }, '*');
+    }
+        if (cardGameIframe && cardGameIframe.contentWindow) {
+        cardGameIframe.contentWindow.postMessage({ type: 'SYNC_BALANCE', balance: newBalance }, '*');
+    }
+    if (megaWaysIframe && megaWaysIframe.contentWindow) {
+        megaWaysIframe.contentWindow.postMessage({ type: 'SYNC_BALANCE', balance: newBalance }, '*');
+    }
 }
 
 function switchLobbyTab(element, tabName) {
-            const navItems = document.querySelectorAll('.bottom-nav .nav-item');
-            navItems.forEach(item => item.classList.remove('active'));
-            element.classList.add('active');
-
-            const allTabs = ['home', 'daily', 'shop'];
-            allTabs.forEach(tab => {
-                const tabContent = document.getElementById(tab + '-content');
-                if (tabContent) tabContent.style.display = 'none';
-            });
-            const selectedTab = document.getElementById(tabName + '-content');
-            if (selectedTab) selectedTab.style.display = 'block';
-        }
+    const navItems = document.querySelectorAll('.bottom-nav .nav-item');
+    navItems.forEach(item => item.classList.remove('active'));
+    element.classList.add('active');
+    const allTabs = ['home', 'daily', 'shop'];
+    allTabs.forEach(tab => {
+        const tabContent = document.getElementById(tab + '-content');
+        if (tabContent) tabContent.style.display = 'none';
+    });
+    const selectedTab = document.getElementById(tabName + '-content');
+    if (selectedTab) selectedTab.style.display = 'block';
+}
+     
 </script>
    <!-- Core Libraries & Helpers -->
   <script src="firebase-config.js"></script>
