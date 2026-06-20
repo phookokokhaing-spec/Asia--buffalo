@@ -21,11 +21,13 @@ const SoundManager = (function() {
         spinSound: { src: 'sounds/spin.mp3', volume: 0.4, loop: false },
         winlineSound: { src: 'sounds/winline.mp3', volume: 0.5, loop: false },
         nowinSound: { src: 'sounds/nowin.mp3', volume: 0.7, loop: false },
-       balanceSound: { src: 'sounds/balance.mp3', volume: 0.6, loop: false }, 
+        balanceSound: { src: 'sounds/balance.mp3', volume: 0.6, loop: false },
+        
         // Animal sounds
         buffaloSound: { src: 'sounds/buffalo.mp3', volume: 0.5, loop: false },
         lionSound: { src: 'sounds/lion.mp3', volume: 0.5, loop: false },
         boomSound: { src: 'sounds/boom.mp3', volume: 0.5, loop: false },
+        
         // Coin & Money
         coinSound: { src: 'sounds/coin.mp3', volume: 0.4, loop: false },
         coinrainSound: { src: 'sounds/coinrain.mp3', volume: 0.5, loop: false },
@@ -39,12 +41,12 @@ const SoundManager = (function() {
         congratulationsSound: { src: 'sounds/congratulations.mp3', volume: 0.6, loop: false },
         congratsSound: { src: 'sounds/congrats.mp3', volume: 0.6, loop: false },
         victorySound: { src: 'sounds/victory.mp3', volume: 0.7, loop: false },
-       babaSound: { src: 'sounds/baba.mp3', volume: 0.6, loop: false },
+        babaSound: { src: 'sounds/baba.mp3', volume: 0.6, loop: false },
         
         // Notifications
         notiSound: { src: 'sounds/noti.mp3', volume: 0.4, loop: false },
         notificationSound: { src: 'sounds/notification.mp3', volume: 0.4, loop: false },
-       wheelSound: { src: 'sounds/wheel.mp3', volume: 0.7, loop: false },
+        wheelSound: { src: 'sounds/wheel.mp3', volume: 0.7, loop: false },
         
         // Admin & Payment
         adminSound: { src: 'sounds/admin.mp3', volume: 0.5, loop: false },
@@ -60,8 +62,26 @@ const SoundManager = (function() {
         revealSound: { src: 'sounds/reveal.mp3', volume: 0.4, loop: false },
         fanfareSound: { src: 'sounds/fanfare.mp3', volume: 0.5, loop: false },
         chimeSound: { src: 'sounds/chime.mp3', volume: 0.3, loop: false },
-        errorSound: { src: 'sounds/error.mp3', volume: 0.3, loop: false }
-    };
+        errorSound: { src: 'sounds/error.mp3', volume: 0.3, loop: false },
+        
+        // ===== SHAN KOE MEE SOUNDS =====
+        shanPoker: { src: 'sounds/poker.mp3', volume: 0.5, loop: false },
+        shanChip: { src: 'sounds/chip.mp3', volume: 0.5, loop: false },
+        shanSec: { src: 'sounds/sec.mp3', volume: 0.5, loop: false },
+        shanTwox: { src: 'sounds/twox.mp3', volume: 0.6, loop: false },
+        shanTain: { src: 'sounds/tain.mp3', volume: 0.6, loop: false },
+        shanGood: { src: 'sounds/good.mp3', volume: 0.5, loop: false },
+        shanChange: { src: 'sounds/change.mp3', volume: 0.5, loop: false },
+        shanEnd: { src: 'sounds/end.mp3', volume: 0.6, loop: false },
+        shanLose: { src: 'sounds/lose.mp3', volume: 0.5, loop: false },
+        shanSew: { src: 'sounds/sew.mp3', volume: 0.5, loop: false },
+        shanTwoSew: { src: 'sounds/twosew.mp3', volume: 0.5, loop: false },
+        shanNoneed: { src: 'sounds/noneed.mp3', volume: 0.6, loop: false },
+        shanWin: { src: 'sounds/win.mp3', volume: 0.5, loop: false },
+        shanAutonine: { src: 'sounds/autonine.mp3', volume: 0.5, loop: false },
+        shanAutoeight: { src: 'sounds/autoeight.mp3', volume: 0.5, loop: false }
+      };
+
     
     // ===== Audio cache =====
     const audioCache = {};
@@ -73,9 +93,9 @@ const SoundManager = (function() {
         console.log('🎵 Initializing Sound Manager...');
         
         // Load all sounds from config
-        Object.keys(soundConfig).forEach(key => {
-            const config = soundConfig[key];
-            const audio = document.getElementById(key);
+        Object.keys(soundConfig).forEach(function(key) {
+            var config = soundConfig[key];
+            var audio = document.getElementById(key);
             
             if (audio) {
                 // Clear existing sources
@@ -84,7 +104,7 @@ const SoundManager = (function() {
                 }
                 
                 // Add source
-                const source = document.createElement('source');
+                var source = document.createElement('source');
                 source.src = config.src;
                 source.type = 'audio/mpeg';
                 audio.appendChild(source);
@@ -95,7 +115,7 @@ const SoundManager = (function() {
                 // Cache the audio element
                 audioCache[key] = audio;
             } else {
-                console.warn(`⚠️ Audio element "${key}" not found in HTML`);
+                console.warn('⚠️ Audio element "' + key + '" not found in HTML');
             }
         });
         
@@ -109,9 +129,9 @@ const SoundManager = (function() {
         
         if (!initialized) init();
         
-        const audio = audioCache[soundId] || document.getElementById(soundId);
+        var audio = audioCache[soundId] || document.getElementById(soundId);
         if (!audio) {
-            console.warn(`⚠️ Sound "${soundId}" not found`);
+            console.warn('⚠️ Sound "' + soundId + '" not found');
             return Promise.reject('Sound not found');
         }
         
@@ -121,52 +141,52 @@ const SoundManager = (function() {
         // Reset and play
         audio.currentTime = 0;
         
-        return audio.play().catch(e => {
-            console.log(`🔇 Sound play failed: ${soundId}`, e.message);
+        return audio.play().catch(function(e) {
+            console.log('🔇 Sound play failed: ' + soundId, e.message);
             return Promise.reject(e);
         });
     }
     
     // ===== Stop sound =====
     function stop(soundId) {
-        const audio = audioCache[soundId] || document.getElementById(soundId);
+        var audio = audioCache[soundId] || document.getElementById(soundId);
         if (audio) {
             audio.pause();
             audio.currentTime = 0;
         }
     }
     
-    // ===== Play BGM (special handling) =====
+    // ===== Play BGM =====
     function playBGM() {
         if (!soundEnabled) return;
         
-        play('bgm').then(() => {
+        play('bgm').then(function() {
             bgmPlaying = true;
             console.log('🎵 BGM started');
-        }).catch(() => {
+        }).catch(function() {
             console.log('🔇 BGM autoplay blocked');
         });
     }
     
-    // ===== Play Box BGM (different background) =====
+    // ===== Play Box BGM =====
     function playBoxBGM() {
         if (!soundEnabled) return;
         
-        play('boxbgSound').then(() => {
+        play('boxbgSound').then(function() {
             console.log('🎵 Box BGM started');
-        }).catch(() => {
+        }).catch(function() {
             console.log('🔇 Box BGM autoplay blocked');
         });
     }
     
     // ===== Stop BGM =====
     function stopBGM() {
-        const bgm = audioCache['bgm'] || document.getElementById('bgm');
+        var bgm = audioCache['bgm'] || document.getElementById('bgm');
         if (bgm) {
             bgm.pause();
             bgm.currentTime = 0;
         }
-        const boxbg = audioCache['boxbgSound'] || document.getElementById('boxbgSound');
+        var boxbg = audioCache['boxbgSound'] || document.getElementById('boxbgSound');
         if (boxbg) {
             boxbg.pause();
             boxbg.currentTime = 0;
@@ -180,7 +200,7 @@ const SoundManager = (function() {
         
         if (!soundEnabled) {
             // Pause all sounds
-            Object.values(audioCache).forEach(audio => {
+            Object.values(audioCache).forEach(function(audio) {
                 if (audio && !audio.paused) {
                     audio.pause();
                 }
@@ -196,39 +216,39 @@ const SoundManager = (function() {
         // Update UI button
         updateSoundButton();
         
-        console.log(`🔊 Sound ${soundEnabled ? 'ON' : 'OFF'}`);
+        console.log('🔊 Sound ' + (soundEnabled ? 'ON' : 'OFF'));
         return soundEnabled;
     }
     
     // ===== Update sound toggle button =====
     function updateSoundButton() {
-        const btn = document.getElementById('soundToggleBtn');
+        var btn = document.getElementById('soundToggleBtn');
         if (btn) {
             btn.innerHTML = soundEnabled ? '<i class="fas fa-volume-up"></i>' : '<i class="fas fa-volume-mute"></i>';
         }
     }
     
-    // ===== Set volume for specific sound =====
+    // ===== Set volume =====
     function setVolume(soundId, volume) {
-        const audio = audioCache[soundId] || document.getElementById(soundId);
+        var audio = audioCache[soundId] || document.getElementById(soundId);
         if (audio) {
             audio.volume = Math.max(0, Math.min(1, volume));
         }
     }
     
-    // ===== Master volume control =====
+    // ===== Master volume =====
     function setMasterVolume(volume) {
-        Object.values(audioCache).forEach(audio => {
+        Object.values(audioCache).forEach(function(audio) {
             if (audio) {
-                const originalVol = soundConfig[audio.id]?.volume || 0.5;
+                var originalVol = soundConfig[audio.id]?.volume || 0.5;
                 audio.volume = originalVol * volume;
             }
         });
     }
     
-    // ===== Stop all sounds =====
+    // ===== Stop all =====
     function stopAll() {
-        Object.values(audioCache).forEach(audio => {
+        Object.values(audioCache).forEach(function(audio) {
             if (audio && !audio.paused) {
                 audio.pause();
                 audio.currentTime = 0;
@@ -237,9 +257,9 @@ const SoundManager = (function() {
         bgmPlaying = false;
     }
     
-    // ===== Preload all sounds =====
+    // ===== Preload all =====
     function preloadAll() {
-        Object.values(audioCache).forEach(audio => {
+        Object.values(audioCache).forEach(function(audio) {
             if (audio) {
                 audio.load();
             }
@@ -247,20 +267,23 @@ const SoundManager = (function() {
         console.log('📦 All sounds preloaded');
     }
     
-    // ===== Check if sound is enabled =====
+    // ===== Check if enabled =====
     function isEnabled() {
         return soundEnabled;
     }
     
     // ===== Play with retry =====
-    function playWithRetry(soundId, maxAttempts = 3) {
-        let attempts = 0;
-        const attempt = () => {
-            return play(soundId).catch(e => {
+    function playWithRetry(soundId, maxAttempts) {
+        maxAttempts = maxAttempts || 3;
+        var attempts = 0;
+        var attempt = function() {
+            return play(soundId).catch(function(e) {
                 attempts++;
                 if (attempts < maxAttempts) {
-                    console.log(`🔄 Retry ${soundId} (${attempts}/${maxAttempts})`);
-                    return new Promise(resolve => setTimeout(resolve, 100)).then(attempt);
+                    console.log('🔄 Retry ' + soundId + ' (' + attempts + '/' + maxAttempts + ')');
+                    return new Promise(function(resolve) {
+                        setTimeout(resolve, 100);
+                    }).then(attempt);
                 }
                 return Promise.reject(e);
             });
@@ -268,48 +291,64 @@ const SoundManager = (function() {
         return attempt();
     }
     
-    // ===== Shortcut methods for specific sounds =====
-        // ===== Shortcut methods for specific sounds =====
-    const shortcuts = {
+    // ===== Shortcut methods =====
+    var shortcuts = {
         // Basic
         button: function() { return play('allbuttonSound'); },
         click: function() { return play('clickSound'); },
         pop: function() { return play('popbuttonSound'); },
-
+        
         // Spin & Win
         spin: function() { return play('spinSound'); },
         win: function() { return play('winlineSound'); },
         nowin: function() { return play('nowinSound'); },
         victory: function() { return play('victorySound'); },
-
+        
         // Animals
         buffalo: function() { return play('buffaloSound'); },
         lion: function() { return play('lionSound'); },
-        boom: function() { return play('boomSound'); }, // 🔥 ဒီနေရာကို သေချာစစ်ပါ
-
+        boom: function() { return play('boomSound'); },
+        
         // Coin
         coin: function() { return play('coinSound'); },
         coinRain: function() { return play('coinrainSound'); },
         sixCoin: function() { return play('sixcoinSound'); },
-
+        
         // Jackpot
         jackpotSpin: function() { return play('jackpotspinSound'); },
         jackpot: function() { return play('jackpotSound'); },
         baba: function() { return play('babaSound'); },
         wheel: function() { return play('wheelSound'); },
-
+        
         // Congrats
         congratulations: function() { return play('congratulationsSound'); },
         congrats: function() { return play('congratsSound'); },
-
+        
         // Notifications
         balance: function() { return play('balanceSound'); },
         noti: function() { return play('notiSound'); },
-        notification: function() { return play('notificationSound'); }
+        notification: function() { return play('notificationSound'); },
+        
+        // ===== SHAN KOE MEE SHORTCUTS =====
+        shanNoneed: function() { return play('shanNoneed'); },
+        shanWin: function() { return play('shanWin'); },
+        shanAutoeight: function() { return play('shanAutoeight'); },
+        shanAutonine: function() { return play('shanAutonine'); },
+        shanDeal: function() { return play('shanPoker'); },
+        shanChip: function() { return play('shanChip'); },
+        shanCapture: function() { return play('shanSec'); },
+        shanTwox: function() { return play('shanTwox'); },
+        shanWanTin: function() { return play('shanTain'); },
+        shanGood: function() { return play('shanGood'); },
+        shanChange: function() { return play('shanChange'); },
+        shanEnd: function() { return play('shanEnd'); },
+        shanLose: function() { return play('shanLose'); },
+        shanDraw: function() { return play('shanSew'); },
+        shanDrawAgain: function() { return play('shanTwoSew'); }
     };
-
+    
     // ===== Public API =====
-    const api = {
+    var api = {
         init: init,
         play: play,
         stop: stop,
@@ -325,39 +364,21 @@ const SoundManager = (function() {
         isEnabled: isEnabled,
         updateSoundButton: updateSoundButton
     };
-
-    // Shortcut အားလုံးကို api ထဲ အသေအချာ ပေါင်းထည့်မယ်
+    
+    // Shortcut အားလုံးကို api ထဲ ပေါင်းထည့်
     Object.keys(shortcuts).forEach(function(key) {
         api[key] = shortcuts[key];
     });
-
+    
     return api;
-})(); // SoundManager အပိတ်
-
-// SoundManager အပြင်ဘက်ကနေ boom ကို အတင်းထည့်ပေးမယ်
-if (window.SoundManager) {
-    window.SoundManager.boom = function() {
-        return this.play('boomSound');
-    };
-    console.log("🚀 Boom function manually injected into SoundManager!");
-}
-
-
-// SoundManager အပြင်ဘက်ကနေ boom ကို အတင်းထည့်ပေးမယ်
-if (window.SoundManager) {
-    window.SoundManager.balance = function() {
-        return this.play('balanceSound');
-    };
-    console.log("🚀 Balance function manually injected into SoundManager!");
-}
+})();
 
 // ===== Make it global =====
 window.SoundManager = SoundManager;
 
-// ===== Auto-initialize on page load =====
-document.addEventListener('DOMContentLoaded', () => {
-    // Initialize sound manager after a short delay
-    setTimeout(() => {
+// ===== Auto-initialize =====
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
         SoundManager.init();
         console.log('🎵 Sound Manager auto-initialized');
     }, 100);

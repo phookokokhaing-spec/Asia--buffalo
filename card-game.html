@@ -3,1087 +3,1701 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Myanmar Casino - Ultimate Animation Table</title>
+    <title>ရှမ်းကိုးမီး - Shan Koe Mee</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Myanmar:wght@400;700;900&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; font-family: 'Noto Sans Myanmar', 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+        :root { --gold: #ffd700; }
+        body { background: #0a0014; height: 100vh; width: 100vw; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+        .game-container { width: 100%; height: 100%; position: relative; display: flex; flex-direction: column; background: linear-gradient(180deg, #050010 0%, #0a0014 30%, #120020 70%, #080012 100%); }
 
-        * { 
-            margin: 0; 
-            padding: 0; 
-            box-sizing: border-box; 
-            user-select: none; 
-            font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; 
-            -webkit-tap-highlight-color: transparent;
-        }
+        /* Top Bar */
+        .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; z-index: 10; height: 40px; }
+        .back-btn { background: linear-gradient(145deg, #ffd700, #ffaa00); border: none; padding: 0 16px; height: 28px; cursor: pointer; font-size: 12px; font-weight: 700; border-radius: 15px; color: #1a1a1a; display: flex; align-items: center; gap: 4px; }
+        .top-info { display: flex; gap: 10px; align-items: center; }
+        .balance-box { display: flex; align-items: center; gap: 5px; color: var(--gold); font-weight: 900; font-size: 13px; }
+        .bet-hud { color: #00ff88; font-weight: 800; font-size: 11px; background: rgba(0,255,136,0.1); padding: 2px 10px; border-radius: 10px; border: 1px solid rgba(0,255,136,0.3); }
+        .jackpot-top { color: #ff69b4; font-size: 11px; font-weight: 900; }
 
-        body {
-            background: #010501;
-            height: 100vh;
-            width: 100vw;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            padding: 5px;
-        }
-
-        .game-container {
-            width: 100%;
-            height: 100%;
-            max-width: 950px;
-            max-height: 500px;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        /* Top HUD Header */
-        .top-info-bar {
-    display: flex;
-    justify-content: space-between; /* ဘယ်ဘက်မှာ ခလုတ်၊ ညာဘက်မှာ info တွေထားမယ် */
-    align-items: center;
-    padding: 10px;
-    background: rgba(0, 0, 0, 0.5); /* သင့် Design ပေါ်မူတည်ပြီး ပြင်ပါ */
-}
-
-.right-info {
-    display: flex;
-    gap: 15px; /* balance နဲ့ bet ကြားက အကွာအဝေး */
-}
-          .lobby-buttons {
-            display: flex;
-            gap: 6px;
-        }
-
-        .back-to-lobby {
-            background: linear-gradient(145deg, #ffd700, #ffaa00);
-            border: none;
-            padding: 0 35px;
-             height: 35px;
-            cursor: pointer;
-            font-size: 15px;
-            font-weight: 500;
-            border-radius: 20px;
-            color: white;
-            box-shadow: 0 8px 0 #4a3aa7;
-            display: flex; 
-             align-items: center;
-              gap: 8px;
-        }
-
-        .balance-box { display: flex; align-items: center; gap: 8px; color: #ffd700; font-weight: 900; font-size: 17px; }
-        .current-bet-hud { color: #00ff88; font-weight: 800; font-size: 14px; background: rgba(0,255,136,0.1); padding: 3px 14px; border-radius: 12px; border: 1px solid rgba(0,255,136,0.3); }
-
-        .table-area {
-            flex: 1;
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 5px 0;
-            width: 100%;
-        }
-
-        /* WIDER table for landscape */
+        /* Table */
+        .table-wrap { flex: 1; position: relative; display: flex; justify-content: center; align-items: center; z-index: 2; }
         .casino-table {
-            width: 90%;
-            height: 85%;
-            max-width: 800px;
-            background: radial-gradient(circle at center, #155e10 0%, #0c3609 65%, #051a04 100%);
-            border-radius: 50% / 45%; 
-            border: 12px solid #3d2314; 
-            box-shadow: 0 15px 35px rgba(0,0,0,0.8), 
-                        inset 0 0 50px rgba(0,0,0,0.85), 
-                        0 0 0 2px #ffd700;
+            width: 94%;
+            height: 78%;
+            background: 
+                radial-gradient(circle at 30% 30%, rgba(100,180,255,0.1) 0%, transparent 40%),
+                linear-gradient(180deg, #1a4a7a 0%, #2989d8 30%, #207cca 60%, #1a4a7a 100%);
+            border-radius: 50% / 45%;
+            border: 3px solid rgba(100,180,255,0.25);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6), inset 0 0 50px rgba(0,0,0,0.5);
             position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        }
+        .casino-table::before {
+            content: '';
+            position: absolute;
+            top: 10%; left: 10%; right: 10%; bottom: 10%;
+            border: 1.5px dashed rgba(255,255,255,0.08);
+            border-radius: 50% / 45%;
         }
 
-        .table-center-art {
+        /* ===== AVATARS ===== */
+        .avatar {
             position: absolute;
-            border: 2px dashed rgba(255, 215, 0, 0.15);
-            width: 65%;
-            height: 60%;
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
+            border: 2.5px solid rgba(255, 215, 0, 0.4);
+            overflow: hidden;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 0 15px rgba(255,215,0,0.15);
+            z-index: 25;
+        }
+        .avatar img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 50%; }
+        .avatar-dealer { top: -20%; left: 50%; transform: translateX(-50%); border-color: #ff1744; box-shadow: 0 0 15px rgba(255,23,68,0.4); }
+        .avatar-p1 { top: 22%; left: -3%; }
+        .avatar-p2 { top: 22%; right: -3%; }
+        .avatar-you { bottom: -10%; left: 50%; transform: translateX(-50%); border-color: #00e5ff; box-shadow: 0 0 15px rgba(0,229,255,0.4); }
+
+        /* Bank badge on dealer */
+        .bank-badge {
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #2c1810, #1a0f0a);
+            border: 1.9px solid var(--gold);
+            border-radius: 8px;
+            padding: 1px 6px;
+            font-size: 15px;
+            font-weight: 900;
+            color: var(--gold);
+            white-space: nowrap;
+            box-shadow: 0 0 8px rgba(255,215,0,0.3);
+            z-index: 30;
+        }
+
+        /* ===== CARD AREAS ===== */
+        .card-area {
+            position: absolute;
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            gap: 2px;
-            pointer-events: none;
-        }
-        .table-title { color: rgba(255, 215, 0, 0.12); font-size: 13px; font-weight: 900; letter-spacing: 4px; }
-        .table-total-bet { color: #ffd700; font-size: 12px; font-weight: 800; background: rgba(0,0,0,0.5); padding: 2px 12px; border-radius: 12px; border: 1px dashed #ffd700; }
-
-        .table-banner {
-            position: absolute;
-            top: 40%; left: 60%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.9);
-            border-radius: 12px;
-            padding: 6px 15px;
-            text-align: bottom;
-            width: 15%;
-            border: 1px solid rgba(255,215,0,0.4);
-            pointer-events: none;
-            z-index: 10;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.6);
-        }
-        .banner-text { color: #ffd700; font-size: 12px; font-weight: bold; }
-
-        /* 👳 Circular Player Seat Styles (Size 50) */
-        .player-seat-avatar {
-            position: absolute;
-            display: flex;
             align-items: center;
             z-index: 20;
-            }
-            /* Avatar အတွင်းက ပုံတွေအတွက် */
-.avatar-circle img {
-    width: 100% !important;     /* အဝိုင်းရဲ့ အကျယ်အတိုင်း ယူမယ် */
-    height: 100% !important;    /* အဝိုင်းရဲ့ အမြင့်အတိုင်း ယူမယ် */
-    object-fit: cover;          /* ပုံကို အချိုးမပျက်ဘဲ အဝိုင်းထဲ အပြည့်ဖြည့်မယ် */
-    display: block;             /* ပုံရဲ့အောက်က spacing တွေကို ဖယ်ရှားမယ် */
-    border-radius: 50%;         /* ပုံကို အဝိုင်းပုံစံဖြစ်အောင် လုပ်မယ် */
-}
-
-/* Avatar-circle ရဲ့ အရွယ်အစားကို သေချာသတ်မှတ်ပေးပါ */
-.avatar-circle {
-    width: 60px;
-    height: 60px;
-    overflow: hidden;           /* အဝိုင်းပြင်ပ ပိုထွက်နေတာတွေကို ဖြတ်ထုတ်မယ် */
-    position: relative;
-    border: 2px solid rgba(255, 215, 0, 0.4);
-    border-radius: 50%;         /* အဝိုင်းဖြစ်အောင် */
-}
-
-.avatar-badge {
-    position: absolute;
-    /* အရင်က bottom: -7px; ရှိနေမှာပါ၊ အခု -15px လောက် တင်ပေးလိုက်ပါ */
-    bottom: -15px; 
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 9px;
-    font-weight: 900;
-    padding: 2px 6px;
-    border-radius: 5px;
-    white-space: nowrap;
-    background: #1a1a1a;
-    color: #fff;
-    border: 0.5px solid #555;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.4);
-    z-index: 30; /* တခြားဟာတွေအပေါ်မှာ ရှိနေအောင် */
-}
-
-/* Dealer ပုံကို ပိုပေါ်လွင်အောင် */
-.dealer-img {
-    border: 3px solid #ffd700 !important;
-}
-
-        /* 🌟 Glistening Glow Pulse Animations for Actions */
-        @keyframes activePulse {
-            0% { box-shadow: 0 0 5px #00e5ff, inset 0 0 3px #00e5ff; }
-            50% { box-shadow: 0 0 18px #00e5ff, inset 0 0 8px #00e5ff; }
-            100% { box-shadow: 0 0 5px #00e5ff, inset 0 0 3px #00e5ff; }
         }
-        @keyframes winnerPulse {
-            0% { box-shadow: 0 0 5px #00ff88; transform: scale(1); }
-            50% { box-shadow: 0 0 22px #00ff88; transform: scale(1.04); }
-            100% { box-shadow: 0 0 5px #00ff88; transform: scale(1); }
+        .area-dealer { top: -20%; left: 60%; transform: translateX(-50%); }
+        .area-p1 { top: 24%; left: 5%; }
+        .area-p2 { top: 24%; right: 5%; }
+        .area-you { bottom: 10%; left: 60%; transform: translateX(-50%); }
+
+        /* Cards container - fan style */
+        .cards-fan {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            position: relative;
+            height: 70px;
+            margin-bottom: 4px;
         }
 
-        .player-seat-avatar.active .avatar-circle { border-color: #00e5ff; animation: activePulse 1.5s infinite ease-in-out; }
-        .player-seat-avatar.winner .avatar-circle { border-color: #00ff88; background: #00210a; animation: winnerPulse 1.3s infinite ease-in-out; }
-        .player-seat-avatar.loser .avatar-circle { border-color: #ff5252; opacity: 0.4; transform: scale(0.95); }
-        .player-seat-avatar.dealer-active .avatar-circle { border-color: #ff1744; box-shadow: 0 0 12px rgba(255, 23, 68, 0.6); }
-
-        .avatar-badge {
-            position: absolute; bottom: -7px; left: 50%; transform: translateX(-50%);
-            font-size: 9px; font-weight: 900; padding: 2px 6px; border-radius: 5px;
-            white-space: nowrap; background: #1a1a1a; color: #fff; border: 0.5px solid #555;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+        /* Individual card */
+        .game-card {
+            width: 50px;
+            height: 70px;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            position: relative;
+            animation: cardDeal 0.4s ease-out forwards;
+            opacity: 0;
+            margin-left: -20px;
+            transform-origin: bottom center;
+            transition: transform 0.3s ease;
         }
-        .player-seat-avatar.dealer-active .avatar-badge { background: #ff1744; color: #fff; border-color: #fff; }
-
-        .avatar-score {
-            position: absolute; font-size: 11px; font-weight: 900; color: #ffd700;
-            background: rgba(0,0,0,0.95); padding: 3px 8px; border-radius: 6px; white-space: nowrap;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.6); z-index: 25; pointer-events: none;
-            border: 0.5px solid rgba(255,215,0,0.2);
+        .game-card:first-child {
+            margin-left: 0;
+            transform: rotate(-8deg) translateY(2px);
+        }
+        .game-card:nth-child(2) {
+            transform: rotate(8deg) translateY(2px);
+        }
+        .game-card:nth-child(3) {
+            transform: rotate(0deg);
+            margin-left: -18px;
         }
 
-        /* Positions Placements */
-        .pos-top { top: -50px; left: 50%; transform: translateX(-50%); flex-direction: row; }
-        .pos-top .cards-wrapper { margin-left: 12px; }
-        .pos-top .avatar-score { left: 56px; bottom: -18px; }
+        @keyframes cardDeal { 
+            0% { transform: scale(0.3) translateY(-40px) rotate(0deg); opacity: 0; } 
+            100% { transform: scale(1) translateY(0) rotate(var(--rot, 0deg)); opacity: 1; } 
+        }
 
-        .pos-left { left: -20px; top: 50%; transform: translateY(-50%); flex-direction: row; }
-        .pos-left .cards-wrapper { margin-left: 12px; }
-        .pos-left .avatar-score { left: 56px; bottom: -18px; }
-
-        .pos-right { right: -20px; top: 50%; transform: translateY(-50%); flex-direction: row-reverse; }
-        .pos-right .cards-wrapper { margin-right: 12px; }
-        .pos-right .avatar-score { right: 56px; bottom: -18px; }
-
-        .pos-bottom { bottom: -20px; left: 50%; transform: translateX(-50%); flex-direction: row; }
-        .pos-bottom .cards-wrapper { margin-left: 12px; }
-        .pos-bottom .avatar-score { left: 56px; top: -18px; }
-
-        /* Casino Betting Box Chips Overlay Layout */
-        .bet-chips-box {
-            position: absolute;
-            width: 45px;
-            height: 45px;
+        .game-card.facedown {
+            background: linear-gradient(135deg, #c41e3a, #8b0000);
+            border: 1.5px solid #ffd700;
             display: flex;
             align-items: center;
             justify-content: center;
+        }
+        .game-card.facedown::after { content: '♠'; font-size: 20px; color: rgba(255,215,0,0.3); }
+        .game-card img { width: 100%; height: 100%; object-fit: cover; border-radius: 6px; display: block; }
+
+        /* ===== RESULT OVERLAY ===== */
+        .card-result {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            z-index: 30;
+            text-align: center;
+            animation: resultPop 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
             pointer-events: none;
+        }
+        @keyframes resultPop { 
+            0% { transform: translate(-50%, -50%) scale(0); } 
+            60% { transform: translate(-50%, -50%) scale(1.2); } 
+            100% { transform: translate(-50%, -50%) scale(1); } 
+        }
+
+        .result-text {
+            font-size: 22px;
+            font-weight: 900;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(0,0,0,0.9), 0 0 20px rgba(0,0,0,0.8), 0 2px 4px rgba(0,0,0,1);
+            letter-spacing: 1px;
+        }
+        .result-text.win { color: #ffd700; text-shadow: 0 0 15px rgba(255,215,0,0.8), 0 0 30px rgba(255,215,0,0.5), 0 2px 4px rgba(0,0,0,1); }
+        .result-text.lose { color: #ff4444; text-shadow: 0 0 15px rgba(255,68,68,0.8), 0 0 30px rgba(255,68,68,0.5), 0 2px 4px rgba(0,0,0,1); }
+        .result-text.tie { color: #00e5ff; text-shadow: 0 0 15px rgba(0,229,255,0.8), 0 0 30px rgba(0,229,255,0.5), 0 2px 4px rgba(0,0,0,1); }
+
+        .shanscore-box {
+            margin-top: 2px;
+            background: rgba(0,0,0,0.85);
+            border: 1.5px solid var(--gold);
+            border-radius: 8px;
+            padding: 2px 10px;
+            font-size: 14px;
+            font-weight: 900;
+            color: var(--gold);
+            text-shadow: 0 0 5px rgba(255,215,0,0.5);
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+        .shanscore-box.lose { border-color: #ff4444; color: #ff4444; text-shadow: 0 0 5px rgba(255,68,68,0.5); }
+        .shanscore-box.tie { border-color: #00e5ff; color: #00e5ff; text-shadow: 0 0 5px rgba(0,229,255,0.5); }
+
+        /* ===== SHAN BADGE ===== */
+        .shan-sticker {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: linear-gradient(135deg, #ff00cc, #3300ff);
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 900;
+            z-index: 35;
+            box-shadow: 0 0 10px rgba(255,0,204,0.5);
+            animation: stickerPop 0.4s ease-out;
+        }
+        .shan-sticker.win { background: linear-gradient(135deg, #ffd700, #ff8c00); color: #8b0000; }
+        @keyframes stickerPop { 0% { transform: scale(0); } 70% { transform: scale(1.2); } 100% { transform: scale(1); } }
+
+        /* Multiplier badge */
+        .multiplier {
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #8b0000;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 900;
+            z-index: 35;
+            box-shadow: 0 0 8px rgba(255,215,0,0.5);
+        }
+
+        /* ===== CHIP AREAS ===== */
+        .chip-zone {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             z-index: 15;
         }
-        
-        .stacked-chip-element {
-            width: 25px;
-            height: 25px;
+        .chips-dealer { top: 42%; left: 50%; transform: translate(-50%, -50%); width: 50px; height: 50px; }
+        .chips-p1 { top: 38%; left: 22%; width: 40px; height: 40px; }
+        .chips-p2 { top: 38%; right: 22%; width: 40px; height: 40px; }
+        .chips-you { bottom: 18%; left: 50%; transform: translateX(-50%); width: 50px; height: 40px; }
+
+        .stacked-chip {
+            width: 26px;
+            height: 26px;
             border-radius: 50%;
-            border: 1.5px dashed rgba(255,255,255,0.85);
+            border: 1.5px dashed rgba(255,255,255,0.9);
             position: absolute;
-            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.25), 0 2px 0 #111, 0 4px 6px rgba(0,0,0,0.6);
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            animation: chipDrop 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.2) forwards;
+            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.3), 0 2px 5px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 7px;
+            font-weight: 900;
+            color: #fff;
+        }
+        .chip-yellow { background: radial-gradient(circle, #ffca28, #ff8f00); color: #000; border-color: rgba(0,0,0,0.5); }
+        .chip-blue { background: radial-gradient(circle, #42a5f5, #1976d2); }
+        .chip-green { background: radial-gradient(circle, #66bb6a, #388e3c); }
+        .chip-red { background: radial-gradient(circle, #ef5350, #c62828); }
+
+        /* Flying chip */
+        .fly-chip {
+            position: fixed;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px dashed rgba(255,255,255,0.9);
+            z-index: 1000;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 7px;
+            font-weight: 900;
+            color: #fff;
+            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.3), 0 3px 10px rgba(0,0,0,0.5);
         }
 
-        @keyframes chipDrop {
-            0% { transform: translate(-50%, -120%) scale(1.5); opacity: 0; }
-            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        /* Banner */
+        .game-banner {
+            position: absolute;
+            top: 25%;
+            left: 40%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.85);
+            padding: 6px 16px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,215,0,0.2);
+            color: var(--gold);
+            font-size: 12px;
+            font-weight: 700;
+            z-index: 20;
+            white-space: nowrap;
+            pointer-events: none;
         }
 
-        .box-top    { top: 52px; left: calc(50% - 90px); }      
-        .box-left   { left: 90px; top: calc(50% - 65px); }     
-        .box-right  { right: 90px; top: calc(50% + 15px); }    
-        .box-bottom { bottom: 54px; left: calc(50% - 90px); }   
-
-        .chip-b { background: radial-gradient(circle, #2196f3 40%, #1565c0 80%); }
-        .chip-r { background: radial-gradient(circle, #f44336 40%, #c62828 80%); }
-        .chip-g { background: radial-gradient(circle, #4caf50 40%, #2e7d32 80%); }
-        .chip-p { background: radial-gradient(circle, #9c27b0 40%, #6a1b9a 80%); }
-        .chip-y { background: radial-gradient(circle, #ffb300 40%, #ff8f00 80%); border-color: rgba(0,0,0,0.5); }
-
-        /* 🎴 CARDS GRAPHICS (Enhanced Scale Size 55+) */
-        .cards-wrapper { display: flex; justify-content: center; align-items: center; min-height: 58px; perspective: 600px; }
-        
-        .mini-card {
-            width: 48px; height: 60px; /* ကြီးမားသောကတ်ဆိုက်အသစ် */
-            background: #ffffff; border-radius: 5px;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.6); display: flex; flex-direction: column;
-            justify-content: space-between; padding: 3px 4px; font-weight: 900; font-size: 14px;
-            margin-left: -9px; position: relative;
-            transform-style: preserve-3d;
-            animation: flyCardIn 0.35s cubic-bezier(0.19, 1, 0.22, 1) forwards;
-        }
-        .mini-card:first-child { margin-left: 0; }
-
-        /* Fly-in Dealing Flip Animation */
-        @keyframes flyCardIn {
-            0% { transform: scale(0.3) translateY(-40px) rotate(-15deg); opacity: 0; }
-            100% { transform: scale(1) translateY(0) rotate(0deg); opacity: 1; }
-        }
-
-        /* 3D Flipping Effect when revealing */
-        .mini-card.revealed-flip {
-            animation: flipReveal 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1) forwards;
-        }
-        @keyframes flipReveal {
-            0% { transform: rotateY(180deg) scale(0.9); }
-            100% { transform: rotateY(0deg) scale(1); }
-        }
-
-        .mini-card.facedown {
-            background: linear-gradient(135deg, #cc1111, #6b0202); 
-            border: 1.5px solid #ffd700; color: transparent; position: relative;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.5);
-        }
-        .mini-card.facedown::after {
-            content: '♠'; color: rgba(255,215,0,0.25); font-size: 16px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-        }
-        .mini-card.red { color: #d32f2f; }
-        .mini-card.black { color: #1a1a1a; }
-        .mini-card.baban { background: linear-gradient(135deg, #ffd700, #ff8f00); border: 1px solid #d45d00; text-shadow: 0 0 2px rgba(255,255,255,0.6); }
-
-                /* Bottom Action Controller Dash */
-        .bottom-action-panel {
+        /* Bottom Panel */
+        .bottom-panel {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgba(0,0,0,0.98);
-            padding: 8px 15px;
-            border-radius: 20px;
-            border-top: 2px solid rgba(255,215,0,0.2);
-            width: 100%;
+            background: rgba(0,0,0,0.9);
+            padding: 8px 12px;
+            border-top: 1px solid rgba(255,215,0,0.15);
             z-index: 30;
-            box-shadow: 0 -4px 15px rgba(0,0,0,0.6);
+            height: 55px;
         }
-
-          .flying-chip {
-    position: absolute;
-    width: 40px;
-    height: 40px;
-    background-image: url('chip.png'); /* မင်းရဲ့ Chip ပုံလေးထည့်ပါ */
-    background-size: cover;
-    background-position: center;
-    border-radius: 50%;
-    z-index: 10000;
-    transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1); /* ပျံတဲ့ပုံစံ ပိုလှအောင် */
-    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-}
-
-.win-notification {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: linear-gradient(135deg, #FFD700, #F4A460);
-    color: #000;
-    padding: 10px 20px;
-    border-radius: 50px;
-    font-weight: bold;
-    font-size: 16px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    z-index: 9999;
-    animation: slideIn 0.5s ease-out;
-}
-
-@keyframes slideIn {
-    from { transform: translateX(100%); }
-    to { transform: translateX(0); }
-}
-
-
-        .chips-container { display: flex; align-items: center; gap: 6px; }
-        .chip {
-            width: 38px; height: 38px; border-radius: 50%;
-            display: flex; justify-content: center; align-items: center;
-            font-size: 10px; font-weight: 900; color: #fff;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.4), inset 0 0 0 2px #fff;
-            border: 2px dashed #fff; cursor: pointer; transition: transform 0.1s ease;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+        .bet-chips { display: flex; gap: 6px; }
+        .bet-chip {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 900;
+            color: #fff;
+            border: 2px dashed rgba(255,255,255,0.8);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.4);
         }
-        .chip:active { transform: scale(0.85); }
-        .chip-10   { background: #1e88e5; }
-        .chip-50   { background: #e53935; }
-        .chip-100  { background: #43a047; }
-        .chip-500  { background: #8e24aa; }
-        .chip-1000 { background: #ffb300; color: #000; box-shadow: 0 3px 6px rgba(0,0,0,0.4), inset 0 0 0 2px #000; border-color: #000; text-shadow: none; }
-        .chip-clear { background: #444; font-size: 9px; width: 36px; height: 36px; border-radius: 6px; border: 1px solid #aaa; }
+        .bet-chip:hover { transform: translateY(-2px) scale(1.1); }
+        .bet-chip:active { transform: scale(0.9); }
+        .bc-10 { background: radial-gradient(circle, #42a5f5, #1976d2); }
+        .bc-50 { background: radial-gradient(circle, #ef5350, #c62828); }
+        .bc-100 { background: radial-gradient(circle, #66bb6a, #388e3c); }
+        .bc-500 { background: radial-gradient(circle, #ab47bc, #7b1fa2); }
+        .bc-1k { background: radial-gradient(circle, #ffca28, #ff8f00); color: #000; border-color: rgba(0,0,0,0.5); }
+        .bc-clr { background: #444; font-size: 9px; border-radius: 6px; border: 1px solid #888; }
 
-        .controls-buttons-group { display: flex; gap: 8px; flex: 1; justify-content: flex-end; max-width: 500px; }
-        
-        .btn {
-            padding: 9px 14px; border: none; border-radius: 12px;
-            font-weight: 700; font-size: 12px; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; gap: 5px; min-width: 105px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: all 0.1s ease;
+        .action-btns { display: flex; gap: 8px; }
+        .action-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            transition: all 0.2s ease;
+            font-family: 'Noto Sans Myanmar', sans-serif;
         }
-         #drawBtn {
-    display: inline-block !important; /* !important ထည့်ထားရင် ဘယ် Code ကမှ ဖျောက်လို့မရတော့ဘူး */
-     }
+        .action-btn:hover { transform: translateY(-2px); }
+        .action-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-deal { background: linear-gradient(145deg, #ffd700, #ffaa00); color: #1a1a1a; }
+        .btn-hit { background: linear-gradient(145deg, #42a5f5, #1976d2); color: #fff; }
+        .btn-stand { background: linear-gradient(145deg, #ef5350, #c62828); color: #fff; }
+        .btn-show { background: linear-gradient(145deg, #66bb6a, #388e3c); color: #fff; }
+        .btn-new { background: linear-gradient(145deg, #ab47bc, #7b1fa2); color: #fff; }
+        .btn-capture { background: linear-gradient(145deg, #ff6b6b, #ee5a24); color: #fff; }
+        .btn-capture-all { background: linear-gradient(145deg, #ff00cc, #3300ff); color: #fff; }
 
-        .btn:active { transform: scale(0.94); }
-        .btn-deal { background: linear-gradient(145deg, #ffd700, #ffaa00); color: #111; font-weight: 900; }
-        .btn-draw { background: linear-gradient(145deg, #00b0ff, #0077c2); color: white; }
-        .btn-stand { background: linear-gradient(145deg, #ff6d00, #dd2c00); color: white; }
-        .btn-show { background: linear-gradient(145deg, #00e676, #00c853); color: black; font-weight: 900; box-shadow: 0 0 10px rgba(0,230,118,0.4); }
-        .btn-new { background: linear-gradient(145deg, #e040fb, #aa00ff); color: white; }
+        .result-fx {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 50;
+            display: none;
+        }
+        .sparkle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            animation: sparkleAnim 1.5s ease-out forwards;
+        }
+        @keyframes sparkleAnim { 0% { transform: translate(0, 0) scale(1); opacity: 1; } 100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; } }
+
+        /* Wan Tin Badge */
+        .wan-tin-badge {
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #ff0000, #8b0000);
+            color: #fff;
+            padding: 4px 16px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 900;
+            z-index: 40;
+            border: 2px solid #ffd700;
+            box-shadow: 0 0 15px rgba(255,0,0,0.5);
+            animation: pulse 1s infinite;
+            display: none;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+        @media (max-width: 600px) {
+            .avatar { width: 38px; height: 38px; }
+            .game-card { width: 42px; height: 58px; margin-left: -16px; }
+            .bet-chip { width: 32px; height: 32px; font-size: 9px; }
+            .action-btn { padding: 6px 12px; font-size: 11px; }
+            .result-text { font-size: 14px; }
+            .shanscore-box { font-size: 12px; padding: 1px 6px; }
+        }
     </style>
 </head>
 <body>
 <div class="game-container">
-    <div class="top-info-bar">
-        <button class="back-to-lobby" onclick="window.parent.document.getElementById('cardGameContainer').style.display = 'none'; window.parent.document.getElementById('lobbyScreen').style.display = 'block';">
-            ◀ ပင်မ
-        </button>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <button class="back-btn" onclick="goLobby()"><i class="fas fa-arrow-left"></i> ပင်မ</button>
+        <div class="top-info">
+            <div class="balance-box"><i class="fas fa-coins"></i> <span id="bal">10,000</span></div>
+            <div class="bet-hud">လောင်း: <span id="bet">0</span></div>
+            <div class="jackpot-top">JP: <span id="jp">545M</span></div>
+        </div>
+    </div>
 
-        <div class="right-info">
-            <div class="balance-box">
-                <i class="fas fa-coins"></i> <span id="cardGameBalance">10,000</span>
+    <!-- Table -->
+    <div class="table-wrap">
+        <div class="casino-table" id="table">
+            <div class="wan-tin-badge" id="wanTinBadge">ဝမ်တိန် - ပထမ သတိပေးချက်</div>
+            <div class="game-banner" id="banner">Chips တင်ပြီး ဖဲဝေပါ</div>
+
+            <!-- Avatars -->
+            <div class="avatar avatar-dealer" id="av0">
+                <div class="bank-badge" id="bankBadge">Banker_30K</div>
+                <img src="images/banker.png" onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(135deg, #ff6b6b, #ee5a24)'">
             </div>
-            <div class="current-bet-hud">
-                လောင်းကြေး: <span id="betHudAmount">0</span>
+            <div class="avatar avatar-p1" id="av1">
+                <img src="images/player-baba.png" onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(135deg, #667eea, #764ba2)'">
             </div>
+            <div class="avatar avatar-p2" id="av2">
+                <img src="images/player-baba.png" onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(135deg, #f093fb, #f5576c)'">
+            </div>
+            <div class="avatar avatar-you" id="av3">
+                <img src="images/player-baba.png" onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(135deg, #4facfe, #00f2fe)'">
+            </div>
+
+            <!-- Card Areas -->
+            <div class="card-area area-dealer" id="area0">
+                <div class="cards-fan" id="cards0"></div>
+            </div>
+            <div class="card-area area-p1" id="area1">
+                <div class="cards-fan" id="cards1"></div>
+            </div>
+            <div class="card-area area-p2" id="area2">
+                <div class="cards-fan" id="cards2"></div>
+            </div>
+            <div class="card-area area-you" id="area3">
+                <div class="cards-fan" id="cards3"></div>
+            </div>
+
+            <!-- Chip zones -->
+            <div class="chip-zone chips-dealer" id="chips0"></div>
+            <div class="chip-zone chips-p1" id="chips1"></div>
+            <div class="chip-zone chips-p2" id="chips2"></div>
+            <div class="chip-zone chips-you" id="chips3"></div>
         </div>
     </div>
 
+    <div class="result-fx" id="fx"></div>
 
-    <div class="table-area">
-        <div class="table-banner">
-            <div class="banner-text" id="bannerText">Chips တင်ပြီး ဖဲဝေပါ</div>
+    <!-- Bottom Panel -->
+    <div class="bottom-panel">
+        <div class="bet-chips" id="betChips">
+            <button class="bet-chip bc-10" onclick="addBet(10)">10</button>
+            <button class="bet-chip bc-50" onclick="addBet(50)">50</button>
+            <button class="bet-chip bc-100" onclick="addBet(100)">100</button>
+            <button class="bet-chip bc-500" onclick="addBet(500)">500</button>
+            <button class="bet-chip bc-1k" onclick="addBet(1000)">1K</button>
+            <button class="bet-chip bc-clr" onclick="clearBet()">CLR</button>
         </div>
-
-        <div class="casino-table">
-            <div class="bet-chips-box box-top" id="betBox1"></div>
-            <div class="bet-chips-box box-left" id="betBox2"></div>
-            <div class="bet-chips-box box-right" id="betBox3"></div>
-            <div class="bet-chips-box box-bottom" id="betBox4"></div>
-
-           <div class="player-seat-avatar pos-top" id="seat1">
-    <div class="avatar-circle dealer-img">
-        <img src="images/banker.png" alt="Banker">
-        <span class="avatar-badge" id="tag1">DEALER</span>
-    </div>
-    <div class="cards-wrapper" id="cards1"></div>
-    <div class="avatar-score" id="score1"></div>
+        <div class="action-btns" id="actionBtns">
+    <!-- ဖဲဝေ -->
+    <button class="action-btn btn-deal" id="btnDeal" onclick="deal()">
+        <i class="fas fa-play"></i> ဖဲဝေ
+    </button>
+    
+    <!-- ဆွဲ (Player) -->
+    <button class="action-btn btn-hit" id="btnHit" onclick="hit()" style="display:none;">
+        <i class="fas fa-plus"></i> ဆွဲ
+    </button>
+    
+    <!-- တော်ပီ (Player) -->
+    <button class="action-btn btn-stand" id="btnStand" onclick="stand()" style="display:none;">
+        <i class="fas fa-hand"></i> တော်ပီ
+    </button>
+    
+    <!-- ဖွင့်ပြမည် -->
+    <button class="action-btn btn-show" id="btnShow" onclick="showAll()" style="display:none;">
+        <i class="fas fa-eye"></i> ဖွင့်
+    </button>
+    
+    <!-- ✅ ၃ ကဒ်ဖမ်းမည် (ဒိုင်အတွက် - အသစ်ထည့်) -->
+    <button class="action-btn btn-capture3" id="btnCapture3" onclick="captureThree()" style="display:none; background: linear-gradient(145deg, #ff9800, #f57c00); color:#fff;">
+        <i class="fas fa-eye"></i> ၃ ကဒ်ဖမ်း
+    </button>
+    
+    <!-- အားလုံးဖမ်းမည် (ဒိုင်အတွက်) -->
+    <button class="action-btn btn-capture" id="btnCapture" onclick="captureAll()" style="display:none; background: linear-gradient(145deg, #ff6b6b, #ee5a24); color:#fff;">
+        <i class="fas fa-hand-rock"></i> အားလုံးဖမ်း
+    </button>
+    
+    <!-- ပွဲသစ် -->
+    <button class="action-btn btn-new" id="btnNew" onclick="newGame()" style="display:none;">
+        <i class="fas fa-redo"></i> ပြန်စ
+    </button>
 </div>
-
-<div class="player-seat-avatar pos-left" id="seat2">
-    <div class="avatar-circle">
-        <img src="images/player-baba.png" alt="Player">
-        <span class="avatar-badge" id="tag2">WAIT</span>
-    </div>
-    <div class="cards-wrapper" id="cards2"></div>
-    <div class="avatar-score" id="score2"></div>
-</div>
-
-<div class="player-seat-avatar pos-right" id="seat3">
-    <div class="avatar-circle">
-        <img src="images/player-baba.png" alt="Player">
-        <span class="avatar-badge" id="tag3">WAIT</span>
-    </div>
-    <div class="cards-wrapper" id="cards3"></div>
-    <div class="avatar-score" id="score3"></div>
-</div>
-
-<div class="player-seat-avatar pos-bottom" id="seat4">
-    <div class="avatar-circle">
-        <img src="images/player-baba.png" alt="You">
-        <span class="avatar-badge" id="tag4">YOU</span>
-    </div>
-    <div class="cards-wrapper" id="cards4"></div>
-    <div class="avatar-score" id="score4"></div>
-</div>
-   </div>
-    </div>
-
-       <div class="bottom-action-panel">
-        <div class="chips-container" id="chipsBar">
-            <button class="chip chip-10" onclick="addBet(10)">10</button>
-            <button class="chip chip-50" onclick="addBet(50)">50</button>
-            <button class="chip chip-100" onclick="addBet(100)">100</button>
-            <button class="chip chip-500" onclick="addBet(500)">500</button>
-            <button class="chip chip-1000" onclick="addBet(1000)">1K</button>
-            <button class="chip chip-clear" onclick="clearBet()">CLR</button>
-        </div>
-
-        <div class="controls-buttons-group">
-            <button class="btn btn-deal" id="dealBtn" onclick="dealCards()">
-                <i class="fas fa-play"></i> ဖဲဝေမည်
-            </button>
-            <button class="btn btn-draw" id="drawBtn" onclick="playerDraw()" disabled style="display:none;">
-                <i class="fas fa-plus"></i> ကတ်ဆွဲ
-            </button>
-            <button class="btn btn-stand" id="standBtn" onclick="playerStand()" disabled style="display:none;">
-                <i class="fas fa-hand"></i> တော်ပြီ
-            </button>
-            <button class="btn btn-show" id="showBtn" onclick="dealerShowCards()" disabled style="display:none;">
-                <i class="fas fa-eye"></i> ဖမ်းမည်
-            </button>
-
-            <button class="btn btn-new" id="newGameBtn" onclick="newGame()" disabled style="display:none;">
-                <i class="fas fa-redo"></i> ပွဲသစ်စမည်
-            </button>
-        </div>
     </div>
 </div>
-
 <script>
 
-function showWinNotification(message) {
-    const banner = document.getElementById('banner');
-    if(banner) banner.style.display = 'none';
-    const notif = document.createElement('div');
-    notif.className = 'win-notification';
-    notif.style.cssText = 'position:fixed; top:20px; right:20px; background:#ffd700; padding:15px; border-radius:10px; z-index:9999; font-weight:bold; box-shadow:0 4px 10px rgba(0,0,0,0.3);';
-    notif.innerText = message;
-    document.body.appendChild(notif);
-    setTimeout(() => { notif.remove(); }, 3000);
+// ============================================
+// SHAN KOEMEE CORRECTED LOGIC
+// ============================================
+
+const SUITS = ['spade','heart','diamond','club'];
+const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+const SUIT_SYMBOLS = {'spade':'♠','heart':'♥','diamond':'♦','club':'♣'};
+const SUIT_COLORS = {'spade':'black','heart':'red','diamond':'red','club':'black'};
+
+// Card value: A=1, 10/J/Q/K=0, 2-9=face value
+function getCardValue(rank) {
+    if (['J','Q','K','10'].includes(rank)) return 0;
+    if (rank === 'A') return 1;
+    return parseInt(rank);
 }
 
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-function playTone(freq, type, duration, startTime = 0) {
-    setTimeout(() => {
-        const osc = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-        osc.type = type;
-        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        gainNode.gain.setValueAtTime(0.08, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
-        osc.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + duration);
-    }, startTime);
+// Rank value for tie-breaking (A=14, K=13, Q=12, J=11, 10=10, ... 2=2)
+function getRankValue(rank) {
+    if (rank === 'A') return 14;
+    if (rank === 'K') return 13;
+    if (rank === 'Q') return 12;
+    if (rank === 'J') return 11;
+    return parseInt(rank);
 }
 
-function playSound(type) {
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    if (type === 'deal') playTone(380, 'triangle', 0.05);
-    else if (type === 'flip') playTone(620, 'sine', 0.06);
-    else if (type === 'chip') playTone(1400, 'sine', 0.02);
-    else if (type === 'win') { playTone(523, 'sine', 0.06, 0); playTone(659, 'sine', 0.06, 50); playTone(1046, 'sine', 0.12, 100); }
-    else if (type === 'lose') { playTone(340, 'sawtooth', 0.1, 0); playTone(220, 'sawtooth', 0.18, 80); }
+// Suit value for tie-breaking (Spade=4, Heart=3, Diamond=2, Club=1)
+function getSuitValue(suit) {
+    const values = {'spade':4, 'heart':3, 'diamond':2, 'club':1};
+    return values[suit] || 0;
 }
 
+// Calculate Shan score (sum mod 10)
+function calculateScore(cards) {
+    if (!cards || cards.length === 0) return 0;
+    let sum = 0;
+    for (let c of cards) sum += c.v;
+    return sum % 10;
+}
 
-const SUITS = ['♠', '♥', '♦', '♣'];
-const VALUES = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
-const CARD_VALUE = { '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'J': 10, 'Q': 10, 'K': 10, 'A': 1 };
+// Check if auto-stand (8 or 9 with 2 cards)
+function isAutoStand(cards) {
+    if (!cards || cards.length !== 2) return false;
+    return calculateScore(cards) === 8 || calculateScore(cards) === 9;
+}
 
+// Check if can draw (max 3 cards, not stood, not auto-stand)
+function canDraw(cards, hasStood) {
+    if (hasStood) return false;
+    if (!cards || cards.length >= 3) return false;
+    if (isAutoStand(cards)) return false;
+    return true;
+}
+
+// Check same suit
+function isSameSuit(cards) {
+    if (!cards || cards.length < 2) return false;
+    return cards.every(c => c.s === cards[0].s);
+}
+
+// Check same rank
+function isSameRank(cards) {
+    if (!cards || cards.length < 3) return false;
+    return cards.every(c => c.r === cards[0].r);
+}
+
+// Get bonus multiplier
+function getBonusMultiplier(cards) {
+    if (isSameRank(cards) && cards.length === 3) return 5;
+    if (isSameSuit(cards)) {
+        if (cards.length === 3) return 3;
+        if (cards.length === 2) return 2;
+    }
+    return 1;
+}
+
+// Get highest card for tie-breaking
+function getHighestCard(cards) {
+    return cards.reduce((highest, card) => {
+        if (getRankValue(card.r) > getRankValue(highest.r)) return card;
+        if (getRankValue(card.r) === getRankValue(highest.r) && 
+            getSuitValue(card.s) > getSuitValue(highest.s)) return card;
+        return highest;
+    }, cards[0]);
+}
+
+// Compare two hands (returns: 'win', 'lose', 'tie')
+function compareHands(playerCards, bankerCards) {
+    const playerScore = calculateScore(playerCards);
+    const bankerScore = calculateScore(bankerCards);
+    const playerCount = playerCards.length;
+    const bankerCount = bankerCards.length;
+
+    if (playerScore > bankerScore) return 'win';
+    if (playerScore < bankerScore) return 'lose';
+
+    // Same score - tiebreakers
+    if (playerCount < bankerCount) return 'win';  // Less cards wins
+    if (playerCount > bankerCount) return 'lose'; // More cards loses
+
+    // Same card count - highest card rank wins
+    const playerHighest = getHighestCard(playerCards);
+    const bankerHighest = getHighestCard(bankerCards);
+
+    if (getRankValue(playerHighest.r) > getRankValue(bankerHighest.r)) return 'win';
+    if (getRankValue(playerHighest.r) < getRankValue(bankerHighest.r)) return 'lose';
+
+    // Same rank - suit wins
+    if (getSuitValue(playerHighest.s) > getSuitValue(bankerHighest.s)) return 'win';
+    if (getSuitValue(playerHighest.s) < getSuitValue(bankerHighest.s)) return 'lose';
+
+    return 'tie';
+}
 
 // ============================================
-// SUIT PRIORITY: စပိန့် > ဟတ် > ဒေါင့် > ညှင်း
+// GAME STATE
 // ============================================
-const SUIT_PRIORITY = { '♠': 4, '♥': 3, '♦': 2, '♣': 1 };
 
-window.gameState = {
-    balance: 10000,
-    dealerIndex: 0,
-    nextDealerIndex: 0,
-    betAmount: 0,
-    allRevealed: false,
+let G = {
+    bal: 10000,           // User balance
+    bet: 0,               // Current bet
+    bank: 30000,          // Banker balance
+    originalBank: 30000,  // Original bank amount
     deck: [],
-    players: [
-        { id: 0, name: 'ROBOT 1', cards: [], status: 'waiting', isHuman: false, vsResult: '' },
-        { id: 1, name: 'ROBOT 2', cards: [], status: 'waiting', isHuman: false, vsResult: '' },
-        { id: 2, name: 'ROBOT 3', cards: [], status: 'waiting', isHuman: false, vsResult: '' },
-        { id: 3, name: 'PLAYER', cards: [], status: 'waiting', isHuman: true, vsResult: '' }
+    phase: 'bet',         // bet, deal, play, result
+    round: 0,
+    wanTinRound: 0,       // 0=none, 1-3=wan tin rounds
+    bankerIndex: 0,       // Current banker
+        p: [
+        {id:0, name:'ဒိုင်', cards:[], rev:false, st:'', dealer:true, isAI:true, balance:30000},
+        {id:1, name:'ကစားသမား ၁', cards:[], rev:false, st:'', dealer:false, isAI:true, balance:10000},
+        {id:2, name:'ကစားသမား ၂', cards:[], rev:false, st:'', dealer:false, isAI:true, balance:10000},
+        {id:3, name:'သင်', cards:[], rev:false, st:'', dealer:false, isAI:false, balance:10000, user:true}
     ]
 };
 
-
-
-function createDeck() {
-    let d = [];
-    for (let s of SUITS) { for (let v of VALUES) d.push({ suit: s, value: v }); }
-    return d.sort(() => Math.random() - 0.5);
-}
-
-function getHandScore(cards) {
-    return cards.reduce((s, c) => s + CARD_VALUE[c.value], 0) % 10;
-}
-
-function isBanScore(cards) { const s = getHandScore(cards); return s === 8 || s === 9; }
-function isAutoBan(cards) { return cards.length === 2 && isBanScore(cards); }
-function isTwin(cards) { return cards.length === 3 && cards[0].value === cards[1].value && cards[1].value === cards[2].value; }
-function isSameSuit(cards) { return cards.length >= 2 && cards.every(c => c.suit === cards[0].suit); }
-
 // ============================================
-// A (ACE) CHECK
+// SHAN SOUND MAPPING (FULL)
 // ============================================
-function hasAce(cards) {
-    return cards.some(c => c.value === 'A');
-}
-
-function getHighestSuit(cards) {
-    let maxSuit = null;
-    let maxPriority = -1;
-    for (let c of cards) {
-        const priority = SUIT_PRIORITY[c.suit] || 0;
-        if (priority > maxPriority) {
-            maxPriority = priority;
-            maxSuit = c.suit;
+function playShanSound(soundType) {
+    var soundMap = {
+        'deal': 'shanDeal',        // poker.mp3
+        'flip': 'shanDraw',        // sew.mp3
+        'chip': 'shanChip',        // chip.mp3
+        'capture': 'shanCapture',  // sec.mp3
+        'twox': 'shanTwox',        // twox.mp3
+        'wanTin': 'shanWanTin',    // tain.mp3
+        'good': 'shanGood',        // good.mp3
+        'change': 'shanChange',    // change.mp3
+        'end': 'shanEnd',          // end.mp3
+        'lose': 'shanLose',        // lose.mp3
+        'draw': 'shanDraw',        // sew.mp3
+        'drawAgain': 'shanDrawAgain', // twosew.mp3
+        'win': 'shanWin',          // win.mp3 ✅
+        'noneed': 'shanNoneed',    // noneed.mp3 ✅
+        'autonine': 'shanAutonine', // autonine.mp3 ✅
+        'autoeight': 'shanAutoeight' // autoeight.mp3 ✅
+    };
+    
+    var mappedSound = soundMap[soundType] || soundType;
+    
+    try {
+        if (window.parent && window.parent.SoundManager) {
+            var soundFunc = window.parent.SoundManager[mappedSound];
+            if (typeof soundFunc === 'function') {
+                soundFunc();
+                return;
+            }
         }
+        if (window.SoundManager) {
+            var localFunc = window.SoundManager[mappedSound];
+            if (typeof localFunc === 'function') {
+                localFunc();
+                return;
+            }
+        }
+        console.warn('⚠️ Sound not found:', mappedSound);
+    } catch(e) {
+        console.warn('⚠️ Sound error:', e);
     }
-    return maxSuit;
 }
 
-function getMultiplier(cards) {
-    if (isTwin(cards)) return 5;
-    if (cards.length === 3 && isSameSuit(cards)) return 3;
-    if (cards.length === 2 && isSameSuit(cards)) return 2;
-    return 1;
-}
-function isTwin(cards) { 
-    // ထွိုင်ဆိုတာ 3လုံးတူမှဖြစ်ရမှာပါ
-    return cards.length === 3 && cards[0].value === cards[1].value && cards[1].value === cards[2].value; 
-}
-function evaluateHand(cards) {
-    if (!cards || cards.length === 0) return { score: 0, rank: 1, desc: '0 မှတ်', mult: 1 };
-    const score = getHandScore(cards);
-    let mult = 1;
-    let rank = 1; 
-    let desc = score + " မှတ်"; 
-    if (isTwin(cards)) { rank = 4; mult = 5; desc = "ထွိုင် (5ဆ)"; }
-    else if (score === 8 || score === 9) { rank = 3; desc = "ban!"; }
-    else if (cards.length === 3 && isSameSuit(cards)) { rank = 2; mult = 2; desc = "ကာလာ (2ဆ)"; }
-    return { score, rank, desc, mult };
+// ============================================
+// sfx() - Now uses playShanSound
+// ============================================
+function sfx(t) {
+    playShanSound(t);
 }
 
-function compareHands(p1Cards, p2Cards) {
-    const h1 = evaluateHand(p1Cards);
-    const h2 = evaluateHand(p2Cards);
 
-    if (h1.rank !== h2.rank) return h1.rank > h2.rank ? 1 : -1;
+// ============================================
+// UI HELPERS
+// ============================================
+function banner(t){document.getElementById('banner').textContent=t;}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+function upd() {
+    document.getElementById('bal').textContent = G.bal.toLocaleString();
+    document.getElementById('bet').textContent = G.bet.toLocaleString();
+    
+    var bankAmount = G.p[G.bankerIndex].balance || 0;
+    document.getElementById('bankBadge').textContent = '💰 ' + (bankAmount >= 1000 ? (bankAmount / 1000).toFixed(0) + 'K' : bankAmount);
 
-    if (h1.score !== h2.score) return h1.score > h2.score ? 1 : -1;
-    const p1Total = p1Cards.reduce((sum, c) => sum + CARD_VALUE[c.value], 0);
-    const p2Total = p2Cards.reduce((sum, c) => sum + CARD_VALUE[c.value], 0);
-    if (p1Total !== p2Total) return p1Total > p2Total ? 1 : -1;
-
-    const p1SameSuit = isSameSuit(p1Cards);
-    const p2SameSuit = isSameSuit(p2Cards);
-    if (p1SameSuit && !p2SameSuit) return 1;
-    if (!p1SameSuit && p2SameSuit) return -1;
-
-    const p1HasAce = hasAce(p1Cards);
-    const p2HasAce = hasAce(p2Cards);
-    if (p1HasAce && !p2HasAce) return 1;
-    if (!p1HasAce && p2HasAce) return -1;
-
-    if (p1HasAce && p2HasAce) {
-        const p1HighSuit = getHighestSuit(p1Cards);
-        const p2HighSuit = getHighestSuit(p2Cards);
-        const p1SuitPriority = SUIT_PRIORITY[p1HighSuit] || 0;
-        const p2SuitPriority = SUIT_PRIORITY[p2HighSuit] || 0;
-        if (p1SuitPriority !== p2SuitPriority) return p1SuitPriority > p2SuitPriority ? 1 : -1;
+    // Wan tin badge
+    var wtBadge = document.getElementById('wanTinBadge');
+    if (G.wanTinRound > 0) {
+        wtBadge.style.display = 'block';
+        var warnings = ['ပထမ', 'ဒုတိယ', 'တတိယ'];
+        wtBadge.textContent = 'ဝမ်တိန် - ' + warnings[G.wanTinRound - 1] + ' သတိပေးချက်';
+    } else {
+        wtBadge.style.display = 'none';
     }
     
-    if (p1Cards.length !== p2Cards.length) return p1Cards.length < p2Cards.length ? 1 : -1;
-    return 0;
+    // ✅ Balance ပြောင်းတိုင်း Lobby ကိုပြန်ပို့
+    syncBalanceToLobby();
 }
 
-function addBet(amt) {
-    if (document.getElementById('dealBtn').style.display === 'none') return;
-    if (gameState.balance - (gameState.betAmount + amt) < 0) { setBanner('လက်ကျန်ငွေ မလုံလောက်ပါ!'); return; }
-    gameState.betAmount += amt;
-    playSound('chip');
-    updateDesignatedChipsBoxes(false);
+// Card image path
+function cpath(c){
+    const sMap={'spade':'S','heart':'H','diamond':'D','club':'C'};
+    const vMap={'A':'A','2':'2','3':'3','4':'4','5':'5','6':'6','7':'7','8':'8','9':'9','10':'0','J':'J','Q':'Q','K':'K'};
+    return `images/${vMap[c.r]||c.r}${sMap[c.s]||'S'}.png`;
 }
 
-function clearBet() {
-    if (document.getElementById('dealBtn').style.display === 'none') return;
-    gameState.betAmount = 0;
-    playSound('chip');
-    updateDesignatedChipsBoxes(false);
+// Create card element
+function mkCard(c, faceDown=false, idx=0){
+    const d=document.createElement('div');
+    d.className='game-card'+(faceDown?' facedown':'');
+    d.style.animationDelay=(idx*0.12)+'s';
+    if(!faceDown){
+        const img=document.createElement('img');
+        img.src=cpath(c);
+        img.onerror=function(){
+            this.style.display='none';
+            const isRed=c.s==='heart'||c.s==='diamond';
+            d.style.background='#fff';
+            d.style.padding='3px 4px';
+            d.style.display='flex';
+            d.style.flexDirection='column';
+            d.style.justifyContent='space-between';
+            d.innerHTML=`<div style="font-size:10px;font-weight:800;color:${isRed?'#c41e3a':'#1a1a1a'}">${c.r}</div><div style="text-align:center;font-size:16px;color:${isRed?'#c41e3a':'#1a1a1a'}">${SUIT_SYMBOLS[c.s]||c.s}</div><div style="text-align:right;font-size:10px;font-weight:800;color:${isRed?'#c41e3a':'#1a1a1a'};transform:rotate(180deg)">${c.r}</div>`;
+        };
+        d.appendChild(img);
+    }
+    return d;
 }
 
-function updateDesignatedChipsBoxes(isPayoutPhase) {
-    document.getElementById('betHudAmount').textContent = gameState.betAmount.toLocaleString();
-    for(let i=1; i<=4; i++) document.getElementById(`betBox${i}`).innerHTML = '';
-    if (gameState.betAmount === 0) return;
+// Show result overlay
+function showResultOnCards(playerIdx, resultType, scoreText) {
+    const area = document.getElementById('area' + playerIdx);
+    const oldResult = area.querySelector('.card-result');
+    if (oldResult) oldResult.remove();
+    if (!resultType) return;
 
-    const boxColors = ['chip-r', 'chip-b', 'chip-g', 'chip-y'];
+    const resultDiv = document.createElement('div');
+    resultDiv.className = 'card-result';
+    const textDiv = document.createElement('div');
+    textDiv.className = 'result-text ' + resultType;
+    textDiv.textContent = resultType === 'win' ? 'WIN' : (resultType === 'lose' ? 'LOSE' : 'TIE');
+    const scoreDiv = document.createElement('div');
+    scoreDiv.className = 'shanscore-box ' + (resultType === 'lose' ? 'lose' : (resultType === 'tie' ? 'tie' : ''));
+    scoreDiv.textContent = scoreText || '';
+    resultDiv.appendChild(textDiv);
+    resultDiv.appendChild(scoreDiv);
+    area.appendChild(resultDiv);
+}
 
-    gameState.players.forEach((p, idx) => {
-        if (idx === gameState.dealerIndex && !isPayoutPhase) return;
-        const targetBox = document.getElementById(`betBox${idx+1}`);
-        let chipStyleClass = boxColors[idx];
-        let chipCount = 5; 
-        
-        if(isPayoutPhase && p.status === 'won') chipCount = 10;
-        if(isPayoutPhase && p.status === 'lost') return;
+// ============================================
+// CHIP ANIMATIONS
+// ============================================
+function gc(el){const r=el.getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2};}
+function mkFlyChip(cls,txt){const c=document.createElement('div');c.className='fly-chip '+cls;c.textContent=txt||'';return c;}
 
-        for (let i = 0; i < chipCount; i++) {
-            const chipNode = document.createElement('div');
-            chipNode.className = `stacked-chip-element ${chipStyleClass}`;
-            chipNode.style.top = `calc(50% + ${-(i * 2.5)}px)`;
-            chipNode.style.left = '50%';
-            targetBox.appendChild(chipNode);
+async function fly(from,to,cls,txt,dur=700,dl=0){
+    return new Promise(r=>{
+        setTimeout(()=>{
+            const f=gc(from),t=gc(to);
+            const c=mkFlyChip(cls,txt);
+            c.style.left=f.x+'px';c.style.top=f.y+'px';
+            c.style.transform='translate(-50%,-50%)';
+            document.body.appendChild(c);
+            const tx=t.x-f.x,ty=t.y-f.y;
+            c.animate([
+                {transform:'translate(-50%,-50%) scale(1) rotate(0deg)',opacity:1},
+                {transform:`translate(calc(-50% + ${tx*.5}px),calc(-50% + ${ty*.5}px)) scale(1.3) rotate(180deg)`,opacity:1,offset:0.5},
+                {transform:`translate(calc(-50% + ${tx}px),calc(-50% + ${ty}px)) scale(0.9) rotate(360deg)`,opacity:0.9}
+            ],{duration:dur,easing:'cubic-bezier(0.4,0,0.2,1)',fill:'forwards'});
+            setTimeout(()=>{c.remove();r();},dur);
+        },dl);
+    });
+}
+
+function placeChips(){
+    for(let i=0;i<4;i++)document.getElementById('chips'+i).innerHTML='';
+    if(G.bet===0)return;
+    const cl=['chip-yellow','chip-blue','chip-green','chip-red'];
+    const lb=['B','P1','P2','U'];
+    G.p.forEach((p,i)=>{
+        if (p.bet === 0) return;
+        const a=document.getElementById('chips'+i);
+        const n=Math.min(5,Math.max(2,Math.ceil(p.bet/500)));
+        for(let j=0;j<n;j++){
+            const c=document.createElement('div');
+            c.className='stacked-chip '+cl[i];
+            c.style.top=`calc(50% + ${-(j*2.5)+(Math.random()*3-1.5)}px)`;
+            c.style.left=`calc(50% + ${(Math.random()*4-2)}px)`;
+            c.textContent=lb[i];
+            a.appendChild(c);
         }
     });
 }
 
-function renderTable() {
-    document.getElementById('cardGameBalance').textContent = gameState.balance.toLocaleString();
+async function animWin(winnerIdx){
+    const cl=['chip-yellow','chip-blue','chip-green','chip-red'];
+    const wa=document.getElementById('chips'+winnerIdx), tbl=document.getElementById('table');
+    const p1=[];
+    G.p.forEach((p,i)=>{
+        const a=document.getElementById('chips'+i);
+        a.querySelectorAll('.stacked-chip').forEach((c,j)=>{p1.push(fly(a,tbl,cl[i],'',600,j*40));});
+    });
+    await Promise.all(p1);
+    await sleep(200);
+    for(let i=0;i<4;i++)document.getElementById('chips'+i).innerHTML='';
+    const p2=[];
+    for(let i=0;i<10;i++)p2.push(fly(tbl,wa,cl[winnerIdx],'WIN',700,i*50));
+    await Promise.all(p2);
+    for(let i=0;i<6;i++){
+        const c=document.createElement('div');
+        c.className='stacked-chip '+cl[winnerIdx];
+        c.style.top=`calc(50% + ${-(i*2.5)}px)`;c.style.left='50%';
+        c.textContent='WIN';wa.appendChild(c);
+    }
+}
+
+async function animLose(){
+    const ua=document.getElementById('chips3'), da=document.getElementById('chips'+G.bankerIndex), tbl=document.getElementById('table');
+    const p1=[];
+    ua.querySelectorAll('.stacked-chip').forEach((c,i)=>p1.push(fly(ua,tbl,'chip-red','',500,i*40)));
+    await Promise.all(p1);
+    await sleep(200);
+    ua.innerHTML='';
+    const p2=[];
+    for(let i=0;i<8;i++)p2.push(fly(tbl,da,'chip-yellow','BANK',600,i*50));
+    await Promise.all(p2);
+    for(let i=0;i<5;i++){
+        const c=document.createElement('div');c.className='stacked-chip chip-yellow';
+        c.style.top=`calc(50% + ${-(i*2.5)}px)`;c.style.left='50%';
+        c.textContent='BANK';da.appendChild(c);
+    }
+}
+
+// ============================================
+// BETTING
+// ============================================
+function addBet(a){
+    if(G.phase!=='bet')return;
+    if(G.bal-(G.bet+a)<0){banner('ငွေ မလုံလောက်ပါ!');return;}
+    G.bet+=a;sfx('chip');upd();
+}
+function clearBet(){
+    if(G.phase!=='bet')return;
+    G.bet=0;sfx('chip');upd();
+}
+
+// ============================================
+// BUTTONS
+// ============================================
+function showBtns(mode){
+    var d = document.getElementById('btnDeal');
+    var h = document.getElementById('btnHit');
+    var s = document.getElementById('btnStand');
+    var sh = document.getElementById('btnShow');
+    var n = document.getElementById('btnNew');
+    var cap = document.getElementById('btnCapture');
+    var cap3 = document.getElementById('btnCapture3');
+    var ch = document.querySelector('.bet-chips');
+
+    // Deal Button
+    d.style.display = (mode === 'bet') ? 'flex' : 'none';
     
-    gameState.players.forEach((p, idx) => {
-        // avatarSeat ကို ဒီမှာပဲ တစ်ခါတည်း သတ်မှတ်ပါ
-        const avatarSeat = document.getElementById(`seat${idx+1}`); 
-        const cardsEl = document.getElementById(`cards${idx+1}`);
-        const scoreEl = document.getElementById(`score${idx+1}`);
-        const tagEl = document.getElementById(`tag${idx+1}`);
+    // ============================================
+    // ဆွဲမည် Button - User အတွက်
+    // ============================================
+    if (mode === 'play' && !G.p[3].dealer) {
+        // User ကစားသမားဖြစ်တဲ့အခါ
+        h.style.display = 'flex';
+        h.innerHTML = '<i class="fas fa-plus"></i> ဆွဲမည်';
+        h.className = 'action-btn btn-hit';
+        h.style.background = 'linear-gradient(145deg, #42a5f5, #1976d2)';
+        h.style.color = '#fff';
+        h.onclick = function() { hit(); };
         
-         const imgEl = avatarSeat.querySelector('img');
-        if (imgEl) {
-            imgEl.src = (idx === gameState.dealerIndex) ? 'images/banker.png' : 'images/player-baba.png';
-        }
-
-        avatarSeat.className = `player-seat-avatar pos-${idx===0?'top':idx===1?'left':idx===2?'right':'bottom'}`;
+        var user = G.p[3];
+        h.disabled = !canDraw(user.cards, user.st === 'playing');
+        s.style.display = 'flex';
+        s.disabled = user.st === 'playing';
         
-        if (idx === gameState.dealerIndex) avatarSeat.classList.add('dealer-active');
-        if (p.status === 'playing') avatarSeat.classList.add('active');
-        if (p.status === 'won') avatarSeat.classList.add('winner');
-        if (p.status === 'lost') avatarSeat.classList.add('loser');
+    } else {
+        h.style.display = 'none';
+        s.style.display = 'none';
+    }
+    
+    // ============================================
+    // ဆွဲမည် Button - ဒိုင်အတွက်
+    // ============================================
+    if (mode === 'banker' && G.p[3].dealer) {
+        // ဒိုင်ဖြစ်တဲ့အခါ
+        h.style.display = 'flex';
+        h.innerHTML = '<i class="fas fa-plus"></i> ဆွဲမည်';
+        h.className = 'action-btn btn-hit';
+        h.style.background = 'linear-gradient(145deg, #ff6b6b, #ee5a24)';
+        h.style.color = '#fff';
+        h.onclick = function() { dealerDraw(); };
         
+        var banker = G.p[G.bankerIndex];
+        h.disabled = !canDraw(banker.cards, banker.st === 'playing');
+        s.style.display = 'none';
+        
+        // ၃ ကဒ်ဖမ်းမည်
+        cap3.style.display = 'flex';
+        cap3.innerHTML = '<i class="fas fa-eye"></i> ၃ ကဒ်ဖမ်း';
+        cap3.onclick = function() { captureThree(); };
+        cap3.disabled = false;
+        
+        // အားလုံးဖမ်းမည်
+        cap.style.display = 'flex';
+        cap.innerHTML = '<i class="fas fa-hand-rock"></i> အားလုံးဖမ်း';
+        cap.onclick = function() { captureAll(); };
+        cap.disabled = false;
+        
+    } else {
+        cap3.style.display = 'none';
+        cap.style.display = 'none';
+    }
+    
+    // Show Button
+    sh.style.display = (mode === 'play') ? 'flex' : 'none';
+    
+    // New Game Button
+    n.style.display = (mode === 'result') ? 'flex' : 'none';
 
-        if (idx === gameState.dealerIndex) {
-            tagEl.textContent = '🔱 Banker';
-        } else {
-            if (p.vsResult) {
-                tagEl.textContent = p.vsResult;
-            } else {
-                tagEl.textContent = p.status === 'waiting' ? (p.isHuman?'YOU':'WAIT') : p.status === 'playing' ? 'PLAYING' : 'STAND';
-            }
+    // Chips Bar
+    if(ch){
+        ch.style.opacity = (mode === 'bet') ? '1' : '0.3';
+        ch.style.pointerEvents = (mode === 'bet') ? 'auto' : 'none';
+    }
+}
+
+// ============================================
+// DEALER DRAW (ဒိုင် ဆွဲမည်)
+// ============================================
+function dealerDraw() {
+    var banker = G.p[G.bankerIndex];
+    if (!banker || !G.p[3].dealer) {
+        banner('ဒိုင် မဟုတ်ပါ!');
+        return;
+    }
+    
+    if (!canDraw(banker.cards, banker.st === 'playing')) {
+        banner('ဆွဲလို့မရပါ!');
+        return;
+    }
+    
+    // ကတ်ဆွဲ
+    banker.cards.push(drawCards(1)[0]);
+    playShanSound('draw'); // sew.mp3
+    render();
+    
+    // ဆွဲပြီးရင် ဘန်စစ်
+    if (isAutoStand(banker.cards)) {
+        var score = calculateScore(banker.cards);
+        if (score === 8) {
+            playShanSound('autoeight');
+            banner('ဒိုင် BAN! (၈ မှတ်)');
+        } else if (score === 9) {
+            playShanSound('autonine');
+            banner('ဒိုင် BAN! (၉ မှတ်)');
         }
+        
+        setTimeout(function() {
+            captureAll();
+        }, 1000);
+    }
+    
+    // ၃ ကဒ်ပြည့်ရင် ဆွဲမည် ပိတ်
+    if (banker.cards.length === 3) {
+        document.getElementById('btnHit').disabled = true;
+        banner('ဒိုင် ၃ ကဒ် ပြည့်ပြီ!');
+    }
+    
+    showBtns('banker');
+}
 
-        cardsEl.innerHTML = '';
-        const reveal = p.isHuman || gameState.allRevealed;
-
-        if (reveal && p.cards.length > 0) {
-            const h = evaluateHand(p.cards);
-            scoreEl.style.display = 'block';
-            scoreEl.textContent = `${h.desc}${h.mult > 1 ? ' ('+h.mult+'ဆ)' : ''}`;
-        } else {
-            scoreEl.style.display = 'none';
+// ============================================
+// CAPTURE THREE (၃ ကဒ်ဖမ်းမည်)
+// ============================================
+function captureThree() {
+    if (!G.p[3].dealer) {
+        banner('ဒိုင် မဟုတ်ပါ!');
+        return;
+    }
+    
+    banner('👁️ ၃ ကဒ်သမားများကိုသာ ဖမ်းပါသည်...');
+    playShanSound('capture'); // sec.mp3
+    
+    // ၃ ကဒ်ရှိသူတွေကိုပဲ ဖွင့်ပြ
+    G.p.forEach(function(p) {
+        if (p.cards.length === 3) {
+            p.rev = true;
         }
+    });
+    
+    render();
+    
+    // အားလုံးဖမ်းမည်ကို ဆက်လုပ်
+    setTimeout(function() {
+        captureAll();
+    }, 1000);
+}
 
-        p.cards.forEach((card, cIdx) => {
-            const cDiv = document.createElement('div');
-            if (!reveal) {
-                cDiv.className = 'mini-card facedown';
-            } else {
-                const color = (card.suit === '♥' || card.suit === '♦') ? 'red' : 'black';
-                // ပွဲသိမ်းလို့ လှန်ပြတဲ့အချိန်မှာ 3D Flip Anim ဖြစ်စေရန်
-                cDiv.className = `mini-card revealed-flip ${color}`;
-                if (isTwin(p.cards)) cDiv.classList.add('baban');
-                cDiv.innerHTML = `<div>${card.value}</div><div style="align-self:flex-end; font-size:11px; margin-top:-2px;">${card.suit}</div>`;
-            }
-            // 3D Cascade delay effect လေးထည့်ထားလို့ ကတ်ကျလာတာ ပိုအသက်ဝင်ပါတယ်
-            cDiv.style.animationDelay = `${cIdx * 0.1}s`;
-            cardsEl.appendChild(cDiv);
+// ============================================
+// CAPTURE ALL (အားလုံးဖမ်းမည်)
+// ============================================
+
+function captureAll() {
+    if (!G.p[3].dealer) {
+        banner('ဒိုင် မဟုတ်ပါ!');
+        return;
+    }
+    
+    banner('🤚 အားလုံးကို ဖမ်းပါသည်...');
+    playShanSound('capture'); // sec.mp3
+    
+    // အားလုံးကိုဖွင့်ပြ
+    G.p.forEach(function(p) {
+        p.rev = true;
+    });
+    render();
+    
+    setTimeout(function() {
+        settleRound();
+    }, 800);
+}
+// ============================================
+// DECK MANAGEMENT
+// ============================================
+function shuffleDeck(){
+    G.deck=[];
+    for(let s of SUITS)for(let r of RANKS)G.deck.push({s,r,v:getCardValue(r)});
+    for(let i=G.deck.length-1;i>0;i--){
+        const j=Math.floor(Math.random()*(i+1));
+        [G.deck[i],G.deck[j]]=[G.deck[j],G.deck[i]];
+    }
+}
+function drawCards(n=1){
+    if(G.deck.length<n)shuffleDeck();
+    return G.deck.splice(0,n);
+}
+
+// ============================================
+// RENDER
+// ============================================
+function render(){
+    upd();
+    G.p.forEach((p,i)=>{
+        const seat=document.getElementById('av'+i);
+        const cardsFan=document.getElementById('cards'+i);
+        const area=document.getElementById('area'+i);
+        if(!seat||!cardsFan)return;
+
+        seat.classList.remove('active','winner','loser');
+        if(p.st==='playing')seat.classList.add('active');
+        if(p.st==='win')seat.classList.add('winner');
+        if(p.st==='lose')seat.classList.add('loser');
+
+        cardsFan.innerHTML='';
+
+        // Show cards if revealed, or user cards, or result phase
+        const showCards = p.rev || p.user || G.phase === 'result' || (p.dealer && G.phase === 'banker');
+        const showAllCards = G.phase === 'result' || p.user || (p.dealer && G.phase === 'banker');
+
+        p.cards.forEach((c,j)=>{
+            // Face down for others during play
+            const isFaceDown = !showCards && !p.user && !p.rev && G.phase !== 'result';
+            cardsFan.appendChild(mkCard(c, isFaceDown, j));
         });
-    });
-}
 
-function setBanner(txt) { document.getElementById('bannerText').textContent = txt; }
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+        // Show score badge
+        if (showAllCards && p.cards.length >= 2) {
+            const score = calculateScore(p.cards);
+            const bonus = getBonusMultiplier(p.cards);
 
-function toggleButtons(mode) {
-    // ID တွေကို ရယူပါ (အကယ်၍ ID မရှိရင် null ဖြစ်သွားမယ်)
-    const d = document.getElementById('dealBtn');
-    const r = document.getElementById('drawBtn');
-    const s = document.getElementById('standBtn');
-    const n = document.getElementById('newGameBtn');
-    const sh = document.getElementById('showBtn');
-    const chips = document.getElementById('chipsBar');
+            // Remove old badge
+            const oldBadge = cardsFan.querySelector('.shan-sticker');
+            if (oldBadge) oldBadge.remove();
 
-    // [အရေးကြီးဆုံး] element ရှိမှသာ style ကို ပြင်ပါ
-    if(d) d.style.display = mode==='deal'?'inline-flex':'none';
-    if(r) r.style.display = mode==='play' && gameState.dealerIndex!==3 ?'inline-flex':'none';
-    if(s) s.style.display = mode==='play' && gameState.dealerIndex!==3 ?'inline-flex':'none';
-    if(sh) sh.style.display = mode==='play' && gameState.dealerIndex===3 ?'inline-flex':'none'; 
-    if(n) n.style.display = mode==='end'?'inline-flex':'none';
+            const badge = document.createElement('div');
+            badge.className = 'shan-sticker';
 
-    if(chips) {
-        if(mode === 'play') {
-            chips.style.opacity = '0.2';
-            if(r) { r.disabled = false; }
-            if(s) { s.disabled = false; }
-            if(sh) { sh.disabled = false; }
-            
-            if(gameState.dealerIndex === 3 && r && gameState.players[3].cards.length >= 3) {
-                r.disabled = true;
+            if (bonus > 1) {
+                badge.textContent = `${bonus}x`;
+                badge.style.background = 'linear-gradient(135deg, #ffd700, #ff8c00)';
+                badge.style.color = '#8b0000';
+            } else {
+                badge.textContent = score === 0 ? '10' : score;
             }
-        } else if(mode === 'end') {
-            chips.style.opacity = '0.2'; 
-            if(n) { n.disabled = false; }
-        } else {
-            chips.style.opacity = '1';
-        }
-    }
-}
 
-async function dealCards() {
-    if (gameState.balance < gameState.betAmount || gameState.balance <= 0) { setBanner('လက်ကျန်ငွေ မလုံလောက်ပါ!'); return; }
-    if (gameState.betAmount < 10) { setBanner('လောင်းကြေး အရင်တင်ပေးပါ!'); return; }
-    
-    gameState.deck = createDeck();
-    gameState.allRevealed = false;
-    gameState.dealerIndex = gameState.nextDealerIndex;
-
-    gameState.players.forEach(p => { p.cards = []; p.status = 'waiting'; p.vsResult = ''; });
-    renderTable();
-    updateDesignatedChipsBoxes(false);
-    toggleButtons('play');
-
-    for(let k=0; k<2; k++) {
-        for(let i=0; i<4; i++) {
-            gameState.players[i].cards.push(gameState.deck.pop());
-            gameState.players[i].status = 'playing';
-            playSound('deal');
-            renderTable();
-            await sleep(150);
-        }
-    }
-
-    const dealer = gameState.players[gameState.dealerIndex];
-    if (isAutoBan(dealer.cards)) {
-        setBanner('ဒိုင် AUTO BAN ပေါက်ပါသည်!');
-        gameState.allRevealed = true;
-        playSound('lose');
-        executePayouts();
-        return;
-    }
-
-    if (gameState.dealerIndex === 3) { 
-        setBanner('သင်သည်ဒိုင်ဖြစ်သည် - ကတ်ဆွဲမလား သို့မဟုတ် ဖမ်းမလား');
-        processAITurnsBeforeDealer();
-    } else {
-        setBanner('သင့်အလှည့် - ကတ်ဆွဲမလား တော်မလား');
-    }
-}
-
-async function processAITurnsBeforeDealer() {
-    for (let i = 0; i < 4; i++) {
-        if (i === gameState.dealerIndex || gameState.players[i].isHuman) continue;
-        await sleep(400);
-        let ai = gameState.players[i];
-        if (ai.cards.length < 3 && getHandScore(ai.cards) <= 4 && !isBanScore(ai.cards)) {
-            ai.cards.push(gameState.deck.pop());
-            playSound('deal');
-        }
-        ai.status = 'folded';
-        renderTable();
-    }
-}
-
-async function processAITurns() {
-    await processAITurnsBeforeDealer();
-
-    if (gameState.dealerIndex !== 3) {
-        await sleep(500);
-        let d = gameState.players[gameState.dealerIndex];
-        if (d.cards.length < 3 && getHandScore(d.cards) <= 4 && !isBanScore(d.cards)) {
-            d.cards.push(gameState.deck.pop());
-            playSound('deal');
-        }
-        d.status = 'folded';
-        gameState.allRevealed = true;
-        executePayouts();
-    }
-}
-
-function playerDraw() {
-    const h = gameState.players[3];
-    if (h.cards.length >= 3) return; 
-    
-    h.cards.push(gameState.deck.pop());
-    playSound('flip');
-    renderTable();
-    
-    if (h.cards.length === 3) {
-        document.getElementById('drawBtn').disabled = true;
-        if (gameState.dealerIndex !== 3) playerStand();
-    }
-}
-
-function playerStand() {
-    gameState.players[3].status = 'folded';
-    document.getElementById('drawBtn').disabled = true;
-    document.getElementById('standBtn').disabled = true;
-    setBanner('ဒိုင် ဖဲခေါ်နေပါသည်...');
-    setTimeout(processAITurns, 400);
-}
-
-function dealerShowCards() {
-    gameState.players[3].status = 'folded';
-    gameState.allRevealed = true;
-    executePayouts();
-}
-
-function executePayouts() {
-    const dealer = window.gameState.players[gameState.dealerIndex];
-    const dHand = evaluateHand(dealer.cards);
-    let dealerNet = 0;
-    let banWinIdx = -1;
-
-    gameState.players.forEach((p, idx) => {
-        if (idx !== window.gameState.dealerIndex && isBanScore(p.cards)) {
-            if (compareHands(p.cards, dealer.cards) > 0) banWinIdx = idx;
+            if (p.st === 'win') badge.classList.add('win');
+            cardsFan.appendChild(badge);
         }
     });
+}
 
-    gameState.players.forEach((p, idx) => {
-    if (idx === window.gameState.dealerIndex) return;
-    const cmp = compareHands(p.cards, dealer.cards);
-    const pHand = evaluateHand(p.cards);
-    
-    // လောင်းကြေး (Bet Amount) ကို ဒီနေရာမှာပဲ အခြေခံတွက်ချက်ပါ
-    const bet = window.gameState.betAmount;
-   
-    if (cmp > 0) {
-        // Player နိုင်လျှင်: (လောင်းကြေး + ဆုကြေး) ကို ပေါင်းပေး
-        const winAmt = bet + (bet * pHand.mult); 
-        
-        if (p.isHuman) {
-            reportWin(winAmt); // နိုင်သူကို ပေး
-          
+// ============================================
+// DEAL
+// ============================================
+async function deal(){
+    if(G.bal<G.bet||G.bal<=0){banner('ငွေ မလုံလောက်ပါ!');return;}
+    if(G.bet<10){banner('လောင်းကြေး တင်ပါ!');return;}
+
+    // Reset all players
+    shuffleDeck();
+    G.phase='deal';
+    G.p.forEach(p=>{p.cards=[];p.rev=false;p.st='';p.bet=0;});
+
+    // Place user bet
+    G.p[3].bet = G.bet;
+    G.bal -= G.bet;
+
+    // AI place bets
+    for(let i=0;i<3;i++){
+        if(i===G.bankerIndex)continue;
+        const aiBet = Math.floor(Math.random()*3+1)*Math.max(100, Math.floor(G.p[i].balance*0.1));
+        G.p[i].bet = Math.min(aiBet, G.p[i].balance);
+        G.p[i].balance -= G.p[i].bet;
+    }
+
+    placeChips();
+    render();
+
+    // Deal 2 cards each
+    for(let r=0;r<2;r++){
+        for(let i=0;i<4;i++){
+            G.p[i].cards.push(drawCards(1)[0]);
+            sfx('deal');
+            render();
+            await sleep(180);
         }
-        if (dealer.isHuman) {
-            reportBet(bet);    // ဒိုင်က လူဆိုရင် ဒိုင်ဆီကနေ အရင်းကိုပဲ နှုတ်
+    }
+
+    G.phase='play';
+
+   for(let i=0;i<4;i++){
+        if(isAutoStand(G.p[i].cards)){
+            G.p[i].st='playing';
+            G.p[i].rev=true;
+            
+            // ✅ Auto 8 or 9 Sound ထည့်မယ်
+            var score = calculateScore(G.p[i].cards);
+            if(score === 8) {
+                playShanSound('autoeight'); // 👈 autoeight.mp3
+            } else if(score === 9) {
+                playShanSound('autonine'); // 👈 autonine.mp3
+            }
         }
-        
-        p.vsResult = ` W(+${winAmt})`; p.status = 'won';
-
-    } else {
-        // Player ရှုံးလျှင်: လောင်းကြေးကို နှုတ်
-        if (p.isHuman) {
-            reportBet(bet);
-          
-        }
-        
-        // ဒိုင်က လူ (Human) ဖြစ်ရင် ဒိုင်ကို ပေါင်းပေး (လောင်းကြေးအပြင် ဒိုင်ရဲ့ mult ပါတွက်)
-        if (dealer.isHuman) {
-            const dealerWinAmt = bet + (bet * dHand.mult);
-            reportWin(dealerWinAmt);
-        }
-        
-        p.vsResult = ` L(-${bet})`; p.status = 'lost';
-    }
-});
-
-   if (gameState.dealerIndex === 3) {
-    if (dealerNet >= 0) {
-        playSound('win');
-        showWinNotification(`ဒိုင်အဖြစ် နိုင်ပါသည်: +${dealerNet}`);
-    } else {
-        playSound('lose');
-        showWinNotification(`ဒိုင်အဖြစ် ရှုံးပါသည်: ${dealerNet}`);
-    }
-} else {
-    if (gameState.players[3].status === 'won') {
-        playSound('win');
-        showWinNotification('🎉 သင် နိုင်ပါသည်!');
-    } else if (gameState.players[3].status === 'lost') {
-        playSound('lose');
-        showWinNotification('💥 သင် ရှုံးနိမ့်ပါသည်!');
-    } else {
-        playSound('deal');
-        showWinNotification('🤝 သရေပွဲ');
-    }
-}
-
-
-    if (banWinIdx !== -1) {
-        gameState.nextDealerIndex = banWinIdx;
-    } else if (isBanScore(dealer.cards)) {
-        gameState.nextDealerIndex = gameState.dealerIndex;
-    } else {
-        gameState.nextDealerIndex = (gameState.dealerIndex + 1) % 4;
     }
 
-    toggleButtons('end');
-    renderTable();
-    updateDesignatedChipsBoxes(true); 
-}
-
-// ============================================
-// LOBBY BALANCE SYNC LOGIC (ကတ်ဂိမ်းဖက်က ကုဒ်)
-// ============================================
-
-function safeNumber(value) {
-    if (value === undefined || value === null) return 0;
-    if (typeof value === 'number' && !isNaN(value)) return value;
-    let str = String(value).replace(/,/g, '').trim();
-    let num = parseFloat(str);
-    return isNaN(num) ? 0 : num;
-}
-
-// Lobby ဆီ ဒေတာ လှမ်းပို့သည့် ဖန်ရှင်
-function sendToLobby(type, amount) {
-    if (window.parent && window.parent !== window) {
-        window.parent.postMessage({ type: type, amount: amount }, '*');
-    }
-}
-function reportWin(amount) {
-    let winAmount = safeNumber(amount);
-    if (winAmount > 0) {
-        sendToLobby('WIN_AMOUNT', winAmount); // Lobby ကို ပို့
-        window.gameState.balance += winAmount; // ဂိမ်းထဲမှာပါ တွက်ထား
-        updateUI(); // UI ကို Update လုပ်
-    }
-}
-
-function reportBet(amount) {
-    let betAmount = safeNumber(amount);
-    if (betAmount > 0) {
-        sendToLobby('BET_DEDUCT', betAmount); // Lobby ကို ပို့
-        window.gameState.balance -= betAmount; // ဂိမ်းထဲမှာပါ တွက်ထား
-        updateUI(); // UI ကို Update လုပ်
-    }
-}
-
-// Lobby ဘက်ကနေ ပို့လိုက်တဲ့ Sync Balance ကို လက်ခံခြင်း
-window.addEventListener('message', function(event) {
-    const data = event.data;
-    if (data && data.type === 'SYNC_BALANCE') {
-        console.log("🃏 Card Game received balance from Lobby:", data.balance);
-        window.gameState.balance = safeNumber(data.balance);
-        updateGameBalanceUI();
-    }
-});
-
-// ဂိမ်းမျက်နှာပြင်ပေါ်က Balance Text ကို Update လုပ်ပေးခြင်း
-function updateGameBalanceUI() {
-    // ကတ်ဂိမ်းထဲက Balance ပြတဲ့ ID (ဥပမာ - balanceDisplay)
-    const balElem = document.getElementById('cardGameBalance');
-    if (balElem) {
-        balElem.textContent = safeNumber(window.gameState.balance).toLocaleString();
-    }
-}
-
-
-// ============================================
-// SAFE UI UPDATE
-// ============================================
-function updateUI() {
-    if (!window.gameState) return;
-    
-    const currentBalance = safeNumber(window.gameState.balance);
-    const formattedBalance = currentBalance.toLocaleString();
-    
-    // ID ကို balanceDisplay လို့ ပြင်ပေးလိုက်ပါ
-    const balElem = document.getElementById('cardGameBalance'); 
-    if (balElem) balElem.textContent = formattedBalance;
-    
-    // Bet Amount အတွက်လည်း ID မှန်အောင် လုပ်ပေးပါ
-    const betEl = document.getElementById('betHudAmount');
-    if (betEl) betEl.textContent = window.gameState.betAmount.toLocaleString();
-}
-
-// ============================================
-// SAFE SET BALANCE
-// ============================================
-function setBalance(newAmount) {
-    if (!window.gameState) {
-        window.gameState = { balance: 0, cardgamebalance: 0 };
-    }
-    const safeAmount = safeNumber(newAmount);
-    window.gameState.balance = safeAmount;
-    window.gameState.cardgamebalance = safeAmount;
-    updateUI();
-}
-
-
-function newGame() {
-    if(gameState.balance <= 0) {
-        setBanner('လက်ကျန်ငွေ မလုံလောက်ပါ! ဆော့ကစားရန် ငွေမရှိတော့ပါ။');
+    // Check if user is banker
+    if(G.p[3].dealer){
+        banner('ဒိုင် အလှည့်ရောက်ပြီ! ကစားသမားများကို ဖမ်းပါ');
+        G.phase='banker';
+        showBtns('banker');
+        await sleep(500);
+        await aiPlayerTurns();
         return;
     }
-    
-    toggleButtons('deal');
-    gameState.players.forEach(p => { p.cards = []; p.status = 'waiting'; p.vsResult = ''; });
-    if(gameState.balance < gameState.betAmount) gameState.betAmount = 0;
-    renderTable();
-    updateDesignatedChipsBoxes(false);
-    setBanner('Chips ကိုနှိပ်ပြီး လောင်းကြေးတင်ပါ');
+
+    // Check if user auto-stand
+    if(isAutoStand(G.p[3].cards)){
+        banner('သင် BAN! (8/9) အလိုအလျောက် တော်ပီ!');
+        G.p[3].st='playing';
+        G.p[3].rev=true;
+        showBtns('play');
+        await sleep(1000);
+        await aiPlayerTurns();
+        return;
+    }
+
+    banner('ထပ်ဆွဲမလား? တော်ပီမလား?');
+    showBtns('play');
+    render();
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    toggleButtons('deal');
-    renderTable();
+// ============================================
+// USER ACTIONS
+// ============================================
+function hit(){
+    var user = G.p[3];
+    if(!canDraw(user.cards, user.st === 'playing')){
+        banner('ဆွဲလို့မရပါ!');
+        return;
+    }
+
+    user.cards.push(drawCards(1)[0]);
+    playShanSound('draw'); // sew.mp3
+    render();
+
+    if(user.cards.length === 3){
+        document.getElementById('btnHit').disabled = true;
+        banner('3 ကဒ် ပြည့်ပြီ!');
+    }
+
+    showBtns('play');
+}
+
+function stand(){
+    G.p[3].st='playing';
+    G.p[3].rev=true;
+    playShanSound('noneed');
+    banner('တော်ပီပါပြီ!');
+    render();
+    showBtns('play');
+
+    // If user is not banker, proceed to AI turns
+    if(!G.p[3].dealer){
+        setTimeout(async()=>{
+            await aiPlayerTurns();
+        },500);
+    }
+}
+
+function showAll(){
+    G.p.forEach(p=>p.rev=true);
+    render();
+}
+
+// ============================================
+// AI PLAYER TURNS (non-banker)
+// ============================================
+async function aiPlayerTurns(){
+    // AI 1 & 2 turns
+    for(let i=1;i<=2;i++){
+        if(i===G.bankerIndex)continue;
+        await sleep(500);
+        const p=G.p[i];
+
+        // AI logic: draw if score < 5
+        while(canDraw(p.cards, p.st==='playing')){
+            const score=calculateScore(p.cards);
+            if(score<5){
+                p.cards.push(drawCards(1)[0]);
+                sfx('deal');
+                render();
+                await sleep(600);
+            }else if(score===5||score===6){
+                // 50% chance to draw
+                if(Math.random()>0.5){
+                    p.cards.push(drawCards(1)[0]);
+                    sfx('deal');
+                    render();
+                    await sleep(600);
+                }else{
+                    break;
+                }
+            }else{
+                break;
+            }
+        }
+        p.st='playing';
+        p.rev=true;
+        render();
+    }
+
+    // If user is banker, now it's their turn
+    if(G.p[3].dealer){
+        banner('ဒိုင် အလှည့်ရောက်ပြီ! ကစားသမားများကို ဖမ်းပါ');
+        G.phase='banker';
+        showBtns('banker');
+        return;
+    }
+
+    // Banker turn (AI)
+    await sleep(500);
+    await bankerTurn();
+}
+
+// ============================================
+// BANKER TURN
+// ============================================
+async function bankerTurn(){
+    const banker=G.p[G.bankerIndex];
+
+    // Banker might draw
+    while(canDraw(banker.cards, banker.st==='playing')){
+        const score=calculateScore(banker.cards);
+        if(score<5){
+            banker.cards.push(drawCards(1)[0]);
+            sfx('deal');
+            render();
+            await sleep(600);
+        }else{
+            break;
+        }
+    }
+
+    banker.st='playing';
+    banker.rev=true;
+    render();
+
+    await sleep(500);
+    await settleRound();
+}
+
+// ============================================
+// SETTLE ROUND
+// ============================================
+async function settleRound(){
+    G.phase='result';
+    showBtns('result');
+
+    const banker=G.p[G.bankerIndex];
+    const bankerScore=calculateScore(banker.cards);
+
+    // Reveal all cards
+    G.p.forEach(p=>p.rev=true);
+    render();
+    await sleep(500);
+
+    let userWin=false;
+    let userLose=false;
+
+    // Compare each player with banker
+    for(let i=0;i<4;i++){
+        if(i===G.bankerIndex)continue;
+        const player=G.p[i];
+        if(player.bet===0)continue;
+
+        const result=compareHands(player.cards, banker.cards);
+        const bonus=getBonusMultiplier(player.cards);
+        const score=calculateScore(player.cards);
+        const scoreText=score===0?'10':score;
+
+        if(result==='win'){
+            player.st='win';
+            const winAmount=player.bet*bonus;
+            if(banker.balance>=winAmount){
+                player.balance+=player.bet+winAmount;
+                banker.balance-=winAmount;
+            }else{
+                player.balance+=banker.balance+player.bet;
+                banker.balance=0;
+            }
+            if(player.user)userWin=true;
+            showResultOnCards(i,'win',scoreText);
+        }else if(result==='lose'){
+            player.st='lose';
+            banker.balance+=player.bet*bonus;
+            if(player.user)userLose=true;
+            showResultOnCards(i,'lose',scoreText);
+        }else{
+            player.st='draw';
+            player.balance+=player.bet; // Return bet
+            showResultOnCards(i,'tie',scoreText);
+        }
+    }
+
+    render();
+
+    // Animation
+    if(userWin){
+       playShanSound('win');
+        sfx('win');
+        banner('🎉 သင် နိုင်ပါသည်!');
+        await animWin(3);
+    }else if(userLose){
+        sfx('lose');
+        banner('😢 သင် ရှုံးပါသည်');
+        await animLose();
+    }else{
+        banner('ပွဲပြီးပါပြီ!');
+    }
+
+    await sleep(1000);
+
+    // Check banker status
+    checkBankerStatus();
+    upd();
+}
+
+
+// ============================================
+// BANKER STATUS / WAN TIN
+// ============================================
+
+function checkBankerStatus(){
+    const banker = G.p[G.bankerIndex];
+    if (!banker) return;
+
+    const bankAmount = banker.balance;
+
+    if(bankAmount <= 0){
+        // ဒိုင်ငွေကုန်
+        banner('💥 ဒိုင်ငွေကုန်သွားပြီ! ဒိုင်ပြောင်းပါသည်...');
+        playShanSound('lose');
+        sfx('lose');
+        setTimeout(() => {
+            changeBanker();
+        }, 1500);
+
+    } else if(G.wanTinRound > 0){
+        G.wanTinRound++;
+
+        if(G.wanTinRound > 3){
+            // နောက်ဆုံးဝမ်တိန်
+            banner('🎉 ဝမ်တိန် 3 ပွဲပြီးပါပြီ! ဒိုင်ပြောင်းပါသည်...');
+            playShanSound('end');
+            sfx('wanTin');
+
+            // Wan Tin Badge ဖျက်
+            const wtBadge = document.getElementById('wanTinBadge');
+            wtBadge.style.display = 'none';
+
+            setTimeout(() => {
+                changeBanker();
+            }, 1500);
+
+        } else {
+            // ဝမ်တိန် သတိပေးချက်
+            const warnings = ['ပထမ', 'ဒုတိယ', 'တတိယ'];
+            banner(`⚠️ ဝမ်တိန် - ${warnings[G.wanTinRound - 1]} သတိပေးချက်`);
+            playShanSound('wanTin');
+            sfx('wanTin');
+
+            // Wan Tin Badge ပြမယ်
+            const wtBadge = document.getElementById('wanTinBadge');
+            wtBadge.style.display = 'block';
+            wtBadge.textContent = `⚠️ ဝမ်တိန် - ${warnings[G.wanTinRound - 1]} သတိပေးချက်`;
+        }
+
+    } else if(bankAmount >= G.originalBank * 4){
+        // ဒိုင်ငွေ 120K ကျော်ရင် ဝမ်တိန်ခေါ်
+        if(banker.isAI){
+            G.wanTinRound = 1;
+            banner('🔔 ဒိုင် ဝမ်တိန် ခေါ်ပါပြီ!');
+            playShanSound('wanTin');
+            sfx('wanTin');
+
+            const wtBadge = document.getElementById('wanTinBadge');
+            wtBadge.style.display = 'block';
+            wtBadge.textContent = '⚠️ ဝမ်တိန် - ပထမ သတိပေးချက်';
+        }
+    }
+
+    upd();
+    updateBankerBadge();
+}
+
+// ============================================
+// CHANGE BANKER
+// ============================================
+function changeBanker(){
+    // ၁။ ဒိုင်အဟောင်းကို ရှာပြီး ဖယ်
+    const oldBankerIndex = G.bankerIndex;
+    G.p[oldBankerIndex].dealer = false;
+    G.p[oldBankerIndex].isBanker = false;
+
+    // ၂။ ဒိုင်အသစ်ရွေး (တစ်ဆင့်ချင်း)
+    let newBankerIndex = (oldBankerIndex + 1) % 4;
+    G.bankerIndex = newBankerIndex;
+
+    // ၃။ ဒိုင်အသစ်ကို သတ်မှတ်
+    G.p[newBankerIndex].dealer = true;
+    G.p[newBankerIndex].isBanker = true;
+    G.p[newBankerIndex].balance = 30000;
+    G.originalBank = 30000;
+    G.wanTinRound = 0;
+
+    console.log('🔄 ဒိုင်ပြောင်းပါပြီ!');
+    console.log('👤 ဒိုင်အဟောင်း:', oldBankerIndex, '→ ဒိုင်အသစ်:', newBankerIndex);
+    console.log('📊 ဒိုင်ငွေ:', G.p[newBankerIndex].balance);
+
+    // ✅ ဒိုင်ပြောင်းသံ
+    playShanSound('change');
+    sfx('deal');
+
+    // ၄။ UI ကို Update
+    updateAvatars();
+    updateBankerBadge();
+
+    // ၅။ ကဒ်တွေနဲ့ Chip တွေရှင်း
+    for(let i = 0; i < 4; i++) {
+        document.getElementById('cards' + i).innerHTML = '';
+        document.getElementById('chips' + i).innerHTML = '';
+        const area = document.getElementById('area' + i);
+        const oldResult = area.querySelector('.card-result');
+        if(oldResult) oldResult.remove();
+    }
+
+    // ၆။ ကစားသမားအားလုံးကို reset
+    G.p.forEach(p => {
+        p.cards = [];
+        p.rev = false;
+        p.st = '';
+        p.bet = 0;
+    });
+
+    G.phase = 'bet';
+    G.bet = 0;
+    showBtns('bet');
+    render();
+    upd();
+
+    // ✅ ဒိုင်အသစ်နှုတ်ဆက်သံ (၁.၅ စက္ကန့်နောက်ကျမှထွက်)
+    setTimeout(() => {
+        playShanSound('good');
+    }, 1500);
+
+    banner('🔄 ဒိုင်ပြောင်းပါပြီ! ဒိုင်: ' + G.p[newBankerIndex].name);
+}
+
+
+// ============================================
+// UPDATE AVATARS (ဒိုင်ပြောင်းတဲ့အခါ Avatar ပြန်ဆွဲ)
+// ============================================
+function updateAvatars() {
+    for(let i = 0; i < 4; i++) {
+        const av = document.getElementById('av' + i);
+        if (!av) continue;
+
+        if (i === G.bankerIndex) {
+            av.className = 'avatar avatar-dealer';
+        } else if (i === 0) {
+            av.className = 'avatar avatar-p1';
+        } else if (i === 1) {
+            av.className = 'avatar avatar-p1';
+        } else if (i === 2) {
+            av.className = 'avatar avatar-p2';
+        } else if (i === 3) {
+            av.className = 'avatar avatar-you';
+        }
+    }
+}
+
+// ============================================
+// UPDATE BANKER BADGE
+// ============================================
+
+function updateBankerBadge() {
+    const badge = document.getElementById('bankBadge');
+    if (!badge) return;
+
+    const banker = G.p[G.bankerIndex];
+    if (!banker) return;
+
+    const bankAmount = banker.balance || 30000;
+    let display = '💰 ';
+    if (bankAmount >= 1000000) {
+        display += (bankAmount / 1000000).toFixed(1) + 'M';
+    } else if (bankAmount >= 1000) {
+        display += (bankAmount / 1000).toFixed(0) + 'K';
+    } else {
+        display += bankAmount;
+    }
+    badge.textContent = display;
+
+    if (bankAmount < 5000) {
+        badge.style.borderColor = '#ff4444';
+        badge.style.color = '#ff4444';
+        badge.style.boxShadow = '0 0 15px rgba(255,68,68,0.5)';
+    } else {
+        badge.style.borderColor = '#ffd700';
+        badge.style.color = '#ffd700';
+        badge.style.boxShadow = '0 0 8px rgba(255,215,0,0.3)';
+    }
+}
+
+// ============================================
+// NEW GAME
+// ============================================
+function newGame(){
+    if(G.bal<=0){
+        banner('ငွေ မလုံလောက်ပါ!');
+        return;
+    }
+
+    G.phase='bet';
+    G.bet=0;
+    G.p.forEach(p=>{p.cards=[];p.rev=false;p.st='';p.bet=0;});
+
+    for(let i=0;i<4;i++){
+        document.getElementById('chips'+i).innerHTML='';
+        const area=document.getElementById('area'+i);
+        const oldResult=area.querySelector('.card-result');
+        if(oldResult)oldResult.remove();
+    }
+
+    showBtns('bet');
+    render();
+    banner('Chips တင်ပြီး ဖဲဝေပါ');
+}
+// ============================================
+// POSTMESSAGE HANDLING (Lobby Communication)
+// ============================================
+
+// ===== Receive messages from Lobby =====
+window.addEventListener('message', function(event) {
+    var data = event.data;
+    
+    // Log all messages for debugging
+    console.log('📨 Card Game received:', data);
+    
+    if (!data || typeof data !== 'object') return;
+    
+    // 1. Balance Sync
+    if (data.type === 'SYNC_BALANCE') {
+        if (data.balance !== undefined && data.balance !== null) {
+            var newBalance = parseFloat(String(data.balance).replace(/,/g, '')) || 0;
+            if (newBalance > 0) {
+                G.bal = newBalance;
+                upd();
+                console.log('💰 Balance synced:', G.bal);
+            }
+        }
+    }
+    
+    // 2. Play Sound (from Lobby or other games)
+    if (data.type === 'PLAY_SOUND') {
+        console.log('🔊 Sound requested:', data.sound);
+        // ဒီဂိမ်းက သူ့ဘာသာ Sound မထွက်ဘူး
+        // Lobby က SoundManager ကိုပဲ ခေါ်တယ်
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage({
+                type: 'PLAY_SOUND',
+                sound: data.sound
+            }, '*');
+        }
+    }
+    
+    // 3. Go Lobby
+    if (data.type === 'GO_LOBBY') {
+        console.log('🚪 Going to lobby...');
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ type: 'GO_LOBBY' }, '*');
+        }
+    }
+    
+    // 4. Other commands
+    if (data.type === 'RESET_GAME') {
+        console.log('🔄 Resetting game...');
+        newGame();
+    }
 });
+
+// ===== Send messages to Lobby =====
+function sendToLobby(type, data) {
+    if (window.parent && window.parent !== window) {
+        var message = { type: type };
+        if (data) {
+            Object.keys(data).forEach(function(key) {
+                message[key] = data[key];
+            });
+        }
+        window.parent.postMessage(message, '*');
+        console.log('📤 Sent to Lobby:', message);
+    }
+}
+
+// ===== Go Lobby =====
+function goLobby() {
+    console.log('🚪 Going to lobby...');
+    if (window.parent && window.parent !== window) {
+        window.parent.postMessage({
+            type: 'GO_LOBBY'
+        }, '*');
+    } else {
+        // Fallback
+        window.location.href = 'index.html';
+    }
+}
+
+// ===== Sync balance to Lobby (when needed) =====
+function syncBalanceToLobby() {
+    sendToLobby('SYNC_BALANCE', { balance: G.bal });
+}
+
+// ============================================
+// INIT
+// ============================================
+document.addEventListener('DOMContentLoaded',()=>{
+    // ✅ preloadShanSounds() ကိုဖယ်ပါ
+    shuffleDeck();
+    showBtns('bet');
+    render();
+    upd();
+    console.log('🎮 Shan Koe Mee Started!');
+});
+
 </script>
 </body>
 </html>
