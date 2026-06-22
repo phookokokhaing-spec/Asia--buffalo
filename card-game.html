@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="my">
 <head>
@@ -7,74 +9,321 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Myanmar:wght@400;700;900&display=swap');
-        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; font-family: 'Noto Sans Myanmar', 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
-        :root { --gold: #ffd700; }
-        body { background: #0a0014; height: 100vh; width: 100vw; display: flex; justify-content: center; align-items: center; overflow: hidden; }
-        .game-container { width: 100%; height: 100%; position: relative; display: flex; flex-direction: column; background: linear-gradient(180deg, #050010 0%, #0a0014 30%, #120020 70%, #080012 100%); }
+        
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+            user-select: none; 
+            font-family: 'Noto Sans Myanmar', 'Poppins', sans-serif; 
+            -webkit-tap-highlight-color: transparent; 
+        }
+        
+        :root { 
+            --gold: #ffd700; 
+            --gold-dark: #ffaa00;
+            --red-felt: #6b0f1a;
+            --red-felt-light: #8b1a2b;
+            --red-felt-dark: #5a0a12;
+        }
+        
+        body { 
+            background: #0a0014; 
+            height: 100vh; 
+            width: 100vw; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            overflow: hidden; 
+        }
+        
+        .game-container { 
+            width: 100%; 
+            height: 100%; 
+            position: relative; 
+            display: flex; 
+            flex-direction: column; 
+            background: linear-gradient(180deg, #050010 0%, #0a0014 30%, #120020 70%, #080012 100%); 
+        }
 
-        /* Top Bar */
-        .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; z-index: 10; height: 40px; }
-        .back-btn { background: linear-gradient(145deg, #ffd700, #ffaa00); border: none; padding: 0 16px; height: 28px; cursor: pointer; font-size: 12px; font-weight: 700; border-radius: 15px; color: #1a1a1a; display: flex; align-items: center; gap: 4px; }
-        .top-info { display: flex; gap: 10px; align-items: center; }
-        .balance-box { display: flex; align-items: center; gap: 5px; color: var(--gold); font-weight: 900; font-size: 13px; }
-        .bet-hud { color: #00ff88; font-weight: 800; font-size: 11px; background: rgba(0,255,136,0.1); padding: 2px 10px; border-radius: 10px; border: 1px solid rgba(0,255,136,0.3); }
-        .jackpot-top { color: #ff69b4; font-size: 11px; font-weight: 900; }
+        /* ===== TOP BAR - Glassmorphism ===== */
+        .top-bar { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 8px 16px; 
+            z-index: 10; 
+            height: 48px;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255,215,0,0.15);
+        }
+        
 
-        /* Table */
-        .table-wrap { flex: 1; position: relative; display: flex; justify-content: center; align-items: center; z-index: 2; }
+        .back-to-lobby {
+    background: linear-gradient(145deg, #ffd700, #ffaa00);
+    border: none;
+    padding: 8px 20px;
+    height: 36px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 700;
+    border-radius: 20px;
+    color: #1a1a1a;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 15px rgba(255,215,0,0.3);
+    transition: all 0.2s ease;
+}
+
+.back-to-lobby:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255,215,0,0.4);
+}
+
+.back-to-lobby:active {
+    transform: scale(0.95);
+}
+
+        
+        .top-info { 
+            display: flex; 
+            gap: 12px; 
+            align-items: center; 
+        }
+        
+        .balance-box { 
+            display: flex; 
+            align-items: center; 
+            gap: 6px; 
+            color: var(--gold); 
+            font-weight: 900; 
+            font-size: 14px;
+            background: rgba(0,0,0,0.5);
+            padding: 4px 14px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,215,0,0.2);
+            box-shadow: 0 0 15px rgba(255,215,0,0.1);
+        }
+        
+        .bet-hud { 
+            color: #00ff88; 
+            font-weight: 800; 
+            font-size: 12px; 
+            background: rgba(0,255,136,0.15); 
+            padding: 4px 12px; 
+            border-radius: 15px; 
+            border: 1px solid rgba(0,255,136,0.3);
+            box-shadow: 0 0 10px rgba(0,255,136,0.1);
+        }
+        
+        .jackpot-top { 
+            color: #ff69b4; 
+            font-size: 12px; 
+            font-weight: 900; 
+            text-shadow: 0 0 10px rgba(255,105,180,0.3);
+        }
+
+        /* ===== TABLE - Premium Red Felt ===== */
+        .table-wrap { 
+            flex: 1; 
+            position: relative; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            z-index: 2; 
+            padding: 12px; 
+        }
+        
         .casino-table {
-            width: 94%;
-            height: 78%;
+            width: 98%; 
+            height: 92%;
             background: 
-                radial-gradient(circle at 30% 30%, rgba(100,180,255,0.1) 0%, transparent 40%),
-                linear-gradient(180deg, #1a4a7a 0%, #2989d8 30%, #207cca 60%, #1a4a7a 100%);
+                radial-gradient(ellipse at 50% 45%, rgba(139,26,43,0.9) 0%, transparent 50%),
+                radial-gradient(ellipse at 30% 75%, rgba(100,20,30,0.4) 0%, transparent 40%),
+                radial-gradient(ellipse at 70% 75%, rgba(100,20,30,0.4) 0%, transparent 40%),
+                linear-gradient(180deg, #5a0f1a 0%, #7a1525 25%, #8b1a2b 50%, #7a1525 75%, #5a0f1a 100%);
             border-radius: 50% / 45%;
-            border: 3px solid rgba(100,180,255,0.25);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.6), inset 0 0 50px rgba(0,0,0,0.5);
-            position: relative;
+            border: 6px solid #2a0a0a;
+            box-shadow: 
+                0 0 0 3px #1a0505, 
+                0 20px 60px rgba(0,0,0,0.8), 
+                inset 0 0 80px rgba(0,0,0,0.6),
+                inset 0 0 20px rgba(255,215,0,0.05);
+            position: relative; 
+            overflow: hidden;
         }
+        
+        /* Table felt texture */
         .casino-table::before {
-            content: '';
-            position: absolute;
-            top: 10%; left: 10%; right: 10%; bottom: 10%;
-            border: 1.5px dashed rgba(255,255,255,0.08);
-            border-radius: 50% / 45%;
+            content: ''; 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            bottom: 0;
+            background: 
+                repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.04) 3px, rgba(0,0,0,0.04) 6px),
+                repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(0,0,0,0.02) 3px, rgba(0,0,0,0.02) 6px);
+            border-radius: 50% / 45%; 
+            pointer-events: none;
+        }
+        
+        /* Gold rim light */
+        .casino-table::after {
+            content: ''; 
+            position: absolute; 
+            top: 5%; 
+            left: 5%; 
+            right: 5%; 
+            bottom: 5%;
+            border: 3px dashed rgba(255,215,0,0.15); 
+            border-radius: 50% / 45%; 
+            pointer-events: none;
+            box-shadow: inset 0 0 30px rgba(255,215,0,0.05);
         }
 
-        /* ===== AVATARS ===== */
+        /* Center logo */
+        .table-logo {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 140px;
+            height: 140px;
+            border: 3px solid rgba(255,215,0,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 900;
+            color: rgba(255,215,0,0.25);
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            pointer-events: none;
+            text-shadow: 0 0 20px rgba(255,215,0,0.1);
+        }
+
+        /* ===== AVATARS - Premium with Glow ===== */
         .avatar {
             position: absolute;
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            border: 3px solid rgba(255, 215, 0, 0.6);
+            overflow: hidden;
+            background: linear-gradient(135deg, #1a0a2e 0%, #2a1a3e 100%);
+            box-shadow: 
+                0 0 20px rgba(255,215,0,0.2),
+                0 4px 15px rgba(0,0,0,0.4),
+                inset 0 0 20px rgba(255,215,0,0.05);
+            z-index: 25;
+            transition: all 0.3s ease;
+        }
+        
+        .avatar::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ffd700, #ff8c00, #ffd700);
+            z-index: -1;
+            opacity: 0.3;
+            animation: avatarGlow 3s ease-in-out infinite;
+        }
+        
+        @keyframes avatarGlow {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.05); }
+        }
+        
+        .avatar img { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+            display: block; 
+            border-radius: 50%;
+            filter: contrast(1.1) saturate(1.2);
+        }
+
+        /* Active player glow */
+        .avatar.active {
+            border-color: #00e5ff;
+            box-shadow: 
+                0 0 30px rgba(0,229,255,0.4),
+                0 0 60px rgba(0,229,255,0.2);
+            animation: activePulse 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes activePulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(0,229,255,0.3); }
+            50% { box-shadow: 0 0 40px rgba(0,229,255,0.6); }
+        }
+
+        /* Winner glow */
+        .avatar.winner {
+            border-color: #ffd700;
+            box-shadow: 
+                0 0 30px rgba(255,215,0,0.5),
+                0 0 60px rgba(255,215,0,0.3);
+            animation: winnerPulse 0.8s ease-in-out infinite;
+        }
+        
+        @keyframes winnerPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+        }
+
+        /* Avatar positions */
+        .avatar-dealer { 
+            top: 3%; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            border-color: #ff1744; 
+            box-shadow: 0 0 25px rgba(255,23,68,0.4); 
+        }
+        .avatar-p1 { top: 20%; left: 5%; }
+        .avatar-p2 { top: 20%; right: 5%; }
+        .avatar-you { 
+            bottom: 2%; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            border-color: #00e5ff; 
+            box-shadow: 0 0 25px rgba(0,229,255,0.4); 
             width: 80px;
             height: 80px;
-            border-radius: 50%;
-            border: 2.5px solid rgba(255, 215, 0, 0.4);
-            overflow: hidden;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            box-shadow: 0 0 15px rgba(255,215,0,0.15);
-            z-index: 25;
         }
-        .avatar img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 50%; }
-        .avatar-dealer { top: -20%; left: 50%; transform: translateX(-50%); border-color: #ff1744; box-shadow: 0 0 15px rgba(255,23,68,0.4); }
-        .avatar-p1 { top: 22%; left: -3%; }
-        .avatar-p2 { top: 22%; right: -3%; }
-        .avatar-you { bottom: -10%; left: 50%; transform: translateX(-50%); border-color: #00e5ff; box-shadow: 0 0 15px rgba(0,229,255,0.4); }
 
-        /* Bank badge on dealer */
+        /* ===== BANK BADGE - Premium ===== */
         .bank-badge {
             position: absolute;
-            bottom: -5px;
+            bottom: -8px;
             left: 50%;
             transform: translateX(-50%);
             background: linear-gradient(135deg, #2c1810, #1a0f0a);
-            border: 1.9px solid var(--gold);
-            border-radius: 8px;
-            padding: 1px 6px;
-            font-size: 15px;
+            border: 2px solid var(--gold);
+            border-radius: 12px;
+            padding: 3px 10px;
+            font-size: 13px;
             font-weight: 900;
             color: var(--gold);
             white-space: nowrap;
-            box-shadow: 0 0 8px rgba(255,215,0,0.3);
+            box-shadow: 
+                0 0 15px rgba(255,215,0,0.3),
+                0 4px 10px rgba(0,0,0,0.3);
             z-index: 30;
+            text-shadow: 0 0 5px rgba(255,215,0,0.3);
+            animation: bankGlow 2s ease-in-out infinite;
+        }
+        
+        @keyframes bankGlow {
+            0%, 100% { border-color: rgba(255,215,0,0.6); }
+            50% { border-color: rgba(255,215,0,1); }
         }
 
         /* ===== CARD AREAS ===== */
@@ -85,9 +334,9 @@
             align-items: center;
             z-index: 20;
         }
-        .area-dealer { top: -20%; left: 60%; transform: translateX(-50%); }
-        .area-p1 { top: 24%; left: 5%; }
-        .area-p2 { top: 24%; right: 5%; }
+        .area-dealer { top: 5%; left: 60%; transform: translateX(-50%); }
+        .area-p1 { top: 24%; left: 10%; }
+        .area-p2 { top: 24%; right: 10%; }
         .area-you { bottom: 10%; left: 60%; transform: translateX(-50%); }
 
         /* Cards container - fan style */
@@ -96,51 +345,103 @@
             align-items: flex-end;
             justify-content: center;
             position: relative;
-            height: 70px;
-            margin-bottom: 4px;
+            height: 80px;
+            margin-bottom: 6px;
         }
 
-        /* Individual card */
+        /* ===== CARDS - Premium 3D ===== */
         .game-card {
-            width: 50px;
-            height: 70px;
-            border-radius: 6px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            width: 56px;
+            height: 78px;
+            border-radius: 8px;
+            box-shadow: 
+                0 4px 15px rgba(0,0,0,0.6),
+                0 1px 3px rgba(0,0,0,0.4),
+                inset 0 1px 0 rgba(255,255,255,0.1);
             position: relative;
-            animation: cardDeal 0.4s ease-out forwards;
+            animation: cardDeal 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
             opacity: 0;
-            margin-left: -20px;
+            margin-left: -22px;
             transform-origin: bottom center;
-            transition: transform 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            background: #fff;
+            overflow: hidden;
         }
+        
+        /* Card inner shadow for depth */
+        .game-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            pointer-events: none;
+        }
+        
+        /* Card hover lift */
+        .game-card:hover {
+            transform: translateY(-15px) scale(1.1) !important;
+            z-index: 100;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+        }
+
+        /* Card fan spacing */
         .game-card:first-child {
             margin-left: 0;
-            transform: rotate(-8deg) translateY(2px);
+            transform: rotate(-12deg) translateY(4px);
         }
         .game-card:nth-child(2) {
-            transform: rotate(8deg) translateY(2px);
+            transform: rotate(0deg) translateY(0);
         }
         .game-card:nth-child(3) {
-            transform: rotate(0deg);
-            margin-left: -18px;
+            transform: rotate(12deg) translateY(4px);
+            margin-left: -20px;
         }
 
         @keyframes cardDeal { 
-            0% { transform: scale(0.3) translateY(-40px) rotate(0deg); opacity: 0; } 
-            100% { transform: scale(1) translateY(0) rotate(var(--rot, 0deg)); opacity: 1; } 
+            0% { 
+                transform: scale(0.3) translateY(-60px) rotate(0deg); 
+                opacity: 0; 
+                box-shadow: 0 0 0 rgba(0,0,0,0);
+            } 
+            50% {
+                transform: scale(1.1) translateY(5px) rotate(5deg);
+                opacity: 1;
+            }
+            100% { 
+                transform: scale(1) translateY(0) rotate(var(--rot, 0deg)); 
+                opacity: 1;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+            } 
         }
 
+        /* Face down card - premium back design */
         .game-card.facedown {
-            background: linear-gradient(135deg, #c41e3a, #8b0000);
-            border: 1.5px solid #ffd700;
+            background: 
+                linear-gradient(135deg, #1a0a0a 0%, #2a1515 50%, #1a0a0a 100%);
+            border: 2px solid #ffd700;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        .game-card.facedown::after { content: '♠'; font-size: 20px; color: rgba(255,215,0,0.3); }
-        .game-card img { width: 100%; height: 100%; object-fit: cover; border-radius: 6px; display: block; }
+        .game-card.facedown::after { 
+            content: '♠'; 
+            font-size: 28px; 
+            color: rgba(255,215,0,0.4);
+            text-shadow: 0 0 10px rgba(255,215,0,0.3);
+        }
+        .game-card img { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+            border-radius: 8px; 
+            display: block; 
+        }
 
-        /* ===== RESULT OVERLAY ===== */
+        /* ===== RESULT OVERLAY - Premium ===== */
         .card-result {
             position: absolute;
             top: 50%;
@@ -148,76 +449,119 @@
             transform: translate(-50%, -50%) scale(0);
             z-index: 30;
             text-align: center;
-            animation: resultPop 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+            animation: resultPop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
             pointer-events: none;
         }
+        
         @keyframes resultPop { 
             0% { transform: translate(-50%, -50%) scale(0); } 
-            60% { transform: translate(-50%, -50%) scale(1.2); } 
+            60% { transform: translate(-50%, -50%) scale(1.3); } 
             100% { transform: translate(-50%, -50%) scale(1); } 
         }
 
         .result-text {
-            font-size: 22px;
+            font-size: 28px;
             font-weight: 900;
             color: #fff;
-            text-shadow: 0 0 10px rgba(0,0,0,0.9), 0 0 20px rgba(0,0,0,0.8), 0 2px 4px rgba(0,0,0,1);
-            letter-spacing: 1px;
+            text-shadow: 
+                0 0 10px rgba(0,0,0,0.9), 
+                0 0 20px rgba(0,0,0,0.8), 
+                0 2px 4px rgba(0,0,0,1),
+                0 0 30px var(--glow-color, transparent);
+            letter-spacing: 2px;
+            text-transform: uppercase;
         }
-        .result-text.win { color: #ffd700; text-shadow: 0 0 15px rgba(255,215,0,0.8), 0 0 30px rgba(255,215,0,0.5), 0 2px 4px rgba(0,0,0,1); }
-        .result-text.lose { color: #ff4444; text-shadow: 0 0 15px rgba(255,68,68,0.8), 0 0 30px rgba(255,68,68,0.5), 0 2px 4px rgba(0,0,0,1); }
-        .result-text.tie { color: #00e5ff; text-shadow: 0 0 15px rgba(0,229,255,0.8), 0 0 30px rgba(0,229,255,0.5), 0 2px 4px rgba(0,0,0,1); }
+        .result-text.win { 
+            --glow-color: rgba(255,215,0,0.5);
+            color: #ffd700; 
+        }
+        .result-text.lose { 
+            --glow-color: rgba(255,68,68,0.5);
+            color: #ff4444; 
+        }
+        .result-text.tie { 
+            --glow-color: rgba(0,229,255,0.5);
+            color: #00e5ff; 
+        }
 
+        /* ===== SCORE BADGE - Premium ===== */
         .shanscore-box {
-            margin-top: 2px;
-            background: rgba(0,0,0,0.85);
-            border: 1.5px solid var(--gold);
-            border-radius: 8px;
-            padding: 2px 10px;
-            font-size: 14px;
+            margin-top: 4px;
+            background: rgba(0,0,0,0.9);
+            backdrop-filter: blur(10px);
+            border: 2px solid var(--gold);
+            border-radius: 12px;
+            padding: 4px 14px;
+            font-size: 16px;
             font-weight: 900;
             color: var(--gold);
-            text-shadow: 0 0 5px rgba(255,215,0,0.5);
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            text-shadow: 0 0 10px rgba(255,215,0,0.5);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            animation: scorePop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         }
-        .shanscore-box.lose { border-color: #ff4444; color: #ff4444; text-shadow: 0 0 5px rgba(255,68,68,0.5); }
-        .shanscore-box.tie { border-color: #00e5ff; color: #00e5ff; text-shadow: 0 0 5px rgba(0,229,255,0.5); }
+        
+        @keyframes scorePop {
+            0% { transform: scale(0); }
+            70% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        
+        .shanscore-box.lose { 
+            border-color: #ff4444; 
+            color: #ff4444; 
+            text-shadow: 0 0 10px rgba(255,68,68,0.5); 
+        }
+        .shanscore-box.tie { 
+            border-color: #00e5ff; 
+            color: #00e5ff; 
+            text-shadow: 0 0 10px rgba(0,229,255,0.5); 
+        }
 
-        /* ===== SHAN BADGE ===== */
+        /* ===== SHAN BADGE - Premium ===== */
         .shan-sticker {
             position: absolute;
-            top: -10px;
-            right: -10px;
+            top: -12px;
+            right: -12px;
             background: linear-gradient(135deg, #ff00cc, #3300ff);
             color: #fff;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
             font-weight: 900;
             z-index: 35;
-            box-shadow: 0 0 10px rgba(255,0,204,0.5);
-            animation: stickerPop 0.4s ease-out;
+            box-shadow: 0 0 15px rgba(255,0,204,0.5);
+            animation: stickerPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
         }
-        .shan-sticker.win { background: linear-gradient(135deg, #ffd700, #ff8c00); color: #8b0000; }
-        @keyframes stickerPop { 0% { transform: scale(0); } 70% { transform: scale(1.2); } 100% { transform: scale(1); } }
+        .shan-sticker.win { 
+            background: linear-gradient(135deg, #ffd700, #ff8c00); 
+            color: #8b0000; 
+        }
+        
+        @keyframes stickerPop { 
+            0% { transform: scale(0); } 
+            70% { transform: scale(1.3); } 
+            100% { transform: scale(1); } 
+        }
 
         /* Multiplier badge */
         .multiplier {
             position: absolute;
-            top: -8px;
-            left: -8px;
+            top: -10px;
+            left: -10px;
             background: linear-gradient(135deg, #ffd700, #ff8c00);
             color: #8b0000;
-            width: 22px;
-            height: 22px;
+            width: 26px;
+            height: 26px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 10px;
+            font-size: 11px;
             font-weight: 900;
             z-index: 35;
-            box-shadow: 0 0 8px rgba(255,215,0,0.5);
+            box-shadow: 0 0 10px rgba(255,215,0,0.5);
+            animation: stickerPop 0.4s ease-out;
         }
 
         /* ===== CHIP AREAS ===== */
@@ -233,30 +577,55 @@
         .chips-p2 { top: 38%; right: 22%; width: 40px; height: 40px; }
         .chips-you { bottom: 18%; left: 50%; transform: translateX(-50%); width: 50px; height: 40px; }
 
+        /* ===== CHIPS - Premium 3D ===== */
         .stacked-chip {
-            width: 26px;
-            height: 26px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
-            border: 1.5px dashed rgba(255,255,255,0.9);
+            border: 2px dashed rgba(255,255,255,0.9);
             position: absolute;
-            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.3), 0 2px 5px rgba(0,0,0,0.5);
+            box-shadow: 
+                inset 0 0 0 2px rgba(0,0,0,0.2),
+                0 3px 8px rgba(0,0,0,0.5),
+                0 1px 2px rgba(0,0,0,0.3);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 7px;
+            font-size: 8px;
             font-weight: 900;
             color: #fff;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+            transition: all 0.2s ease;
         }
-        .chip-yellow { background: radial-gradient(circle, #ffca28, #ff8f00); color: #000; border-color: rgba(0,0,0,0.5); }
-        .chip-blue { background: radial-gradient(circle, #42a5f5, #1976d2); }
-        .chip-green { background: radial-gradient(circle, #66bb6a, #388e3c); }
-        .chip-red { background: radial-gradient(circle, #ef5350, #c62828); }
 
-        /* Flying chip */
+        /* Stack shadow effect */
+        .stacked-chip:nth-child(1) { transform: translateY(0); z-index: 5; }
+        .stacked-chip:nth-child(2) { transform: translateY(-3px) translateX(1px); z-index: 4; }
+        .stacked-chip:nth-child(3) { transform: translateY(-6px) translateX(-1px); z-index: 3; }
+        .stacked-chip:nth-child(4) { transform: translateY(-9px) translateX(2px); z-index: 2; }
+        .stacked-chip:nth-child(5) { transform: translateY(-12px) translateX(-2px); z-index: 1; }
+
+        /* Chip colors with metallic effect */
+        .chip-yellow { 
+            background: radial-gradient(circle at 30% 30%, #ffeb3b, #ffca28, #ff8f00); 
+            color: #000; 
+            border-color: rgba(0,0,0,0.4); 
+        }
+        .chip-blue { 
+            background: radial-gradient(circle at 30% 30%, #64b5f6, #42a5f5, #1976d2); 
+        }
+        .chip-green { 
+            background: radial-gradient(circle at 30% 30%, #81c784, #66bb6a, #388e3c); 
+        }
+        .chip-red { 
+            background: radial-gradient(circle at 30% 30%, #ef5350, #ef5350, #c62828); 
+        }
+
+        /* Flying chip premium */
         .fly-chip {
             position: fixed;
-            width: 24px;
-            height: 24px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             border: 2px dashed rgba(255,255,255,0.9);
             z-index: 1000;
@@ -264,91 +633,203 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 7px;
+            font-size: 8px;
             font-weight: 900;
             color: #fff;
-            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.3), 0 3px 10px rgba(0,0,0,0.5);
+            box-shadow: 
+                inset 0 0 0 2px rgba(0,0,0,0.2),
+                0 5px 15px rgba(0,0,0,0.5);
+            background: radial-gradient(circle at 30% 30%, #ffeb3b, #ffca28, #ff8f00);
         }
 
-        /* Banner */
+        /* ===== BANNER - Premium ===== */
         .game-banner {
             position: absolute;
-            top: 25%;
-            left: 40%;
+            top: 30%;
+            left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.85);
-            padding: 6px 16px;
-            border-radius: 10px;
-            border: 1px solid rgba(255,215,0,0.2);
+            background: rgba(0,0,0,0.9);
+            backdrop-filter: blur(20px);
+            padding: 12px 24px;
+            border-radius: 15px;
+            border: 1px solid rgba(255,215,0,0.3);
             color: var(--gold);
-            font-size: 12px;
+            font-size: 14px;
             font-weight: 700;
             z-index: 20;
             white-space: nowrap;
             pointer-events: none;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            animation: bannerSlide 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        
+        @keyframes bannerSlide {
+            0% { transform: translate(-50%, -50%) translateY(-30px) scale(0.8); opacity: 0; }
+            100% { transform: translate(-50%, -50%) translateY(0) scale(1); opacity: 1; }
         }
 
-        /* Bottom Panel */
+        /* ===== WAN TIN BADGE - Premium ===== */
+        .wan-tin-badge {
+            position: absolute;
+            top: 55px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #ff0000, #8b0000);
+            color: #fff;
+            padding: 6px 20px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 900;
+            z-index: 40;
+            border: 2px solid #ffd700;
+            box-shadow: 0 0 20px rgba(255,0,0,0.5), 0 5px 15px rgba(0,0,0,0.3);
+            animation: wanTinPulse 1s ease-in-out infinite, wanTinSlide 0.5s ease-out forwards;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+        
+        @keyframes wanTinPulse {
+            0%, 100% { box-shadow: 0 0 15px rgba(255,0,0,0.4); }
+            50% { box-shadow: 0 0 30px rgba(255,0,0,0.7); }
+        }
+        
+        @keyframes wanTinSlide {
+            0% { transform: translateX(-50%) translateY(-20px); opacity: 0; }
+            100% { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+
+        /* ===== BOTTOM PANEL - Glassmorphism ===== */
         .bottom-panel {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgba(0,0,0,0.9);
-            padding: 8px 12px;
-            border-top: 1px solid rgba(255,215,0,0.15);
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(20px);
+            padding: 10px 16px;
+            border-top: 1px solid rgba(255,215,0,0.2);
             z-index: 30;
-            height: 55px;
+            height: 60px;
         }
-        .bet-chips { display: flex; gap: 6px; }
+
+        /* Bet chips */
+        .bet-chips { display: flex; gap: 8px; }
+        
         .bet-chip {
-            width: 36px;
-            height: 36px;
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 10px;
+            font-size: 11px;
             font-weight: 900;
             color: #fff;
             border: 2px dashed rgba(255,255,255,0.8);
             cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 
+                0 4px 12px rgba(0,0,0,0.4),
+                inset 0 0 0 2px rgba(0,0,0,0.2);
+            position: relative;
         }
-        .bet-chip:hover { transform: translateY(-2px) scale(1.1); }
-        .bet-chip:active { transform: scale(0.9); }
-        .bc-10 { background: radial-gradient(circle, #42a5f5, #1976d2); }
-        .bc-50 { background: radial-gradient(circle, #ef5350, #c62828); }
-        .bc-100 { background: radial-gradient(circle, #66bb6a, #388e3c); }
-        .bc-500 { background: radial-gradient(circle, #ab47bc, #7b1fa2); }
-        .bc-1k { background: radial-gradient(circle, #ffca28, #ff8f00); color: #000; border-color: rgba(0,0,0,0.5); }
-        .bc-clr { background: #444; font-size: 9px; border-radius: 6px; border: 1px solid #888; }
+        
+        .bet-chip:hover { 
+            transform: translateY(-5px) scale(1.15); 
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+        }
+        .bet-chip:active { transform: scale(0.95); }
 
+        .bc-10 { background: radial-gradient(circle at 30% 30%, #64b5f6, #42a5f5, #1976d2); }
+        .bc-50 { background: radial-gradient(circle at 30% 30%, #ef5350, #ef5350, #c62828); }
+        .bc-100 { background: radial-gradient(circle at 30% 30%, #81c784, #66bb6a, #388e3c); }
+        .bc-500 { background: radial-gradient(circle at 30% 30%, #ba68c8, #ab47bc, #7b1fa2); }
+        .bc-1k { background: radial-gradient(circle at 30% 30%, #ffeb3b, #ffca28, #ff8f00); color: #000; border-color: rgba(0,0,0,0.5); }
+        .bc-clr { background: #444; font-size: 9px; border-radius: 8px; border: 1px solid #888; }
+
+        /* Action buttons */
         .action-btns { display: flex; gap: 8px; }
+        
         .action-btn {
-            padding: 8px 16px;
+            padding: 10px 20px;
             border: none;
-            border-radius: 12px;
+            border-radius: 15px;
             font-weight: 800;
-            font-size: 12px;
+            font-size: 13px;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 4px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-            transition: all 0.2s ease;
+            gap: 6px;
+            box-shadow: 
+                0 6px 20px rgba(0,0,0,0.4),
+                0 2px 4px rgba(0,0,0,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.1);
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
             font-family: 'Noto Sans Myanmar', sans-serif;
+            position: relative;
+            overflow: hidden;
         }
-        .action-btn:hover { transform: translateY(-2px); }
-        .action-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-        .btn-deal { background: linear-gradient(145deg, #ffd700, #ffaa00); color: #1a1a1a; }
-        .btn-hit { background: linear-gradient(145deg, #42a5f5, #1976d2); color: #fff; }
-        .btn-stand { background: linear-gradient(145deg, #ef5350, #c62828); color: #fff; }
-        .btn-show { background: linear-gradient(145deg, #66bb6a, #388e3c); color: #fff; }
-        .btn-new { background: linear-gradient(145deg, #ab47bc, #7b1fa2); color: #fff; }
-        .btn-capture { background: linear-gradient(145deg, #ff6b6b, #ee5a24); color: #fff; }
-        .btn-capture-all { background: linear-gradient(145deg, #ff00cc, #3300ff); color: #fff; }
+        
+        /* Button shine effect */
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        .action-btn:hover::before {
+            left: 100%;
+        }
+        
+        .action-btn:hover { 
+            transform: translateY(-3px) scale(1.05); 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .action-btn:active { 
+            transform: translateY(-1px) scale(0.98); 
+        }
+        .action-btn:disabled { 
+            opacity: 0.3; 
+            cursor: not-allowed; 
+            transform: none;
+            box-shadow: none;
+        }
 
+        .btn-deal { 
+            background: linear-gradient(145deg, #ffd700, #ffaa00); 
+            color: #1a1a1a; 
+            text-shadow: 0 1px 0 rgba(255,255,255,0.3);
+        }
+        .btn-hit { 
+            background: linear-gradient(145deg, #42a5f5, #1976d2); 
+            color: #fff; 
+        }
+        .btn-stand { 
+            background: linear-gradient(145deg, #ef5350, #c62828); 
+            color: #fff; 
+        }
+        .btn-show { 
+            background: linear-gradient(145deg, #66bb6a, #388e3c); 
+            color: #fff; 
+        }
+        .btn-new { 
+            background: linear-gradient(145deg, #ab47bc, #7b1fa2); 
+            color: #fff; 
+        }
+        .btn-capture { 
+            background: linear-gradient(145deg, #ff6b6b, #ee5a24); 
+            color: #fff; 
+            font-size: 11px;
+        }
+        .btn-capture-all { 
+            background: linear-gradient(145deg, #e040fb, #7b1fa2); 
+            color: #fff; 
+            font-size: 11px;
+        }
+
+        /* Result effects */
         .result-fx {
             position: absolute;
             top: 0; left: 0;
@@ -359,40 +840,48 @@
         }
         .sparkle {
             position: absolute;
-            width: 4px;
-            height: 4px;
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
             animation: sparkleAnim 1.5s ease-out forwards;
         }
-        @keyframes sparkleAnim { 0% { transform: translate(0, 0) scale(1); opacity: 1; } 100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; } }
-
-        /* Wan Tin Badge */
-        .wan-tin-badge {
-            position: absolute;
-            top: 50px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(135deg, #ff0000, #8b0000);
-            color: #fff;
-            padding: 4px 16px;
-            border-radius: 15px;
-            font-size: 12px;
-            font-weight: 900;
-            z-index: 40;
-            border: 2px solid #ffd700;
-            box-shadow: 0 0 15px rgba(255,0,0,0.5);
-            animation: pulse 1s infinite;
-            display: none;
+        @keyframes sparkleAnim { 
+            0% { transform: translate(0, 0) scale(1); opacity: 1; } 
+            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; } 
         }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 
+        /* ===== PARTICLES ===== */
+        .particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 100;
+        }
+        .particle-gold {
+            background: radial-gradient(circle, #ffd700, #ff8c00);
+            box-shadow: 0 0 10px #ffd700;
+        }
+        .particle-win {
+            animation: particleWin 1.5s ease-out forwards;
+        }
+        @keyframes particleWin {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+        }
+
+        /* ===== RESPONSIVE ===== */
         @media (max-width: 600px) {
-            .avatar { width: 38px; height: 38px; }
-            .game-card { width: 42px; height: 58px; margin-left: -16px; }
-            .bet-chip { width: 32px; height: 32px; font-size: 9px; }
-            .action-btn { padding: 6px 12px; font-size: 11px; }
-            .result-text { font-size: 14px; }
-            .shanscore-box { font-size: 12px; padding: 1px 6px; }
+            .avatar { width: 42px; height: 42px; }
+            .avatar-you { width: 50px; height: 50px; }
+            .game-card { width: 44px; height: 62px; margin-left: -18px; }
+            .bet-chip { width: 36px; height: 36px; font-size: 10px; }
+            .action-btn { padding: 8px 14px; font-size: 11px; }
+            .result-text { font-size: 18px; }
+            .shanscore-box { font-size: 13px; padding: 2px 8px; }
+            .bank-badge { font-size: 11px; padding: 2px 8px; }
+            .table-logo { width: 100px; height: 100px; font-size: 12px; }
         }
     </style>
 </head>
@@ -400,7 +889,11 @@
 <div class="game-container">
     <!-- Top Bar -->
     <div class="top-bar">
-        <button class="back-btn" onclick="goLobby()"><i class="fas fa-arrow-left"></i> ပင်မ</button>
+     <button class="back-to-lobby" onclick="window.parent.postMessage({type:'GO_LOBBY'},'*')">
+    <i class="fas fa-arrow-left"></i> ◀ ပင်မ
+     </button>
+
+        
         <div class="top-info">
             <div class="balance-box"><i class="fas fa-coins"></i> <span id="bal">10,000</span></div>
             <div class="bet-hud">လောင်း: <span id="bet">0</span></div>
@@ -411,12 +904,18 @@
     <!-- Table -->
     <div class="table-wrap">
         <div class="casino-table" id="table">
+            <!-- Center Logo -->
+            <div class="table-logo">SHAN</div>
+            
+            <!-- Wan Tin Badge -->
             <div class="wan-tin-badge" id="wanTinBadge">ဝမ်တိန် - ပထမ သတိပေးချက်</div>
+            
+            <!-- Banner -->
             <div class="game-banner" id="banner">Chips တင်ပြီး ဖဲဝေပါ</div>
 
             <!-- Avatars -->
             <div class="avatar avatar-dealer" id="av0">
-                <div class="bank-badge" id="bankBadge">Banker_30K</div>
+                <div class="bank-badge" id="bankBadge">💰 30K</div>
                 <img src="images/banker.png" onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(135deg, #ff6b6b, #ee5a24)'">
             </div>
             <div class="avatar avatar-p1" id="av1">
@@ -451,6 +950,7 @@
         </div>
     </div>
 
+    <!-- Result Effects -->
     <div class="result-fx" id="fx"></div>
 
     <!-- Bottom Panel -->
@@ -464,46 +964,309 @@
             <button class="bet-chip bc-clr" onclick="clearBet()">CLR</button>
         </div>
         <div class="action-btns" id="actionBtns">
-    <!-- ဖဲဝေ -->
-    <button class="action-btn btn-deal" id="btnDeal" onclick="deal()">
-        <i class="fas fa-play"></i> ဖဲဝေ
-    </button>
-    
-    <!-- ဆွဲ (Player) -->
-    <button class="action-btn btn-hit" id="btnHit" onclick="hit()" style="display:none;">
-        <i class="fas fa-plus"></i> ဆွဲ
-    </button>
-    
-    <!-- တော်ပီ (Player) -->
-    <button class="action-btn btn-stand" id="btnStand" onclick="stand()" style="display:none;">
-        <i class="fas fa-hand"></i> တော်ပီ
-    </button>
-    
-    <!-- ဖွင့်ပြမည် -->
-    <button class="action-btn btn-show" id="btnShow" onclick="showAll()" style="display:none;">
-        <i class="fas fa-eye"></i> ဖွင့်
-    </button>
-    
-    <!-- ✅ ၃ ကဒ်ဖမ်းမည် (ဒိုင်အတွက် - အသစ်ထည့်) -->
-    <button class="action-btn btn-capture3" id="btnCapture3" onclick="captureThree()" style="display:none; background: linear-gradient(145deg, #ff9800, #f57c00); color:#fff;">
-        <i class="fas fa-eye"></i> ၃ ကဒ်ဖမ်း
-    </button>
-    
-    <!-- အားလုံးဖမ်းမည် (ဒိုင်အတွက်) -->
-    <button class="action-btn btn-capture" id="btnCapture" onclick="captureAll()" style="display:none; background: linear-gradient(145deg, #ff6b6b, #ee5a24); color:#fff;">
-        <i class="fas fa-hand-rock"></i> အားလုံးဖမ်း
-    </button>
-    
-    <!-- ပွဲသစ် -->
-    <button class="action-btn btn-new" id="btnNew" onclick="newGame()" style="display:none;">
-        <i class="fas fa-redo"></i> ပြန်စ
-    </button>
-</div>
+            <!-- ဖဲဝေ -->
+            <button class="action-btn btn-deal" id="btnDeal" onclick="deal()">
+                <i class="fas fa-play"></i> ဖဲဝေ
+            </button>
+            
+            <!-- ဆွဲ (Player) -->
+            <button class="action-btn btn-hit" id="btnHit" onclick="hit()" style="display:none;">
+                <i class="fas fa-plus"></i> ဆွဲ
+            </button>
+            
+            <!-- တော်ပီ (Player) -->
+            <button class="action-btn btn-stand" id="btnStand" onclick="stand()" style="display:none;">
+                <i class="fas fa-hand"></i> တော်ပီ
+            </button>
+            
+            <!-- ဖွင့်ပြမည် -->
+            <button class="action-btn btn-show" id="btnShow" onclick="showAll()" style="display:none;">
+                <i class="fas fa-eye"></i> ဖွင့်
+            </button>
+            
+            <!-- ၃ ကဒ်ဖမ်းမည် (ဒိုင်အတွက်) -->
+            <button class="action-btn btn-capture" id="btnCapture3" onclick="captureThree()" style="display:none; background: linear-gradient(145deg, #ff9800, #f57c00);">
+                <i class="fas fa-eye"></i> ၃ ကဒ်ဖမ်း
+            </button>
+            
+            <!-- အားလုံးဖမ်းမည် (ဒိုင်အတွက်) -->
+            <button class="action-btn btn-capture" id="btnCapture" onclick="captureAll()" style="display:none;">
+                <i class="fas fa-hand-rock"></i> အားလုံးဖမ်း
+            </button>
+            
+            <!-- ပွဲသစ် -->
+            <button class="action-btn btn-new" id="btnNew" onclick="newGame()" style="display:none;">
+                <i class="fas fa-redo"></i> ပြန်စ
+            </button>
+        </div>
     </div>
 </div>
 <script>
 
+ 
 // ============================================
+// FIXED: LOBBY BALANCE SYNC - SHAN KOE MEE
+// ============================================
+
+function safeNumber(value) {
+    if (value === undefined || value === null) return 0;
+    if (typeof value === 'number' && !isNaN(value)) return value;
+    let str = String(value).replace(/,/g, '').trim();
+    let num = parseFloat(str);
+    return isNaN(num) ? 0 : num;
+}
+
+// Optional: cleaner function
+function goLobby() {
+    window.parent.postMessage({ type: 'GO_LOBBY' }, '*');
+}
+
+
+// ============================================
+// ✅ FIXED: Global State with Timestamp
+// ============================================
+let G = {
+    bal: 10000,
+    bet: 0,
+    bank: 30000,
+    originalBank: 30000,
+    deck: [],
+    phase: 'bet',
+    round: 0,
+    wanTinRound: 0,
+    bankerIndex: 0,
+    // ✅ NEW: Last update timestamp to prevent race conditions
+    lastBalanceUpdate: 0,
+    lastBalanceSource: 'init',
+    p: [
+        {id:0, name:'ဒိုင်', cards:[], rev:false, st:'', dealer:true, isAI:true, balance:30000},
+        {id:1, name:'ကစားသမား ၁', cards:[], rev:false, st:'', dealer:false, isAI:true, balance:10000},
+        {id:2, name:'ကစားသမား ၂', cards:[], rev:false, st:'', dealer:false, isAI:true, balance:10000},
+        {id:3, name:'သင်', cards:[], rev:false, st:'', dealer:false, isAI:false, balance:10000, user:true}
+    ]
+};
+
+
+// ============================================
+// ✅ FIXED: Single Source of Truth - Balance Update
+// ============================================
+
+function setBalance(newBalance, source = 'unknown') {
+    const oldBal = G.bal;
+    const newBal = safeNumber(newBalance);
+    const now = Date.now();
+    
+    // ✅ Prevent race condition: local updates take priority over SYNC_BALANCE
+    if (source === 'SYNC_BALANCE' && G.lastBalanceSource === 'GAME_RESULT' && (now - G.lastBalanceUpdate) < 2000) {
+        console.log('⛔ SYNC_BALANCE rejected - recent GAME_RESULT update exists');
+        console.log('   Old:', oldBal, 'Rejected:', newBal, 'Source:', source);
+        return false; // Reject this update
+    }
+    
+    G.bal = newBal;
+    G.lastBalanceUpdate = now;
+    G.lastBalanceSource = source;
+    
+    console.log('💰 Balance Updated:', oldBal, '→', newBal, '| Source:', source);
+    
+    // ✅ ALWAYS trigger UI update immediately
+    forceUpdateUI();
+    
+    return true;
+}
+
+// ============================================
+// ✅ FIXED: Force UI Update (no parameter confusion)
+// ============================================
+
+function forceUpdateUI() {
+    const balanceToDisplay = safeNumber(G.bal);
+    const currentBet = safeNumber(G.bet);
+    
+    // 1. Update gameState
+    if (!window.gameState) {
+        window.gameState = { game: 'SHAN_KOEMEE' };
+    }
+    window.gameState.balance = balanceToDisplay;
+    window.gameState.displayBalance = balanceToDisplay;
+    window.gameState.betAmount = currentBet;
+    
+    // 2. Update DOM elements directly
+    const balElem = document.getElementById('bal');
+    if (balElem) {
+        balElem.textContent = balanceToDisplay.toLocaleString();
+        // ✅ Add visual feedback
+        balElem.style.transition = 'color 0.3s';
+        balElem.style.color = '#ffd700';
+        setTimeout(() => { balElem.style.color = ''; }, 300);
+    }
+    
+    const betElem = document.getElementById('bet');
+    if (betElem) {
+        betElem.textContent = currentBet.toLocaleString();
+    }
+    
+    // 3. Update player balance
+    if (G.p && G.p[3]) {
+        G.p[3].balance = balanceToDisplay;
+    }
+    
+    // 4. Banker badge
+    if (G.p && G.p[G.bankerIndex]) {
+        const bankAmount = safeNumber(G.p[G.bankerIndex].balance);
+        const badge = document.getElementById('bankBadge');
+        if (badge) {
+            badge.textContent = '💰 ' + (bankAmount >= 1000 ? (bankAmount / 1000).toFixed(0) + 'K' : bankAmount);
+        }
+    }
+    
+    // 5. Wan Tin badge
+    const wtBadge = document.getElementById('wanTinBadge');
+    if (wtBadge) {
+        if (G.wanTinRound > 0) {
+            wtBadge.style.display = 'block';
+            const warnings = ['ပထမ', 'ဒုတိယ', 'တတိယ'];
+            wtBadge.textContent = 'ဝမ်တိန် - ' + (warnings[G.wanTinRound - 1] || '') + ' သတိပေးချက်';
+        } else {
+            wtBadge.style.display = 'none';
+        }
+    }
+    
+    console.log('🔄 UI Updated - Display:', balanceToDisplay);
+}
+
+// ============================================
+// ✅ FIXED: Report Win (use setBalance)
+// ============================================
+
+function reportWin(amount) {
+    let winAmount = safeNumber(amount);
+    if (winAmount > 0) {
+        let newBal = safeNumber(G.bal) + winAmount;
+        
+        // ✅ Use setBalance instead of direct assignment
+        setBalance(newBal, 'GAME_RESULT');
+        
+        sendToLobby('GAME_WIN', { 
+            amount: winAmount, 
+            total: newBal, 
+            gameName: 'ရှမ်းကိုးမီး' 
+        });
+        
+        console.log('🏆 WIN: +', winAmount, 'New Balance:', newBal);
+    }
+}
+
+// ✅ FIXED: Report Lose
+function reportLose(amount) {
+    let loseAmount = safeNumber(amount);
+    if (loseAmount > 0) {
+        let newBal = safeNumber(G.bal) - loseAmount;
+        
+        setBalance(newBal, 'GAME_RESULT');
+        
+        sendToLobby('GAME_LOSE', { 
+            amount: loseAmount, 
+            total: newBal, 
+            gameName: 'ရှမ်းကိုးမီး' 
+        });
+        
+        console.log('💀 LOSE: -', loseAmount, 'New Balance:', newBal);
+    }
+}
+
+// ✅ FIXED: Report Draw
+function reportDraw(amount) {
+    let drawAmount = safeNumber(amount);
+    if (drawAmount > 0) {
+        let newBal = safeNumber(G.bal) + drawAmount;
+        
+        setBalance(newBal, 'GAME_RESULT');
+        
+        sendToLobby('GAME_DRAW', { 
+            bet: drawAmount,
+            amount: drawAmount
+        });
+        
+        console.log('🤝 DRAW: +', drawAmount, 'New Balance:', newBal);
+    }
+}
+
+// ============================================
+// ✅ FIXED: Message Handler (prevent overwrite)
+// ============================================
+
+window.addEventListener('message', function(event) {
+    var data = event.data;
+    console.log('📨 Card Game received:', data);
+
+    if (!data || typeof data !== 'object') return;
+
+    // ✅ SYNC_BALANCE with race condition protection
+    if (data.type === 'SYNC_BALANCE') {
+        if (data.balance !== undefined && data.balance !== null) {
+            var newBalance = parseFloat(String(data.balance).replace(/,/g, '')) || 0;
+            
+            // ✅ Use setBalance with source tracking
+            setBalance(newBalance, 'SYNC_BALANCE');
+            
+            // Update player balance
+            if (G.p && G.p[3]) {
+                G.p[3].balance = newBalance;
+            }
+        }
+    }
+    
+    // Play Sound
+    if (data.type === 'PLAY_SOUND') {
+        console.log('🔊 Sound requested:', data.sound);
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage({
+                type: 'PLAY_SOUND',
+                sound: data.sound
+            }, '*');
+        }
+    }
+
+    // Go Lobby
+    if (data.type === 'GO_LOBBY') {
+        console.log('🚪 Going to lobby...');
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ type: 'GO_LOBBY' }, '*');
+        }
+    }
+
+    // Reset Game
+    if (data.type === 'RESET_GAME') {
+        console.log('🔄 Resetting game...');
+        newGame();
+    }
+});
+
+// ============================================
+// ✅ FIXED: Send to Lobby (no local balance change)
+// ============================================
+
+function sendToLobby(type, data) {
+    if (window.parent && window.parent !== window) {
+        var message = {
+            type: type,
+            game: 'SHAN_KOEMEE'
+        };
+        
+        if (typeof data === 'number') {
+            message.amount = data;
+        } else if (typeof data === 'object' && data !== null) {
+            Object.keys(data).forEach(function(key) {
+                message[key] = data[key];
+            });
+        }
+        
+        window.parent.postMessage(message, '*');
+        console.log('📤 Card Game → Lobby:', message);
+    }
+}
+  //============================================
 // SHAN KOEMEE CORRECTED LOGIC
 // ============================================
 
@@ -617,28 +1380,6 @@ function compareHands(playerCards, bankerCards) {
 }
 
 // ============================================
-// GAME STATE
-// ============================================
-
-let G = {
-    bal: 10000,           // User balance
-    bet: 0,               // Current bet
-    bank: 30000,          // Banker balance
-    originalBank: 30000,  // Original bank amount
-    deck: [],
-    phase: 'bet',         // bet, deal, play, result
-    round: 0,
-    wanTinRound: 0,       // 0=none, 1-3=wan tin rounds
-    bankerIndex: 0,       // Current banker
-        p: [
-        {id:0, name:'ဒိုင်', cards:[], rev:false, st:'', dealer:true, isAI:true, balance:30000},
-        {id:1, name:'ကစားသမား ၁', cards:[], rev:false, st:'', dealer:false, isAI:true, balance:10000},
-        {id:2, name:'ကစားသမား ၂', cards:[], rev:false, st:'', dealer:false, isAI:true, balance:10000},
-        {id:3, name:'သင်', cards:[], rev:false, st:'', dealer:false, isAI:false, balance:10000, user:true}
-    ]
-};
-
-// ============================================
 // SHAN SOUND MAPPING (FULL)
 // ============================================
 function playShanSound(soundType) {
@@ -691,31 +1432,104 @@ function sfx(t) {
     playShanSound(t);
 }
 
-
 // ============================================
 // UI HELPERS
 // ============================================
 function banner(t){document.getElementById('banner').textContent=t;}
 function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
-function upd() {
-    document.getElementById('bal').textContent = G.bal.toLocaleString();
-    document.getElementById('bet').textContent = G.bet.toLocaleString();
-    
-    var bankAmount = G.p[G.bankerIndex].balance || 0;
-    document.getElementById('bankBadge').textContent = '💰 ' + (bankAmount >= 1000 ? (bankAmount / 1000).toFixed(0) + 'K' : bankAmount);
 
-    // Wan tin badge
-    var wtBadge = document.getElementById('wanTinBadge');
-    if (G.wanTinRound > 0) {
-        wtBadge.style.display = 'block';
-        var warnings = ['ပထမ', 'ဒုတိယ', 'တတိယ'];
-        wtBadge.textContent = 'ဝမ်တိန် - ' + warnings[G.wanTinRound - 1] + ' သတိပေးချက်';
-    } else {
-        wtBadge.style.display = 'none';
+// ============================================
+// forceUpdateUI - Single Source of Truth
+// ============================================
+function forceUpdateUI() {
+    const balanceToDisplay = safeNumber(G.bal);
+    const currentBet = safeNumber(G.bet);
+    
+    // 1. Update gameState
+    if (!window.gameState) {
+        window.gameState = { game: 'SHAN_KOEMEE' };
+    }
+    window.gameState.balance = balanceToDisplay;
+    window.gameState.displayBalance = balanceToDisplay;
+    window.gameState.betAmount = currentBet;
+    
+    // 2. Update DOM - Balance
+    const balElem = document.getElementById('bal');
+    if (balElem) {
+        balElem.textContent = balanceToDisplay.toLocaleString();
+        // Visual feedback
+        balElem.style.transition = 'color 0.3s';
+        balElem.style.color = '#ffd700';
+        setTimeout(() => { balElem.style.color = ''; }, 300);
     }
     
-    // ✅ Balance ပြောင်းတိုင်း Lobby ကိုပြန်ပို့
-    syncBalanceToLobby();
+    // 3. Update DOM - Bet
+    const betElem = document.getElementById('bet');
+    if (betElem) {
+        betElem.textContent = currentBet.toLocaleString();
+    }
+    
+    // 4. Update player balance
+    if (G.p && G.p[3]) {
+        G.p[3].balance = balanceToDisplay;
+    }
+    
+    // 5. Banker Badge
+    if (G.p && G.p[G.bankerIndex]) {
+        const bankAmount = safeNumber(G.p[G.bankerIndex].balance);
+        const badge = document.getElementById('bankBadge');
+        if (badge) {
+            badge.textContent = '💰 ' + (bankAmount >= 1000 ? (bankAmount / 1000).toFixed(0) + 'K' : bankAmount);
+        }
+    }
+    
+    // 6. Wan Tin Badge
+    const wtBadge = document.getElementById('wanTinBadge');
+    if (wtBadge) {
+        if (G.wanTinRound > 0) {
+            wtBadge.style.display = 'block';
+            const warnings = ['ပထမ', 'ဒုတိယ', 'တတိယ'];
+            wtBadge.textContent = 'ဝမ်တိန် - ' + (warnings[G.wanTinRound - 1] || '') + ' သတိပေးချက်';
+        } else {
+            wtBadge.style.display = 'none';
+        }
+    }
+    
+    console.log('🔄 forceUpdateUI - Balance:', balanceToDisplay, 'Bet:', currentBet);
+}
+
+// ============================================
+// upd() - DEPRECATED: Use forceUpdateUI() instead
+// ============================================
+function upd(newBal) {
+    // ✅ Always use forceUpdateUI - no parameter confusion
+    forceUpdateUI();
+}
+
+// ============================================
+// setBalance - Update balance with source tracking
+// ============================================
+function setBalance(newBalance, source = 'unknown') {
+    const oldBal = G.bal;
+    const newBal = safeNumber(newBalance);
+    const now = Date.now();
+    
+    // Prevent race condition: local updates take priority
+    if (source === 'SYNC_BALANCE' && G.lastBalanceSource === 'GAME_RESULT' && (now - G.lastBalanceUpdate) < 2000) {
+        console.log('⛔ SYNC_BALANCE rejected - recent GAME_RESULT update');
+        return false;
+    }
+    
+    G.bal = newBal;
+    G.lastBalanceUpdate = now;
+    G.lastBalanceSource = source;
+    
+    console.log('💰 setBalance:', oldBal, '→', newBal, '| Source:', source);
+    
+    // Always trigger UI update
+    forceUpdateUI();
+    
+    return true;
 }
 
 // Card image path
@@ -858,17 +1672,18 @@ async function animLose(){
 function addBet(a){
     if(G.phase!=='bet')return;
     if(G.bal-(G.bet+a)<0){banner('ငွေ မလုံလောက်ပါ!');return;}
-    G.bet+=a;sfx('chip');upd();
+    G.bet+=a;sfx('chip');forceUpdateUI();
 }
 function clearBet(){
     if(G.phase!=='bet')return;
-    G.bet=0;sfx('chip');upd();
+    G.bet=0;sfx('chip');forceUpdateUI();
 }
 
 // ============================================
-// BUTTONS
+// SHOW BUTTONS - FIXED: Disable if banker auto win
 // ============================================
-function showBtns(mode){
+
+function showBtns(mode) {
     var d = document.getElementById('btnDeal');
     var h = document.getElementById('btnHit');
     var s = document.getElementById('btnStand');
@@ -880,12 +1695,24 @@ function showBtns(mode){
 
     // Deal Button
     d.style.display = (mode === 'bet') ? 'flex' : 'none';
-    
-    // ============================================
-    // ဆွဲမည် Button - User အတွက်
-    // ============================================
+
+    // ✅ Check banker auto win - disable hit/stand
+    const bankerAuto = isBankerAutoWin();
+
+    // User Hit/Stand
     if (mode === 'play' && !G.p[3].dealer) {
-        // User ကစားသမားဖြစ်တဲ့အခါ
+        if (bankerAuto) {
+            // Banker auto win - disable all actions
+            h.style.display = 'none';
+            s.style.display = 'none';
+            banner('🔥 ဒိုင် BAN! - ပွဲပြီးပါပြီ!');
+            // Auto proceed to settle
+            setTimeout(async () => {
+                await settleRound();
+            }, 1500);
+            return;
+        }
+        
         h.style.display = 'flex';
         h.innerHTML = '<i class="fas fa-plus"></i> ဆွဲမည်';
         h.className = 'action-btn btn-hit';
@@ -902,12 +1729,9 @@ function showBtns(mode){
         h.style.display = 'none';
         s.style.display = 'none';
     }
-    
-    // ============================================
-    // ဆွဲမည် Button - ဒိုင်အတွက်
-    // ============================================
+
+    // Banker buttons
     if (mode === 'banker' && G.p[3].dealer) {
-        // ဒိုင်ဖြစ်တဲ့အခါ
         h.style.display = 'flex';
         h.innerHTML = '<i class="fas fa-plus"></i> ဆွဲမည်';
         h.className = 'action-btn btn-hit';
@@ -919,13 +1743,11 @@ function showBtns(mode){
         h.disabled = !canDraw(banker.cards, banker.st === 'playing');
         s.style.display = 'none';
         
-        // ၃ ကဒ်ဖမ်းမည်
         cap3.style.display = 'flex';
         cap3.innerHTML = '<i class="fas fa-eye"></i> ၃ ကဒ်ဖမ်း';
         cap3.onclick = function() { captureThree(); };
         cap3.disabled = false;
         
-        // အားလုံးဖမ်းမည်
         cap.style.display = 'flex';
         cap.innerHTML = '<i class="fas fa-hand-rock"></i> အားလုံးဖမ်း';
         cap.onclick = function() { captureAll(); };
@@ -935,18 +1757,64 @@ function showBtns(mode){
         cap3.style.display = 'none';
         cap.style.display = 'none';
     }
-    
+
     // Show Button
     sh.style.display = (mode === 'play') ? 'flex' : 'none';
-    
+
     // New Game Button
     n.style.display = (mode === 'result') ? 'flex' : 'none';
 
     // Chips Bar
-    if(ch){
+    if (ch) {
         ch.style.opacity = (mode === 'bet') ? '1' : '0.3';
         ch.style.pointerEvents = (mode === 'bet') ? 'auto' : 'none';
     }
+}
+
+// ============================================
+// CHECK BANKER AUTO WIN (8/9)
+// ============================================
+
+function isBankerAutoWin() {
+    const banker = G.p[G.bankerIndex];
+    if (!banker || !banker.cards || banker.cards.length < 2) return false;
+    return isAutoStand(banker.cards);
+}
+
+// ============================================
+// BANKER AUTO WIN - Skip all player turns
+// ============================================
+
+async function bankerAutoWin() {
+    const banker = G.p[G.bankerIndex];
+    const score = calculateScore(banker.cards);
+    
+    // Show banker cards
+    banker.rev = true;
+    render();
+    
+    if (score === 8) {
+        playShanSound('autoeight');
+        banner('🔥 ဒိုင် BAN! (၈ မှတ်) - အားလုံးကို ဖမ်းပါသည်!');
+    } else if (score === 9) {
+        playShanSound('autonine');
+        banner('🔥 ဒိုင် BAN! (၉ မှတ်) - အားလုံးကို ဖမ်းပါသည်!');
+    }
+    
+    await sleep(1500);
+    
+    // Reveal all player cards and settle immediately
+    G.p.forEach(p => {
+        if (!p.dealer) {
+            p.rev = true;
+        }
+    });
+    render();
+    
+    await sleep(800);
+    
+    // Go directly to settle round
+    await settleRound();
 }
 
 // ============================================
@@ -1060,48 +1928,46 @@ function drawCards(n=1){
     return G.deck.splice(0,n);
 }
 
+
 // ============================================
-// RENDER
+// RENDER - FIXED
 // ============================================
-function render(){
-    upd();
-    G.p.forEach((p,i)=>{
-        const seat=document.getElementById('av'+i);
-        const cardsFan=document.getElementById('cards'+i);
-        const area=document.getElementById('area'+i);
-        if(!seat||!cardsFan)return;
+function render() {
+    // ✅ Direct call - no upd() middleman
+    forceUpdateUI();
+    
+    G.p.forEach(function(p, i) {
+        var seat = document.getElementById('av' + i);
+        var cardsFan = document.getElementById('cards' + i);
+        var area = document.getElementById('area' + i);
+        if (!seat || !cardsFan) return;
 
-        seat.classList.remove('active','winner','loser');
-        if(p.st==='playing')seat.classList.add('active');
-        if(p.st==='win')seat.classList.add('winner');
-        if(p.st==='lose')seat.classList.add('loser');
+        seat.classList.remove('active', 'winner', 'loser');
+        if (p.st === 'playing') seat.classList.add('active');
+        if (p.st === 'win') seat.classList.add('winner');
+        if (p.st === 'lose') seat.classList.add('loser');
 
-        cardsFan.innerHTML='';
+        cardsFan.innerHTML = '';
 
-        // Show cards if revealed, or user cards, or result phase
-        const showCards = p.rev || p.user || G.phase === 'result' || (p.dealer && G.phase === 'banker');
-        const showAllCards = G.phase === 'result' || p.user || (p.dealer && G.phase === 'banker');
+        var showCards = p.rev || p.user || G.phase === 'result' || (p.dealer && G.phase === 'banker');
+        var showAllCards = G.phase === 'result' || p.user || (p.dealer && G.phase === 'banker');
 
-        p.cards.forEach((c,j)=>{
-            // Face down for others during play
-            const isFaceDown = !showCards && !p.user && !p.rev && G.phase !== 'result';
+        p.cards.forEach(function(c, j) {
+            var isFaceDown = !showCards && !p.user && !p.rev && G.phase !== 'result';
             cardsFan.appendChild(mkCard(c, isFaceDown, j));
         });
 
-        // Show score badge
         if (showAllCards && p.cards.length >= 2) {
-            const score = calculateScore(p.cards);
-            const bonus = getBonusMultiplier(p.cards);
-
-            // Remove old badge
-            const oldBadge = cardsFan.querySelector('.shan-sticker');
+            var score = calculateScore(p.cards);
+            var bonus = getBonusMultiplier(p.cards);
+            var oldBadge = cardsFan.querySelector('.shan-sticker');
             if (oldBadge) oldBadge.remove();
 
-            const badge = document.createElement('div');
+            var badge = document.createElement('div');
             badge.className = 'shan-sticker';
 
             if (bonus > 1) {
-                badge.textContent = `${bonus}x`;
+                badge.textContent = bonus + 'x';
                 badge.style.background = 'linear-gradient(135deg, #ffd700, #ff8c00)';
                 badge.style.color = '#8b0000';
             } else {
@@ -1115,25 +1981,43 @@ function render(){
 }
 
 // ============================================
-// DEAL
+// DEAL - FIXED with banker auto check
 // ============================================
-async function deal(){
-    if(G.bal<G.bet||G.bal<=0){banner('ငွေ မလုံလောက်ပါ!');return;}
-    if(G.bet<10){banner('လောင်းကြေး တင်ပါ!');return;}
+
+async function deal() {
+    if (G.bal < G.bet || G.bal <= 0) {
+        banner('ငွေ မလုံလောက်ပါ!');
+        return;
+    }
+    if (G.bet < 10) {
+        banner('လောင်းကြေး တင်ပါ!');
+        return;
+    }
 
     // Reset all players
     shuffleDeck();
-    G.phase='deal';
-    G.p.forEach(p=>{p.cards=[];p.rev=false;p.st='';p.bet=0;});
+    G.phase = 'deal';
+    G.p.forEach(p => {
+        p.cards = [];
+        p.rev = false;
+        p.st = '';
+        p.bet = 0;
+    });
 
     // Place user bet
     G.p[3].bet = G.bet;
-    G.bal -= G.bet;
+
+    // Deduct bet from balance
+    if (!G.p[3].dealer) {
+        const newBal = safeNumber(G.bal) - G.bet;
+        setBalance(newBal, 'BET_PLACED');
+        sendToLobby('BET_DEDUCT', { amount: G.bet });
+    }
 
     // AI place bets
-    for(let i=0;i<3;i++){
-        if(i===G.bankerIndex)continue;
-        const aiBet = Math.floor(Math.random()*3+1)*Math.max(100, Math.floor(G.p[i].balance*0.1));
+    for (let i = 0; i < 3; i++) {
+        if (i === G.bankerIndex) continue;
+        const aiBet = Math.floor(Math.random() * 3 + 1) * Math.max(100, Math.floor(G.p[i].balance * 0.1));
         G.p[i].bet = Math.min(aiBet, G.p[i].balance);
         G.p[i].balance -= G.p[i].bet;
     }
@@ -1142,8 +2026,8 @@ async function deal(){
     render();
 
     // Deal 2 cards each
-    for(let r=0;r<2;r++){
-        for(let i=0;i<4;i++){
+    for (let r = 0; r < 2; r++) {
+        for (let i = 0; i < 4; i++) {
             G.p[i].cards.push(drawCards(1)[0]);
             sfx('deal');
             render();
@@ -1151,27 +2035,33 @@ async function deal(){
         }
     }
 
-    G.phase='play';
+    G.phase = 'play';
 
-   for(let i=0;i<4;i++){
-        if(isAutoStand(G.p[i].cards)){
-            G.p[i].st='playing';
-            G.p[i].rev=true;
+    // Check auto-stand for all players
+    for (let i = 0; i < 4; i++) {
+        if (isAutoStand(G.p[i].cards)) {
+            G.p[i].st = 'playing';
+            G.p[i].rev = true;
             
-            // ✅ Auto 8 or 9 Sound ထည့်မယ်
             var score = calculateScore(G.p[i].cards);
-            if(score === 8) {
-                playShanSound('autoeight'); // 👈 autoeight.mp3
-            } else if(score === 9) {
-                playShanSound('autonine'); // 👈 autonine.mp3
+            if (score === 8) {
+                playShanSound('autoeight');
+            } else if (score === 9) {
+                playShanSound('autonine');
             }
         }
     }
 
+    // ✅ CHECK: Banker Auto Win (8/9) - Skip everything
+    if (isBankerAutoWin()) {
+        await bankerAutoWin();
+        return;
+    }
+
     // Check if user is banker
-    if(G.p[3].dealer){
+    if (G.p[3].dealer) {
         banner('ဒိုင် အလှည့်ရောက်ပြီ! ကစားသမားများကို ဖမ်းပါ');
-        G.phase='banker';
+        G.phase = 'banker';
         showBtns('banker');
         await sleep(500);
         await aiPlayerTurns();
@@ -1179,10 +2069,10 @@ async function deal(){
     }
 
     // Check if user auto-stand
-    if(isAutoStand(G.p[3].cards)){
+    if (isAutoStand(G.p[3].cards)) {
         banner('သင် BAN! (8/9) အလိုအလျောက် တော်ပီ!');
-        G.p[3].st='playing';
-        G.p[3].rev=true;
+        G.p[3].st = 'playing';
+        G.p[3].rev = true;
         showBtns('play');
         await sleep(1000);
         await aiPlayerTurns();
@@ -1195,20 +2085,28 @@ async function deal(){
 }
 
 // ============================================
-// USER ACTIONS
+// USER ACTIONS - FIXED: Disable hit if banker auto win
 // ============================================
-function hit(){
+
+function hit() {
     var user = G.p[3];
-    if(!canDraw(user.cards, user.st === 'playing')){
+    
+    // ✅ Check if banker has auto win
+    if (isBankerAutoWin()) {
+        banner('ဒိုင် BAN! ဆွဲလို့မရပါ!');
+        return;
+    }
+    
+    if (!canDraw(user.cards, user.st === 'playing')) {
         banner('ဆွဲလို့မရပါ!');
         return;
     }
 
     user.cards.push(drawCards(1)[0]);
-    playShanSound('draw'); // sew.mp3
+    playShanSound('draw');
     render();
 
-    if(user.cards.length === 3){
+    if (user.cards.length === 3) {
         document.getElementById('btnHit').disabled = true;
         banner('3 ကဒ် ပြည့်ပြီ!');
     }
@@ -1216,68 +2114,68 @@ function hit(){
     showBtns('play');
 }
 
-function stand(){
-    G.p[3].st='playing';
-    G.p[3].rev=true;
+function stand() {
+    G.p[3].st = 'playing';
+    G.p[3].rev = true;
     playShanSound('noneed');
     banner('တော်ပီပါပြီ!');
     render();
     showBtns('play');
 
-    // If user is not banker, proceed to AI turns
-    if(!G.p[3].dealer){
-        setTimeout(async()=>{
+    if (!G.p[3].dealer) {
+        setTimeout(async () => {
             await aiPlayerTurns();
-        },500);
+        }, 500);
     }
 }
 
-function showAll(){
-    G.p.forEach(p=>p.rev=true);
-    render();
-}
+// ============================================
+// AI PLAYER TURNS - FIXED with banker auto check
+// ============================================
 
-// ============================================
-// AI PLAYER TURNS (non-banker)
-// ============================================
-async function aiPlayerTurns(){
+async function aiPlayerTurns() {
     // AI 1 & 2 turns
-    for(let i=1;i<=2;i++){
-        if(i===G.bankerIndex)continue;
+    for (let i = 1; i <= 2; i++) {
+        if (i === G.bankerIndex) continue;
         await sleep(500);
-        const p=G.p[i];
+        const p = G.p[i];
 
         // AI logic: draw if score < 5
-        while(canDraw(p.cards, p.st==='playing')){
-            const score=calculateScore(p.cards);
-            if(score<5){
+        while (canDraw(p.cards, p.st === 'playing')) {
+            const score = calculateScore(p.cards);
+            if (score < 5) {
                 p.cards.push(drawCards(1)[0]);
                 sfx('deal');
                 render();
                 await sleep(600);
-            }else if(score===5||score===6){
-                // 50% chance to draw
-                if(Math.random()>0.5){
+            } else if (score === 5 || score === 6) {
+                if (Math.random() > 0.5) {
                     p.cards.push(drawCards(1)[0]);
                     sfx('deal');
                     render();
                     await sleep(600);
-                }else{
+                } else {
                     break;
                 }
-            }else{
+            } else {
                 break;
             }
         }
-        p.st='playing';
-        p.rev=true;
+        p.st = 'playing';
+        p.rev = true;
         render();
     }
 
     // If user is banker, now it's their turn
-    if(G.p[3].dealer){
+    if (G.p[3].dealer) {
+        // ✅ Check if banker auto win again (after AI turns)
+        if (isBankerAutoWin()) {
+            await bankerAutoWin();
+            return;
+        }
+        
         banner('ဒိုင် အလှည့်ရောက်ပြီ! ကစားသမားများကို ဖမ်းပါ');
-        G.phase='banker';
+        G.phase = 'banker';
         showBtns('banker');
         return;
     }
@@ -1286,28 +2184,37 @@ async function aiPlayerTurns(){
     await sleep(500);
     await bankerTurn();
 }
+// ============================================
+// BANKER TURN - FIXED with auto check
+// ============================================
 
-// ============================================
-// BANKER TURN
-// ============================================
-async function bankerTurn(){
-    const banker=G.p[G.bankerIndex];
+async function bankerTurn() {
+    const banker = G.p[G.bankerIndex];
+
+    // ✅ Check auto win before drawing
+    if (isAutoStand(banker.cards)) {
+        banker.st = 'playing';
+        banker.rev = true;
+        render();
+        await settleRound();
+        return;
+    }
 
     // Banker might draw
-    while(canDraw(banker.cards, banker.st==='playing')){
-        const score=calculateScore(banker.cards);
-        if(score<5){
+    while (canDraw(banker.cards, banker.st === 'playing')) {
+        const score = calculateScore(banker.cards);
+        if (score < 5) {
             banker.cards.push(drawCards(1)[0]);
             sfx('deal');
             render();
             await sleep(600);
-        }else{
+        } else {
             break;
         }
     }
 
-    banker.st='playing';
-    banker.rev=true;
+    banker.st = 'playing';
+    banker.rev = true;
     render();
 
     await sleep(500);
@@ -1315,81 +2222,131 @@ async function bankerTurn(){
 }
 
 // ============================================
-// SETTLE ROUND
+// SETTLE ROUND - FIXED: Bonus multiplier for lose
 // ============================================
-async function settleRound(){
-    G.phase='result';
+
+async function settleRound() {
+    G.phase = 'result';
     showBtns('result');
 
-    const banker=G.p[G.bankerIndex];
-    const bankerScore=calculateScore(banker.cards);
+    const banker = G.p[G.bankerIndex];
+    const bankerScore = calculateScore(banker.cards);
 
     // Reveal all cards
-    G.p.forEach(p=>p.rev=true);
+    G.p.forEach(p => p.rev = true);
     render();
     await sleep(500);
 
-    let userWin=false;
-    let userLose=false;
+    let userWin = false;
+    let userLose = false;
+    let userDraw = false;
 
-    // Compare each player with banker
-    for(let i=0;i<4;i++){
-        if(i===G.bankerIndex)continue;
-        const player=G.p[i];
-        if(player.bet===0)continue;
+    for (let i = 0; i < 4; i++) {
+        if (i === G.bankerIndex) continue;
+        const player = G.p[i];
+        if (player.bet === 0) continue;
 
-        const result=compareHands(player.cards, banker.cards);
-        const bonus=getBonusMultiplier(player.cards);
-        const score=calculateScore(player.cards);
-        const scoreText=score===0?'10':score;
+        const result = compareHands(player.cards, banker.cards);
+        const bonus = getBonusMultiplier(player.cards);
+        const score = calculateScore(player.cards);
+        const scoreText = score === 0 ? '10' : score;
 
-        if(result==='win'){
-            player.st='win';
-            const winAmount=player.bet*bonus;
-            if(banker.balance>=winAmount){
-                player.balance+=player.bet+winAmount;
-                banker.balance-=winAmount;
-            }else{
-                player.balance+=banker.balance+player.bet;
-                banker.balance=0;
+        if (result === 'win') {
+            player.st = 'win';
+            const winAmount = player.bet * bonus;  // အမြတ် (လောင်းကြေးမပါ)
+            const totalReturn = player.bet + winAmount; // စုစုပေါင်း (လောင်းကြေး + အမြတ်)
+
+            // Banker pays win amount
+            if (banker.balance >= winAmount) {
+                banker.balance -= winAmount;
+            } else {
+                banker.balance = 0;
             }
-            if(player.user)userWin=true;
-            showResultOnCards(i,'win',scoreText);
-        }else if(result==='lose'){
-            player.st='lose';
-            banker.balance+=player.bet*bonus;
-            if(player.user)userLose=true;
-            showResultOnCards(i,'lose',scoreText);
-        }else{
-            player.st='draw';
-            player.balance+=player.bet; // Return bet
-            showResultOnCards(i,'tie',scoreText);
+
+            if (player.user) {
+                userWin = true;
+                // ✅ WIN: User gets back bet + win amount
+                const newBal = safeNumber(G.bal) + totalReturn;
+                setBalance(newBal, 'GAME_RESULT');
+
+                sendToLobby('GAME_WIN', {
+                    amount: winAmount,
+                    bet: player.bet,
+                    total: totalReturn
+                });
+                console.log('🏆 User wins! Bet:', player.bet, 'Win:', winAmount, 'Total back:', totalReturn);
+            }
+            showResultOnCards(i, 'win', scoreText);
+
+        } else if (result === 'lose') {
+            player.st = 'lose';
+            const loseAmount = player.bet * bonus;  // ✅ Total loss = bet * bonus
+
+            // ✅ FIXED: Banker collects full loseAmount (bet + bonus)
+            banker.balance += loseAmount;
+
+            if (player.user) {
+                userLose = true;
+                
+                // ✅ FIXED: Deduct extra loss from balance
+                // Bet already deducted in deal(), so deduct (bonus - 1) * bet more
+                const extraLoss = player.bet * (bonus - 1);
+                const newBal = safeNumber(G.bal) - extraLoss;
+                setBalance(newBal, 'GAME_RESULT');
+
+                sendToLobby('GAME_LOSE', {
+                    bet: player.bet,
+                    bonus: bonus,           // ✅ Bonus multiplier
+                    totalLoss: loseAmount,   // ✅ Total loss amount
+                    extraLoss: extraLoss,    // ✅ Extra beyond initial bet
+                    amount: extraLoss        // ✅ Amount to deduct from balance
+                });
+                console.log('💀 User loses! Bonus:', bonus + 'x', 'Total Loss:', loseAmount, 'Extra:', extraLoss);
+            }
+            showResultOnCards(i, 'lose', scoreText);
+
+        } else {
+            // TIE
+            player.st = 'draw';
+
+            if (player.user && !player.dealer) {
+                userDraw = true;
+                // ✅ DRAW: Return the bet
+                const newBal = safeNumber(G.bal) + player.bet;
+                setBalance(newBal, 'GAME_RESULT');
+
+                sendToLobby('GAME_DRAW', {
+                    bet: player.bet,
+                    amount: player.bet
+                });
+                console.log('🤝 User draw! Returning bet:', player.bet);
+            }
+            showResultOnCards(i, 'tie', scoreText);
         }
     }
 
     render();
 
-    // Animation
-    if(userWin){
-       playShanSound('win');
-        sfx('win');
+    // Animation & Sound
+    if (userWin) {
+        playShanSound('win');
         banner('🎉 သင် နိုင်ပါသည်!');
         await animWin(3);
-    }else if(userLose){
-        sfx('lose');
+    } else if (userLose) {
+        playShanSound('lose');
         banner('😢 သင် ရှုံးပါသည်');
         await animLose();
-    }else{
+    } else if (userDraw) {
+        playShanSound('draw');
+        banner('🤝 သရေကျပါသည်');
+    } else {
         banner('ပွဲပြီးပါပြီ!');
     }
 
     await sleep(1000);
-
-    // Check banker status
     checkBankerStatus();
-    upd();
+    forceUpdateUI();
 }
-
 
 // ============================================
 // BANKER STATUS / WAN TIN
@@ -1406,6 +2363,8 @@ function checkBankerStatus(){
         banner('💥 ဒိုင်ငွေကုန်သွားပြီ! ဒိုင်ပြောင်းပါသည်...');
         playShanSound('lose');
         sfx('lose');
+        // ✅ User ဒိုင်ဆိုရင် - 0 ငွေပြန် (လက်ကျန်မရှိ)
+        // changeBanker() ထဲမှာ RETURN_BANKER_BALANCE ပို့ပေးလိမ့်မယ် (0)
         setTimeout(() => {
             changeBanker();
         }, 1500);
@@ -1422,6 +2381,9 @@ function checkBankerStatus(){
             // Wan Tin Badge ဖျက်
             const wtBadge = document.getElementById('wanTinBadge');
             wtBadge.style.display = 'none';
+
+            // ✅ User ဒိုင်ဆိုရင် - wan tin 3 ပြီးရင် လက်ကျန်ငွေ lobby ထဲ ပြန်ထည့်
+            // changeBanker() ထဲမှာ RETURN_BANKER_BALANCE ပို့ပေးလိမ့်မယ်
 
             setTimeout(() => {
                 changeBanker();
@@ -1454,52 +2416,66 @@ function checkBankerStatus(){
         }
     }
 
-    upd();
+    forceUpdateUI();
     updateBankerBadge();
 }
+// ============================================
+// ✅ FIXED: Change Banker (balance transfer)
+// ============================================
 
-// ============================================
-// CHANGE BANKER
-// ============================================
-function changeBanker(){
-    // ၁။ ဒိုင်အဟောင်းကို ရှာပြီး ဖယ်
+function changeBanker() {
     const oldBankerIndex = G.bankerIndex;
+    const oldBanker = G.p[oldBankerIndex];
+
+    // Return remaining bank balance to user
+    if (oldBanker.user) {
+        const remainingBank = oldBanker.balance || 0;
+        if (remainingBank > 0) {
+            console.log('💰 User banker remaining:', remainingBank, '→ lobby');
+            sendToLobby('RETURN_BANKER_BALANCE', { amount: remainingBank });
+            // Lobby will send SYNC_BALANCE with updated amount
+        }
+    }
+
     G.p[oldBankerIndex].dealer = false;
     G.p[oldBankerIndex].isBanker = false;
 
-    // ၂။ ဒိုင်အသစ်ရွေး (တစ်ဆင့်ချင်း)
+    // Select new banker
     let newBankerIndex = (oldBankerIndex + 1) % 4;
     G.bankerIndex = newBankerIndex;
 
-    // ၃။ ဒိုင်အသစ်ကို သတ်မှတ်
     G.p[newBankerIndex].dealer = true;
     G.p[newBankerIndex].isBanker = true;
+
+    // Deduct banker fund from user
+    if (G.p[newBankerIndex].user) {
+        console.log('💰 User became banker - 30K deducted from lobby');
+        sendToLobby('DEDUCT_BANKER_FUND', { amount: 30000 });
+        // Lobby will send SYNC_BALANCE with deducted amount
+    }
+
     G.p[newBankerIndex].balance = 30000;
     G.originalBank = 30000;
     G.wanTinRound = 0;
 
-    console.log('🔄 ဒိုင်ပြောင်းပါပြီ!');
-    console.log('👤 ဒိုင်အဟောင်း:', oldBankerIndex, '→ ဒိုင်အသစ်:', newBankerIndex);
-    console.log('📊 ဒိုင်ငွေ:', G.p[newBankerIndex].balance);
+    console.log('🔄 Banker changed:', oldBankerIndex, '→', newBankerIndex);
 
-    // ✅ ဒိုင်ပြောင်းသံ
     playShanSound('change');
     sfx('deal');
 
-    // ၄။ UI ကို Update
     updateAvatars();
     updateBankerBadge();
 
-    // ၅။ ကဒ်တွေနဲ့ Chip တွေရှင်း
-    for(let i = 0; i < 4; i++) {
+    // Clear cards and chips
+    for (let i = 0; i < 4; i++) {
         document.getElementById('cards' + i).innerHTML = '';
         document.getElementById('chips' + i).innerHTML = '';
         const area = document.getElementById('area' + i);
         const oldResult = area.querySelector('.card-result');
-        if(oldResult) oldResult.remove();
+        if (oldResult) oldResult.remove();
     }
 
-    // ၆။ ကစားသမားအားလုံးကို reset
+    // Reset players
     G.p.forEach(p => {
         p.cards = [];
         p.rev = false;
@@ -1511,16 +2487,14 @@ function changeBanker(){
     G.bet = 0;
     showBtns('bet');
     render();
-    upd();
+    forceUpdateUI();
 
-    // ✅ ဒိုင်အသစ်နှုတ်ဆက်သံ (၁.၅ စက္ကန့်နောက်ကျမှထွက်)
     setTimeout(() => {
         playShanSound('good');
     }, 1500);
 
     banner('🔄 ဒိုင်ပြောင်းပါပြီ! ဒိုင်: ' + G.p[newBankerIndex].name);
 }
-
 
 // ============================================
 // UPDATE AVATARS (ဒိုင်ပြောင်းတဲ့အခါ Avatar ပြန်ဆွဲ)
@@ -1581,121 +2555,42 @@ function updateBankerBadge() {
 // NEW GAME
 // ============================================
 function newGame(){
-    if(G.bal<=0){
+    if(G.bal <= 0){
         banner('ငွေ မလုံလောက်ပါ!');
         return;
     }
+    
+    G.phase = 'bet';
+    G.bet = 0;
+    G.p.forEach(function(p) {
+        p.cards = [];
+        p.rev = false;
+        p.st = '';
+        p.bet = 0;
+    });
 
-    G.phase='bet';
-    G.bet=0;
-    G.p.forEach(p=>{p.cards=[];p.rev=false;p.st='';p.bet=0;});
-
-    for(let i=0;i<4;i++){
-        document.getElementById('chips'+i).innerHTML='';
-        const area=document.getElementById('area'+i);
-        const oldResult=area.querySelector('.card-result');
-        if(oldResult)oldResult.remove();
+    for(var i = 0; i < 4; i++){
+        document.getElementById('chips' + i).innerHTML = '';
+        var area = document.getElementById('area' + i);
+        var oldResult = area.querySelector('.card-result');
+        if(oldResult) oldResult.remove();
     }
 
     showBtns('bet');
-    render();
+    render(); // ✅ render() ထဲမှာ upd() ရှိပြီးသား
     banner('Chips တင်ပြီး ဖဲဝေပါ');
-}
-// ============================================
-// POSTMESSAGE HANDLING (Lobby Communication)
-// ============================================
-
-// ===== Receive messages from Lobby =====
-window.addEventListener('message', function(event) {
-    var data = event.data;
-    
-    // Log all messages for debugging
-    console.log('📨 Card Game received:', data);
-    
-    if (!data || typeof data !== 'object') return;
-    
-    // 1. Balance Sync
-    if (data.type === 'SYNC_BALANCE') {
-        if (data.balance !== undefined && data.balance !== null) {
-            var newBalance = parseFloat(String(data.balance).replace(/,/g, '')) || 0;
-            if (newBalance > 0) {
-                G.bal = newBalance;
-                upd();
-                console.log('💰 Balance synced:', G.bal);
-            }
-        }
-    }
-    
-    // 2. Play Sound (from Lobby or other games)
-    if (data.type === 'PLAY_SOUND') {
-        console.log('🔊 Sound requested:', data.sound);
-        // ဒီဂိမ်းက သူ့ဘာသာ Sound မထွက်ဘူး
-        // Lobby က SoundManager ကိုပဲ ခေါ်တယ်
-        if (window.parent && window.parent !== window) {
-            window.parent.postMessage({
-                type: 'PLAY_SOUND',
-                sound: data.sound
-            }, '*');
-        }
-    }
-    
-    // 3. Go Lobby
-    if (data.type === 'GO_LOBBY') {
-        console.log('🚪 Going to lobby...');
-        if (window.parent && window.parent !== window) {
-            window.parent.postMessage({ type: 'GO_LOBBY' }, '*');
-        }
-    }
-    
-    // 4. Other commands
-    if (data.type === 'RESET_GAME') {
-        console.log('🔄 Resetting game...');
-        newGame();
-    }
-});
-
-// ===== Send messages to Lobby =====
-function sendToLobby(type, data) {
-    if (window.parent && window.parent !== window) {
-        var message = { type: type };
-        if (data) {
-            Object.keys(data).forEach(function(key) {
-                message[key] = data[key];
-            });
-        }
-        window.parent.postMessage(message, '*');
-        console.log('📤 Sent to Lobby:', message);
-    }
-}
-
-// ===== Go Lobby =====
-function goLobby() {
-    console.log('🚪 Going to lobby...');
-    if (window.parent && window.parent !== window) {
-        window.parent.postMessage({
-            type: 'GO_LOBBY'
-        }, '*');
-    } else {
-        // Fallback
-        window.location.href = 'index.html';
-    }
-}
-
-// ===== Sync balance to Lobby (when needed) =====
-function syncBalanceToLobby() {
-    sendToLobby('SYNC_BALANCE', { balance: G.bal });
 }
 
 // ============================================
 // INIT
 // ============================================
-document.addEventListener('DOMContentLoaded',()=>{
-    // ✅ preloadShanSounds() ကိုဖယ်ပါ
+document.addEventListener('DOMContentLoaded', () => {
     shuffleDeck();
     showBtns('bet');
     render();
-    upd();
-    console.log('🎮 Shan Koe Mee Started!');
+    forceUpdateUI();
+    
+    console.log('🎮 Shan Koe Mee Started! Balance:', G.bal);
 });
 
 </script>

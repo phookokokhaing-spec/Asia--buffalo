@@ -1292,10 +1292,10 @@
 <script> 
 
 
-// ============================================
-// SHARED FUNCTIONS - 3i frame အတွက် 
-// ============================================
 
+// ============================================
+// SHARED FUNCTIONS - 3i frame အတွက်
+// ============================================                                                                                        
 function safeNumber(value) {
     if (value === undefined || value === null) return 0;
     if (typeof value === 'number' && !isNaN(value)) return value;
@@ -1308,22 +1308,32 @@ function safeNumber(value) {
     return num;
 }
 
-function updateLobbyBalance(newBalance) {
+// ============================================
+// ✅ FIXED: updateLobbyBalance - Don't send SYNC_BALANCE to game
+// ============================================
+function updateLobbyBalance(newBalance, source = 'unknown') {
     let safeBalance = safeNumber(newBalance);
     if (isNaN(safeBalance)) {
         console.error('❌ Attempted to update lobby with NaN! Ignoring...');
         return false;
     }
+    
     let formattedBalance = safeBalance.toLocaleString();
     const lobbyElem = document.getElementById('lobbyBalance');
     if (lobbyElem) lobbyElem.innerText = formattedBalance;
+    
     const gameElem = document.getElementById('balanceAmount');
     if (gameElem) gameElem.innerText = formattedBalance;
+    
     if (window.gameState) {
         window.gameState.balance = safeBalance;
-        window.gameState.displayBalance = safeBalance;
     }
-    if (typeof updateUI === 'function') updateUI(safeBalance);
+    
+    // ✅ FIXED: Don't call updateUI() - it sends SYNC_BALANCE to game
+    // This causes race condition with game already managing its own balance
+    // if (typeof updateUI === 'function') updateUI(safeBalance);  // ❌ REMOVE THIS
+    
+    // ✅ Only update local storage and Firebase
     const currentUser = localStorage.getItem('currentUser');
     if (currentUser) {
         const user = JSON.parse(currentUser);
@@ -1332,23 +1342,56 @@ function updateLobbyBalance(newBalance) {
         if (window.db && user.uid) {
             window.db.collection('users').doc(user.uid).update({
                 balance: safeBalance,
-                displayBalance: safeBalance
             }).catch(e => console.warn('Firebase update error:', e));
         }
     }
+    
+    console.log('💰 Lobby Balance Updated:', safeBalance, '| Source:', source);
     return true;
 }
 
+// ============================================
+// ✅ FIXED: getCurrentBalance - Check multiple sources
+// ============================================
 function getCurrentBalance() {
+    // 1. Check gameState first (most reliable)
     if (window.gameState && typeof window.gameState.balance === 'number' && !isNaN(window.gameState.balance)) {
         return window.gameState.balance;
     }
+    
+    // 2. Check lobby element
     const lobbyElem = document.getElementById('lobbyBalance');
     if (lobbyElem) {
         let rawText = lobbyElem.innerText || '0';
-        return safeNumber(rawText);
+        let parsed = safeNumber(rawText);
+        if (parsed > 0) return parsed;
     }
+    
+    // 3. Check localStorage
+    const currentUser = localStorage.getItem('currentUser');
+    if (currentUser) {
+        const user = JSON.parse(currentUser);
+        if (user.balance !== undefined) {
+            return safeNumber(user.balance);
+        }
+    }
+    
+    // 4. Default fallback
     return 10000;
+}
+
+// ============================================
+// ✅ NEW: Send balance to game iframe only when needed
+// ============================================
+function syncBalanceToGame(balance) {
+    const gameFrame = document.getElementById('gameFrame');
+    if (gameFrame && gameFrame.contentWindow) {
+        gameFrame.contentWindow.postMessage({
+            type: 'SYNC_BALANCE',
+            balance: safeNumber(balance)
+        }, '*');
+        console.log('📤 SYNC_BALANCE sent to game:', balance);
+    }
 }
 
 // ========== JACKPOT GAME ==========
@@ -1406,7 +1449,7 @@ function closeMegaWaysGame() {
 }
 
 
-     // ============================================
+ // ============================================
 // CARD GAME - LOBBY INTEGRATION (Three Card Poker)
 // ============================================
 
@@ -1451,56 +1494,159 @@ function closeCardGame() {
     if (lobbyScreen) lobbyScreen.style.display = 'block';
 }
 
-// ========== SINGLE MESSAGE LISTENER (ထပ်မခံရအောင် တစ်ခုတည်း) ==========
+// ========== SINGLE MESSAGE LISTENER ==========
 window.addEventListener('message', function(event) {
     const data = event.data;
     console.log('📨 Lobby received:', data);
 
     if (!data || !data.type) return;
 
-    let currentBalance, winAmount, betAmount, newBalance;
+    let currentBalance, winAmount, betAmount, newBalance, totalAmount;
 
     switch (data.type) {
-        case 'WIN_AMOUNT':
+          //=======================================
+          //BACK-TOLOBBY
+          //=========================================
+            case 'GO_LOBBY':
+            // Hide card game, show lobby
+            document.getElementById('cardGameContainer').style.display = 'none';
+            document.getElementById('lobbyScreen').style.display = 'block';
+            console.log('🚪 Lobby shown');
+            break;
+            
+        // ============================================
+        // GAME_WIN - Shan Koe Mee အတွက်
+        // ============================================
+        case 'GAME_WIN':
             currentBalance = getCurrentBalance();
-            winAmount = safeNumber(data.amount);
-            newBalance = currentBalance + winAmount;
-            console.log(`💰 WIN: ${currentBalance} + ${winAmount} = ${newBalance}`);
-            updateLobbyBalance(newBalance);
+            totalAmount = safeNumber(data.total) || safeNumber(data.amount) || 0;
+            newBalance = currentBalance + totalAmount;
+            console.log(`🃏 GAME WIN (Shan): ${currentBalance} + ${totalAmount} = ${newBalance}`);
+            updateLobbyBalance(newBalance, 'GAME_WIN');
+
             if (typeof updateUserBalanceInStorage === 'function') updateUserBalanceInStorage();
-            showWinNotification(winAmount, data.game);
+            showWinNotification(totalAmount, 'ရှမ်းကိုးမီး');
             break;
 
+       // ============================================
+// GAME_LOSE - FIXED: Handle bonus multiplier
+// ============================================
+case 'GAME_LOSE':
+    currentBalance = getCurrentBalance();
+    betAmount = safeNumber(data.bet) || 0;
+    bonus = safeNumber(data.bonus) || 1;
+    extraLoss = safeNumber(data.extraLoss) || 0;
+    
+    // ✅ Deduct extra loss from balance (beyond initial bet)
+    newBalance = currentBalance - extraLoss;
+    if (newBalance < 0) newBalance = 0;
+    
+    console.log(`🃏 GAME LOSE (Shan) ${bonus}x: ${currentBalance} - ${extraLoss} = ${newBalance}`);
+    updateLobbyBalance(newBalance, 'GAME_LOSE');
+    
+    if (typeof updateUserBalanceInStorage === 'function') updateUserBalanceInStorage();
+    break;
+
+
+        // ============================================
+        // GAME_DRAW - Shan Koe Mee အတွက် (1 ခါပဲ)
+        // ============================================
+        case 'GAME_DRAW':
+            currentBalance = getCurrentBalance();
+            returnAmount = safeNumber(data.amount) || safeNumber(data.bet) || 0;
+            newBalance = currentBalance + returnAmount;
+            console.log(`🃏 GAME DRAW (Shan): ${currentBalance} + ${returnAmount} = ${newBalance}`);
+            updateLobbyBalance(newBalance, 'GAME_DRAW');
+
+            if (typeof updateUserBalanceInStorage === 'function') updateUserBalanceInStorage();
+            break;
+
+        // ============================================
+        // WIN_AMOUNT - တခြားဂိမ်းတွေအတွက် (Jackpot, Mega Ways, etc.)
+        // ============================================
+        case 'WIN_AMOUNT':
+            currentBalance = getCurrentBalance();
+            totalAmount = safeNumber(data.total) || safeNumber(data.amount) || 0;
+            newBalance = currentBalance + totalAmount;
+            console.log(`🎰 WIN_AMOUNT (Other): ${currentBalance} + ${totalAmount} = ${newBalance}`);
+            updateLobbyBalance(newBalance, 'WIN_AMOUNT');
+
+            if (typeof updateUserBalanceInStorage === 'function') updateUserBalanceInStorage();
+            let gameName = data.gameName || 'ဂိမ်း';
+            showWinNotification(totalAmount, gameName);
+            break;
+
+        // ============================================
+        // BET_DEDUCT - တခြားဂိမ်းတွေအတွက်
+        // ============================================
         case 'BET_DEDUCT':
             currentBalance = getCurrentBalance();
             betAmount = safeNumber(data.amount);
             newBalance = currentBalance - betAmount;
             if (newBalance < 0) newBalance = 0;
-            console.log(`💸 BET: ${currentBalance} - ${betAmount} = ${newBalance}`);
-            updateLobbyBalance(newBalance);
+            console.log(`🎰 BET_DEDUCT (Other): ${currentBalance} - ${betAmount} = ${newBalance}`);
+            updateLobbyBalance(newBalance, 'BET_DEDUCT');
+
             if (typeof updateUserBalanceInStorage === 'function') updateUserBalanceInStorage();
             break;
-         // Chip ပျံတဲ့ effect
-        const loserPos = { x: 100, y: 100 };
-        const winnerPos = { x: 500, y: 500 };
-         for(let i = 0; i < 10; i++) {
-        setTimeout(() => createFlyingChip(loserPos, winnerPos), i * 80);
-      }
-      break;
-      case 'REQUEST_BALANCE':
-    currentBalance = getCurrentBalance();
-    let targetIframe = null;
-    if (data.game === 'jackpot') targetIframe = jackpotIframe;
-    else if (data.game === 'megaWays') targetIframe = megaWaysIframe;
-    else if (data.game === 'cardGame') targetIframe = cardGameIframe;
 
-    if (targetIframe && targetIframe.contentWindow) {
-        targetIframe.contentWindow.postMessage({ type: 'SYNC_BALANCE', balance: currentBalance }, '*');
-    }
-    break;
-    
+        // ============================================
+        // RETURN BANKER BALANCE
+        // ============================================
+        case 'RETURN_BANKER_BALANCE':
+            currentBalance = getCurrentBalance();
+            let returnBankAmount = safeNumber(data.amount) || 0;
+            newBalance = currentBalance + returnBankAmount;
+            console.log(`🃏 RETURN BANKER: ${currentBalance} + ${returnBankAmount} = ${newBalance}`);
+            updateLobbyBalance(newBalance, 'RETURN_BANKER');
+            break;
+
+        // ============================================
+        // DEDUCT BANKER FUND
+        // ============================================
+        case 'DEDUCT_BANKER_FUND':
+            currentBalance = getCurrentBalance();
+            let deductBankAmount = safeNumber(data.amount) || 30000;
+            newBalance = currentBalance - deductBankAmount;
+            if (newBalance < 0) newBalance = 0;
+            console.log(`🃏 DEDUCT BANKER: ${currentBalance} - ${deductBankAmount} = ${newBalance}`);
+            updateLobbyBalance(newBalance, 'DEDUCT_BANKER');
+            break;
+
+        // ============================================
+        // REQUEST_BALANCE
+        // ============================================
+        case 'REQUEST_BALANCE':
+            currentBalance = getCurrentBalance();
+            let targetIframe = null;
+            if (data.game === 'jackpot') targetIframe = jackpotIframe;
+            else if (data.game === 'megaWays') targetIframe = megaWaysIframe;
+            else if (data.game === 'cardGame') targetIframe = cardGameIframe;
+
+            if (targetIframe && targetIframe.contentWindow) {
+                targetIframe.contentWindow.postMessage({
+                    type: 'SYNC_BALANCE',
+                    balance: currentBalance
+                }, '*');
+            }
+            break;
     }
 });
+
+// ============================================
+// LOSE NOTIFICATION
+// ============================================
+function showLoseNotification(amount, gameType = '') {
+    let safeAmount = safeNumber(amount);
+    let message = gameType === 'ရှမ်းကိုးမီး' 
+        ? `😢 ရှမ်းကိုးမီးမှ ${safeAmount.toLocaleString()} KS ရှုံးပါသည်!`
+        : `😢 ${gameType} မှ ${safeAmount.toLocaleString()} KS ရှုံးပါသည်!`;
+    const notif = document.createElement('div');
+    notif.innerText = message;
+    notif.style.cssText = 'position:fixed;top:20%;left:50%;transform:translateX(-50%);background:#ff4444;color:#fff;padding:12px 24px;border-radius:50px;font-weight:bold;z-index:40001;font-size:16px;box-shadow:0 0 20px rgba(255,68,68,0.5);white-space:nowrap';
+    document.body.appendChild(notif);
+    setTimeout(() => notif.remove(), 3000);
+}
 
 function showWinNotification(amount, gameType = '') {
     let safeAmount = safeNumber(amount);
