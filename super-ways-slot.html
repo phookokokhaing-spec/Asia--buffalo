@@ -9,6 +9,7 @@
     <meta name="theme-color" content="#000000">
     <meta name="description" content="1024 Ways Buffalo Slot Game - 1024လမ်းကြောင်းနဲ့ အနိုင်ရသည့် ဂိမ်း">
     <title>🎰 SupperWays-ဂိမ်း</title>
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
 
@@ -1309,9 +1310,11 @@ input, textarea {
 /* ===== ORIENTATION WARNING - CASINO STYLE ===== */
 .orientation-warning {
     position: fixed;
-    top: 0; left: 0;
-    width: 100vw; height: 100vh;
-    z-index: 99999;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 999999;
     display: none;
     align-items: center;
     justify-content: center;
@@ -1325,24 +1328,26 @@ input, textarea {
 /* Animated background */
 .warning-bg {
     position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: 
-        radial-gradient(ellipse at center, #1a0a2e 0%, #0d0221 50%, #050110 100%);
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(ellipse at center, #1a0a2e 0%, #0d0221 50%, #050110 100%);
 }
 
 .warning-bg::before {
     content: '';
     position: absolute;
-    top: -50%; left: -50%;
-    width: 200%; height: 200%;
-    background: 
-        repeating-conic-gradient(
-            from 0deg,
-            transparent 0deg,
-            rgba(255, 215, 0, 0.03) 10deg,
-            transparent 20deg
-        );
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: repeating-conic-gradient(
+        from 0deg,
+        transparent 0deg,
+        rgba(255, 215, 0, 0.05) 10deg,
+        transparent 20deg
+    );
     animation: rotateBg 20s linear infinite;
 }
 
@@ -1355,8 +1360,25 @@ input, textarea {
 .warning-content {
     position: relative;
     text-align: center;
-    padding: 50px 40px;
+    padding: 40px 30px;
     z-index: 2;
+}
+
+.warning-content h2 {
+    color: #ffd700;
+    font-size: clamp(20px, 5vw, 36px);
+    font-weight: 900;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+    margin: 15px 0 10px;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.warning-content p {
+    color: #aaccdd;
+    font-size: clamp(14px, 3vw, 20px);
+    font-weight: 400;
+    opacity: 0.8;
+    font-family: 'Segoe UI', system-ui, sans-serif;
 }
 
 /* Phone icon with rotation */
@@ -1367,22 +1389,22 @@ input, textarea {
     justify-content: center;
     width: 100px;
     height: 100px;
-    margin-bottom: 25px;
+    margin-bottom: 20px;
 }
 
 .phone-icon .fa-mobile-alt {
     font-size: 60px;
     color: #ffd700;
-    text-shadow: 
-        0 0 20px rgba(255, 215, 0, 0.6),
-        0 0 40px rgba(255, 215, 0, 0.3);
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.6), 0 0 40px rgba(255, 215, 0, 0.3);
     animation: phoneShake 2s ease-in-out infinite;
 }
 
 .rotate-arrow {
     position: absolute;
-    top: -10px; right: -10px;
-    width: 36px; height: 36px;
+    top: -5px;
+    right: -5px;
+    width: 36px;
+    height: 36px;
     background: linear-gradient(135deg, #ff4444, #cc0000);
     border: 2px solid #ffd700;
     border-radius: 50%;
@@ -1408,54 +1430,6 @@ input, textarea {
     0%, 100% { transform: rotate(0deg); }
     50% { transform: rotate(180deg); }
 }
-
-/* Heading */
-.warning-content h2 {
-    font-size: 26px;
-    font-weight: 900;
-    color: #ffd700;
-    text-shadow: 
-        0 0 20px rgba(255, 215, 0, 0.5),
-        0 2px 4px rgba(0,0,0,0.8);
-    margin-bottom: 15px;
-    letter-spacing: 2px;
-}
-
-/* Decorative line */
-.warning-line {
-    width: 80px;
-    height: 3px;
-    background: linear-gradient(90deg, transparent, #ffd700, transparent);
-    margin: 0 auto 15px;
-    border-radius: 2px;
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-}
-
-/* Sub text */
-.warning-content p {
-    font-size: 16px;
-    color: rgba(255, 255, 255, 0.8);
-    text-shadow: 0 1px 3px rgba(0,0,0,0.5);
-    line-height: 1.6;
-}
-
-/* Glow effect behind */
-.warning-glow {
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 300px; height: 300px;
-    background: radial-gradient(circle, rgba(255, 215, 0, 0.1) 0%, transparent 70%);
-    border-radius: 50%;
-    z-index: -1;
-    animation: glowPulse 3s ease-in-out infinite;
-}
-
-@keyframes glowPulse {
-    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
-    50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.8; }
-}
-
 /* ===== RESPONSIVE ===== */
 @media (max-width: 400px) {
     .warning-content {
@@ -1483,14 +1457,20 @@ input, textarea {
    </style>
 </head>
 <body>
-         <!-- Orientation Warning -->
-    <div class="orientation-warning" id="orientationWarning">  
-        <div class="warning-content">  
-            <i class="fas fa-mobile-alt"></i>  
-            <h2>ကျေးဇူးပြု၍ ဖုန်းကို ဘေးတိုက်လှန်ပါ</h2>  
-            <p>ဒီဂိမ်းကို Landscape Mode နဲ့သာ ကစားနိုင်ပါသည်</p>  
-        </div>  
+      <!-- Orientation Warning -->
+<div class="orientation-warning" id="orientationWarning">
+    <div class="warning-bg"></div>
+    <div class="warning-content">
+        <div class="phone-icon">
+            <i class="fas fa-mobile-alt"></i>
+            <div class="rotate-arrow">
+                <i class="fas fa-redo"></i>
+            </div>
+        </div>
+        <h2>📱 ကျေးဇူးပြု၍ ဖုန်းကို ဘေးတိုက်လှန်ပါ</h2>
+        <p>ဒီဂိမ်းကို Landscape Mode နဲ့သာ ကစားနိုင်ပါသည်</p>
     </div>
+</div>
 
     <div id="game-container">
 
@@ -1639,23 +1619,6 @@ input, textarea {
     <!-- ===== FULL SCREEN API ===== -->
     <script>
 
-function checkOrientation() {
-    const warning = document.getElementById('orientationWarning');
-    if (!warning) return;
-
-    if (document.body.classList.contains('wallet-open')) {
-        warning.classList.remove('active');
-        return;
-    }
-    
-    // Portrait mode = show warning
-    if (window.innerHeight > window.innerWidth) {
-        warning.classList.add('active');
-    } else {
-        warning.classList.remove('active');
-    }
-}
-
 
  // ============================================
 // LOBBY COMMUNICATION
@@ -1723,27 +1686,24 @@ const IMAGE_PATHS = {
     'coin': 'images/sym_coin.png'
 };
 
-// ---- Paytable (Real Casino Style - Buffalo starts at 2) ----
-const PAYTABLE = {
-    // ★ Buffalo က 2 လုံးကနေ စပေးတယ် ★
-    'buffalo': {2: 10, 3: 50, 4: 100, 5: 250},
-    
-    // ကျန်တဲ့ တိရစ္ဆာန်တွေက 3 လုံးကနေ စပေးတယ်
-    'lion':    {3: 10, 4: 20, 5: 150},
-    'ele':     {3: 5,  4: 20, 5: 100},
-    'zebra':   {3: 5,  4: 10, 5: 80},
-    'deer':    {3: 3,  4: 10, 5: 80},
-    
-    // စာလုံးများ (3 လုံးကနေ စ)
-    'a':       {3: 5,  4: 10, 5: 80},
-    'k':       {3: 5,  4: 10, 5: 60},
-    'q':       {3: 5,  4: 10, 5: 60},
-    'j':       {3: 3,  4: 4,  5: 50},
-    'ten':     {3: 3,  4: 4,  5: 50},
-    'coin':    {3: 3,  4: 4,  5: 50},
-    'nine':    {3: 3,  4: 4,  5: 50}
-};
 
+// ============================================
+// PAYTABLE (HARD MODE)
+// ============================================
+const PAYTABLE = {
+    'buffalo': {2: 2,  3: 8,  4: 15, 5: 30},
+    'lion':    {3: 2,  4: 5,  5: 15},
+    'ele':     {3: 1,  4: 3,  5: 10},
+    'zebra':   {3: 1,  4: 2,  5: 8},
+    'deer':    {3: 1,  4: 2,  5: 5},
+    'a':       {3: 1,  4: 1,  5: 4},
+    'k':       {3: 1,  4: 1,  5: 3},
+    'q':       {3: 1,  4: 1,  5: 2},
+    'j':       {3: 1,  4: 1,  5: 2},
+    'ten':     {3: 1,  4: 1,  5: 1},
+    'coin':    {3: 1,  4: 1,  5: 1},
+    'nine':    {3: 1,  4: 1,  5: 1}
+};
 // ---- Scatter Rewards ----
 const SCATTER_REWARDS = {3: {spins: 10, multiplier: 2}, 4: {spins: 15, multiplier: 3}, 5: {spins: 20, multiplier: 5}};
 
@@ -1778,22 +1738,22 @@ let state = {
 const REELS = 5;
 const ROWS = 4;
 
-
 // ============================================
-// SCALE ROTATION CONFIG (No Ch1 Limit)
+// SCALE CYCLE (Hard House Edge)
 // ============================================
 const SCALE_CYCLE = {
     rounds: [
-        { normal: 4, ch1: 7, ch2: 10, ch3: 1, ch4: 1 },
-        { normal: 3,  ch1: 5, ch2: 10, ch3: 2,  ch4: 2 },
-        { normal: 2,  ch1: 4, ch2: 9,  ch3: 3,  ch4: 4 },
-        { normal: 1,  ch1: 8, ch2: 8,  ch3: 4,  ch4: 3 },
-        { normal: 1,  ch1: 10, ch2: 7,  ch3: 2,  ch4: 2 }
+        { normal: 1, ch1: 15, ch2: 5, ch3: 1, ch4: 1 },
+        { normal: 2, ch1: 12, ch2: 3, ch3: 1, ch4: 1 },
+        { normal: 2, ch1: 10, ch2: 4, ch3: 2, ch4: 1 },
+        { normal: 1, ch1: 14, ch2: 2, ch3: 1, ch4: 1 },
+        { normal: 2, ch1: 11, ch2: 3, ch3: 2, ch4: 1 }
     ],
     currentRound: 0,
-    currentPhase: 'normal', // normal → ch1 → ch2 → ch3 → ch4
+    currentPhase: 'normal',
     phaseSpins: 0
 };
+
 
 const SCALE_CHECKS = {
     Ch1: { name: 'Ch1', reel1: 0, reel2: 1, userCanWin: false },
@@ -1805,19 +1765,36 @@ const SCALE_CHECKS = {
 // ============================================
 // GET USER WIN REELS (Based on check type)
 // ============================================
+
 function getUserWinReels(check) {
-    if (check.name === 'Ch4') return [4];
-    if (check.name === 'Ch3') return [4];
-    if (check.name === 'Ch2') return [0, 1, 2];
-    return [];
+    if (check.name === 'Ch1') return [];         // No wins
+    if (check.name === 'Ch2') return [0, 1];     // Win on 0,1
+    if (check.name === 'Ch3') return [4];        // Win on 4
+    if (check.name === 'Ch4') return [4];        // Win on 4
+    return [0, 1, 2, 3, 4];  // Normal
 }
 
 // ============================================
-// WEIGHTS
+// WEIGHTS (Hard - Less Buffalo/Wild)
 // ============================================
-const WEIGHTS = {'buffalo': 1, 'ele': 2, 'lion': 2, 'zebra': 3, 'deer': 3, 'a': 4, 'k': 4, 'q': 4, 'j': 4, 'ten': 5, 'nine': 5, 'coin': 5, 'wild': 2, 'scatter': 1};
+const WEIGHTS = {
+    'buffalo': 1,   // Rare
+    'ele': 2, 
+    'lion': 2, 
+    'zebra': 3, 
+    'deer': 3, 
+    'a': 4, 
+    'k': 4, 
+    'q': 4, 
+    'j': 4, 
+    'ten': 5, 
+    'nine': 5, 
+    'coin': 5, 
+    'wild': 1,      // Rare (was 2)
+    'scatter': 1    // Rare
+};
 
-const WIN_DURATION = 1000;
+const WIN_DURATION = 700;
 
 // ============================================
 // HELPERS
@@ -1839,38 +1816,33 @@ function playWinSound(type, lines) {
 }
 function getWinType(amt) { const m = amt / state.bet; if (m >= 50) return {type: 'mega', duration: WIN_DURATION}; if (m >= 20) return {type: 'super', duration: WIN_DURATION}; if (m >= 5) return {type: 'big', duration: WIN_DURATION}; return {type: '', duration: WIN_DURATION}; }
 
+
 // ============================================
-// GENERATE SCALE RULES (Ch1 in cycle)
+// GENERATE SCALE RULES
 // ============================================
 function generateScaleRules() {
     const stats = state.gameStats;
     stats.totalSpins++;
-    
-    // Get current round config
+
     const round = SCALE_CYCLE.rounds[SCALE_CYCLE.currentRound];
     const currentPhase = SCALE_CYCLE.currentPhase;
-    
-    // Check if we need to advance phase
+
     if (SCALE_CYCLE.phaseSpins >= round[currentPhase]) {
         SCALE_CYCLE.phaseSpins = 0;
-        // Advance to next phase in order: normal → ch1 → ch2 → ch3 → ch4
         const phases = ['normal', 'ch1', 'ch2', 'ch3', 'ch4'];
         const currentIndex = phases.indexOf(currentPhase);
         const nextIndex = (currentIndex + 1) % phases.length;
         SCALE_CYCLE.currentPhase = phases[nextIndex];
-        
-        // If we wrap back to normal, advance round
+
         if (nextIndex === 0) {
             SCALE_CYCLE.currentRound = (SCALE_CYCLE.currentRound + 1) % SCALE_CYCLE.rounds.length;
         }
     }
     SCALE_CYCLE.phaseSpins++;
-    
+
     const phase = SCALE_CYCLE.currentPhase;
-    console.log(`🎯 Phase: ${phase}, Round: ${SCALE_CYCLE.currentRound + 1}, Spin: 
-${SCALE_CYCLE.phaseSpins}/${round[phase]}`);
-    
-    // Normal phase - user can win on all reels
+    console.log(`🎯 Phase: ${phase}, Round: ${SCALE_CYCLE.currentRound + 1}, Spin: ${SCALE_CYCLE.phaseSpins}/${round[phase]}`);
+
     if (phase === 'normal') {
         return {
             activeCheck: { name: 'Normal', userCanWin: true },
@@ -1880,8 +1852,7 @@ ${SCALE_CYCLE.phaseSpins}/${round[phase]}`);
             phase: 'Normal'
         };
     }
-    
-    // Ch1 - House Win (user cannot win)
+
     if (phase === 'ch1') {
         return {
             activeCheck: { name: 'Ch1', userCanWin: false },
@@ -1891,13 +1862,12 @@ ${SCALE_CYCLE.phaseSpins}/${round[phase]}`);
             phase: 'Ch1'
         };
     }
-    
-    // Ch2, Ch3, Ch4 - Scale checks
+
     let check;
     if (phase === 'ch2') check = SCALE_CHECKS.Ch2;
     else if (phase === 'ch3') check = SCALE_CHECKS.Ch3;
     else if (phase === 'ch4') check = SCALE_CHECKS.Ch4;
-    
+
     return {
         activeCheck: check,
         userWinReels: getUserWinReels(check),
@@ -1906,20 +1876,18 @@ ${SCALE_CYCLE.phaseSpins}/${round[phase]}`);
         phase: check.name
     };
 }
-// ============================================
-// BUILD POOL & GENERATE REELS
-// ============================================
 
+// ============================================
+// BUILD POOL
+// ============================================
 function buildPool(reelIndex, rules) {
     const pool = [];
     const isCh1 = rules && rules.phase === 'Ch1';
     const isAutoSpin = state.autoSpin;
-    
+
     for (const [sym, count] of Object.entries(WEIGHTS)) {
         if (sym === 'wild' && (reelIndex === 0 || reelIndex === 4)) continue;
-        
         if (sym === 'wild' && isCh1 && reelIndex === 1) continue;
-        
         if (sym === 'scatter' && isAutoSpin) continue;
 
         for (let i = 0; i < count; i++) {
@@ -1930,18 +1898,18 @@ function buildPool(reelIndex, rules) {
 }
 
 // ============================================
-// GENERATE REELS (rules ကို ဆက်ပို့တယ်)
+// GENERATE REELS (FIXED)
 // ============================================
 function generateReels(rules) {
     if (!rules || !rules.crossCheck) {
         return generateNormalReels(rules);
     }
     let reels = generateNormalReels(rules);
-    return applyScaleCheck(reels, rules.crossCheck);
+    return applyScaleCheck(reels, rules);  // ✅ rules အပြည့်ပို့
 }
 
 // ============================================
-// GENERATE NORMAL REELS (rules ကိုပါ ထည့်ပို့မယ်)
+// GENERATE NORMAL REELS
 // ============================================
 function generateNormalReels(rules) {
     const reels = [];
@@ -1963,12 +1931,27 @@ function generateNormalReels(rules) {
     return reels;
 }
 
-function applyScaleCheck(reels, crossCheck) {
-    const r1 = reels[crossCheck.reel1];
-    const r2 = reels[crossCheck.reel2];
+// ============================================
+// APPLY SCALE CHECK (FIXED)
+// ============================================
+
+function applyScaleCheck(reels, rules) {
+    if (!rules || !rules.crossCheck) return reels;
+    
+    const crossCheck = rules.crossCheck;
+    const r1 = reels[crossCheck.reel1];  // dynamic: 0,1,2,3,4
+    const r2 = reels[crossCheck.reel2];  // dynamic: 1,3,4,4
+
     for (let i = 0; i < r2.length; i++) {
-        if (r1.includes(r2[i]) && r2[i] !== 'scatter') {
-            const pool = buildPool(crossCheck.reel2).filter(s => !r1.includes(s));
+        if (r2[i] === 'wild' || r2[i] === 'scatter') continue;
+        
+        const r1Regular = r1.filter(s => s !== 'wild' && s !== 'scatter');
+        
+        if (r1Regular.includes(r2[i])) {
+            const pool = buildPool(crossCheck.reel2, rules).filter(s => {
+                if (s === 'wild' || s === 'scatter') return true;
+                return !r1Regular.includes(s);
+            });
             r2[i] = pool.length > 0 ? randomSym(pool) : r2[i];
         }
     }
@@ -2734,55 +2717,145 @@ function toggleAutoSpin() {
         showAutoSpinPopup();
  }    
   }
+
 // ============================================
-// AUTO SPIN SUMMARY BOX (total_box.png)
+// AUTO SPIN SUMMARY BOX (FIXED - No Translate)
 // ============================================
 function showAutoSpinSummary(totalWin, totalSpins) {
     // အဟောင်းရှိရင် ဖယ်မယ်
     const oldBox = document.getElementById('auto-summary-box');
     if (oldBox) oldBox.remove();
 
-    // Background Overlay
+    // ★ CSS Keyframes ကို ပြန်သတ်မှတ်မယ် (Translate ဖယ်ထုတ်ထား)
+    let styleTag = document.getElementById('summary-style');
+    if (!styleTag) {
+        styleTag = document.createElement('style');
+        styleTag.id = 'summary-style';
+        document.head.appendChild(styleTag);
+    }
+    styleTag.innerHTML = `
+        @keyframes summaryPopIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes summaryPopOut {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(0.5); opacity: 0; }
+        }
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+    `;
+
+    // ★ Overlay (အကုန်လုံးကို အလယ်ရောက်အောင်)
     const box = document.createElement('div');
     box.id = 'auto-summary-box';
-    box.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;display:flex;justify-content:center;align-items:center;z-index:9999999;pointer-events:none;background:rgba(0,0,0,0.6);';
+    box.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999999;
+        background: rgba(0, 0, 0, 0.65);
+        pointer-events: none;
+        animation: fadeIn 0.3s ease-out;
+    `;
 
-    // Wrapper (Image + Text Overlay)
+    // ★ Wrapper (ပုံ + စာသား အတူတူ) - Translate မပါတော့ဘူး
     const wrapper = document.createElement('div');
-    wrapper.style.cssText = 'position:relative;animation:summaryPopIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;display:inline-block;';
+    wrapper.style.cssText = `
+        position: relative;
+        display: inline-block;
+        animation: summaryPopIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        max-width: 90vw;
+        max-height: 85vh;
+    `;
 
-    // ★ ၁။ ပုံ (total_box.png) ★
+    // ★ ပုံ (total_box.png)
     const img = document.createElement('img');
     img.src = 'images/total_box.png';
-    img.style.cssText = 'max-width:85vw;max-height:80vh;object-fit:contain;display:block;';
+    img.style.cssText = `
+        display: block;
+        max-width: 90vw;
+        max-height: 80vh;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        margin: 0 auto;
+    `;
     wrapper.appendChild(img);
 
-    // ★ ၂။ ငွေပမာဏကို ပုံပေါ်မှာ ထပ်ခိုးပြမယ် ★
+    // ★ စာသား (ငွေပမာဏ) - ပုံပေါ်မှာ ထပ်ခိုး
     const textOverlay = document.createElement('div');
-    textOverlay.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);text-align:center;width:80%;pointer-events:none;';
-    
-    // ငွေပမာဏ (ကြီးကြီးမားမား ပြမယ်)
+    textOverlay.style.cssText = `
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        width: 80%;
+        pointer-events: none;
+    `;
+
     const amountSpan = document.createElement('div');
-    amountSpan.style.cssText = 'font-family:"Impact","Arial Black",sans-serif;font-weight:900;color:#FFD700;text-shadow:0 0 20px rgba(255,215,0,0.9),0 0 40px rgba(255,215,0,0.5),0 4px 8px rgba(0,0,0,0.8);font-size:clamp(40px, 12vw, 120px);line-height:1.2;';
+    amountSpan.style.cssText = `
+        font-family: "Impact", "Arial Black", sans-serif;
+        font-weight: 900;
+        color: #FFD700;
+        text-shadow: 0 0 20px rgba(255, 215, 0, 0.9), 0 0 40px rgba(255, 215, 0, 0.5), 0 4px 8px rgba(0, 0, 0, 0.8);
+        font-size: clamp(40px, 12vw, 120px);
+        line-height: 1.2;
+    `;
     amountSpan.textContent = totalWin.toLocaleString();
     textOverlay.appendChild(amountSpan);
 
+    // ★ အကြိမ်ရေ (သေးသေးလေး)
+    const spinsSpan = document.createElement('div');
+    spinsSpan.style.cssText = `
+        font-family: "Segoe UI", sans-serif;
+        font-weight: 600;
+        color: #aaccdd;
+        font-size: clamp(14px, 3vw, 28px);
+        margin-top: 8px;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+        letter-spacing: 2px;
+    `;
+    spinsSpan.textContent = `🎰 ${totalSpins} SPINS`;
+    textOverlay.appendChild(spinsSpan);
 
     wrapper.appendChild(textOverlay);
 
-    // ★ ၃။ ပုံမပါရင် Fallback (စာသားပြမယ်) ★
+    // ★ ပုံမပါရင် Fallback
     img.onerror = function() {
         this.style.display = 'none';
         const fallback = document.createElement('div');
-        fallback.style.cssText = 'background:linear-gradient(145deg,#1a2f44,#0b1a2e);border:4px solid #f3b33d;padding:40px 60px;border-radius:30px;text-align:center;color:white;min-width:320px;box-shadow:0 20px 60px rgba(0,0,0,0.9);';
-        fallback.innerHTML = '<div style="font-size:16px;color:#aaccdd;text-transform:uppercase;letter-spacing:4px;margin-bottom:10px;">🎰 AUTO SPIN COMPLETE</div><div style="font-size:20px;color:#c0d4df;margin-bottom:10px;">Total Spins <span style="color:#f3b33d;font-weight:bold;">' + totalSpins + '</span></div><div style="font-size:48px;font-weight:900;color:#ffd966;text-shadow:0 0 30px #ffd96666;">' + totalWin.toLocaleString() + ' <span style="font-size:20px;color:#aaccdd;">WIN</span></div>';
+        fallback.style.cssText = `
+            background: linear-gradient(145deg, #1a2f44, #0b1a2e);
+            border: 4px solid #f3b33d;
+            padding: 40px 60px;
+            border-radius: 30px;
+            text-align: center;
+            color: white;
+            min-width: 320px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
+        `;
+        fallback.innerHTML = `
+            <div style="font-size:16px;color:#aaccdd;text-transform:uppercase;letter-spacing:4px;margin-bottom:10px;">🎰 AUTO SPIN COMPLETE</div>
+            <div style="font-size:20px;color:#c0d4df;margin-bottom:10px;">Total Spins <span style="color:#f3b33d;font-weight:bold;">${totalSpins}</span></div>
+            <div style="font-size:48px;font-weight:900;color:#ffd966;text-shadow:0 0 30px #ffd96666;">${totalWin.toLocaleString()} <span style="font-size:20px;color:#aaccdd;">WIN</span></div>
+        `;
         wrapper.appendChild(fallback);
     };
 
     box.appendChild(wrapper);
     document.body.appendChild(box);
 
-    // ★ ၅ စက္ကန့်ကြာရင် ပျောက်မယ် ★
+    // ★ ၅ စက္ကန့်ကြာရင် ပျောက်မယ်
     setTimeout(function() {
         if (wrapper) {
             wrapper.style.animation = 'summaryPopOut 0.4s ease-in forwards';
@@ -2899,7 +2972,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
 });
-
 
  // ============================================
 // WinAnimation.js - Casino Win Effect Module v18
@@ -3528,6 +3600,35 @@ class Sparkle {
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = WinAnimation;
 }
+
+
+// ============================================
+// ORIENTATION WARNING (Landscape Mode)
+// ============================================
+(function() {
+    const warning = document.getElementById('orientationWarning');
+    if (!warning) return;
+
+    function checkOrientation() {
+        // Landscape mode ဖြစ်ရင် hide၊ Portrait ဖြစ်ရင် show
+        if (window.innerHeight > window.innerWidth) {
+            warning.classList.add('active');
+        } else {
+            warning.classList.remove('active');
+        }
+    }
+
+    // စပြီးတာနဲ့ တစ်ခါစစ်
+    checkOrientation();
+
+    // Window ပြောင်းတိုင်း စစ်
+    window.addEventListener('resize', checkOrientation);
+    window.addEventListener('orientationchange', function() {
+        setTimeout(checkOrientation, 300);
+    });
+
+    console.log('✅ Orientation Warning ready!');
+})();
 
 
 // ========== SOUND MANAGER - COMPLETE VERSION ==========
