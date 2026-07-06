@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shan Koe Mee</title>
+    <style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: #0a0014;
+    height: 100vh;
+    overflow: hidden;
+    font-family: 'Noto Sans Myanmar', sans-serif;
+}
+
+/* ===== GAME CONTAINER ===== */
+.game-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    background: #0a0014;
+}
+
+        /* ===== TOP BAR ===== */
+.top-bar {
+    height: 45px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 12px;
+    background: rgba(255, 255, 255, 0.05);
+    flex-shrink: 0;
+    z-index: 100;
+}
+
+.back-btn {
+    background: linear-gradient(145deg, #ffd700, #ffaa00);
+    border: none;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer;
+    color: #1a1a1a;
+}
+
+.room-id {
+    color: #ffd700;
+    font-weight: 900;
+    font-size: 16px;
+}
+
+.top-balance {
+    color: #ffd700;
+    font-weight: 900;
+    font-size: 13px;
+    background: rgba(0,0,0,0.5);
+    padding: 4px 12px;
+    border-radius: 15px;
+    border: 1px solid rgba(255,215,0,0.3);
+}
+        .table {
+           width: 98%; 
+            height: 92%;
+            background: 
+                radial-gradient(ellipse at 50% 45%, rgba(139,26,43,0.9) 0%, transparent 50%),
+                radial-gradient(ellipse at 30% 75%, rgba(100,20,30,0.4) 0%, transparent 40%),
+                radial-gradient(ellipse at 70% 75%, rgba(100,20,30,0.4) 0%, transparent 40%),
+                linear-gradient(180deg, #5a0f1a 0%, #7a1525 25%, #8b1a2b 50%, #7a1525 75%, #5a0f1a 100%);
+            border-radius: 50% / 45%;
+            border: 6px solid #2a0a0a;
+            box-shadow: 
+                0 0 0 3px #1a0505, 
+                0 20px 60px rgba(0,0,0,0.8), 
+                inset 0 0 80px rgba(0,0,0,0.6),
+                inset 0 0 20px rgba(255,215,0,0.05);
+            position: relative; 
+            overflow: hidden;
+        }
+       .table::before {
+            content: ''; 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            bottom: 0;
+            background: 
+                repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.04) 3px, rgba(0,0,0,0.04) 6px),
+                repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(0,0,0,0.02) 3px, rgba(0,0,0,0.02) 6px);
+            border-radius: 50% / 45%; 
+            pointer-events: none;
+        }
+         .table::after {
+            content: ''; 
+            position: absolute; 
+            top: 5%; 
+            left: 5%; 
+            right: 5%; 
+            bottom: 5%;
+            border: 3px dashed rgba(255,215,0,0.15); 
+            border-radius: 50% / 45%; 
+            pointer-events: none;
+            box-shadow: inset 0 0 30px rgba(255,215,0,0.05);
+        }
+
+
+
+        /* ===== PLAYER ===== */
+        .player {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* P1 - Top Left */
+        .p1 {
+            top: 8%;
+            left: 15%;
+        }
+
+        /* P2 - Top Right */
+        .p2 {
+            top: 8%;
+            right: 15%;
+        }
+
+        /* P3 - Left */
+        .p3 {
+            top: 70%;
+            left: 10%;
+            transform: translateY(-50%);
+        }
+
+        /* P5 - Right */
+        .p5 {
+            top: 70%;
+            right: 10%;
+            transform: translateY(-50%);
+        }
+
+        /* P4 (Me) - Bottom Center */
+        .p4 {
+            bottom: 7%;
+            left: 50%;
+            transform: translateX(-50%);
+            flex-direction: row;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* ===== AVATAR + CARDS ROW ===== */
+        .avatar-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* P1, P3 - Cards LEFT of avatar */
+        .p1 .avatar-row,
+        .p3 .avatar-row {
+            flex-direction: row;
+        }
+
+        /* P2, P5 - Cards RIGHT of avatar */
+        .p2 .avatar-row,
+        .p5 .avatar-row {
+            flex-direction: row-reverse;
+        }
+
+        /* P4 - Cards LEFT of avatar */
+        .p4 .avatar-row {
+            flex-direction: row;
+        }
+
+        /* ===== CARDS ===== */
+        .cards {
+            display: flex;
+            gap: -5px;
+        }
+
+        .card {
+            width: 40px;
+            height: 56px;
+            background: #fff;
+            border-radius: 5px;
+            border: 1px solid #000;
+            margin-left: -15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        .card:first-child {
+            margin-left: 0;
+            transform: rotate(-10deg);
+        }
+
+        .card:nth-child(2) {
+            transform: rotate(5deg);
+        }
+
+        .card.back {
+            background: linear-gradient(135deg, #c41e3a, #8b0000);
+            border: 2px solid #ffd700;
+        }
+
+        /* ===== AVATAR ===== */
+        .avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: 3px solid rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+        }
+
+        .p4 .avatar {
+            width: 80px;
+            height: 80px;
+            border: 4px solid #00e5ff;
+            box-shadow: 0 0 30px rgba(0,229,255,0.4);
+        }
+      
+
+        /* ===== INFO (P1, P2, P3, P5) - BELOW avatar ===== */
+        /* ===== INFO (P1, P2, P3, P5) ===== */
+.info {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.name {
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+}
+
+.balance {
+    color: #ffd700;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.bet {
+    color: #00ff88;
+    font-size: 11px;
+    font-weight: 700;
+    background: rgba(0,255,136,0.15);
+    padding: 2px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(0,255,136,0.3);
+    display: inline-block;
+}
+
+/* ===== P3 (Left - Kyaw Ye) - Info ကိုညာဘက်ရွှေ့ ===== */
+.p3 .info {
+    margin-left: 30px;
+    text-align: left;
+    align-items: flex-start;
+}
+
+.p3 .name {
+    text-align: left;
+}
+
+.p3 .balance {
+    text-align: left;
+}
+
+.p3 .bet {
+    text-align: left;
+}
+
+/* ===== P5 (Right - May May) - Info ကိုဘယ်ဘက်ရွှေ့ ===== */
+.p5 .info {
+    margin-right: 30px;
+    text-align: right;
+    align-items: flex-end;
+}
+
+.p5 .name {
+    text-align: right;
+}
+
+.p5 .balance {
+    text-align: right;
+}
+
+.p5 .bet {
+    text-align: right;
+}
+
+        /* ===== P4 INFO (Me) - RIGHT of avatar ===== */
+        .p4 .info {
+            text-align: left;
+            align-items: flex-start;
+        }
+        .p4 .name {
+            font-size: 15px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .p4 .balance {
+            font-size: 16px;
+            font-weight: 700;
+            color: #ffd700;
+        }
+
+        .p4 .bet {
+            font-size: 14px;
+            font-weight: 700;
+            color: #00ff88;
+            background: rgba(0,255,136,0.2);
+            padding: 4px 12px;
+            border-radius: 10px;
+        }
+
+        /* ===== AI DEALER ===== */
+        .dealer {
+            position: absolute;
+            top: 5%;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 50;
+        }
+
+        .dealer-avatar {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2a1a3e, #1a0a2e);
+            border: 4px solid #ffd700;
+            margin: 0 auto;
+            box-shadow: 0 0 30px rgba(255,215,0,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+
+        .bank {
+            color: #ffd700;
+            font-weight: 900;
+            font-size: 16px;
+            background: rgba(0,0,0,0.9);
+            padding: 6px 20px;
+            border-radius: 12px;
+            border: 2px solid #ffd700;
+            margin-top: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        /* ===== BADGES ===== */
+        .vip-badge {
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .gem-badge {
+            position: absolute;
+            bottom: -5px;
+            left: -5px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .banker-crown {
+            position: absolute;
+            top: -15px;
+            right: -10px;
+            font-size: 24px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+        }
+
+        .avatar-wrap {
+            position: relative;
+        }
+
+
+       .avatar img { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+            display: block; 
+            border-radius: 50%;
+            filter: contrast(1.1) saturate(1.2);
+        }
+
+        /* Active player glow */
+        .avatar.active {
+            border-color: #00e5ff;
+            box-shadow: 
+                0 0 30px rgba(0,229,255,0.4),
+                0 0 60px rgba(0,229,255,0.2);
+            animation: activePulse 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes activePulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(0,229,255,0.3); }
+            50% { box-shadow: 0 0 40px rgba(0,229,255,0.6); }
+        }        
+/* ===== BOTTOM PANEL ===== */
+.bottom-panel {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-top: 1px solid rgba(255, 215, 0, 0.2);
+    min-height: 55px;
+    z-index: 999;
+}
+
+.phase {
+    display: none;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+}
+
+.phase.active {
+    display: flex !important;
+}
+
+/* ===== BUTTONS ===== */
+.btn-ready {
+    padding: 4px 12px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(145deg, #00e676, #00c853);
+    color: #fff;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+}
+.btn-ready:hover { transform: scale(1.05); }
+
+.bet-btn {
+    padding: 6px 16px;
+    border: none;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+.bet-btn:hover { background: rgba(255,255,255,0.2); }
+.bet-btn.active { background: #ffd700; color: #1a1a1a; border-color: #ffd700; }
+
+.btn-confirm {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(145deg, #ffd700, #ffaa00);
+    color: #1a1a1a;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 13px;
+}
+.btn-confirm:hover { transform: scale(1.05); }
+
+        .back-to-lobby {
+    background: linear-gradient(145deg, #ffd700, #ffaa00);
+    border: none;
+    padding: 8px 20px;
+    height: 36px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 700;
+    border-radius: 20px;
+    color: #1a1a1a;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 15px rgba(255,215,0,0.3);
+    transition: all 0.2s ease;
+}
+
+.back-to-lobby:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255,215,0,0.4);
+}
+
+.back-to-lobby:active {
+    transform: scale(0.95);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 600px) {
+    .top-bar {
+        height: 38px;
+        padding: 0 8px;
+    }
+    
+    .top-bar .room-id {
+        font-size: 13px;
+    }
+    
+    .top-bar .top-balance {
+        font-size: 11px;
+        padding: 3px 10px;
+    }
+    
+    .back-btn {
+        padding: 4px 10px;
+        font-size: 11px;
+    }
+    
+    .bottom-panel {
+        min-height: 44px;
+        padding: 4px 8px;
+        gap: 4px;
+    }
+    
+    .btn-ready {
+        padding: 4px 12px;
+        font-size: 11px;
+    }
+    
+    .bet-btn {
+        padding: 3px 10px;
+        font-size: 10px;
+    }
+    
+    .btn-confirm {
+        padding: 4px 12px;
+        font-size: 11px;
+    }
+    
+    .table {
+        width: 98%;
+        border-radius: 30% / 25%;
+    }
+}
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="table">
+                    <!-- Top Bar -->
+        <div class="top-bar">
+            <button class="back-to-lobby" onclick="window.parent.postMessage({type:'GO_LOBBY'},'*')">
+    <i class="fas fa-arrow-left"></i> ◀ ပင်မ
+     </button>
+
+            <div class="room-id">#ABC123</div>
+            <div class="top-balance">
+                <i class="fas fa-coins"></i> 25,640
+            </div>
+        </div>
+
+            <!-- AI Dealer -->
+<div class="dealer">
+    <div class="dealer-avatar">
+        <img src="images/banker.png" onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(135deg, #ff6b6b, #ee5a24)'">
+    </div>
+    <div class="bank">Bank 10M</div>
+</div>
+
+   <!-- P1 - Top Left -->
+<div class="player p1">
+    <div class="avatar-row">
+        <div class="avatar-wrap">
+            <div class="avatar">
+                <img src="images/player-baba.png" onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(135deg, #667eea, #764ba2)'">
+            </div>
+            <div class="banker-crown">👑</div>
+        </div>
+        <div class="cards">
+            <div class="card back"></div>
+            <div class="card back"></div>
+        </div>
+    </div>
+    <div class="info">
+        <div class="name">Nay LinTun</div>
+        <div class="balance">$237.39K</div>
+        <div class="bet">2K</div>
+    </div>
+</div>
+
+            <!-- P2 - Top Right -->
+            <div class="player p2">
+                <div class="avatar-row">
+                    <div class="avatar-wrap">
+                        <div class="avatar">
+                         <img src="images/ko.png" onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(135deg, #ff6b6b, #ee5a24)'">
+                      </div>
+                    
+                    <div class="cards">
+                        <div class="card back"></div>
+                        <div class="card back"></div>
+                    </div>
+                </div>
+                <div class="info">
+                    <div class="name">Myo Min</div>
+                    <div class="balance">$63.6K</div>
+                    <div class="bet">2K</div>
+                </div>
+            </div>
+
+            <!-- P3 - Left -->
+            <div class="player p3">
+                <div class="avatar-row">
+                    <div class="avatar-wrap">
+                        <div class="avatar">
+                         <img src="images/koko.png" onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(135deg, #ff6b6b, #ee5a24)'">
+                    </div>
+                    <div class="cards">
+                        <div class="card back"></div>
+                        <div class="card back"></div>
+                    </div>
+                </div>
+                <div class="info">
+                    <div class="name">Kyaw Ye</div>
+                    <div class="balance">$169.68K</div>
+                    <div class="bet">2K</div>
+                </div>
+            </div>
+
+            <!-- P5 - Right -->
+            <div class="player p5">
+                <div class="avatar-row">
+                    <div class="avatar-wrap">
+                        <div class="avatar">👳</div>
+                    </div>
+                    <div class="cards">
+                        <div class="card back"></div>
+                        <div class="card back"></div>
+                    </div>
+                </div>
+                <div class="info">
+                    <div class="name">may may</div>
+                    <div class="balance">$32.77K</div>
+                    <div class="bet">2K</div>
+                </div>
+            </div>
+
+            <!-- P4 (Me) - Bottom Center -->
+            <div class="player p4">
+                <div class="avatar-row">
+                    <div class="cards">
+                        <div class="card"></div>
+                        <div class="card"></div>
+                    </div>
+                    <div class="avatar-wrap">
+                        <div class="avatar">
+                         <img src="images/baba.png" onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(135deg, #ff6b6b, #ee5a24)'">
+                        </div>
+                        <div class="vip-badge">⭐⭐⭐</div>
+                        <div class="gem-badge">👑</div>
+                    </div>
+                </div>
+                <div class="info">
+                    <div class="name">Sakura 2d</div>
+                    <div class="balance">$25.64K</div>
+                    <div class="bet">Bet: 10K</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+<!-- Bottom Panel -->
+<div class="bottom-panel">
+    <!-- Waiting Phase -->
+    <div class="phase active" id="waitingPhase" style="display: flex !important;">
+        <button class="btn-ready" onclick="toggleReady()">
+            <i class="fas fa-check"></i> အဆင်သင့်
+        </button>
+    </div>
+    
+    <!-- Bet Phase -->
+    <div class="phase" id="betPhase" style="display: none;">
+        <button class="bet-btn bet-2k" onclick="setBet(2000)">2K</button>
+        <button class="bet-btn bet-5k" onclick="setBet(5000)">5K</button>
+        <button class="bet-btn bet-7k" onclick="setBet(7000)">7K</button>
+        <button class="bet-btn bet-10k" onclick="setBet(10000)">10K</button>
+        <button class="btn-confirm" onclick="confirmBet()">အတည်ပြု</button>
+    </div>
+    
+    <!-- Play Phase -->
+    <div class="phase" id="playPhase" style="display: none;">
+        <button class="btn-confirm" onclick="hit()" style="background: linear-gradient(145deg, #42a5f5, #1976d2);">
+            <i class="fas fa-plus"></i> ဆွဲမည်
+        </button>
+        <button class="btn-confirm" onclick="stand()" style="background: linear-gradient(145deg, #ef5350, #c62828);">
+            <i class="fas fa-hand"></i> တော်ပီမည်
+        </button>
+    </div>
+</div>
+</div>
+
+<script>
+// ============================================
+// MULTIPLAYER GAME LOGIC
+// ============================================
+
+let G = {
+    roomId: 'ABC123',
+    playerId: null,
+    isReady: false,
+    bet: 0,
+    phase: 'waiting', // waiting, bet, play, result
+    p: [
+        {id:0, name:'Nay Lin Tun', cards:[], balance:237390, bet:0, isAI:false, dealer:false},
+        {id:1, name:'Myo Min', cards:[], balance:63600, bet:0, isAI:false, dealer:false},
+        {id:2, name:'Kyaw Ye', cards:[], balance:169680, bet:0, isAI:false, dealer:true},
+        {id:3, name:'Sakura 2d', cards:[], balance:25640, bet:0, isAI:false, user:true}
+    ]
+};
+
+// ===== PHASE MANAGEMENT =====
+function showPhase(phaseId) {
+    // Hide all phases
+    document.querySelectorAll('.phase').forEach(el => {
+        el.classList.remove('active');
+        el.style.display = 'none';
+    });
+    
+    // Show selected phase
+    const el = document.getElementById(phaseId + 'Phase');
+    if (el) {
+        el.classList.add('active');
+        el.style.display = 'flex';
+        console.log('✅ Showing phase:', phaseId);
+    } else {
+        console.warn('⚠️ Phase not found:', phaseId);
+    }
+}
+
+// ===== READY =====
+function toggleReady() {
+    G.isReady = !G.isReady;
+    const btn = document.querySelector('.btn-ready');
+    if (btn) {
+        btn.textContent = G.isReady ? '✅ အဆင်သင့်ပါပြီ' : '⏳ အဆင်သင့်';
+        btn.style.background = G.isReady ? 'linear-gradient(145deg, #00e676, #00c853)' : 'linear-gradient(145deg, #ffd700, #ffaa00)';
+        btn.style.color = G.isReady ? '#fff' : '#1a1a1a';
+    }
+    
+    // All ready check
+    checkAllReady();
+}
+
+function checkAllReady() {
+    const allReady = G.p.every(p => p.isReady || p.isAI);
+    if (allReady && G.p.length === 4) {
+        showPhase('bet');
+        document.getElementById('waitingPhase').style.display = 'none';
+    }
+}
+
+// ===== BET =====
+function setBet(amount) {
+    if (G.bet === amount) {
+        G.bet = 0;
+    } else {
+        G.bet = amount;
+    }
+    document.querySelectorAll('.bet-btn').forEach(el => el.classList.remove('active'));
+    if (G.bet > 0) {
+        document.querySelector(`.bet-${G.bet}k`).classList.add('active');
+    }
+}
+
+function confirmBet() {
+    if (G.bet === 0) { alert('လောင်းကြေး ရွေးပါ!'); return; }
+    if (G.bet > G.p[3].balance) { alert('ငွေ မလုံလောက်ပါ!'); return; }
+    
+    G.p[3].bet = G.bet;
+    G.p[3].balance -= G.bet;
+    updateUI();
+    showPhase('play');
+    
+    // Start game
+    startGame();
+}
+
+// ===== GAME =====
+function startGame() {
+    // Deal cards
+    for (let i = 0; i < 4; i++) {
+        G.p[i].cards = [
+            {suit: 'spade', rank: 'A', v: 1},
+            {suit: 'heart', rank: 'K', v: 0}
+        ];
+    }
+    updateUI();
+}
+
+function hit() {
+    // Draw card logic
+    alert('ကတ်ဆွဲပါသည်...');
+}
+
+function stand() {
+    alert('တော်ပီပါပြီ!');
+}
+
+// ===== UI UPDATE =====
+function updateUI() {
+    G.p.forEach((p, i) => {
+        document.getElementById('name' + i).textContent = p.name;
+        document.getElementById('bal' + i).textContent = '$' + (p.balance / 1000).toFixed(2) + 'K';
+        document.getElementById('bet' + i).textContent = p.bet > 0 ? p.bet.toLocaleString() : '-';
+        
+        const cardsEl = document.getElementById('cards' + i);
+        if (cardsEl) {
+            cardsEl.innerHTML = '';
+            p.cards.forEach(c => {
+                const div = document.createElement('div');
+                div.className = 'card';
+                const isRed = c.suit === 'heart' || c.suit === 'diamond';
+                div.innerHTML = `<span class="${isRed ? 'red' : 'black'}">${c.rank}${c.suit === 'spade' ? '♠' : c.suit === 'heart' ? '♥' : c.suit === 'diamond' ? '♦' : '♣'}</span>`;
+                cardsEl.appendChild(div);
+            });
+        }
+    });
+    
+    // Balance
+    document.getElementById('balanceDisplay').textContent = G.p[3].balance.toLocaleString();
+}
+
+// ===== LOBBY COMMUNICATION =====
+function goLobby() {
+    if (window.parent) {
+        window.parent.postMessage({ type: 'GO_LOBBY' }, '*');
+    }
+}
+
+// ============================================
+// INIT
+// ============================================
+document.addEventListener('DOMContentLoaded', function() {
+    showPhase('waiting');
+    updateUI();
+    console.log('🎮 Multiplayer Game Started!');
+});
+</script>
+</body>
+</html>
