@@ -375,61 +375,26 @@
 </audio>   
     <!-- LOADING SCREEN -->
 <div id="loadingScreen">
+    <!-- Full Splash Background -->
     <div class="loading-bg" style="background-image: url('images/splash_bg.png');"></div>
     
-    <!-- Main Frame -->
-    <div class="loading-frame">
-        <!-- Game Title -->
-        <img src="images/title.png" alt="Game Title" class="loading-title">
-        
-        <!-- Start Button -->
-        <div class="start-wrapper" id="startWrapper">
-            <button id="startBtn" class="start-btn">
-                <i class="fas fa-play-circle"></i>
-                <span class="start-text">START GAME</span>
-                <small class="fullscreen-hint">(Fullscreen mode)</small>
+    <!-- Start Button (small, bottom center) -->
+    <div class="start-wrapper" id="startWrapper">
+        <button id="startBtn" class="start-btn">
+            <i class="fas fa-play"></i>
             </button>
-        </div>
-        
-        <!-- Loading Container (START နှိပ်မှပြမယ်) -->
-        <div class="loading-container" id="loadingContainer" style="display: none;">
-            <!-- Step 1 - Internet Speed Check -->
-            <div id="step1Container">
-                <div class="step-text">
-                    <i class="fas fa-wifi"></i>
-                    <span>Internet Speed Checking...</span>
-                </div>
-                <div class="progress-bar-frame">
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="internetProgress"></div>
-                    </div>
-                </div>
-                <div class="speed-info" id="speedInfo">
-                    <i class="fas fa-tachometer-alt"></i>
-                    <span>Detecting speed...</span>
-                </div>
-            </div>
-            
-            <!-- Step 2 - Game Loading -->
-            <div id="step2Container" style="display: none;">
-                <div class="step-text">
-                    <i class="fas fa-gamepad"></i>
-                    <span>Loading Game Assets...</span>
-                </div>
-                <div class="progress-bar-frame">
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="gameProgress"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Loading Tip -->
-        <div class="loading-tip" id="loadingTip">
-            <i class="fas fa-lightbulb"></i> 
-            Click START to begin loading
-        </div>
+        <span class="tap-text">TAP TO START</span>
+      
     </div>
+    
+    <!-- Progress Bar (bottom, over splash) -->
+    <div class="loading-bar" id="loadingBar" style="display: none;">
+        <div class="progress-track">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-text" id="progressText">0%</div>
+    </div>
+    
 </div>
 
 <!-- ==================== LOBBY SCREEN ==================== -->
@@ -470,8 +435,8 @@
             </div>
 
             <!-- 🔥 NEW: Fullscreen Button (Lobby ထဲမှာ ထည့်ထားတယ်) -->
-        <button class="icon-btn fullscreen-btn" id="lobbyFullscreenBtn" onclick="toggleFullScreen()">
-            <i class="fas fa-expand"></i>
+        <button class="icon-btn fullscreen-btn" id="lobbyFullscreenBtn">
+    <i class="fas fa-expand" id="lobbyFullscreenIcon"></i>
         </button>
             <button class="settings-btn" onclick="openSettingsModal()">
                 <i class="fas fa-cog"></i>
@@ -1074,9 +1039,9 @@
         </div>
         <div class="game-logo"><i class="fas fa-slot-machine"></i> MINI SLOT</div>
         <div class="top-actions">
-            <button class="icon-btn fullscreen-btn" id="fullScreenBtn" onclick="toggleFullScreen()">
-                <i class="fas fa-expand"></i>
-            </button>
+            <button class="icon-btn fullscreen-btn" id="fullScreenBtn">
+              <i class="fas fa-expand" id="fullscreenIcon"></i>
+           </button>
                <button class="menu-btn" id="mainMenuBtn" onclick="toggleMainMenu()">
                 <i class="fas fa-bars"></i><span class="btn-label">MENU</span>
             </button>
@@ -1277,7 +1242,7 @@
 <!-- SUPER WAYS Game Container (NEW - သင့်အတွက်) -->
 <div id="superWaysContainer" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100000; background: #0a0718;">
     <iframe id="superWaysIframe" src="super-ways-slot.html" style="width: 100%; height: 100%; border: none;"></iframe>
-    <button onclick="closeSuperWaysGame()" style="position: absolute; top: 15px; right: 15px; background: #ff4444; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 20px; cursor: pointer; z-index: 100001;">✕</button>
+<button onclick="closeSuperWaysGame()" style="position: absolute; top: 20px; left: 80px; background: none; color: black; border: none; width: 50px; height: 50px; border-radius: 50%; font-size: 50px; cursor: pointer; z-index: 100001;">←</button>
 </div>
 <!-- ===== CARD GAME CONTAINER ===== -->
 <div id="cardGameContainer" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100000; background: #0a0718;">
@@ -1485,7 +1450,11 @@ window.addEventListener('message', function(event) {
     console.log('📨 Lobby received:', data);
 
     if (!data || !data.type) return;
+   
 
+    if (data.type === 'GO_LOBBY') {
+        closeSuperWaysGame();
+    }
     let currentBalance, winAmount, betAmount, newBalance;
 
     switch (data.type) {
@@ -1614,9 +1583,10 @@ function switchLobbyTab(element, tabName) {
   <script src="baba-jackpot.js"></script>
   
   <!-- Game & UI -->
+<script src="daily-journey.js"></script>
   <script src="menu.js"></script>
+<script src="login.js"></script>
   <script src="supprisebox.js"></script>
-  <script src="login.js"></script>
   <script src="userpayment.js"></script>
   <script src="game.js"></script>
   <script src="script.js"></script>

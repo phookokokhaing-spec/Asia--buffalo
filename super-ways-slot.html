@@ -1282,68 +1282,216 @@ button.disabled {
     0% { transform: scale(1); box-shadow: 0 0 20px rgba(255, 50, 50, 0.6); }
     100% { transform: scale(1.08); box-shadow: 0 0 50px rgba(255, 50, 50, 0.9), 0 0 80px rgba(255, 215, 0, 0.4); }
 }
+/* ===== ADD TO YOUR CSS FILE ===== */
+* {
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    user-select: none !important;
+    -webkit-touch-callout: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+}
 
-/* ===== SUPER WAYS BACK BUTTON ===== */
- /* Back to Lobby Button */
-.back-to-lobby-btn {
-    position: absolute;
-    top: 15px;
-    left: 15px;
-    background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 25px;
-    font-size: 14px;
-    font-weight: bold;
-    cursor: pointer;
-    z-index: 100001;
-    display: flex;
+img, button, .icon-btn, .avatar-btn, .game-card, 
+.start-btn, .toggle-password, .balance-box,
+.coin-img, .vip-level, .fas, .fab, .far, .loading-title {
+    -webkit-user-drag: none !important;
+    user-drag: none !important;
+}
+
+input, textarea {
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+    user-select: text !important;
+}
+
+/* ===== ORIENTATION WARNING - CASINO STYLE ===== */
+.orientation-warning {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    z-index: 99999;
+    display: none;
     align-items: center;
-    gap: 8px;
-    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
-    transition: all 0.3s ease;
-    font-family: 'Noto Sans Myanmar', sans-serif;
+    justify-content: center;
+    overflow: hidden;
 }
 
-.back-to-lobby-btn:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
+.orientation-warning.active {
+    display: flex;
 }
 
-.back-to-lobby-btn i {
-    font-size: 12px;
-}
-
-/* Close Button */
-.close-game-btn {
+/* Animated background */
+.warning-bg {
     position: absolute;
-    top: 10px;
-    right: 15px;
-    background: rgba(255, 68, 68, 0.9);
-    color: white;
-    border: none;
-    width: 40px;
-    height: 40px;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: 
+        radial-gradient(ellipse at center, #1a0a2e 0%, #0d0221 50%, #050110 100%);
+}
+
+.warning-bg::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: 
+        repeating-conic-gradient(
+            from 0deg,
+            transparent 0deg,
+            rgba(255, 215, 0, 0.03) 10deg,
+            transparent 20deg
+        );
+    animation: rotateBg 20s linear infinite;
+}
+
+@keyframes rotateBg {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Content box */
+.warning-content {
+    position: relative;
+    text-align: center;
+    padding: 50px 40px;
+    z-index: 2;
+}
+
+/* Phone icon with rotation */
+.phone-icon {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100px;
+    height: 100px;
+    margin-bottom: 25px;
+}
+
+.phone-icon .fa-mobile-alt {
+    font-size: 60px;
+    color: #ffd700;
+    text-shadow: 
+        0 0 20px rgba(255, 215, 0, 0.6),
+        0 0 40px rgba(255, 215, 0, 0.3);
+    animation: phoneShake 2s ease-in-out infinite;
+}
+
+.rotate-arrow {
+    position: absolute;
+    top: -10px; right: -10px;
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, #ff4444, #cc0000);
+    border: 2px solid #ffd700;
     border-radius: 50%;
-    font-size: 18px;
-    cursor: pointer;
-    z-index: 100001;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease;
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.5);
+    animation: rotateIcon 2s ease-in-out infinite;
 }
 
-.close-game-btn:hover {
-    transform: scale(1.1);
-    background: #ff4444;
+.rotate-arrow .fa-redo {
+    font-size: 14px;
+    color: #fff;
+}
+
+@keyframes phoneShake {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-15deg); }
+    75% { transform: rotate(15deg); }
+}
+
+@keyframes rotateIcon {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(180deg); }
+}
+
+/* Heading */
+.warning-content h2 {
+    font-size: 26px;
+    font-weight: 900;
+    color: #ffd700;
+    text-shadow: 
+        0 0 20px rgba(255, 215, 0, 0.5),
+        0 2px 4px rgba(0,0,0,0.8);
+    margin-bottom: 15px;
+    letter-spacing: 2px;
+}
+
+/* Decorative line */
+.warning-line {
+    width: 80px;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #ffd700, transparent);
+    margin: 0 auto 15px;
+    border-radius: 2px;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+/* Sub text */
+.warning-content p {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.8);
+    text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    line-height: 1.6;
+}
+
+/* Glow effect behind */
+.warning-glow {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(255, 215, 0, 0.1) 0%, transparent 70%);
+    border-radius: 50%;
+    z-index: -1;
+    animation: glowPulse 3s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+    50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.8; }
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 400px) {
+    .warning-content {
+        padding: 40px 25px;
+    }
+    
+    .phone-icon {
+        width: 80px; height: 80px;
+    }
+    
+    .phone-icon .fa-mobile-alt {
+        font-size: 48px;
+    }
+    
+    .warning-content h2 {
+        font-size: 22px;
+    }
+    
+    .warning-content p {
+        font-size: 14px;
+    }
 }
 
    
    </style>
 </head>
 <body>
+         <!-- Orientation Warning -->
+    <div class="orientation-warning" id="orientationWarning">  
+        <div class="warning-content">  
+            <i class="fas fa-mobile-alt"></i>  
+            <h2>ကျေးဇူးပြု၍ ဖုန်းကို ဘေးတိုက်လှန်ပါ</h2>  
+            <p>ဒီဂိမ်းကို Landscape Mode နဲ့သာ ကစားနိုင်ပါသည်</p>  
+        </div>  
+    </div>
+
     <div id="game-container">
 
         <!-- ===== SLOT FRAME ===== -->
@@ -1375,21 +1523,7 @@ button.disabled {
                 <span class="value" id="win-display">0</span>
             </div>
         </div>
-         <!-- SUPER WAYS Game Container - Styled Version -->
-<div id="superWaysContainer" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100000; background: #0a0718;">
-    <iframe id="superWaysIframe" src="super-ways-slot.html" style="width: 100%; height: 100%; border: none;"></iframe>
-    
-    <!-- 🔙 Back to Lobby Button (Left) -->
-    <button class="back-to-lobby-btn" onclick="closeSuperWaysGame()">
-        <i class="fas fa-chevron-left"></i>
-        <span>ပင်မစာမျက်နှာ</span>
-    </button>
-    
-    <!-- ❌ Close Button (Right) -->
-    <button class="close-game-btn" onclick="closeSuperWaysGame()">
-        <i class="fas fa-times"></i>
-    </button>
-</div>
+      
 
         <!-- ===== COIN SELECTOR STRIP (vertical, appears when C clicked) ===== -->
         <div id="coin-strip" class="hidden">
@@ -1433,9 +1567,13 @@ button.disabled {
                     <div class="btn-control" id="fb-spin" onclick="spin()" title="Spin">
                       <img src="images/btn_spin.png" alt="SPIN" id="img-spin" draggable="false">
                    </div>
-                  <div class="btn-control" id="auto-spin-btn" onclick="showAutoSpinPopup()" title="Auto">
-                   <img src="images/auto-spin.png" alt="AUTO" id="img-auto" draggable="false">
-                    <img src="images/btn_stop.png" alt="STOP" class="hidden" id="img-stop" draggable="false">
+                  <div class="btn-control" id="auto-spin-btn" onclick="toggleAutoSpin()" title="Auto">
+                 
+
+                      <img src="images/auto-spin.png" id="img-auto" draggable="false">
+                         
+
+                          <img src="images/btn_stop.png" id="img-stop" class="hidden" draggable="false">
                 </div>
             </div>
         </div>
@@ -1500,21 +1638,25 @@ button.disabled {
 
     <!-- ===== FULL SCREEN API ===== -->
     <script>
-function enterFullscreen() {
-            var elem = document.documentElement;
-            if (elem.requestFullscreen) {
-                elem.requestFullscreen().catch(function() {});
-            } else if (elem.webkitRequestFullscreen) {
-                elem.webkitRequestFullscreen();
-            } else if (elem.msRequestFullscreen) {
-                elem.msRequestFullscreen();
-            }
-        }
-        document.addEventListener('click', enterFullscreen, {once: true});
-        document.addEventListener('touchstart', enterFullscreen, {once: true});
-        if (screen.orientation && screen.orientation.lock) {
-            screen.orientation.lock('landscape').catch(function() {});
-        }
+
+function checkOrientation() {
+    const warning = document.getElementById('orientationWarning');
+    if (!warning) return;
+
+    if (document.body.classList.contains('wallet-open')) {
+        warning.classList.remove('active');
+        return;
+    }
+    
+    // Portrait mode = show warning
+    if (window.innerHeight > window.innerWidth) {
+        warning.classList.add('active');
+    } else {
+        warning.classList.remove('active');
+    }
+}
+
+
  // ============================================
 // LOBBY COMMUNICATION
 // ============================================
@@ -1559,6 +1701,12 @@ function syncBalanceToLobby(balance) {
     });
 }
 
+
+function goToLobby() {
+    window.parent.postMessage({
+        type: 'GO_LOBBY'
+    }, '*');
+}
 // ============================================
 // game.js - FULL MERGED VERSION
 // (Scale Rotation + Auto Spin + Queue + Daily Ch1 + Stats)
@@ -1602,6 +1750,14 @@ const SCATTER_REWARDS = {3: {spins: 10, multiplier: 2}, 4: {spins: 15, multiplie
 // ---- Bet Table ----
 const BET_TABLE = {"1C": [80,160,320,480,800], "5C": [400,800,1600,2400,4000], "10C": [800,1600,3200,4800,8000], "16C": [1280,2560,5120,7680,12800], "20C": [1600,3200,6400,9600,16000], "50C": [4000,8000,16000,24000,40000]};
 
+
+const coinMap = {
+    "1C": "images/btn_coin_1c.png",
+    "5C": "images/btn_coin_5c.png",
+    "10C": "images/btn_coin_10c.png",
+    "20C": "images/btn_coin_20c.png",
+    "50C": "images/btn_coin_50c.png"
+};
 // ============================================
 // STATE
 // ============================================
@@ -2013,7 +2169,7 @@ if (winResult.totalWin > 0 && !rules.houseWin) {
 
     if (state.autoSpin) {
         state.accumulatedWin += winResult.totalWin;
-       notifyWinToLobby(winResult.totalWin);
+      
         updateUI();
         winDuration = 0;
          highlightWins(winResult.winCells);
@@ -2290,6 +2446,13 @@ function updateFreeSpinUI() {
         }
     }
 }
+
+function updateCoinUI() {
+    const img = document.querySelector('#fb-coin img');
+    if (!img) return;
+
+    img.src = coinMap[state.coinValue] || coinMap["1C"];
+}
 // ============================================
 // POPUPS & OVERLAYS
 // ============================================
@@ -2321,6 +2484,7 @@ async function runFreeSpins() {
 
         if (multipliedWin > 0) {
             state.accumulatedWin += multipliedWin;
+             notifyWinToLobby(totalWinAmount); 
         }
 
         if (winResult.totalWin > 0) {
@@ -2454,7 +2618,7 @@ async function endFreeSpins() {
     
     if (totalWinAmount > 0) {
         state.balance += totalWinAmount;
-        notifyWinToLobby(totalWin);
+        notifyWinToLobby(totalWinAmount);
     }
     
     updateUI();
@@ -2513,7 +2677,7 @@ function changeCoin() { toggleCoinStrip(); }
 // ============================================
 let coinStripOpen = false;
 function toggleCoinStrip() { const strip = document.getElementById('coin-strip'); if (!strip) return; if (coinStripOpen) { strip.classList.add('hidden'); coinStripOpen = false; } else { strip.querySelectorAll('.coin-option').forEach(opt => opt.classList.toggle('active', opt.dataset.coin === state.coinValue)); strip.classList.remove('hidden'); coinStripOpen = true; } }
-function selectCoin(coin) { state.coinValue = coin; state.betIndex = 0; state.bet = BET_TABLE[state.coinValue][0]; const strip = document.getElementById('coin-strip'); if (strip) strip.querySelectorAll('.coin-option').forEach(opt => opt.classList.toggle('active', opt.dataset.coin === coin)); setTimeout(() => { strip.classList.add('hidden'); coinStripOpen = false; }, 300); updateUI(); }
+function selectCoin(coin) { state.coinValue = coin; state.betIndex = 0; state.bet = BET_TABLE[state.coinValue][0]; const strip = document.getElementById('coin-strip'); if (strip) strip.querySelectorAll('.coin-option').forEach(opt => opt.classList.toggle('active', opt.dataset.coin === coin)); updateCoinUI();  setTimeout(() => { strip.classList.add('hidden'); coinStripOpen = false; }, 300); updateUI(); }
 document.addEventListener('click', (e) => { if (!coinStripOpen) return; const strip = document.getElementById('coin-strip'); const coinBtn = document.getElementById('fb-coin'); if (strip && !strip.contains(e.target) && !coinBtn.contains(e.target)) { strip.classList.add('hidden'); coinStripOpen = false; } });
 
 // ============================================
@@ -2560,6 +2724,16 @@ function initButtonSounds() { const buttonIds = ['btn_spin', 'btn_max', 'btn_min
 // ============================================
 function calculateExtraSpins(scatterCount) { if (scatterCount >= 6) return 15; if (scatterCount >= 5) return 12; if (scatterCount >= 4) return 8; return 5; }
 
+function toggleAutoSpin() {
+    console.log("Auto =", state.autoSpin);
+     if (state.autoSpin) {
+        console.log("STOP");
+        stopAutoSpin();
+    } else {
+        console.log("POPUP");
+        showAutoSpinPopup();
+ }    
+  }
 // ============================================
 // AUTO SPIN SUMMARY BOX (total_box.png)
 // ============================================
@@ -2640,8 +2814,64 @@ window.addEventListener('message', function(event) {
     }
 });
 
-// ---- (၂) Game စတင် Initialization (ဒါကို သီးခြားထားရမယ်) ----
+// ===== DOMContentLoaded - ALL IN ONE =====
 document.addEventListener('DOMContentLoaded', function() {
+    
+    // ============================================
+    // 1. ANTI-COPY PROTECTION
+    // ============================================
+    
+    // Anti-Copy
+    document.addEventListener('copy', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+    }, false);
+
+    // Anti-Cut
+    document.addEventListener('cut', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+    }, false);
+
+    // Anti-Right Click
+    document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+    }, true);
+
+    // Anti-Drag Images
+    document.addEventListener('dragstart', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+    }, true);
+
+    // Anti-Double Click
+    document.addEventListener('mousedown', function(e) {
+        if (e.detail > 1) e.preventDefault();
+    }, false);
+
+    // Anti-Key Combo
+    document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && ['c','x','a','s','p'].includes(e.key)) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+    }, false);
+
+    // Disable draggable on all existing images
+    document.querySelectorAll('img').forEach(img => {
+        img.setAttribute('draggable', 'false');
+    });
+
+    // ============================================
+    // 2. GAME INITIALIZATION
+    // ============================================
+    
     const frameImg = document.querySelector('#slot-frame img');
 
     function initGame() {
@@ -2667,6 +2897,7 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         initGame();
     }
+    
 });
 
 
@@ -2683,15 +2914,15 @@ class WinAnimation {
     this.ctx = this.canvas.getContext('2d');
     
     this.config = {
-      winDuration: options.winDuration || 1000,
-      maxCoins: options.maxCoins || 500,
+      winDuration: options.winDuration || 500,
+      maxCoins: options.maxCoins || 250,
       maxSparkles: options.maxSparkles || 150,
       coinGravity: options.coinGravity || 0.18,
       coinSpawnRate: options.coinSpawnRate || 5,
       sparkleSpawnRate: options.sparkleSpawnRate || 6,
-      scoreCountDuration: options.scoreCountDuration || 1800,
-      scoreBoxDelay: options.scoreBoxDelay || 150,
-      riseDuration: options.riseDuration || 60,
+      scoreCountDuration: options.scoreCountDuration || 1000,
+      scoreBoxDelay: options.scoreBoxDelay || 100,
+      riseDuration: options.riseDuration || 40,
       ...options
     };
     
@@ -3086,6 +3317,7 @@ class WinAnimation {
     
     ctx.restore();
   }
+      
   
   drawFallbackText(cfg, riseOffset = 0) {
     const ctx = this.ctx;

@@ -109,25 +109,76 @@ document.addEventListener('copy', function(e) {
     return false;
 }, false);
 
-
-// ===== LOADING SCREEN LOGIC (ပြင်ဆင်ပြီး) =====
 document.addEventListener('DOMContentLoaded', function() {
+    
+    // ===== ALL DOM ELEMENTS =====
     const startBtn = document.getElementById('startBtn');
     const startWrapper = document.getElementById('startWrapper');
-    const loadingContainer = document.getElementById('loadingContainer');
-    const loadingTip = document.getElementById('loadingTip');
-    const loginScreen = document.getElementById('loginScreen');
-    const gameContainer = document.getElementById('gameContainer');
+    const loadingBar = document.getElementById('loadingBar');
     const loadingScreen = document.getElementById('loadingScreen');
+    const loginScreen = document.getElementById('loginScreen');
     const lobbyScreen = document.getElementById('lobbyScreen');
+    
+    // Fullscreen buttons
+    const lobbyFullscreenBtn = document.getElementById('lobbyFullscreenBtn');
+    const lobbyFullscreenIcon = document.getElementById('lobbyFullscreenIcon');
+    const fullScreenBtn = document.getElementById('fullScreenBtn');
+    const fullscreenIcon = document.getElementById('fullscreenIcon');
 
-    // Check if user already logged in
+    // ===== FULLSCREEN: LOBBY BUTTON =====
+    if (lobbyFullscreenBtn) {
+        lobbyFullscreenBtn.addEventListener('click', function() {
+            try {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().then(() => {
+                        if (lobbyFullscreenIcon) lobbyFullscreenIcon.className = 'fas fa-compress';
+                    }).catch(() => {});
+                } else {
+                    document.exitFullscreen().then(() => {
+                        if (lobbyFullscreenIcon) lobbyFullscreenIcon.className = 'fas fa-expand';
+                    }).catch(() => {});
+                }
+            } catch(e) {
+                console.warn('Fullscreen not supported');
+            }
+        });
+    }
+
+    // ===== FULLSCREEN: GAME BUTTON =====
+    if (fullScreenBtn) {
+        fullScreenBtn.addEventListener('click', function() {
+            try {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().then(() => {
+                        if (fullscreenIcon) fullscreenIcon.className = 'fas fa-compress';
+                    }).catch(() => {});
+                } else {
+                    document.exitFullscreen().then(() => {
+                        if (fullscreenIcon) fullscreenIcon.className = 'fas fa-expand';
+                    }).catch(() => {});
+                }
+            } catch(e) {
+                console.warn('Fullscreen not supported');
+            }
+        });
+    }
+
+    // ===== ESC / FULLSCREEN CHANGE LISTENER =====
+    document.addEventListener('fullscreenchange', function() {
+        if (lobbyFullscreenIcon) {
+            lobbyFullscreenIcon.className = document.fullscreenElement ? 'fas fa-compress' : 'fas fa-expand';
+        }
+        if (fullscreenIcon) {
+            fullscreenIcon.className = document.fullscreenElement ? 'fas fa-compress' : 'fas fa-expand';
+        }
+    });
+
+    // ===== CHECK IF USER ALREADY LOGGED IN =====
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
 
     if (currentUser) {
-        // User already logged in - skip login screen
         if (loadingScreen) loadingScreen.style.display = 'none';
-        if (gameContainer) gameContainer.style.display = 'flex';
+        if (lobbyScreen) lobbyScreen.style.display = 'flex';
         updateUserUI(currentUser);
         if (typeof SoundManager !== 'undefined' && SoundManager.playBGM) {
             SoundManager.playBGM();
@@ -135,165 +186,71 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
 
-    // START button click
+    // ===== START BUTTON CLICK =====
     if (startBtn) {
         startBtn.addEventListener('click', function() {
-            // 1. Full screen (with error handling)
+            // Full screen
             try {
-                toggleFullScreen();
-            } catch(e) {
-                console.warn('Fullscreen error:', e);
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().catch(() => {});
+                }
+            } catch(e) {}
+
+            // Hide start, show progress
+            startWrapper.style.display = 'none';
+            if (loadingBar) loadingBar.style.display = 'flex';
+
+            // Play sound
+            if (typeof SoundManager !== 'undefined' && SoundManager.loading) {
+                SoundManager.loading();
             }
 
-            // 2. Hide start button, show loading
-            startWrapper.style.opacity = '0';
-            setTimeout(() => {
-                startWrapper.style.display = 'none';
-                if (loadingContainer) loadingContainer.style.display = 'block';
-                if (loadingTip) {
-                    loadingTip.innerHTML = '<i class="fas fa-wifi"></i> Checking internet speed...';
-                }
-
-                // 3. Play loading sound (with safety check)
-                if (typeof SoundManager !== 'undefined' && SoundManager.loading) {
-                    SoundManager.loading(); // loading.mp3
-                }
-
-                // 4. Start loading process
-                startInternetCheck();
-            }, 500);
+            // Start fast loading
+            startFastLoading();
         });
     }
+    
 });
 
-function toggleFullScreen() {
-    try {
-        if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen().catch(err => {
-                console.warn('Fullscreen not allowed:', err.message);
-            });
-        }
-    } catch (err) {
-        console.warn('Fullscreen not supported');
-    }
-}
 
-function startInternetCheck() {
-    const step1 = document.getElementById('step1Container');
-    const step2 = document.getElementById('step2Container');
-    const internetProgress = document.getElementById('internetProgress');
-    const gameProgress = document.getElementById('gameProgress');
-    const speedInfo = document.getElementById('speedInfo');
-    const loadingTip = document.getElementById('loadingTip');
-    const loadingContainer = document.getElementById('loadingContainer');
+    // START button click
+function startFastLoading() {
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
     const loadingScreen = document.getElementById('loadingScreen');
     const loginScreen = document.getElementById('loginScreen');
 
-    let internetPercent = 0;
-    let gamePercent = 0;
-
-    // Tips array
-    const tips = [
-        "Checking your internet speed...",
-        "အင်တာနက်အမြန်နှုန်း စစ်ဆေးနေပါသည်။",
-        "Loading game assets...",
-        "ဂိမ်းဖိုင်များကို ဆွဲတင်နေပါသည်။"
-    ];
-
-    // ===== STEP 1: Internet Speed Check =====
-    function checkInternetSpeed() {
-        return new Promise((resolve) => {
-            const startTime = Date.now();
-            const image = new Image();
-            image.src = 'images/splash_bg.png?t=' + startTime;
-
-            image.onload = function() {
-                const endTime = Date.now();
-                const duration = endTime - startTime;
-                const speed = Math.floor(1000 / duration);
-                resolve({ duration, speed });
-            };
-
-            image.onerror = function() {
-                resolve({ duration: 500, speed: 2 });
-            };
-        });
-    }
-
-    checkInternetSpeed().then(({ duration, speed }) => {
-        if (speedInfo) {
-            speedInfo.innerHTML = `<i class="fas fa-tachometer-alt"></i> Speed: ~${speed} Mbps`;
+    let percent = 0;
+    
+    // Fast loading ~2 seconds
+    const interval = setInterval(() => {
+        percent += Math.random() * 6 + 4;
+        
+        if (percent >= 100) {
+            percent = 100;
+            clearInterval(interval);
         }
-
-        const incrementTime = Math.max(150, Math.min(400, 400 - speed * 20));
-        const stepAmount = Math.max(0.5, Math.min(3, speed / 10));
-
-        const internetInterval = setInterval(() => {
-            internetPercent += stepAmount;
-
-            if (internetPercent >= 100) {
-                internetPercent = 100;
-                clearInterval(internetInterval);
-                if (internetProgress) internetProgress.style.width = '100%';
-
-                setTimeout(() => {
-                    if (step1) {
-                        step1.style.opacity = '0';
-                        setTimeout(() => {
-                            if (step1) step1.style.display = 'none';
-                            if (step2) step2.style.display = 'block';
-                            if (loadingTip) {
-                                loadingTip.innerHTML = '<i class="fas fa-gamepad"></i> Loading game assets...';
-                            }
-                            startGameLoading();
-                        }, 500);
-                    }
-                }, 800);
-            }
-
-            if (internetProgress) internetProgress.style.width = internetPercent + '%';
-        }, incrementTime);
-    });
-
-    // ===== STEP 2: Game Loading =====
-    function startGameLoading() {
-        const gameInterval = setInterval(() => {
-            gamePercent += Math.random() * 1.5 + 0.5;
-
-            if (gamePercent >= 100) {
-                gamePercent = 100;
-                clearInterval(gameInterval);
-                if (gameProgress) gameProgress.style.width = '100%';
-
-                setTimeout(() => {
-                    if (loadingScreen) loadingScreen.style.opacity = '0';
+        
+        if (progressFill) progressFill.style.width = percent + '%';
+        if (progressText) progressText.textContent = Math.floor(percent) + '%';
+        
+        // Complete
+        if (percent >= 100) {
+            setTimeout(() => {
+                if (loadingScreen) {
+                    loadingScreen.style.opacity = '0';
                     setTimeout(() => {
-                        if (loadingScreen) loadingScreen.style.display = 'none';
-
-                        // Show login screen instead of game
+                        loadingScreen.style.display = 'none';
                         if (loginScreen) loginScreen.style.display = 'flex';
-
-                        // Stop loading sound
+                        
                         if (typeof SoundManager !== 'undefined' && SoundManager.stop) {
                             SoundManager.stop('loadingSound');
                         }
-
-                    }, 500);
-                }, 800);
-            }
-
-            if (gameProgress) gameProgress.style.width = gamePercent + '%';
-        }, 200);
-    }
-
-    // Update tips every 3 seconds
-    let tipIndex = 0;
-    setInterval(() => {
-        if (loadingContainer && loadingContainer.style.display !== 'none' && loadingTip) {
-            tipIndex = (tipIndex + 1) % tips.length;
-            loadingTip.innerHTML = `<i class="fas fa-lightbulb"></i> ${tips[tipIndex]}`;
+                    }, 600);
+                }
+            }, 400);
         }
-    }, 3000);
+        
+    }, 100);
 }
 
-    

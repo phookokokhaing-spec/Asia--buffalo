@@ -75,12 +75,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     window.gameState.userLevel = window.currentUser.level;
                     window.gameState.vipLevel = window.currentUser.vip;
                 }
-
+                           await loadDailyGoals();
+                               await loadJourney();
                 document.dispatchEvent(new Event('userLoggedIn'));
             }
         } else {
             console.log('❌ User logged out');
-            window.currentUser = null;                                                         localStorage.removeItem('currentUser');
+            window.currentUser = null;
+             localStorage.removeItem('currentUser');
             document.getElementById('loginScreen').style.display = 'flex';
             document.getElementById('lobbyScreen').style.display = 'none';
         }
@@ -180,8 +182,7 @@ async function handleLogin() {
 
         // Clear form
         document.getElementById('loginUsername').value = '';
-        document.getElementById('loginPassword').value = '';
-
+         document.getElementById('loginPassword').value = '';
     } catch (error) {
         console.error('Login error:', error);
 

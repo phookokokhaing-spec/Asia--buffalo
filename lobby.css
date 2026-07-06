@@ -3821,3 +3821,134 @@ body.wallet-open {
     -webkit-text-fill-color: transparent;
     background-clip: text;
 }
+
+/* ===== LOADING SCREEN ===== */
+/* ===== LOADING SCREEN ===== */
+#loadingScreen {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    z-index: 9999;
+    overflow: hidden;
+}
+
+/* Full splash background */
+.loading-bg {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-size: cover;
+    background-position: center;
+}
+
+/* ===== START BUTTON (small, bottom) ===== */
+.start-wrapper {
+    position: absolute;
+    bottom: 15%;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    animation: pulseBtn 1.5s ease-in-out infinite;
+}
+
+.start-btn {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    border: 3px solid #ffd700;
+    background: linear-gradient(180deg, #ff4444 0%, #cc0000 100%);
+    color: #fff;
+    font-size: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 
+        0 0 20px rgba(255, 215, 0, 0.6),
+        0 0 40px rgba(255, 0, 0, 0.3);
+    transition: all 0.2s ease;
+}
+
+.start-btn:active {
+    transform: scale(0.9);
+}
+
+.tap-text {
+    font-size: 14px;
+    font-weight: 700;
+    color: #ffd700;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.8),
+                 0 2px 4px rgba(0,0,0,0.9);
+    letter-spacing: 3px;
+}
+
+@keyframes pulseBtn {
+    0%, 100% { transform: translateX(-50%) scale(1); }
+    50% { transform: translateX(-50%) scale(1.08); }
+}
+
+/* ===== PROGRESS BAR (bottom over splash) ===== */
+.loading-bar {
+    position: absolute;
+    bottom: 8%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 70%;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.progress-track {
+    width: 100%;
+    height: 8px;
+    background: rgba(0,0,0,0.6);
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #00ffff, #00cccc);
+    border-radius: 4px;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.6);
+    transition: width 0.1s linear;
+}
+
+.progress-text {
+    font-size: 14px;
+    font-weight: 700;
+    color: #00ffff;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 600px) {
+    .start-btn {
+        width: 60px;
+        height: 60px;
+        font-size: 24px;
+    }
+    
+    .tap-text {
+        font-size: 12px;
+    }
+    
+    .loading-bar {
+        width: 80%;
+    }
+}
+
