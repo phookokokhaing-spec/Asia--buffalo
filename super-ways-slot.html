@@ -1453,7 +1453,135 @@ input, textarea {
     }
 }
 
-   
+/* ===============================
+   PREMIUM WIN HIGHLIGHT
+================================= */
+
+.symbol-slot{
+    position: relative;
+    overflow: hidden;
+    transition: transform .18s ease;
+}
+
+.symbol-slot.winning{
+    z-index: 50;
+    transform: scale(1.08);
+    border-radius: 12px;
+    animation: winPulse .6s ease-in-out infinite alternate;
+    filter: brightness(1.18) saturate(1.2);
+    box-shadow:
+        0 0 8px #ff3b6b,
+        0 0 18px #b94cff,
+        0 0 35px rgba(185,76,255,.85);
+}
+
+/* White shine */
+.symbol-slot.winning::after{
+    content:"";
+    position:absolute;
+    top:-35%;
+    left:-60%;
+    width:45%;
+    height:170%;
+    background:linear-gradient(
+        90deg,
+        transparent,
+        rgba(255,255,255,.95),
+        transparent
+    );
+    transform:rotate(25deg);
+    animation:shine .9s linear infinite;
+    pointer-events:none;
+}
+
+@keyframes shine{
+    from{
+        left:-70%;
+    }
+    to{
+        left:140%;
+    }
+}
+
+@keyframes winPulse{
+    from{
+        transform:scale(1.04);
+        filter:brightness(1.1);
+    }
+    to{
+        transform:scale(1.10);
+        filter:brightness(1.35);
+    }
+}
+
+/* Winning Symbol Jump */
+.win-jump{
+    animation:jump .45s ease;
+}
+
+@keyframes jump{
+    0%,100%{
+        transform:translateY(0) scale(1.08);
+    }
+    35%{
+        transform:translateY(-10px) scale(1.14);
+    }
+}
+
+/* ===== SCATTER GLOW & ORBIT ===== */
+.symbol-slot.scatter-glow {
+    position: relative;
+    z-index: 10;
+    animation: scatterPulse 1s ease-in-out infinite alternate;
+    filter: drop-shadow(0 0 20px #ffd700) drop-shadow(0 0 40px #ff8800);
+    transform: scale(1.1);
+}
+
+@keyframes scatterPulse {
+    0% { filter: drop-shadow(0 0 10px #ffd700) drop-shadow(0 0 20px #ff8800); transform: scale(1.05); }
+    100% { filter: drop-shadow(0 0 30px #ffd700) drop-shadow(0 0 60px #ff4400); transform: scale(1.15); }
+}
+
+/* Orbit Wrapper */
+.orbit {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 120%;
+    height: 120%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* 4 orbiting dots */
+.orbit span {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 12px;
+    height: 12px;
+    background: radial-gradient(circle, #ffd700, #ff6600);
+    border-radius: 50%;
+    box-shadow: 0 0 20px #ffd700;
+    transform-origin: center;
+}
+
+/* Position each dot at 0, 90, 180, 270 degrees */
+.orbit span:nth-child(1) { transform: translate(-50%, -50%) rotate(0deg) translateX(70px); }
+.orbit span:nth-child(2) { transform: translate(-50%, -50%) rotate(90deg) translateX(70px); }
+.orbit span:nth-child(3) { transform: translate(-50%, -50%) rotate(180deg) translateX(70px); }
+.orbit span:nth-child(4) { transform: translate(-50%, -50%) rotate(270deg) translateX(70px); }
+
+/* Animate the dots revolving */
+.orbit {
+    animation: orbitRotate 2s linear infinite;
+}
+
+@keyframes orbitRotate {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}   
    </style>
 </head>
 <body>
@@ -1605,7 +1733,7 @@ input, textarea {
 <audio id="babaSound" preload="auto"></audio>
 <audio id="wheelSound" preload="auto"></audio>
 <audio id="bsmSound" preload="auto"></audio>
-<audio id="scatterChecksSound" preload="auto"></audio>
+<audio id="checkSound" preload="auto"></audio>
 <audio id="spinBtnSound" preload="auto"></audio>
   <!-- Old overlay remove or hide -->
 <div id="win-overlay" style="display: none;">
@@ -1743,11 +1871,11 @@ const ROWS = 4;
 // ============================================
 const SCALE_CYCLE = {
     rounds: [
-        { normal: 1, ch1: 15, ch2: 5, ch3: 1, ch4: 1 },
-        { normal: 2, ch1: 12, ch2: 3, ch3: 1, ch4: 1 },
-        { normal: 2, ch1: 10, ch2: 4, ch3: 2, ch4: 1 },
-        { normal: 1, ch1: 14, ch2: 2, ch3: 1, ch4: 1 },
-        { normal: 2, ch1: 11, ch2: 3, ch3: 2, ch4: 1 }
+        { normal: 3, ch1: 15, ch2: 10, ch3: 1, ch4: 1 },
+        { normal: 2, ch1: 12, ch2: 8, ch3: 1, ch4: 1 },
+        { normal: 2, ch1: 10, ch2: 6, ch3: 2, ch4: 1 },
+        { normal: 1, ch1: 14, ch2: 5, ch3: 1, ch4: 1 },
+        { normal: 2, ch1: 11, ch2: 4, ch3: 2, ch4: 1 }
     ],
     currentRound: 0,
     currentPhase: 'normal',
@@ -2011,32 +2139,79 @@ function setSpinButtonState(isSpinning) {
 }
 
 // ============================================
-// CHECK WINS & SCATTERS
+// CHECK WINS & SCATTERS (FIXED - All Reels)
 // ============================================
 function checkWins() {
     let totalWin = 0, winCells = [], winLines = [];
+    
     for (const sym of Object.keys(PAYTABLE)) {
         const reelCounts = [];
         for (let c = 0; c < REELS; c++) {
             const pos = [];
-            for (let r = 0; r < ROWS; r++) if (state.reels[c][r] === sym || state.reels[c][r] === 'wild') pos.push(r);
+            for (let r = 0; r < ROWS; r++) {
+                if (state.reels[c][r] === sym || state.reels[c][r] === 'wild') {
+                    pos.push(r);
+                }
+            }
             reelCounts.push(pos);
         }
+        
         let w5 = 0, w4 = 0, w3 = 0, w2 = 0;
+        
         if (reelCounts[0].length && reelCounts[1].length) {
             w2 = reelCounts[0].length * reelCounts[1].length;
-            if (reelCounts[2].length) { w3 = w2 * reelCounts[2].length; if (reelCounts[3].length) { w4 = w3 * reelCounts[3].length; if (reelCounts[4].length) w5 = w4 * reelCounts[4].length; } }
+            if (reelCounts[2].length) {
+                w3 = w2 * reelCounts[2].length;
+                if (reelCounts[3].length) {
+                    w4 = w3 * reelCounts[3].length;
+                    if (reelCounts[4].length) {
+                        w5 = w4 * reelCounts[4].length;
+                    }
+                }
+            }
         }
-        const pay = PAYTABLE[sym]; let win = 0, wc = 0;
-        if (w5 > 0) { win = w5 * pay[5]; wc = 5; } else if (w4 > 0) { win = w4 * pay[4]; wc = 4; } else if (w3 > 0) { win = w3 * pay[3]; wc = 3; } else if (w2 > 0 && pay[2]) { win = w2 * pay[2]; wc = 2; }
+        
+        const pay = PAYTABLE[sym];
+        let win = 0, wc = 0;
+        
+        if (w5 > 0) {
+            win = w5 * pay[5];
+            wc = 5;
+        } else if (w4 > 0) {
+            win = w4 * pay[4];
+            wc = 4;
+        } else if (w3 > 0) {
+            win = w3 * pay[3];
+            wc = 3;
+        } else if (w2 > 0 && pay[2]) {
+            win = w2 * pay[2];
+            wc = 2;
+        }
+        
         if (win > 0) {
             totalWin += win * state.bet;
-            winLines.push({symbol: sym, count: wc, ways: w5 || w4 || w3 || w2, win: win * state.bet});
-            const hc = Math.min(wc, 3);
-            for (let i = 0; i < hc; i++) for (const r of reelCounts[i]) winCells.push({col: i, row: r});
+            winLines.push({
+                symbol: sym,
+                count: wc,
+                ways: w5 || w4 || w3 || w2,
+                win: win * state.bet
+            });
+            
+            // ★ FIX: Highlight ALL reels (0 to 4) not just first 3 ★
+            const highlightCount = Math.min(wc, REELS); // 5 လုံးအထိ ထည့်မယ်
+            for (let i = 0; i < highlightCount; i++) {
+                for (const r of reelCounts[i]) {
+                    winCells.push({col: i, row: r});
+                }
+            }
         }
     }
-    return {totalWin: Math.floor(totalWin), winCells, winLines};
+    
+    return {
+        totalWin: Math.floor(totalWin),
+        winCells: winCells,
+        winLines: winLines
+    };
 }
 
 function checkScatters() {
@@ -2049,21 +2224,27 @@ function checkScatters() {
 // HIGHLIGHT & ANIMATE WINS
 // ============================================
 function highlightWins(cells) {
-    document.querySelectorAll('.symbol-slot').forEach(el => {
-        el.classList.remove('winning', 'win-jump');
-        el.style.animation = '';
-        el.style.boxShadow = '';
-        el.style.border = '';
+
+    document.querySelectorAll('.symbol-slot').forEach(slot=>{
+        slot.classList.remove('winning','win-jump');
+        slot.style.boxShadow='';
+        slot.style.border='';
+        slot.style.opacity='0.45';
+        slot.style.filter='brightness(.55)';
     });
-    for (const {col, row} of cells) {
-        const reel = document.getElementById('reel' + col);
-        if (reel && reel.children[row]) {
-            const slot = reel.children[row];
+
+    for(const {col,row} of cells){
+
+        const reel=document.getElementById('reel'+col);
+
+        if(reel && reel.children[row]){
+
+            const slot=reel.children[row];
+
             slot.classList.add('winning');
-            // ★ အနိုင်ရတဲ့အခါ အနီရောင် + ရွှေရောင် ရောစပ်ထားတယ် (အဝါနဲ့ ဆန့်ကျင်ဘက်)
-            slot.style.boxShadow = '0 0 30px rgba(255, 50, 50, 0.9), 0 0 60px rgba(255, 215, 0, 0.5)';
-            slot.style.border = '3px solid #ff3333';
-            slot.style.animation = 'winPulse 0.5s ease-in-out infinite alternate';
+
+            slot.style.opacity='1';
+            slot.style.filter='brightness(1.2)';
         }
     }
 }
@@ -2077,6 +2258,67 @@ function animateWinLines(cells) {
         }
     }
 }
+
+function highlightScatters() {
+    // အဟောင်းတွေကို ရှင်းမယ်
+    document.querySelectorAll(".orbit").forEach(e => e.remove());
+    document.querySelectorAll(".scatter-glow")
+        .forEach(e => e.classList.remove("scatter-glow"));
+
+    let scatterFound = false;
+
+    for (let c = 0; c < REELS; c++) {
+        const reel = document.getElementById("reel" + c);
+        if (!reel) continue; // ★ Reel မရှိရင် ကျော်
+
+        for (let r = 0; r < ROWS; r++) {
+            if (state.reels[c][r] === "scatter") {
+                const slot = reel.children[r];
+                if (!slot) continue; // ★ Slot မရှိရင် ကျော်
+
+                slot.classList.add("scatter-glow");
+                scatterFound = true;
+
+                const orbit = document.createElement("div");
+                orbit.className = "orbit";
+                for (let i = 0; i < 4; i++) {
+                    orbit.innerHTML += "<span></span>";
+                }
+                slot.appendChild(orbit);
+            }
+        }
+    }
+
+    // ★ Scatter တွေ့ရင် Sound ဖွင့်မယ် (ချိတ်ဆက်ဖို့အတွက်)
+    
+   if (scatterFound && typeof SoundManager !== 'undefined' && typeof SoundManager.check === 'function') {
+       SoundManager.check();
+    }
+}
+
+function clearHighlights(){
+
+    document.querySelectorAll('.symbol-slot').forEach(slot=>{
+
+        slot.classList.remove('winning','win-jump');
+
+        slot.style.opacity='';
+        slot.style.filter='';
+        slot.style.boxShadow='';
+        slot.style.border='';
+    });
+
+}
+
+function clearScatterGlow(){
+
+    document.querySelectorAll(".orbit").forEach(e=>e.remove());
+
+    document.querySelectorAll(".scatter-glow")
+        .forEach(e=>e.classList.remove("scatter-glow"));
+
+}
+
 
 // ============================================
 // WIN ANIMATION TRIGGER
@@ -2142,6 +2384,8 @@ async function spin() {
     
     const winResult = checkWins();
     const scatterResult = checkScatters();
+      
+       highlightScatters();  
     
     updateGameStats(winResult.totalWin, state.bet);
     updateConsecutiveWins(winResult.totalWin);
@@ -2184,7 +2428,7 @@ if (winResult.totalWin > 0 && !rules.houseWin) {
         }
     }
     if (scatterResult.count === 2 && !state.isFreeSpin) {
-       SoundManager.boom();
+     
         if (state.autoSpin) {
             state.scatterQueue.push({type: 'scatter2', count: scatterResult.count, positions: scatterResult.positions});
             console.log('📦 Scatter 2 queued. Size:', state.scatterQueue.length);
@@ -2196,7 +2440,7 @@ if (winResult.totalWin > 0 && !rules.houseWin) {
         }
     }
     if (scatterResult.count === 1 && !state.isFreeSpin) {
-        SoundManager.boom();
+        
     }
 
     if (state.isFreeSpin) {
@@ -2270,7 +2514,7 @@ function updateConsecutiveWins(winAmt) {
 async function handleScatterSuspense(scatterResult) {
     console.log('🎯 Suspense mode triggered! Scatter count:', scatterResult.count);
     
-    SoundManager.scatter();
+    SoundManager.check();
     
     // ★ Scatter ၂ ပြား Suspense Effect (အပြာရောင်)
 const positions = scatterResult.positions || [];
@@ -2467,7 +2711,7 @@ async function runFreeSpins() {
 
         if (multipliedWin > 0) {
             state.accumulatedWin += multipliedWin;
-             notifyWinToLobby(totalWinAmount); 
+             
         }
 
         if (winResult.totalWin > 0) {
@@ -3692,7 +3936,7 @@ const SoundManager = (function() {
         //New add
         spinBtnSound: { src: 'sounds/spin_btn.mp3', volume: 0.4, loop: false },
          bsmSound: { src: 'sounds/bsm.mp3', volume: 0.8, loop: false },
-        scatterCheckSound: { src: 'sounds/scatter_check.mp3', volume: 0.5, loop: false },
+        checkSound: { src: 'sounds/check.mp3', volume: 0.5, loop: false },
 
         // Additional (for compatibility)
         revealSound: { src: 'sounds/reveal.mp3', volume: 0.4, loop: false },
@@ -3941,7 +4185,7 @@ const SoundManager = (function() {
         
         // New add
         // Scatter
-        scatter: function() { return play('scatterCheckSound'); },
+        check: function() { return play('checkSound'); },
         // Win
         bsm: function() { return play('bsmSound'); },
          // Spin
