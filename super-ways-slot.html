@@ -1922,7 +1922,7 @@ const WEIGHTS = {
     'scatter': 1    // Rare
 };
 
-const WIN_DURATION = 700;
+const WIN_DURATION = 500;
 
 // ============================================
 // HELPERS
@@ -2695,7 +2695,7 @@ async function handleFreeSpinTrigger(scatterCount, reward) {
     state.freeSpinBaseWin = 0;
     state.accumulatedWin = 0; // Free spin အတွင်း အနိုင်ငွေစုဖို့
 
-    SoundManager.scatter();
+    SoundManager.noti();
 
     showFreeSpinPopup(reward.spins, reward.multiplier);
 }
@@ -2721,7 +2721,7 @@ async function runFreeSpins() {
 
         const scatterResult = checkScatters();
         if (scatterResult.count >= 2) {
-           SoundManager.scatter();
+           SoundManager.boom();
             const extra = calculateExtraSpins(scatterResult.count);
             state.freeSpins += extra;
 
@@ -3230,7 +3230,7 @@ class WinAnimation {
     this.ctx = this.canvas.getContext('2d');
     
     this.config = {
-      winDuration: options.winDuration || 500,
+      winDuration: options.winDuration || 350,
       maxCoins: options.maxCoins || 250,
       maxSparkles: options.maxSparkles || 150,
       coinGravity: options.coinGravity || 0.18,
