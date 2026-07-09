@@ -1293,6 +1293,90 @@ input, textarea {
     0% { transform: translate(-50%, -50%) rotate(0deg); }
     100% { transform: translate(-50%, -50%) rotate(360deg); }
 }
+.symbol-slot {
+    position: relative;
+    overflow: hidden;
+}
+
+.symbol-slot img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+.win-run-border {
+    position: absolute;
+    inset: 0;
+    background-image: url("images/win_border.png");
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+    pointer-events: none;
+    z-index: 10;
+}
+.win-run-border span {
+    position: absolute;
+    background: linear-gradient(90deg, transparent, #00fff0, #ffffff, #00fff0, transparent);
+    box-shadow: 0 0 14px #00fff0, 0 0 28px #00fff0;
+}
+
+.win-run-border .top {
+    top: 0;
+    left: 0;
+    width: 45%;
+    height: 5px;
+    animation: runTop 1.2s linear infinite;
+}
+
+.win-run-border .right {
+    top: 0;
+    right: 0;
+    width: 5px;
+    height: 45%;
+    animation: runRight 1.2s linear infinite;
+}
+
+.win-run-border .bottom {
+    bottom: 0;
+    right: 0;
+    width: 45%;
+    height: 5px;
+    animation: runBottom 1.2s linear infinite;
+}
+
+.win-run-border .left {
+    bottom: 0;
+    left: 0;
+    width: 5px;
+    height: 45%;
+    animation: runLeft 1.2s linear infinite;
+}
+
+@keyframes runTop {
+    from { left: 0; }
+    to { left: 55%; }
+}
+
+@keyframes runRight {
+    from { top: 0; }
+    to { top: 55%; }
+}
+
+@keyframes runBottom {
+    from { right: 0; }
+    to { right: 55%; }
+}
+
+@keyframes runLeft {
+    from { bottom: 0; }
+    to { bottom: 55%; }
+}
+.ctrl-disabled {
+    pointer-events: none !important;
+    opacity: 0.4 !important;
+    cursor: not-allowed !important;
+}
 
    </style>
 </head>
@@ -1454,15 +1538,14 @@ input, textarea {
 </div>
 
 <!-- New Canvas Overlay -->
+
 <canvas id="winCanvas" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999;"></canvas>
 
     <!-- ===== FULL SCREEN API ===== -->
     <script>
-
-
- // ============================================
-// LOBBY COMMUNICATION
-// ============================================
+// ================================================================
+// 1. LOBBY COMMUNICATION
+// ================================================================
 
 function sendToLobby(data) {
     if (window.parent) {
@@ -1474,46 +1557,28 @@ function sendToLobby(data) {
 }
 
 function notifyBetToLobby(amount) {
-    sendToLobby({
-        type: 'BET_DEDUCT',
-        amount: amount,
-        game: 'superWays'
-    });
+    sendToLobby({ type: 'BET_DEDUCT', amount, game: 'superWays' });
 }
 
 function notifyWinToLobby(amount) {
-    sendToLobby({
-        type: 'WIN_AMOUNT',
-        amount: amount,
-        game: 'superWays'
-    });
+    sendToLobby({ type: 'WIN_AMOUNT', amount, game: 'superWays' });
 }
 
 function requestBalanceFromLobby() {
-    sendToLobby({
-        type: 'REQUEST_BALANCE',
-        game: 'superWays'
-    });
+    sendToLobby({ type: 'REQUEST_BALANCE', game: 'superWays' });
 }
 
 function syncBalanceToLobby(balance) {
-    sendToLobby({
-        type: 'SYNC_BALANCE',
-        balance: balance,
-        game: 'superWays'
-    });
+    sendToLobby({ type: 'SYNC_BALANCE', balance, game: 'superWays' });
 }
-
 
 function goToLobby() {
-    window.parent.postMessage({
-        type: 'GO_LOBBY'
-    }, '*');
+    window.parent.postMessage({ type: 'GO_LOBBY' }, '*');
 }
-// ============================================
-// game.js - FULL MERGED VERSION
-// (Scale Rotation + Auto Spin + Queue + Daily Ch1 + Stats)
-// ============================================
+
+// ================================================================
+// 2. CONFIGURATIONS & CONSTANTS
+// ================================================================
 
 // ---- Image Paths ----
 const IMAGE_PATHS = {
@@ -1526,30 +1591,38 @@ const IMAGE_PATHS = {
     'coin': 'images/sym_coin.png'
 };
 
-
-// ============================================
-// PAYTABLE (HARD MODE)
-// ============================================
+// ---- Paytable ----
 const PAYTABLE = {
-    'buffalo': {2: 2,  3: 8,  4: 15, 5: 30},
-    'lion':    {3: 2,  4: 5,  5: 15},
-    'ele':     {3: 1,  4: 3,  5: 10},
-    'zebra':   {3: 1,  4: 2,  5: 8},
-    'deer':    {3: 1,  4: 2,  5: 5},
-    'a':       {3: 1,  4: 1,  5: 4},
-    'k':       {3: 1,  4: 1,  5: 3},
-    'q':       {3: 1,  4: 1,  5: 2},
-    'j':       {3: 1,  4: 1,  5: 2},
-    'ten':     {3: 1,  4: 1,  5: 1},
-    'coin':    {3: 1,  4: 1,  5: 1},
-    'nine':    {3: 1,  4: 1,  5: 1}
+    'buffalo': {2: 2, 3: 8, 4: 15, 5: 30},
+    'lion':    {3: 2, 4: 5, 5: 15},
+    'ele':     {3: 1, 4: 3, 5: 10},
+    'zebra':   {3: 1, 4: 2, 5: 8},
+    'deer':    {3: 1, 4: 2, 5: 5},
+    'a':       {3: 1, 4: 1, 5: 4},
+    'k':       {3: 1, 4: 1, 5: 3},
+    'q':       {3: 1, 4: 1, 5: 2},
+    'j':       {3: 1, 4: 1, 5: 2},
+    'ten':     {3: 1, 4: 1, 5: 1},
+    'coin':    {3: 1, 4: 1, 5: 1},
+    'nine':    {3: 1, 4: 1, 5: 1}
 };
+
 // ---- Scatter Rewards ----
-const SCATTER_REWARDS = {3: {spins: 10, multiplier: 2}, 4: {spins: 15, multiplier: 3}, 5: {spins: 20, multiplier: 5}};
+const SCATTER_REWARDS = {
+    3: { spins: 10, multiplier: 2 },
+    4: { spins: 15, multiplier: 3 },
+    5: { spins: 20, multiplier: 5 }
+};
 
 // ---- Bet Table ----
-const BET_TABLE = {"1C": [80,160,320,480,800], "5C": [400,800,1600,2400,4000], "10C": [800,1600,3200,4800,8000], "16C": [1280,2560,5120,7680,12800], "20C": [1600,3200,6400,9600,16000], "50C": [4000,8000,16000,24000,40000]};
-
+const BET_TABLE = {
+    "1C": [80, 160, 320, 480, 800],
+    "5C": [400, 800, 1600, 2400, 4000],
+    "10C": [800, 1600, 3200, 4800, 8000],
+    "16C": [1280, 2560, 5120, 7680, 12800],
+    "20C": [1600, 3200, 6400, 9600, 16000],
+    "50C": [4000, 8000, 16000, 24000, 40000]
+};
 
 const coinMap = {
     "1C": "images/btn_coin_1c.png",
@@ -1558,29 +1631,21 @@ const coinMap = {
     "20C": "images/btn_coin_20c.png",
     "50C": "images/btn_coin_50c.png"
 };
-// ============================================
-// STATE
-// ============================================
-let state = {
-    balance: 0,
-    coinValue: "1C", betIndex: 0, bet: 80,
-    totalWin: 0, isSpinning: false,
-    autoSpin: false, autoSpinTotal: 0, autoSpinRemaining: 0,
-    freeSpins: 0, freeSpinTotalWin: 0, freeSpinMultiplier: 1,
-    freeSpinBaseWin: 0, isFreeSpin: false,
-    reels: [],
-    consecutiveWins: 0,
-   accumulatedWin: 0,
-    scatterQueue: [],
-    gameStats: { totalSpins: 0, totalBets: 0, totalWins: 0, winCount: 0, bigWinCount: 0, freeSpinCount: 0, scatterCount: 0, history: [] }
-};
 
+// ---- Game Constants ----
 const REELS = 5;
 const ROWS = 4;
+const WIN_DURATION = 500;
 
-// ============================================
-// SCALE CYCLE (Hard House Edge)
-// ============================================
+// ---- Symbol Weights ----
+const WEIGHTS = {
+    'buffalo': 1, 'ele': 2, 'lion': 2, 'zebra': 3,
+    'deer': 3, 'a': 4, 'k': 4, 'q': 4,
+    'j': 4, 'ten': 5, 'nine': 5, 'coin': 5,
+    'wild': 1, 'scatter': 1
+};
+
+// ---- Scale Cycle ----
 const SCALE_CYCLE = {
     rounds: [
         { normal: 3, ch1: 15, ch2: 10, ch3: 1, ch4: 1 },
@@ -1594,7 +1659,6 @@ const SCALE_CYCLE = {
     phaseSpins: 0
 };
 
-
 const SCALE_CHECKS = {
     Ch1: { name: 'Ch1', reel1: 0, reel2: 1, userCanWin: false },
     Ch2: { name: 'Ch2', reel1: 2, reel2: 3, userCanWin: true },
@@ -1602,64 +1666,120 @@ const SCALE_CHECKS = {
     Ch4: { name: 'Ch4', reel1: 0, reel2: 4, userCanWin: true }
 };
 
-// ============================================
-// GET USER WIN REELS (Based on check type)
-// ============================================
+// ================================================================
+// 3. GAME STATE
+// ================================================================
 
-function getUserWinReels(check) {
-    if (check.name === 'Ch1') return [];         // No wins
-    if (check.name === 'Ch2') return [0, 1];     // Win on 0,1
-    if (check.name === 'Ch3') return [4];        // Win on 4
-    if (check.name === 'Ch4') return [4];        // Win on 4
-    return [0, 1, 2, 3, 4];  // Normal
-}
-
-// ============================================
-// WEIGHTS (Hard - Less Buffalo/Wild)
-// ============================================
-const WEIGHTS = {
-    'buffalo': 1,   // Rare
-    'ele': 2, 
-    'lion': 2, 
-    'zebra': 3, 
-    'deer': 3, 
-    'a': 4, 
-    'k': 4, 
-    'q': 4, 
-    'j': 4, 
-    'ten': 5, 
-    'nine': 5, 
-    'coin': 5, 
-    'wild': 1,      // Rare (was 2)
-    'scatter': 1    // Rare
+let state = {
+    balance: 0,
+    coinValue: "1C",
+    betIndex: 0,
+    bet: 80,
+    totalWin: 0,
+    isSpinning: false,
+    autoSpin: false,
+    autoSpinTotal: 0,
+    autoSpinRemaining: 0,
+    freeSpins: 0,
+    freeSpinTotalWin: 0,
+    freeSpinMultiplier: 1,
+    freeSpinBaseWin: 0,
+    isFreeSpin: false,
+    reels: [],
+    consecutiveWins: 0,
+    accumulatedWin: 0,
+    scatterQueue: [],
+    isSuspense: false,
+    freeSpinOriginalCount: 0,
+    gameStats: {
+        totalSpins: 0,
+        totalBets: 0,
+        totalWins: 0,
+        winCount: 0,
+        bigWinCount: 0,
+        freeSpinCount: 0,
+        scatterCount: 0,
+        history: []
+    }
 };
 
-const WIN_DURATION = 500;
+let winAnim = null;
 
-// ============================================
-// HELPERS
-// ============================================
+// ================================================================
+// 4. UTILITY HELPERS
+// ================================================================
+
 function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 function randomSym(pool) { return pool[Math.floor(Math.random() * pool.length)]; }
 
-// ============================================
-// SOUND
-// ============================================
-function playSound(name) { if (typeof SoundManager !== 'undefined' && typeof SoundManager[name] === 'function') SoundManager[name](); }
+function getUserWinReels(check) {
+    if (check.name === 'Ch1') return [];
+    if (check.name === 'Ch2') return [0, 1];
+    if (check.name === 'Ch3') return [4];
+    if (check.name === 'Ch4') return [4];
+    return [0, 1, 2, 3, 4];
+}
+
+function calculateExtraSpins(scatterCount) {
+    if (scatterCount >= 6) return 15;
+    if (scatterCount >= 5) return 12;
+    if (scatterCount >= 4) return 8;
+    return 5;
+}
+
+function calculateScatterReward(scatterCount) {
+    return SCATTER_REWARDS[Math.min(scatterCount, 5)] || SCATTER_REWARDS[3];
+}
+
+function getWinType(amt) {
+    const m = amt / state.bet;
+    if (m >= 50) return { type: 'mega', duration: WIN_DURATION };
+    if (m >= 20) return { type: 'super', duration: WIN_DURATION };
+    if (m >= 5) return { type: 'big', duration: WIN_DURATION };
+    return { type: '', duration: WIN_DURATION };
+}
+
+// ================================================================
+// 5. SOUND MANAGER WRAPPER
+// ================================================================
+
+function playSound(name) {
+    if (typeof SoundManager !== 'undefined' && typeof SoundManager[name] === 'function') {
+        SoundManager[name]();
+    }
+}
+
 function playWinSound(type, lines) {
     if (typeof SoundManager === 'undefined') return;
-    if (lines) for (const line of lines) if (line.count === 5) { if (line.symbol === 'buffalo') playSound('buffalo'); else if (line.symbol === 'lion') playSound('lion'); }
-    if (type === 'mega') { playSound('bsm'); playSound('lion'); playSound('coin'); playSound('buffalo'); }
-    else if (type === 'super') { playSound('bsm'); playSound('lion'); playSound('coin'); }
-    else if (type === 'big') { playSound('bsm'); playSound('lion'); }
-    else playSound('win');
+    if (lines) {
+        for (const line of lines) {
+            if (line.count === 5) {
+                if (line.symbol === 'buffalo') playSound('buffalo');
+                else if (line.symbol === 'lion') playSound('lion');
+            }
+        }
+    }
+    if (type === 'mega') {
+        playSound('bsm');
+        playSound('lion');
+        playSound('coin');
+        playSound('buffalo');
+    } else if (type === 'super') {
+        playSound('bsm');
+        playSound('lion');
+        playSound('coin');
+    } else if (type === 'big') {
+        playSound('bsm');
+        playSound('lion');
+    } else {
+        playSound('win');
+    }
 }
-function getWinType(amt) { const m = amt / state.bet; if (m >= 50) return {type: 'mega', duration: WIN_DURATION}; if (m >= 20) return {type: 'super', duration: WIN_DURATION}; if (m >= 5) return {type: 'big', duration: WIN_DURATION}; return {type: '', duration: WIN_DURATION}; }
 
+// ================================================================
+// 6. SCALE RULES GENERATOR
+// ================================================================
 
-// ============================================
-// GENERATE SCALE RULES
-// ============================================
 function generateScaleRules() {
     const stats = state.gameStats;
     stats.totalSpins++;
@@ -1717,18 +1837,20 @@ function generateScaleRules() {
     };
 }
 
-// ============================================
-// BUILD POOL
-// ============================================
+// ================================================================
+// 7. REEL GENERATION
+// ================================================================
+
 function buildPool(reelIndex, rules) {
     const pool = [];
     const isCh1 = rules && rules.phase === 'Ch1';
     const isAutoSpin = state.autoSpin;
+    const isSuspense = state.isSuspense || false;
 
     for (const [sym, count] of Object.entries(WEIGHTS)) {
         if (sym === 'wild' && (reelIndex === 0 || reelIndex === 4)) continue;
         if (sym === 'wild' && isCh1 && reelIndex === 1) continue;
-        if (sym === 'scatter' && isAutoSpin) continue;
+        if (sym === 'scatter' && isAutoSpin && !isSuspense) continue;
 
         for (let i = 0; i < count; i++) {
             pool.push(sym);
@@ -1737,56 +1859,45 @@ function buildPool(reelIndex, rules) {
     return pool;
 }
 
-// ============================================
-// GENERATE REELS (FIXED)
-// ============================================
-function generateReels(rules) {
-    if (!rules || !rules.crossCheck) {
-        return generateNormalReels(rules);
+function generateOneColumn(colIndex, rules = null) {
+    const col = [];
+    const pool = buildPool(colIndex, rules);
+    const used = {};
+
+    for (let r = 0; r < ROWS; r++) {
+        let sym, att = 0;
+        do {
+            sym = randomSym(pool);
+            att++;
+        } while (used[sym] > 1 && att < 50);
+
+        col.push(sym);
+        used[sym] = (used[sym] || 0) + 1;
     }
-    let reels = generateNormalReels(rules);
-    return applyScaleCheck(reels, rules);  // ✅ rules အပြည့်ပို့
+
+    return col;
 }
 
-// ============================================
-// GENERATE NORMAL REELS
-// ============================================
 function generateNormalReels(rules) {
     const reels = [];
     for (let c = 0; c < REELS; c++) {
-        const col = [];
-        const pool = buildPool(c, rules);
-        const used = {};
-        for (let r = 0; r < ROWS; r++) {
-            let sym, att = 0;
-            do {
-                sym = randomSym(pool);
-                att++;
-            } while (used[sym] > 1 && att < 50);
-            col.push(sym);
-            used[sym] = (used[sym] || 0) + 1;
-        }
-        reels.push(col);
+        reels.push(generateOneColumn(c, rules));
     }
     return reels;
 }
 
-// ============================================
-// APPLY SCALE CHECK (FIXED)
-// ============================================
-
 function applyScaleCheck(reels, rules) {
     if (!rules || !rules.crossCheck) return reels;
-    
+
     const crossCheck = rules.crossCheck;
-    const r1 = reels[crossCheck.reel1];  // dynamic: 0,1,2,3,4
-    const r2 = reels[crossCheck.reel2];  // dynamic: 1,3,4,4
+    const r1 = reels[crossCheck.reel1];
+    const r2 = reels[crossCheck.reel2];
 
     for (let i = 0; i < r2.length; i++) {
         if (r2[i] === 'wild' || r2[i] === 'scatter') continue;
-        
+
         const r1Regular = r1.filter(s => s !== 'wild' && s !== 'scatter');
-        
+
         if (r1Regular.includes(r2[i])) {
             const pool = buildPool(crossCheck.reel2, rules).filter(s => {
                 if (s === 'wild' || s === 'scatter') return true;
@@ -1798,9 +1909,18 @@ function applyScaleCheck(reels, rules) {
     return reels;
 }
 
-// ============================================
-// RENDER & CLEAR EFFECTS
-// ============================================
+function generateReels(rules) {
+    if (!rules || !rules.crossCheck) {
+        return generateNormalReels(rules);
+    }
+    let reels = generateNormalReels(rules);
+    return applyScaleCheck(reels, rules);
+}
+
+// ================================================================
+// 8. RENDER & UI HELPERS
+// ================================================================
+
 function renderReels() {
     for (let c = 0; c < REELS; c++) {
         const el = document.getElementById('reel' + c);
@@ -1812,9 +1932,11 @@ function renderReels() {
             slot.className = 'symbol-slot';
             if (sym === 'scatter') slot.classList.add('scatter-symbol');
             const img = document.createElement('img');
-            img.src = IMAGE_PATHS[sym]; img.alt = sym;
+            img.src = IMAGE_PATHS[sym];
+            img.alt = sym;
             img.onerror = function() { this.style.opacity = '0.3'; };
-            slot.appendChild(img); el.appendChild(slot);
+            slot.appendChild(img);
+            el.appendChild(slot);
         }
     }
 }
@@ -1822,6 +1944,7 @@ function renderReels() {
 function clearReelEffects() {
     const overlay = document.getElementById('win-overlay');
     if (overlay) overlay.classList.remove('active');
+
     document.querySelectorAll('.symbol-slot').forEach(el => {
         el.classList.remove('winning', 'win-jump', 'scatter-highlight', 'scatter-reveal', 'locked-column', 'suspense-glow', 'rise-column');
         el.style.animation = '';
@@ -1830,10 +1953,16 @@ function clearReelEffects() {
         el.style.transform = '';
         el.style.opacity = '';
         el.style.filter = '';
+        const border = el.querySelector('.win-run-border');
+        if (border) border.remove();
     });
+
     document.querySelectorAll('.reel').forEach(r => {
         r.classList.remove('suspense-shake', 'win-shake');
     });
+
+    document.querySelectorAll(".orbit").forEach(e => e.remove());
+    document.querySelectorAll(".scatter-glow").forEach(e => e.classList.remove("scatter-glow"));
 }
 
 function setSpinButtonState(isSpinning) {
@@ -1850,694 +1979,39 @@ function setSpinButtonState(isSpinning) {
     }
 }
 
-// ============================================
-// CHECK WINS & SCATTERS (FIXED - All Reels)
-// ============================================
-function checkWins() {
-    let totalWin = 0, winCells = [], winLines = [];
-    
-    for (const sym of Object.keys(PAYTABLE)) {
-        const reelCounts = [];
-        for (let c = 0; c < REELS; c++) {
-            const pos = [];
-            for (let r = 0; r < ROWS; r++) {
-                if (state.reels[c][r] === sym || state.reels[c][r] === 'wild') {
-                    pos.push(r);
-                }
-            }
-            reelCounts.push(pos);
+function disableControls(disable) {
+    const buttons = [
+        document.getElementById('fb-minus'),
+        document.getElementById('fb-plus'),
+        document.getElementById('fb-max'),
+        document.getElementById('fb-coin')
+    ];
+    buttons.forEach(btn => {
+        if (btn) {
+            btn.style.opacity = disable ? '0.4' : '1';
+            btn.style.pointerEvents = disable ? 'none' : 'auto';
         }
-        
-        let w5 = 0, w4 = 0, w3 = 0, w2 = 0;
-        
-        if (reelCounts[0].length && reelCounts[1].length) {
-            w2 = reelCounts[0].length * reelCounts[1].length;
-            if (reelCounts[2].length) {
-                w3 = w2 * reelCounts[2].length;
-                if (reelCounts[3].length) {
-                    w4 = w3 * reelCounts[3].length;
-                    if (reelCounts[4].length) {
-                        w5 = w4 * reelCounts[4].length;
-                    }
-                }
-            }
-        }
-        
-        const pay = PAYTABLE[sym];
-        let win = 0, wc = 0;
-        
-        if (w5 > 0) {
-            win = w5 * pay[5];
-            wc = 5;
-        } else if (w4 > 0) {
-            win = w4 * pay[4];
-            wc = 4;
-        } else if (w3 > 0) {
-            win = w3 * pay[3];
-            wc = 3;
-        } else if (w2 > 0 && pay[2]) {
-            win = w2 * pay[2];
-            wc = 2;
-        }
-        
-        if (win > 0) {
-            totalWin += win * state.bet;
-            winLines.push({
-                symbol: sym,
-                count: wc,
-                ways: w5 || w4 || w3 || w2,
-                win: win * state.bet
-            });
-            
-            // ★ FIX: Highlight ALL reels (0 to 4) not just first 3 ★
-            const highlightCount = Math.min(wc, REELS); // 5 လုံးအထိ ထည့်မယ်
-            for (let i = 0; i < highlightCount; i++) {
-                for (const r of reelCounts[i]) {
-                    winCells.push({col: i, row: r});
-                }
-            }
-        }
-    }
-    
-    return {
-        totalWin: Math.floor(totalWin),
-        winCells: winCells,
-        winLines: winLines
-    };
-}
-
-function checkScatters() {
-    let cnt = 0, pos = [];
-    for (let c = 0; c < REELS; c++) for (let r = 0; r < ROWS; r++) if (state.reels[c][r] === 'scatter') { cnt++; pos.push({col: c, row: r}); }
-    return {count: cnt, positions: pos};
-}
-
-// ============================================
-// HIGHLIGHT & ANIMATE WINS
-// ============================================
-function highlightWins(cells) {
-
-    document.querySelectorAll('.symbol-slot').forEach(slot=>{
-        slot.classList.remove('winning','win-jump');
-        slot.style.boxShadow='';
-        slot.style.border='';
-        slot.style.opacity='0.45';
-        slot.style.filter='brightness(.55)';
-    });
-
-    for(const {col,row} of cells){
-
-        const reel=document.getElementById('reel'+col);
-
-        if(reel && reel.children[row]){
-
-            const slot=reel.children[row];
-
-            slot.classList.add('winning');
-
-            slot.style.opacity='1';
-            slot.style.filter='brightness(1.2)';
-        }
-    }
-}
-function animateWinLines(cells) {
-    document.querySelectorAll('.symbol-slot').forEach(el => el.classList.remove('win-jump'));
-    for (const {col, row} of cells) {
-        const reel = document.getElementById('reel' + col);
-        if (reel && reel.children[row]) {
-            const slot = reel.children[row];
-            setTimeout(() => { slot.classList.add('win-jump'); setTimeout(() => slot.classList.remove('win-jump'), 1200); }, col * 80 + row * 40);
-        }
-    }
-}
-
-function highlightScatters() {
-    // အဟောင်းတွေကို ရှင်းမယ်
-    document.querySelectorAll(".orbit").forEach(e => e.remove());
-    document.querySelectorAll(".scatter-glow")
-        .forEach(e => e.classList.remove("scatter-glow"));
-
-    let scatterFound = false;
-
-    for (let c = 0; c < REELS; c++) {
-        const reel = document.getElementById("reel" + c);
-        if (!reel) continue; // ★ Reel မရှိရင် ကျော်
-
-        for (let r = 0; r < ROWS; r++) {
-            if (state.reels[c][r] === "scatter") {
-                const slot = reel.children[r];
-                if (!slot) continue; // ★ Slot မရှိရင် ကျော်
-
-                slot.classList.add("scatter-glow");
-                scatterFound = true;
-
-                const orbit = document.createElement("div");
-                orbit.className = "orbit";
-                for (let i = 0; i < 4; i++) {
-                    orbit.innerHTML += "<span></span>";
-                }
-                slot.appendChild(orbit);
-            }
-        }
-    }
-
-    // ★ Scatter တွေ့ရင် Sound ဖွင့်မယ် (ချိတ်ဆက်ဖို့အတွက်)
-    
-   if (scatterFound && typeof SoundManager !== 'undefined' && typeof SoundManager.boom === 'function') {
-       SoundManager.boom();
-    }
-}
-
-function clearHighlights(){
-
-    document.querySelectorAll('.symbol-slot').forEach(slot=>{
-
-        slot.classList.remove('winning','win-jump');
-
-        slot.style.opacity='';
-        slot.style.filter='';
-        slot.style.boxShadow='';
-        slot.style.border='';
-    });
-
-}
-
-function clearScatterGlow(){
-
-    document.querySelectorAll(".orbit").forEach(e=>e.remove());
-
-    document.querySelectorAll(".scatter-glow")
-        .forEach(e=>e.classList.remove("scatter-glow"));
-
-}
-
-
-// ============================================
-// WIN ANIMATION TRIGGER
-// ============================================
-let winAnim = null;
-function triggerWinAnimation(winResult) {
-    const winInfo = getWinType(winResult.totalWin);
-    const winType = winInfo.type;
-    const duration = winInfo.duration;
-    if (winAnim && winType) { const m = winAnim.play || winAnim.show || winAnim.trigger; if (m) m.call(winAnim, winType, winResult.totalWin); }
-    playWinSound(winType, winResult.winLines);
-    showWinOverlay(winResult.totalWin, winResult.winLines);
-    return duration;
-}
-
-// ============================================
-// SPIN ANIMATION
-// ============================================
-async function runSpinAnimation() {
-    const intervals = [];
-    for (let c = 0; c < REELS; c++) {
-        const el = document.getElementById('reel' + c);
-        if (!el) continue;
-        el.classList.add('spinning');
-        const slots = el.querySelectorAll('.symbol-slot img');
-        const interval = setInterval(() => { slots.forEach(img => { const keys = Object.keys(IMAGE_PATHS); img.src = IMAGE_PATHS[keys[Math.floor(Math.random() * keys.length)]]; }); }, 80);
-        intervals.push(interval);
-    }
-    playSound('spin');
-    await delay(500);
-    for (let c = 0; c < REELS; c++) {
-        const el = document.getElementById('reel' + c);
-        if (!el) continue;
-        clearInterval(intervals[c]); el.classList.remove('spinning');
-        const slots = el.querySelectorAll('.symbol-slot');
-        slots.forEach((slot, r) => { const img = slot.querySelector('img'); const sym = state.reels[c][r]; if (img) img.src = IMAGE_PATHS[sym]; });
-        playSound('reelStop');
-        if (c < REELS - 1) await delay(200);
-    }
-}
-
-// ============================================
-// MAIN SPIN FUNCTION
-// ============================================
-async function spin() {
-    if (state.isSpinning) return;
-     if (!state.isFreeSpin && state.balance < state.bet) {
-        if (state.autoSpin) stopAutoSpin();
-        
-        showNotification('လက်ကျန်ငွေ မလုံလောက်ပါ', 'error');
-        
-        return;
-    }
-    
-    state.isSpinning = true;
-    if (!state.isFreeSpin) state.balance -= state.bet;
-   notifyBetToLobby(state.bet);
-    state.totalWin = 0;
-    updateUI();
-    setSpinButtonState(true);
-    clearReelEffects();
-    
-    const rules = generateScaleRules();
-    console.log('🎰 Phase:', rules.phase, 'Round:', SCALE_CYCLE.currentRound + 1, 'Spin:', SCALE_CYCLE.phaseSpins);
-    
-    state.reels = generateReels(rules);
-    await runSpinAnimation();
-    renderReels();
-    
-    const winResult = checkWins();
-    const scatterResult = checkScatters();
-      
-       highlightScatters();  
-    
-    updateGameStats(winResult.totalWin, state.bet);
-    updateConsecutiveWins(winResult.totalWin);
-    
-   let winDuration = 0;
-if (winResult.totalWin > 0 && !rules.houseWin) {
-    state.totalWin = winResult.totalWin;
-
-    if (state.autoSpin) {
-        state.accumulatedWin += winResult.totalWin;
-      
-        updateUI();
-        winDuration = 0;
-         highlightWins(winResult.winCells);
-        animateWinLines(winResult.winCells);
-    } else {
-        state.balance += winResult.totalWin;
-        notifyWinToLobby(winResult.totalWin); 
-        highlightWins(winResult.winCells);
-        animateWinLines(winResult.winCells);
-        winDuration = triggerWinAnimation(winResult);
-        updateUI();
-        await delay(winDuration);
-    }
-} else if (rules.houseWin) {
-    console.log('💀 HOUSE WIN (Ch1) - Phase triggered!');
-}
-    
-    if (scatterResult.count >= 3 && !state.isFreeSpin) {
-        SoundManager.noti();
-        const reward = SCATTER_REWARDS[Math.min(scatterResult.count, 5)];
-        if (state.autoSpin) {
-            state.scatterQueue.push({type: 'scatter3', count: scatterResult.count, reward: reward, positions: scatterResult.positions});
-            console.log('📦 Scatter 3 queued. Size:', state.scatterQueue.length);
-        } else {
-            await handleFreeSpinTrigger(scatterResult.count, reward);
-            state.isSpinning = false;
-            setSpinButtonState(false);
-            return;
-        }
-    }
-   
-if (scatterResult.count >= 2 && !state.isFreeSpin) {
-    SoundManager.check();
-    if (state.autoSpin) {
-        state.scatterQueue.push({
-            type: 'scatter2',
-            count: scatterResult.count,
-            positions: scatterResult.positions
-        });
-        console.log('📦 Scatter 2+ queued. Size:', state.scatterQueue.length);
-    } else {
-        await handleScatterSuspense(scatterResult);
-        
-        if (state.scatterQueue.length > 0) {
-            await processScatterQueue();
-        }
-        state.isSpinning = false;
-        setSpinButtonState(false);
-        return;
-    }
-}
-    if (scatterResult.count === 1 && !state.isFreeSpin) {
-        SoundManager.boom();
-    }
-
-    if (state.isFreeSpin) {
-        state.freeSpinTotalWin += state.totalWin;
-        state.freeSpins--;
-        updateFreeSpinUI();
-        if (state.freeSpins <= 0) {
-            await endFreeSpins();
-            if (state.autoSpin && state.autoSpinRemaining > 0) {
-                state.isSpinning = false;
-                setSpinButtonState(false);
-                setTimeout(() => spin(), 500);
-                return;
-            }
-            state.isSpinning = false;
-            setSpinButtonState(false);
-            return;
-        }
-        state.isSpinning = false;
-        setSpinButtonState(false);
-        return;
-    }
-    
-    if (state.autoSpin && state.autoSpinRemaining > 0) {
-        state.autoSpinRemaining--;
-        updateAutoSpinUI();
-        if (state.autoSpinRemaining > 0) {
-            const waitTime = winDuration > 0 ? winDuration + 500 : 1000;
-            await delay(waitTime);
-            state.isSpinning = false;
-            setSpinButtonState(false);
-            setTimeout(() => spin(), 50);
-            return;
-        } else {
-            if (state.scatterQueue.length > 0) {
-                state.isSpinning = false;
-                setSpinButtonState(false);
-                console.log('🎉 Processing Scatter Queue. Size:', state.scatterQueue.length);
-                processScatterQueue();
-                return;
-            }
-            stopAutoSpin();
-        }
-    }
-    
-    state.isSpinning = false;
-    setSpinButtonState(false);
-}
-
-
-// ========================================
-// Notification  FUNCTIONS
-// ========================================
-
-function showNotification(message, type) {
-    var old = document.getElementById('game-notification');
-    if (old) old.remove();
-
-    var noti = document.createElement('div');
-    noti.id = 'game-notification';
-    noti.style.position = 'fixed';
-    noti.style.top = '50%';
-    noti.style.left = '50%';
-    noti.style.transform = 'translate(-50%, -50%)';
-    noti.style.zIndex = '9999999';
-    noti.style.background = 'rgba(0,0,0,0.85)';
-    noti.style.color = 'white';
-    noti.style.padding = '20px 40px';
-    noti.style.borderRadius = '16px';
-    noti.style.fontSize = '24px';
-    noti.style.fontWeight = 'bold';
-    noti.style.textAlign = 'center';
-    noti.style.backdropFilter = 'blur(8px)';
-    noti.style.boxShadow = '0 10px 40px rgba(0,0,0,0.6)';
-    noti.style.border = '3px solid ' + (type === 'error' ? '#ff4757' : '#2ed573');
-    noti.style.color = type === 'error' ? '#ff6b81' : '#7bed9f';
-    noti.style.minWidth = '200px';
-    noti.style.pointerEvents = 'none';
-    noti.textContent = message;
-    document.body.appendChild(noti);
-
-    setTimeout(function() {
-        if (noti.parentNode) {
-            noti.remove();
-        }
-    }, 2000);
-}
-
-// ============================================
-// STATS & CONSECUTIVE WINS
-// ============================================
-function updateGameStats(winAmt, betAmt) {
-    const stats = state.gameStats;
-    stats.totalBets += betAmt;
-    stats.totalWins += winAmt;
-    if (winAmt > 0) stats.winCount++;
-    if (winAmt >= betAmt * 5) stats.bigWinCount++;
-    stats.history.push({spin: stats.totalSpins, bet: betAmt, win: winAmt, rtp: stats.totalBets > 0 ? stats.totalWins / stats.totalBets : 0});
-    if (stats.history.length > 100) stats.history.shift();
-}
-function updateConsecutiveWins(winAmt) {
-    if (winAmt > 0) { state.consecutiveWins++; console.log('Consecutive wins:', state.consecutiveWins); }
-    else { state.consecutiveWins = 0; }
-}
-
-
-// ============================================
-// HANDLE SCATTER SUSPENSE (Scatter 2+ ပြား - Maximum Chase)
-// ============================================
-async function handleScatterSuspense(scatterResult) {
-    console.log('🎯 Suspense mode triggered! Initial Scatter count:', scatterResult.count);
-    
-    const initialPositions = scatterResult.positions || [];
-    const lockedCols = new Set(initialPositions.map(pos => pos.col));
-    
-    for (const pos of initialPositions) {
-        const reel = document.getElementById('reel' + pos.col);
-        if (reel && reel.children[pos.row]) {
-            const slot = reel.children[pos.row];
-            slot.classList.add('scatter-highlight');
-            slot.style.boxShadow = '0 0 50px rgba(255, 20, 147, 0.8), 0 0 100px rgba(255, 20, 147, 0.4)';
-            slot.style.border =  '4px solid #FF1493';
-            slot.style.transition = 'all 0.3s';
-            slot.style.transform = 'scale(1.15)';
-        }
-    }
-    
-    const totalReels = 5;
-    const availableCols = [];
-    for (let i = 0; i < totalReels; i++) {
-        if (!lockedCols.has(i)) {
-            availableCols.push(i);
-        }
-    }
-    
-    document.querySelectorAll('.reel').forEach(el => {
-        el.classList.add('suspense-shake');
-        el.style.animation = 'suspenseShake 0.3s ease-in-out infinite alternate';
-    });
-    
-    SoundManager.check();
-    await delay(500);
-    
-    let totalScatters = scatterResult.count;
-    let allPositions = [...initialPositions];
-    
-    for (let i = 0; i < availableCols.length; i++) {
-        const colToCheck = availableCols[i];
-        
-        const reelEl = document.getElementById('reel' + colToCheck);
-        if (reelEl) {
-            reelEl.style.border = '4px solid #FF1493';
-            reelEl.style.boxShadow = '0 0 50px rgba(255, 20, 147, 0.8), 0 0 100px rgba(255, 20, 147, 0.4)';
-        }
-        
-        await fastSpinSingleReel(colToCheck);
-        
-        const reelData = state.reels[colToCheck];
-        let foundScatter = false;
-        for (let row = 0; row < reelData.length; row++) {
-            if (reelData[row] === 'scatter') {
-                totalScatters++;
-                allPositions.push({ col: colToCheck, row: row });
-                foundScatter = true;
-                
-                const slot = reelEl.children[row];
-                if (slot) {
-                    slot.classList.add('scatter-highlight');
-                    slot.style.boxShadow = '0 0 50px rgba(255, 20, 147, 0.8), 0 0 100px rgba(255, 20, 147, 0.4)';
-                    slot.style.border =  '4px solid #FF1493';
-                    slot.style.transition = 'all 0.3s';
-                    slot.style.transform = 'scale(1.15)';
-                }
-            }
-        }
-        
-        if (reelEl) {
-            reelEl.style.border = '';
-            reelEl.style.boxShadow = '';
-        }
-        
-        if (foundScatter) {
-            SoundManager.bom();
-            console.log(`🎉 Reel ${colToCheck} မှာ Scatter တွေ့သွားပြီ! စုစုပေါင်း: ${totalScatters}`);
-        }
-        
-        await delay(400);
-    }
-    
-    document.querySelectorAll('.reel').forEach(el => {
-        el.classList.remove('suspense-shake');
-        el.style.animation = '';
-    });
-    
-    await delay(800);
-    document.querySelectorAll('.scatter-highlight').forEach(el => {
-        el.classList.remove('scatter-highlight');
-        el.style.boxShadow = '';
-        el.style.border = '';
-        el.style.transform = '';
-        el.style.transition = '';
-    });
-    
-    console.log(`✅ Suspense ပြီးဆုံး။ စုစုပေါင်း Scatter: ${totalScatters}`);
-    
-    if (totalScatters >= 3) {
-        const reward = calculateScatterReward(totalScatters);
-        
-        state.scatterQueue.push({
-            type: 'scatter3',
-            count: totalScatters,
-            reward: reward,
-            positions: allPositions
-        });
-    } else {
-        console.log('Scatter 3 မပြည့်ဘူး၊ ပုံမှန်ပြန်သွားမယ်');
-    }
-    
-    state.isSpinning = false;
-    setSpinButtonState(false);
-    
-    if (state.scatterQueue.length > 0) {
-        setTimeout(() => processScatterQueue(), 500);
-    } else {
-        finalizeAutoSpin();
-    }
-}
-
-// ============================================
-// Fast Spin Single Reel (Suspense အတွက် - 2 sec)
-// ============================================
-function fastSpinSingleReel(colIndex) {
-    return new Promise((resolve) => {
-        // ★ အသံထည့်ထားတယ် ★
-        if (typeof SoundManager !== 'undefined' && typeof SoundManager.check === 'function') {
-            SoundManager.check();
-        }
-
-        const reelEl = document.getElementById('reel' + colIndex);
-        if (!reelEl) { resolve(); return; }
-
-        const slots = reelEl.querySelectorAll('.symbol-slot img');
-        const interval = setInterval(() => {
-            slots.forEach(img => {
-                const keys = Object.keys(IMAGE_PATHS);
-                img.src = IMAGE_PATHS[keys[Math.floor(Math.random() * keys.length)]];
-            });
-        }, 80); // ဒီ 60 က ပုံပြောင်းနှုန်းပါ (မြန်နေတယ်ထင်ရင် 80-100 လောက်ထားလို့ရတယ်)
-
-        // ★ ဒီမှာ 1000 ကို 2000 ပြောင်းလိုက်တယ် ★
-        setTimeout(() => {
-            clearInterval(interval);
-
-            const reelData = state.reels[colIndex];
-            slots.forEach((img, idx) => {
-                if (reelData[idx]) {
-                    img.src = IMAGE_PATHS[reelData[idx]];
-                }
-            });
-
-            resolve();
-        }, 2000); // ★ ၂ စက္ကန့် ★
     });
 }
 
-// ============================================
-// Calculate Scatter Reward 
-// ============================================
-function calculateScatterReward(scatterCount) {
-    return SCATTER_REWARDS[Math.min(scatterCount, 5)] || SCATTER_REWARDS[3];
-}
-
-// ============================================
-// SCATTER QUEUE PROCESSING 
-// ============================================
-async function processScatterQueue() {
-    if (state.scatterQueue.length === 0) {
-        finalizeAutoSpin();
-        return;
-    }
-
-    const item = state.scatterQueue.shift();
-    state.isSpinning = true;
-    setSpinButtonState(true);
-
-    try {
-        if (item.type === 'doFreeSpin') {
-            await handleFreeSpinTrigger(item.count, item.reward);
-        } else {
-            await handleScatterSuspense(item);
-        }
-    } catch (error) {
-        console.error('Queue processing error:', error);
-    }
-
-    state.isSpinning = false;
-    setSpinButtonState(false);
-
-    if (state.scatterQueue.length > 0) {
-        setTimeout(() => {
-            processScatterQueue();
-        }, 500);
-    } else {
-        finalizeAutoSpin();
-    }
-}
-
-// ============================================
-// FINALIZE AUTO SPIN (Show Box + Add Money)
-// ============================================
-function finalizeAutoSpin() {
-    if (state.accumulatedWin > 0) {
-        state.balance += state.accumulatedWin;
-     notifyWinToLobby(state.accumulatedWin);
-    }
-    
-    state.isSpinning = false;
-    setSpinButtonState(false);
-    state.autoSpin = false;
-    state.autoSpinTotal = 0;
-    state.autoSpinRemaining = 0;
-    
-    updateAutoSpinUI();
-    disableControls(false);
-    closeAutoSpinPopup();
-    updateUI();
-    
-    var totalWinAmount = state.accumulatedWin;
-    var totalSpins = state.autoSpinTotal;
-    
-    if (totalWinAmount > 0) {
-        showAutoSpinSummary(totalWinAmount, totalSpins);
-        
-        setTimeout(function() {
-            if (totalWinAmount > 0) {
-                triggerWinAnimation({
-                    totalWin: totalWinAmount,
-                    winCells: [],
-                    winLines: []
-                });
-            }
-        }, 600);
-    }
-    
-    state.accumulatedWin = 0;
-    state.totalWin = 0;
-    updateUI();
-    
-    var statusMsg = document.getElementById('statusMsg');
-    if (statusMsg) {
-        statusMsg.textContent = '✅ Auto Spin ပြီးပါပြီ!';
-        statusMsg.className = '';
-    }
-    
-    console.log('✅ Auto Spin finalized. Total accumulated:', totalWinAmount);
-}
-// ============================================
-// UI
-// ============================================
 function updateUI() {
     const balanceEl = document.getElementById('balance');
     const betEl = document.getElementById('bet-display');
     const winEl = document.getElementById('win-display');
     const betBottom = document.getElementById('bet-value-1');
     const winBottom = document.getElementById('win-value-1');
+
     if (balanceEl) balanceEl.textContent = state.balance.toLocaleString();
     if (betEl) betEl.textContent = state.bet;
     if (winEl) winEl.textContent = state.totalWin.toLocaleString();
     if (betBottom) betBottom.textContent = state.bet;
     if (winBottom) winBottom.textContent = state.totalWin.toLocaleString();
+}
+
+function updateCoinUI() {
+    const img = document.querySelector('#fb-coin img');
+    if (!img) return;
+    img.src = coinMap[state.coinValue] || coinMap["1C"];
 }
 
 function updateFreeSpinUI() {
@@ -2558,24 +2032,680 @@ function updateFreeSpinUI() {
     }
 }
 
-function updateCoinUI() {
-    const img = document.querySelector('#fb-coin img');
-    if (!img) return;
-
-    img.src = coinMap[state.coinValue] || coinMap["1C"];
+function hideFreeSpinIndicator() {
+    const indicator = document.getElementById('free-spin-indicator');
+    if (indicator) {
+        indicator.style.animation = 'slideInRight 0.3s ease-in reverse forwards';
+        setTimeout(function() { if (indicator.parentNode) indicator.remove(); }, 350);
+    }
 }
-// ============================================
-// POPUPS & OVERLAYS
-// ============================================
-function showWinOverlay(amount, winLines) { if (amount <= 0) return; const overlay = document.getElementById('win-overlay'); if (overlay) { overlay.classList.add('active'); const wa = document.getElementById('win-amount'); const wt = document.getElementById('win-type'); if (wa) wa.textContent = amount; if (wt) wt.textContent = 'WIN'; } }
 
-// ============================================
-// Three Scatter Anmation
-// ============================================
+function updateAutoSpinUI() {
+    let indicator = document.getElementById('auto-spin-indicator');
+    if (state.autoSpin && state.autoSpinRemaining > 0) {
+        if (!indicator) {
+            indicator = document.createElement('div');
+            indicator.id = 'auto-spin-indicator';
+            indicator.className = 'auto-spin-indicator';
+            document.body.appendChild(indicator);
+        }
+        indicator.innerHTML = `<div class="indicator-content"><span class="spin-number">${state.autoSpinRemaining}</span><span class="spin-label">SPINS</span></div><button class="stop-btn" onclick="stopAutoSpin()">⏹ ရပ်</button>`;
+        if (!indicator.style.animation) indicator.style.animation = 'slideInRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards';
+    } else {
+        if (indicator) {
+            indicator.style.animation = 'slideInRight 0.3s ease-in reverse forwards';
+            setTimeout(() => { if (indicator.parentNode) indicator.remove(); }, 350);
+        }
+    }
+}
+
+// ================================================================
+// 9. SPIN ANIMATION
+// ================================================================
+
+async function runSpinAnimation() {
+    const intervals = [];
+    for (let c = 0; c < REELS; c++) {
+        const el = document.getElementById('reel' + c);
+        if (!el) continue;
+        el.classList.add('spinning');
+        const slots = el.querySelectorAll('.symbol-slot img');
+        const interval = setInterval(() => {
+            slots.forEach(img => {
+                const keys = Object.keys(IMAGE_PATHS);
+                img.src = IMAGE_PATHS[keys[Math.floor(Math.random() * keys.length)]];
+            });
+        }, 80);
+        intervals.push(interval);
+    }
+    playSound('spin');
+    await delay(500);
+    for (let c = 0; c < REELS; c++) {
+        const el = document.getElementById('reel' + c);
+        if (!el) continue;
+        clearInterval(intervals[c]);
+        el.classList.remove('spinning');
+        const slots = el.querySelectorAll('.symbol-slot');
+        slots.forEach((slot, r) => {
+            const img = slot.querySelector('img');
+            const sym = state.reels[c][r];
+            if (img) img.src = IMAGE_PATHS[sym];
+        });
+        playSound('reelStop');
+        if (c < REELS - 1) await delay(200);
+    }
+}
+
+async function fastSpinSingleReel(colIndex, duration = 2000) {
+    return new Promise((resolve) => {
+        if (typeof SoundManager !== 'undefined' && typeof SoundManager.check === 'function') {
+            SoundManager.check();
+        }
+
+        const reelEl = document.getElementById('reel' + colIndex);
+        if (!reelEl) { resolve(); return; }
+
+        const slots = reelEl.querySelectorAll('.symbol-slot img');
+        const keys = Object.keys(IMAGE_PATHS);
+
+        const interval = setInterval(() => {
+            slots.forEach(img => {
+                const randomKey = keys[Math.floor(Math.random() * keys.length)];
+                img.src = IMAGE_PATHS[randomKey];
+            });
+        }, 100);
+
+        setTimeout(() => {
+            clearInterval(interval);
+            const reelData = state.reels[colIndex];
+            slots.forEach((img, idx) => {
+                const sym = reelData[idx];
+                if (sym && IMAGE_PATHS[sym]) {
+                    img.src = IMAGE_PATHS[sym];
+                }
+            });
+            resolve();
+        }, duration);
+    });
+}
+
+// ================================================================
+// 10. WIN DETECTION & HIGHLIGHT
+// ================================================================
+
+function checkWins() {
+    let totalWin = 0, winCells = [], winLines = [];
+
+    for (const sym of Object.keys(PAYTABLE)) {
+        const reelCounts = [];
+        for (let c = 0; c < REELS; c++) {
+            const pos = [];
+            for (let r = 0; r < ROWS; r++) {
+                if (state.reels[c][r] === sym || state.reels[c][r] === 'wild') {
+                    pos.push(r);
+                }
+            }
+            reelCounts.push(pos);
+        }
+
+        let w5 = 0, w4 = 0, w3 = 0, w2 = 0;
+
+        if (reelCounts[0].length && reelCounts[1].length) {
+            w2 = reelCounts[0].length * reelCounts[1].length;
+            if (reelCounts[2].length) {
+                w3 = w2 * reelCounts[2].length;
+                if (reelCounts[3].length) {
+                    w4 = w3 * reelCounts[3].length;
+                    if (reelCounts[4].length) {
+                        w5 = w4 * reelCounts[4].length;
+                    }
+                }
+            }
+        }
+
+        const pay = PAYTABLE[sym];
+        let win = 0, wc = 0;
+
+        if (w5 > 0) { win = w5 * pay[5]; wc = 5; }
+        else if (w4 > 0) { win = w4 * pay[4]; wc = 4; }
+        else if (w3 > 0) { win = w3 * pay[3]; wc = 3; }
+        else if (w2 > 0 && pay[2]) { win = w2 * pay[2]; wc = 2; }
+
+        if (win > 0) {
+            totalWin += win * state.bet;
+            winLines.push({
+                symbol: sym,
+                count: wc,
+                ways: w5 || w4 || w3 || w2,
+                win: win * state.bet
+            });
+
+            const highlightCount = Math.min(wc, REELS);
+            for (let i = 0; i < highlightCount; i++) {
+                for (const r of reelCounts[i]) {
+                    winCells.push({ col: i, row: r });
+                }
+            }
+        }
+    }
+
+    return {
+        totalWin: Math.floor(totalWin),
+        winCells: winCells,
+        winLines: winLines
+    };
+}
+
+function checkScatters() {
+    let cnt = 0, pos = [];
+    for (let c = 0; c < REELS; c++) {
+        for (let r = 0; r < ROWS; r++) {
+            if (state.reels[c][r] === 'scatter') {
+                cnt++;
+                pos.push({ col: c, row: r });
+            }
+        }
+    }
+    return { count: cnt, positions: pos };
+}
+
+function highlightWins(cells) {
+    document.querySelectorAll('.symbol-slot').forEach(slot => {
+        slot.classList.remove('winning', 'win-jump');
+        slot.style.boxShadow = '';
+        slot.style.border = '';
+        slot.style.opacity = '0.45';
+        slot.style.filter = 'brightness(.55)';
+        const border = slot.querySelector('.win-run-border');
+        if (border) border.remove();
+    });
+
+    for (const { col, row } of cells) {
+        const reel = document.getElementById('reel' + col);
+        if (reel && reel.children[row]) {
+            const slot = reel.children[row];
+            slot.classList.add('winning');
+            slot.style.opacity = '1';
+            slot.style.filter = 'brightness(1.2)';
+
+            const border = document.createElement('div');
+            border.className = 'win-run-border';
+            border.innerHTML = `<span class="top"></span><span class="right"></span><span class="bottom"></span><span class="left"></span>`;
+            slot.appendChild(border);
+        }
+    }
+}
+
+function animateWinLines(cells) {
+    document.querySelectorAll('.symbol-slot').forEach(el => el.classList.remove('win-jump'));
+    for (const { col, row } of cells) {
+        const reel = document.getElementById('reel' + col);
+        if (reel && reel.children[row]) {
+            const slot = reel.children[row];
+            setTimeout(() => {
+                slot.classList.add('win-jump');
+                setTimeout(() => slot.classList.remove('win-jump'), 1200);
+            }, col * 80 + row * 40);
+        }
+    }
+}
+
+function highlightScatters() {
+    document.querySelectorAll(".orbit").forEach(e => e.remove());
+    document.querySelectorAll(".scatter-glow").forEach(e => e.classList.remove("scatter-glow"));
+
+    let scatterFound = false;
+    for (let c = 0; c < REELS; c++) {
+        const reel = document.getElementById("reel" + c);
+        if (!reel) continue;
+        for (let r = 0; r < ROWS; r++) {
+            if (state.reels[c][r] === "scatter") {
+                const slot = reel.children[r];
+                if (!slot) continue;
+                slot.classList.add("scatter-glow");
+                scatterFound = true;
+                const orbit = document.createElement("div");
+                orbit.className = "orbit";
+                for (let i = 0; i < 4; i++) {
+                    orbit.innerHTML += "<span></span>";
+                }
+                slot.appendChild(orbit);
+            }
+        }
+    }
+
+    if (scatterFound && typeof SoundManager !== 'undefined' && typeof SoundManager.boom === 'function') {
+        SoundManager.boom();
+    }
+}
+
+function showWinOverlay(amount, winLines) {
+    if (amount <= 0) return;
+    const overlay = document.getElementById('win-overlay');
+    if (overlay) {
+        overlay.classList.add('active');
+        const wa = document.getElementById('win-amount');
+        const wt = document.getElementById('win-type');
+        if (wa) wa.textContent = amount;
+        if (wt) wt.textContent = 'WIN';
+    }
+}
+
+function triggerWinAnimation(winResult) {
+    const winInfo = getWinType(winResult.totalWin);
+    const winType = winInfo.type;
+    const duration = winInfo.duration;
+
+    if (winAnim && winType) {
+        const m = winAnim.play || winAnim.show || winAnim.trigger;
+        if (m) m.call(winAnim, winType, winResult.totalWin);
+    }
+    playWinSound(winType, winResult.winLines);
+    showWinOverlay(winResult.totalWin, winResult.winLines);
+    return duration;
+}
+
+// ================================================================
+// 11. GAME STATS
+// ================================================================
+
+function updateGameStats(winAmt, betAmt) {
+    const stats = state.gameStats;
+    stats.totalBets += betAmt;
+    stats.totalWins += winAmt;
+    if (winAmt > 0) stats.winCount++;
+    if (winAmt >= betAmt * 5) stats.bigWinCount++;
+    stats.history.push({
+        spin: stats.totalSpins,
+        bet: betAmt,
+        win: winAmt,
+        rtp: stats.totalBets > 0 ? stats.totalWins / stats.totalBets : 0
+    });
+    if (stats.history.length > 100) stats.history.shift();
+}
+
+function updateConsecutiveWins(winAmt) {
+    if (winAmt > 0) {
+        state.consecutiveWins++;
+        console.log('Consecutive wins:', state.consecutiveWins);
+    } else {
+        state.consecutiveWins = 0;
+    }
+}
+
+// ================================================================
+// SCATTER SUSPENSE (NO SCREEN SHAKE)
+// ================================================================
+
+async function handleScatterSuspense(scatterResult) {
+    console.log('🎯 Suspense mode triggered! Initial Scatter count:', scatterResult.count);
+
+    const initialPositions = scatterResult.positions || [];
+    const lockedCols = new Set(initialPositions.map(pos => pos.col));
+
+    // ★ Highlight existing scatters
+    for (const pos of initialPositions) {
+        const reel = document.getElementById('reel' + pos.col);
+        if (reel && reel.children[pos.row]) {
+            const slot = reel.children[pos.row];
+            slot.classList.add('scatter-highlight');
+            slot.style.boxShadow = '0 0 50px rgba(255, 20, 147, 0.8), 0 0 100px rgba(255, 20, 147, 0.4)';
+            slot.style.border = '4px solid #FF1493';
+            slot.style.transition = 'all 0.3s';
+            slot.style.transform = 'scale(1.15)';
+        }
+    }
+
+    const totalReels = 5;
+    const availableCols = [];
+    for (let i = 0; i < totalReels; i++) {
+        if (!lockedCols.has(i)) {
+            availableCols.push(i);
+        }
+    }
+
+    // ❌ NO SCREEN SHAKE - ဒီနေရာမှာ ဖယ်လိုက်ပြီ
+
+    SoundManager.check();
+    await delay(500);
+
+    let totalScatters = scatterResult.count;
+    let allPositions = [...initialPositions];
+    state.isSuspense = true;
+    disableControls(true);
+
+    // ★ Check remaining reels one by one
+    for (let i = 0; i < availableCols.length; i++) {
+        const colToCheck = availableCols[i];
+        state.reels[colToCheck] = generateOneColumn(colToCheck, null);
+
+        const reelEl = document.getElementById('reel' + colToCheck);
+        if (reelEl) {
+            reelEl.style.border = '4px solid #FF1493';
+            reelEl.style.boxShadow = '0 0 50px rgba(255, 20, 147, 0.8), 0 0 100px rgba(255, 20, 147, 0.4)';
+        }
+
+        await fastSpinSingleReel(colToCheck);
+
+        const reelData = state.reels[colToCheck];
+        let foundScatter = false;
+        for (let row = 0; row < reelData.length; row++) {
+            if (reelData[row] === 'scatter') {
+                totalScatters++;
+                allPositions.push({ col: colToCheck, row: row });
+                foundScatter = true;
+
+                const slot = reelEl.children[row];
+                if (slot) {
+                    slot.classList.add('scatter-highlight');
+                    slot.style.boxShadow = '0 0 50px rgba(255, 20, 147, 0.8), 0 0 100px rgba(255, 20, 147, 0.4)';
+                    slot.style.border = '4px solid #FF1493';
+                    slot.style.transition = 'all 0.3s';
+                    slot.style.transform = 'scale(1.15)';
+                }
+            }
+        }
+
+        if (reelEl) {
+            reelEl.style.border = '';
+            reelEl.style.boxShadow = '';
+        }
+
+        if (foundScatter) {
+            SoundManager.boom();
+            console.log(`🎉 Reel ${colToCheck} မှာ Scatter တွေ့သွားပြီ! စုစုပေါင်း: ${totalScatters}`);
+        }
+
+        await delay(400);
+    }
+
+    state.isSuspense = false;
+
+    // ❌ NO SCREEN SHAKE REMOVAL - မလိုတော့ဘူး
+
+    await delay(800);
+
+    // ★ Remove highlights
+    document.querySelectorAll('.scatter-highlight').forEach(el => {
+        el.classList.remove('scatter-highlight');
+        el.style.boxShadow = '';
+        el.style.border = '';
+        el.style.transform = '';
+        el.style.transition = '';
+    });
+
+    console.log(`✅ Suspense ပြီးဆုံး။ စုစုပေါင်း Scatter: ${totalScatters}`);
+
+    if (totalScatters >= 3) {
+        const reward = calculateScatterReward(totalScatters);
+        state.scatterQueue.push({
+            type: 'doFreeSpin',
+            count: totalScatters,
+            reward: reward,
+            positions: allPositions
+        });
+    } else {
+        console.log('Scatter 3 မပြည့်ဘူး၊ ပုံမှန်ပြန်သွားမယ်');
+        disableControls(false);
+    }
+
+    state.isSpinning = false;
+
+    if (state.scatterQueue.length > 0) {
+        await processScatterQueue();
+    } else {
+        disableControls(false);
+        setSpinButtonState(false);
+        finalizeAutoSpin();
+    }
+}
+
+// ================================================================
+// 13. FREE SPINS
+// ================================================================
+
+async function runFreeSpinLoop() {
+    while (state.isFreeSpin && state.freeSpins > 0) {
+        await runOneFreeSpin();
+        state.freeSpins--;
+        updateFreeSpinUI();
+
+        const scatterResult = checkScatters();
+        if (scatterResult.count >= 2) {
+            SoundManager.check();
+            const extra = calculateExtraSpins(scatterResult.count);
+            state.freeSpins += extra;
+            showExtraFreeSpinAnimation(extra);
+            updateFreeSpinUI();
+        }
+
+        if (state.freeSpins > 0) {
+            await delay(1000);
+        }
+    }
+}
+
+// ================================================================
+// RUN ONE FREE SPIN (FIXED - Wait for Win Animation)
+// ================================================================
+
+async function runOneFreeSpin() {
+    state.isSpinning = true;
+    state.totalWin = 0;
+    clearReelEffects();
+
+    const rules = generateScaleRules();
+    state.reels = generateReels(rules);
+
+    await runSpinAnimation();
+    renderReels();
+
+    const winResult = checkWins();
+    updateGameStats(winResult.totalWin, state.bet);
+    updateConsecutiveWins(winResult.totalWin);
+
+    if (winResult.totalWin > 0) {
+        state.totalWin = winResult.totalWin;
+        state.freeSpinTotalWin += winResult.totalWin;
+
+        updateUI();
+        highlightWins(winResult.winCells);
+        animateWinLines(winResult.winCells);
+
+        // ★ WIN ANIMATION ပြီးမှ ဆက်သွားမယ် ★
+        const winDuration = triggerWinAnimation(winResult);
+        await delay(winDuration);  // ← ဒီဟာကို ထည့်လိုက်တယ်
+    }
+
+    state.isSpinning = false;
+}
+
+async function endFreeSpins() {
+    const totalWinAmount = state.freeSpinTotalWin;
+
+    state.isFreeSpin = false;
+    state.freeSpinMultiplier = 1;
+    state.freeSpins = 0;
+
+    if (totalWinAmount > 0) {
+        state.balance += totalWinAmount;
+        notifyWinToLobby(totalWinAmount);
+    }
+
+    updateUI();
+    hideFreeSpinIndicator();
+
+    if (totalWinAmount > 0) {
+        showAutoSpinSummary(totalWinAmount, state.freeSpinOriginalCount || 10);
+        await delay(800);
+        triggerWinAnimation({
+            totalWin: totalWinAmount,
+            winCells: [],
+            winLines: []
+        });
+    }
+
+    state.accumulatedWin = 0;
+    state.totalWin = 0;
+    state.freeSpinTotalWin = 0;
+    state.freeSpinBaseWin = 0;
+    state.freeSpinOriginalCount = 0;
+
+    updateUI();
+    console.log('✅ Free Spins finished. Total won:', totalWinAmount);
+}
+
+// ================================================================
+// FREE SPIN TRIGGER (FIXED - Popup closes first)
+// ================================================================
+
+async function startFreeSpinMode(scatterCount, reward) {
+    // 1. Setup state
+    state.isFreeSpin = true;
+    state.freeSpins = reward.spins;
+    state.freeSpinOriginalCount = reward.spins;
+    state.freeSpinMultiplier = reward.multiplier;
+    state.freeSpinTotalWin = 0;
+    state.accumulatedWin = 0;
+
+    // 2. Play animation
+    SoundManager.noti();
+    await playScatterFreeSpinAnimation();
+
+    // 3. ★ SHOW POPUP AND WAIT FOR IT TO CLOSE ★
+    await showFreeSpinPopupAndWait(reward.spins, reward.multiplier);
+
+    // 4. ★ POPUP CLOSED → NOW START FREE SPINS ★
+    await runFreeSpinLoop();
+    await endFreeSpins();
+
+    state.isSpinning = false;
+    disableControls(false);
+    setSpinButtonState(false);
+}
+
+// ================================================================
+// POPUP WITH PROMISE (WAIT UNTIL CLOSED)
+// ================================================================
+
+function showFreeSpinPopupAndWait(spins, multiplier) {
+    return new Promise((resolve) => {
+        // Remove old popup if exists
+        let popup = document.getElementById('free-spin-popup');
+        if (popup) popup.remove();
+
+        // Create popup
+        popup = document.createElement('div');
+        popup.id = 'free-spin-popup';
+        popup.style.cssText = `
+            position:fixed; top:0; left:0; width:100%; height:100%;
+            z-index:999999; display:flex; justify-content:center; align-items:center;
+            background:rgba(0,0,0,0.7); backdrop-filter:blur(8px);
+            pointer-events:auto;
+        `;
+
+        const wrapper = document.createElement('div');
+        wrapper.style.cssText = `
+            position:relative; animation:popUpBounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            display:inline-block; cursor:pointer;
+        `;
+
+        const img = document.createElement('img');
+        img.src = 'images/popup_number.png';
+        img.style.cssText = 'max-width:80vw;max-height:80vh;object-fit:contain;display:block;';
+        wrapper.appendChild(img);
+
+        const numberDiv = document.createElement('div');
+        numberDiv.style.cssText = `
+            position:absolute; top:50%; left:50%; transform:translate(-50%, -50%);
+            font-family:"Impact","Arial Black",sans-serif; font-weight:900;
+            color:#FFD700; font-size:clamp(60px, 15vw, 160px);
+            text-shadow:0 0 30px rgba(255,215,0,0.8), 0 0 60px rgba(255,215,0,0.4);
+            line-height:1;
+        `;
+        numberDiv.textContent = spins;
+        wrapper.appendChild(numberDiv);
+
+        // ★ Close button ★
+        const closeBtn = document.createElement('button');
+        closeBtn.textContent = '✕';
+        closeBtn.style.cssText = `
+            position:absolute; top:10px; right:15px;
+            background:rgba(255,255,255,0.15); border:2px solid rgba(255,255,255,0.3);
+            color:white; font-size:24px; border-radius:50%;
+            width:44px; height:44px; cursor:pointer;
+            transition:all 0.2s; font-weight:bold;
+        `;
+        closeBtn.onmouseover = () => { closeBtn.style.background = 'rgba(255,255,255,0.3)'; };
+        closeBtn.onmouseout = () => { closeBtn.style.background = 'rgba(255,255,255,0.15)'; };
+        wrapper.appendChild(closeBtn);
+
+        popup.appendChild(wrapper);
+        document.body.appendChild(popup);
+
+        // ★ Click on popup or close button → close and resolve ★
+        const closePopup = () => {
+            if (popup.parentNode) {
+                popup.style.animation = 'popUpBounce 0.3s ease-in reverse forwards';
+                setTimeout(() => {
+                    if (popup.parentNode) popup.remove();
+                    resolve(); // ★ Allow free spin to start ★
+                }, 350);
+            } else {
+                resolve();
+            }
+        };
+
+        // Click on wrapper (background) closes it
+        wrapper.addEventListener('click', (e) => {
+            e.stopPropagation();
+            closePopup();
+        });
+
+        // Close button
+        closeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            closePopup();
+        });
+
+        // Auto close after 5 seconds (fallback)
+        if (window._freePopupTimer) clearTimeout(window._freePopupTimer);
+        window._freePopupTimer = setTimeout(() => {
+            closePopup();
+        }, 5000);
+    });
+}
+
+function closeFreeSpinPopup() {
+    const popup = document.getElementById('free-spin-popup');
+    if (popup) popup.remove();
+    if (window._freePopupTimer) {
+        clearTimeout(window._freePopupTimer);
+        window._freePopupTimer = null;
+    }
+}
+
+function showExtraFreeSpinAnimation(extra) {
+    let el = document.getElementById('extra-spin-notification');
+    if (el) el.remove();
+
+    el = document.createElement('div');
+    el.id = 'extra-spin-notification';
+    el.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:999998;background:rgba(0,0,0,0.85);border:3px solid #f3b33d;padding:30px 50px;border-radius:30px;color:white;text-align:center;animation:popUpBounce 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards;min-width:200px;box-shadow:0 20px 60px rgba(0,0,0,0.9);';
+    el.innerHTML = '<div style="font-size:60px;margin-bottom:10px;">🎰</div><div style="font-size:28px;font-weight:900;color:#ffd966;">+' + extra + ' FREE SPINS</div>';
+    document.body.appendChild(el);
+
+   setTimeout(function() { if (el.parentNode) el.remove(); }, 1500);
+}
+
+
+// ================================================================
+// SCATTER FREE SPIN ANIMATION (FIXED - All Scatters)
+// ================================================================
 
 function playScatterFreeSpinAnimation() {
     return new Promise(resolve => {
-        const positions = checkScatters().positions;
+        const positions = checkScatters().positions;  // Scatter အကုန်ယူတယ်
 
         const overlay = document.createElement('div');
         overlay.id = 'scatter-pro-overlay';
@@ -2594,7 +2724,9 @@ function playScatterFreeSpinAnimation() {
         text.textContent = 'SCATTER FREE SPIN!';
         overlay.appendChild(text);
 
-        positions.slice(0, 3).forEach((pos, index) => {
+        // ★ Scatter အကုန်လုံးကို ပြောင်းပြီး animate လုပ် ★
+        // (အရင်က slice(0,3) နဲ့ ၃ ခုပဲပြတာ)
+        positions.forEach((pos, index) => {
             const reel = document.getElementById('reel' + pos.col);
             if (!reel || !reel.children[pos.row]) return;
 
@@ -2606,7 +2738,7 @@ function playScatterFreeSpinAnimation() {
 
             const clone = document.createElement('img');
             clone.src = img.src;
-            clone.className = 'scatter-fly scatter-fly-' + (index + 1);
+            clone.className = 'scatter-fly scatter-fly-' + ((index % 3) + 1);
 
             clone.style.left = rect.left + 'px';
             clone.style.top = rect.top + 'px';
@@ -2624,18 +2756,14 @@ function playScatterFreeSpinAnimation() {
 
         setTimeout(() => {
             overlay.remove();
-
             document.querySelectorAll('.scatter-highlight').forEach(el => {
                 el.classList.remove('scatter-highlight');
             });
-
             resolve();
         }, 3300);
     });
 }
-// ============================================
-// Partical
-// ============================================
+
 function createScatterParticles() {
     for (let i = 0; i < 90; i++) {
         const p = document.createElement('div');
@@ -2648,305 +2776,180 @@ function createScatterParticles() {
         p.style.setProperty('--y', Math.sin(angle) * distance + 'px');
 
         document.body.appendChild(p);
-
         setTimeout(() => p.remove(), 1200);
     }
 }
 
+// ================================================================
+// 15. SCATTER QUEUE
+// ================================================================
 
-// ============================================
-// HANDLE FREE SPIN TRIGGER (Popup auto-closes after 5s)
-// ============================================
-async function handleFreeSpinTrigger(scatterCount, reward) {
-    state.isFreeSpin = true;
-    state.freeSpins = reward.spins;
-    state.freeSpinMultiplier = reward.multiplier;
-    state.freeSpinTotalWin = 0;
-    state.freeSpinBaseWin = 0;
-    state.accumulatedWin = 0;
+async function processScatterQueue() {
+    if (state.scatterQueue.length === 0) {
+        finalizeAutoSpin();
+        return;
+    }
 
+    const item = state.scatterQueue.shift();
+    state.isSpinning = true;
+    setSpinButtonState(true);
     disableControls(true);
 
-    SoundManager.noti();
-
-    
-    await playScatterFreeSpinAnimation();
-
-    // Animation Free Spin popup
-    showFreeSpinPopup(reward.spins, reward.multiplier);
-}
-// ======================
-// Run Free spin
-// ======================
-async function runFreeSpins() {
-    while (state.freeSpins > 0) {
-        await freeSpin();
-
-        const winResult = checkWins();
-        const multipliedWin = winResult.totalWin * state.freeSpinMultiplier;
-
-        if (multipliedWin > 0) {
-            state.accumulatedWin += multipliedWin;
-             
+    try {
+        if (item.type === 'scatter3' || item.type === 'doFreeSpin') {
+            await startFreeSpinMode(item.count, item.reward);
+        } else if (item.type === 'scatter2') {
+            await handleScatterSuspense(item);
         }
-
-        if (winResult.totalWin > 0) {
-            highlightWins(winResult.winCells);
-            animateWinLines(winResult.winLines);
-        }
-
-        const scatterResult = checkScatters();
-        if (scatterResult.count >= 2) {
-           SoundManager.check();
-            const extra = calculateExtraSpins(scatterResult.count);
-            state.freeSpins += extra;
-
-            showExtraFreeSpinAnimation(extra);
-            updateFreeSpinUI();
-        }
-
-        state.freeSpins--;
-        updateFreeSpinUI();
-
-        await delay(500);
+    } catch (error) {
+        console.error('Queue processing error:', error);
     }
 
-    await endFreeSpins();
-}
-
-function freeSpin() {
-    return new Promise(async (resolve) => {
-        state.reels = generateReels(generateScaleRules());
-        const intervals = [];
-        for (let c = 0; c < REELS; c++) {
-            const el = document.getElementById('reel' + c);
-            if (!el) continue;
-            el.classList.add('spinning');
-            const slots = el.querySelectorAll('.symbol-slot img');
-            const interval = setInterval(() => { slots.forEach(img => { const keys = Object.keys(IMAGE_PATHS); img.src = IMAGE_PATHS[keys[Math.floor(Math.random() * keys.length)]]; }); }, 80);
-            intervals.push(interval);
-        }
-        SoundManager.noti();
-        await delay(700);
-        for (let c = 0; c < REELS; c++) {
-            const el = document.getElementById('reel' + c);
-            if (!el) continue;
-            clearInterval(intervals[c]); el.classList.remove('spinning');
-            const slots = el.querySelectorAll('.symbol-slot');
-            slots.forEach((slot, r) => { const img = slot.querySelector('img'); const sym = state.reels[c][r]; if (img) img.src = IMAGE_PATHS[sym]; });
-            playSound('reelStop');
-            if (c < REELS - 1) await delay(200);
-        }
-        resolve();
-    });
-}
-
-// ======================
-// Free spin & Popup
-// ======================
-function showFreeSpinPopup(spins, multiplier) {
-    // အဟောင်းရှိရင် ဖယ်မယ်
-    let popup = document.getElementById('free-spin-popup');
-    if (popup) popup.remove();
-    
-    popup = document.createElement('div');
-    popup.id = 'free-spin-popup';
-    popup.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:999999;display:flex;justify-content:center;align-items:center;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);';
-    
-    const wrapper = document.createElement('div');
-    wrapper.style.cssText = 'position:relative;animation:popUpBounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;display:inline-block;';
-    
-    const img = document.createElement('img');
-    img.src = 'images/popup_number.png';
-    img.style.cssText = 'max-width:80vw;max-height:80vh;object-fit:contain;display:block;';
-    wrapper.appendChild(img);
-    
-    // ★ အဝိုင်းထဲမှာ အကြိမ်ရေကိုပြမယ် ★
-    const numberDiv = document.createElement('div');
-    numberDiv.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-family:"Impact","Arial Black",sans-serif;font-weight:900;color:#FFD700;font-size:clamp(60px, 15vw, 160px);text-shadow:0 0 30px rgba(255,215,0,0.8),0 0 60px rgba(255,215,0,0.4);line-height:1;';
-    numberDiv.textContent = spins;
-    wrapper.appendChild(numberDiv);
-    
-    popup.appendChild(wrapper);
-    document.body.appendChild(popup);
-    
-    if (window._freePopupTimer) clearTimeout(window._freePopupTimer);
-    window._freePopupTimer = setTimeout(function() {
-        closeFreeSpinPopup();
-        startFreeSpins();
-    }, 5000);
-}
-
-// ======================
-//  Close Free spin & Popup
-// ======================
-function closeFreeSpinPopup() {
-    const popup = document.getElementById('free-spin-popup');
-    if (popup) popup.remove();
-    if (window._freePopupTimer) {
-        clearTimeout(window._freePopupTimer);
-        window._freePopupTimer = null;
+    if (state.scatterQueue.length === 0 && !state.isFreeSpin) {
+        state.isSpinning = false;
+        setSpinButtonState(false);
+        disableControls(false);
+        finalizeAutoSpin();
     }
 }
 
-function startFreeSpins() {
-    runFreeSpins();
-}
-
-//ExtareFreespin
-
-function showExtraFreeSpinAnimation(extra) {
-    let el = document.getElementById('extra-spin-notification');
-    if (el) el.remove();
-    
-    el = document.createElement('div');
-    el.id = 'extra-spin-notification';
-    el.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:999998;background:rgba(0,0,0,0.85);border:3px solid #f3b33d;padding:30px 50px;border-radius:30px;color:white;text-align:center;animation:popUpBounce 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards;min-width:200px;box-shadow:0 20px 60px rgba(0,0,0,0.9);';
-    el.innerHTML = '<div style="font-size:60px;margin-bottom:10px;">🎰</div><div style="font-size:28px;font-weight:900;color:#ffd966;">+' + extra + ' FREE SPINS</div>';
-    document.body.appendChild(el);
-    
-    setTimeout(function() {
-        if (el.parentNode) el.remove();
-    }, 1500);
-}
-
-//End Freespin
-async function endFreeSpins() {
-    const totalSpins = state.freeSpinTotalWin;
-    const totalWinAmount = state.accumulatedWin;
-    
-    state.isFreeSpin = false;
-    state.freeSpinMultiplier = 1;
-    state.freeSpinTotalWin = 0;
-    
-    if (totalWinAmount > 0) {
-        state.balance += totalWinAmount;
-        notifyWinToLobby(totalWinAmount);
-    }
-    
-    updateUI();
-    hideFreeSpinIndicator();
-     disableControls(false);    
-    if (totalWinAmount > 0) {
-        var totalFreeSpins = state.freeSpinTotalWin > 0 ? state.freeSpinTotalWin : 1; // fallback
-        showAutoSpinSummary(totalWinAmount, totalFreeSpins);
-        
-        await delay(800);
-        if (totalWinAmount > 0) {
-            triggerWinAnimation({
-                totalWin: totalWinAmount,
-                winCells: [],
-                winLines: []
-            });
-        }
-    }
-    
-    state.accumulatedWin = 0;
-    state.totalWin = 0;
-    updateUI();
-    state.isSpinning = false;
-    setSpinButtonState(false);
-    
-    console.log('✅ Free Spins finished. Total won:', totalWinAmount);
-}
-
-// ============================================
-// HIDE FREE SPIN INDICATOR
-// ============================================
-function hideFreeSpinIndicator() {
-    const indicator = document.getElementById('free-spin-indicator');
-    if (indicator) {
-        indicator.style.animation = 'slideInRight 0.3s ease-in reverse forwards';
-        setTimeout(function() {
-            if (indicator.parentNode) indicator.remove();
-        }, 350);
-    }
-}
-// ============================================
-// WIN ANIMATION INIT
-// ============================================
-function initWinAnimation() { if (typeof WinAnimation === 'undefined') { console.warn('WinAnimation class not found'); return; } winAnim = new WinAnimation('winCanvas'); winAnim.loadImages({winBig: 'images/win_big.png', winMega: 'images/win_mega.png', winSuper: 'images/win_super.png', starGreen: 'images/star_green.png', starRed: 'images/star_red.png', starBlue: 'images/star_blue.png', coins: 'images/coins.png', scoreBox: 'images/score_box.png'}).then(() => console.log('Win animation ready!')).catch(err => console.error('Win animation load failed:', err)); }
-
-// ============================================
-// BUTTON ACTIONS
-// ============================================
-function decreaseBet() { if (state.betIndex > 0) { state.betIndex--; state.bet = BET_TABLE[state.coinValue][state.betIndex]; updateUI(); } }
-function increaseBet() { if (state.betIndex < 4) { state.betIndex++; state.bet = BET_TABLE[state.coinValue][state.betIndex]; updateUI(); } }
-function maxBet() { state.betIndex = 4; state.bet = BET_TABLE[state.coinValue][4]; updateUI(); }
-function changeCoin() { toggleCoinStrip(); }
-
-// ============================================
-// COIN SELECTOR
-// ============================================
-let coinStripOpen = false;
-function toggleCoinStrip() { const strip = document.getElementById('coin-strip'); if (!strip) return; if (coinStripOpen) { strip.classList.add('hidden'); coinStripOpen = false; } else { strip.querySelectorAll('.coin-option').forEach(opt => opt.classList.toggle('active', opt.dataset.coin === state.coinValue)); strip.classList.remove('hidden'); coinStripOpen = true; } }
-function selectCoin(coin) { state.coinValue = coin; state.betIndex = 0; state.bet = BET_TABLE[state.coinValue][0]; const strip = document.getElementById('coin-strip'); if (strip) strip.querySelectorAll('.coin-option').forEach(opt => opt.classList.toggle('active', opt.dataset.coin === coin)); updateCoinUI();  setTimeout(() => { strip.classList.add('hidden'); coinStripOpen = false; }, 300); updateUI(); }
-document.addEventListener('click', (e) => { if (!coinStripOpen) return; const strip = document.getElementById('coin-strip'); const coinBtn = document.getElementById('fb-coin'); if (strip && !strip.contains(e.target) && !coinBtn.contains(e.target)) { strip.classList.add('hidden'); coinStripOpen = false; } });
-
-// ============================================
-// AUTO SPIN UI
-// ============================================
-function updateAutoSpinUI() {
-    let indicator = document.getElementById('auto-spin-indicator');
-    if (state.autoSpin && state.autoSpinRemaining > 0) {
-        if (!indicator) { indicator = document.createElement('div'); indicator.id = 'auto-spin-indicator'; indicator.className = 'auto-spin-indicator'; document.body.appendChild(indicator); }
-        indicator.innerHTML = `<div class="indicator-content"><span class="spin-number">${state.autoSpinRemaining}</span><span class="spin-label">SPINS</span></div><button class="stop-btn" onclick="stopAutoSpin()">⏹ ရပ်</button>`;
-        if (!indicator.style.animation) indicator.style.animation = 'slideInRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards';
-    } else {
-        if (indicator) { indicator.style.animation = 'slideInRight 0.3s ease-in reverse forwards'; setTimeout(() => { if (indicator.parentNode) indicator.remove(); }, 350); }
-    }
-}
+// ================================================================
+// 16. AUTO SPIN
+// ================================================================
 
 function showAutoSpinPopup() {
-    if (state.isSpinning) { console.log('Spin running, popup blocked'); return; }
+    if (state.isSpinning) {
+        console.log('Spin running, popup blocked');
+        return;
+    }
+
     let popup = document.getElementById('auto-spin-popup');
-    if (!popup) { popup = document.createElement('div'); popup.id = 'auto-spin-popup'; popup.className = 'popup-overlay'; document.body.appendChild(popup); }
-    popup.innerHTML = `<div class="popup-content"><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:2px dashed #3f5b6b; padding-bottom:15px;"><div class="popup-title">🎰 AUTO SPIN</div><button class="popup-close" onclick="closeAutoSpinPopup()">✕</button></div><div class="option-grid"><button class="auto-option" data-value="10">10</button><button class="auto-option" data-value="20">20</button><button class="auto-option" data-value="30">30</button><button class="auto-option" data-value="50">50</button><button class="auto-option" data-value="70">70</button><button class="auto-option" data-value="100">100</button></div><div class="popup-hint">👆 Click outside to close</div></div>`;
-    popup.querySelectorAll('.auto-option').forEach(btn => { btn.addEventListener('click', function() { const val = parseInt(this.dataset.value, 10); closeAutoSpinPopup(); startAutoSpin(val); }); });
-    popup.classList.add('active'); popup.style.display = 'flex'; console.log('Popup opened');
+    if (!popup) {
+        popup = document.createElement('div');
+        popup.id = 'auto-spin-popup';
+        popup.className = 'popup-overlay';
+        document.body.appendChild(popup);
+    }
+
+    popup.innerHTML = `
+        <div class="popup-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:2px dashed #3f5b6b; padding-bottom:15px;">
+                <div class="popup-title">🎰 AUTO SPIN</div>
+                <button class="popup-close" onclick="closeAutoSpinPopup()">✕</button>
+            </div>
+            <div class="option-grid">
+                <button class="auto-option" data-value="10">10</button>
+                <button class="auto-option" data-value="20">20</button>
+                <button class="auto-option" data-value="30">30</button>
+                <button class="auto-option" data-value="50">50</button>
+                <button class="auto-option" data-value="70">70</button>
+                <button class="auto-option" data-value="100">100</button>
+            </div>
+            <div class="popup-hint">👆 Click outside to close</div>
+        </div>
+    `;
+
+    popup.querySelectorAll('.auto-option').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const val = parseInt(this.dataset.value, 10);
+            closeAutoSpinPopup();
+            startAutoSpin(val);
+        });
+    });
+
+    popup.classList.add('active');
+    popup.style.display = 'flex';
+    console.log('Popup opened');
 }
-function closeAutoSpinPopup() { const popup = document.getElementById('auto-spin-popup'); if (popup) { popup.classList.remove('active'); popup.style.display = 'none'; console.log('Popup closed'); } }
-function startAutoSpin(count) { state.autoSpin = true; state.autoSpinTotal = count; state.autoSpinRemaining = count; updateAutoSpinUI(); disableControls(true); spin(); }
+
+function closeAutoSpinPopup() {
+    const popup = document.getElementById('auto-spin-popup');
+    if (popup) {
+        popup.classList.remove('active');
+        popup.style.display = 'none';
+        console.log('Popup closed');
+    }
+}
+
+function startAutoSpin(count) {
+    state.autoSpin = true;
+    state.autoSpinTotal = count;
+    state.autoSpinRemaining = count;
+    updateAutoSpinUI();
+    disableControls(true);
+    spin();
+}
+
 function stopAutoSpin() {
     state.scatterQueue = [];
     finalizeAutoSpin();
 }
 
-// ============================================
-// DISABLE CONTROLS
-// ============================================
-function disableControls(disable) { const buttons = [document.getElementById('fb-minus'), document.getElementById('fb-plus'), document.getElementById('fb-max'), document.getElementById('fb-coin')]; buttons.forEach(btn => { if (btn) { btn.style.opacity = disable ? '0.4' : '1'; btn.style.pointerEvents = disable ? 'none' : 'auto'; } }); }
+function finalizeAutoSpin() {
+    if (state.accumulatedWin > 0) {
+        state.balance += state.accumulatedWin;
+        notifyWinToLobby(state.accumulatedWin);
+    }
 
-// ============================================
-// BUTTON SOUNDS
-// ============================================
-function initButtonSounds() { const buttonIds = ['btn_spin', 'btn_max', 'btn_minus', 'btn_plus', 'btn_coin', 'btn_stop', 'btn_auto']; buttonIds.forEach(id => { const btn = document.getElementById(id); if (btn) btn.addEventListener('click', () => { playSound('button'); playSound('pop'); }); }); }
+    state.isSpinning = false;
+    setSpinButtonState(false);
+    state.autoSpin = false;
+    state.autoSpinTotal = 0;
+    state.autoSpinRemaining = 0;
 
-// ============================================
-// EXTRA HELPERS
-// ============================================
-function calculateExtraSpins(scatterCount) { if (scatterCount >= 6) return 15; if (scatterCount >= 5) return 12; if (scatterCount >= 4) return 8; return 5; }
+    updateAutoSpinUI();
+    disableControls(false);
+    closeAutoSpinPopup();
+    updateUI();
+
+    var totalWinAmount = state.accumulatedWin;
+    var totalSpins = state.autoSpinTotal;
+
+    if (totalWinAmount > 0) {
+        showAutoSpinSummary(totalWinAmount, totalSpins);
+        setTimeout(function() {
+            if (totalWinAmount > 0) {
+                triggerWinAnimation({
+                    totalWin: totalWinAmount,
+                    winCells: [],
+                    winLines: []
+                });
+            }
+        }, 600);
+    }
+
+    state.accumulatedWin = 0;
+    state.totalWin = 0;
+    updateUI();
+
+    var statusMsg = document.getElementById('statusMsg');
+    if (statusMsg) {
+        statusMsg.textContent = '✅ Auto Spin ပြီးပါပြီ!';
+        statusMsg.className = '';
+    }
+
+    console.log('✅ Auto Spin finalized. Total accumulated:', totalWinAmount);
+}
 
 function toggleAutoSpin() {
     console.log("Auto =", state.autoSpin);
-     if (state.autoSpin) {
+    if (state.autoSpin) {
         console.log("STOP");
         stopAutoSpin();
     } else {
         console.log("POPUP");
         showAutoSpinPopup();
- }    
-  }
+    }
+}
 
-// ============================================
-// AUTO SPIN SUMMARY BOX (FIXED - No Translate)
-// ============================================
+// ================================================================
+// 17. AUTO SPIN SUMMARY
+// ================================================================
+
 function showAutoSpinSummary(totalWin, totalSpins) {
-    // အဟောင်းရှိရင် ဖယ်မယ်
     const oldBox = document.getElementById('auto-summary-box');
     if (oldBox) oldBox.remove();
 
-    // ★ CSS Keyframes ကို ပြန်သတ်မှတ်မယ် (Translate ဖယ်ထုတ်ထား)
     let styleTag = document.getElementById('summary-style');
     if (!styleTag) {
         styleTag = document.createElement('style');
@@ -2968,101 +2971,67 @@ function showAutoSpinSummary(totalWin, totalSpins) {
         }
     `;
 
-    // ★ Overlay (အကုန်လုံးကို အလယ်ရောက်အောင်)
     const box = document.createElement('div');
     box.id = 'auto-summary-box';
     box.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 9999999;
-        background: rgba(0, 0, 0, 0.65);
-        pointer-events: none;
-        animation: fadeIn 0.3s ease-out;
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        display: flex; justify-content: center; align-items: center;
+        z-index: 9999999; background: rgba(0, 0, 0, 0.65);
+        pointer-events: none; animation: fadeIn 0.3s ease-out;
     `;
 
-    // ★ Wrapper (ပုံ + စာသား အတူတူ) - Translate မပါတော့ဘူး
     const wrapper = document.createElement('div');
     wrapper.style.cssText = `
-        position: relative;
-        display: inline-block;
+        position: relative; display: inline-block;
         animation: summaryPopIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-        max-width: 90vw;
-        max-height: 85vh;
+        max-width: 90vw; max-height: 85vh;
     `;
 
-    // ★ ပုံ (total_box.png)
     const img = document.createElement('img');
     img.src = 'images/total_box.png';
     img.style.cssText = `
-        display: block;
-        max-width: 90vw;
-        max-height: 80vh;
-        width: auto;
-        height: auto;
-        object-fit: contain;
-        margin: 0 auto;
+        display: block; max-width: 90vw; max-height: 80vh;
+        width: auto; height: auto; object-fit: contain; margin: 0 auto;
     `;
     wrapper.appendChild(img);
 
-    // ★ စာသား (ငွေပမာဏ) - ပုံပေါ်မှာ ထပ်ခိုး
     const textOverlay = document.createElement('div');
     textOverlay.style.cssText = `
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        text-align: center;
-        width: 80%;
-        pointer-events: none;
+        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        text-align: center; width: 80%; pointer-events: none;
     `;
 
     const amountSpan = document.createElement('div');
     amountSpan.style.cssText = `
-        font-family: "Impact", "Arial Black", sans-serif;
-        font-weight: 900;
-        color: #FFD700;
-        text-shadow: 0 0 20px rgba(255, 215, 0, 0.9), 0 0 40px rgba(255, 215, 0, 0.5), 0 4px 8px rgba(0, 0, 0, 0.8);
-        font-size: clamp(40px, 12vw, 120px);
-        line-height: 1.2;
+        font-family: "Impact", "Arial Black", sans-serif; font-weight: 900;
+        color: #FFD700; text-shadow: 0 0 20px rgba(255,215,0,0.9), 0 0 40px rgba(255,215,0,0.5), 0 4px 8px rgba(0,0,0,0.8);
+        font-size: clamp(40px, 12vw, 120px); line-height: 1.2;
     `;
     amountSpan.textContent = totalWin.toLocaleString();
     textOverlay.appendChild(amountSpan);
 
-    // ★ အကြိမ်ရေ (သေးသေးလေး)
     const spinsSpan = document.createElement('div');
     spinsSpan.style.cssText = `
-        font-family: "Segoe UI", sans-serif;
-        font-weight: 600;
-        color: #aaccdd;
-        font-size: clamp(14px, 3vw, 28px);
-        margin-top: 8px;
-        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+        font-family: "Segoe UI", sans-serif; font-weight: 600;
+        color: #aaccdd; font-size: clamp(14px, 3vw, 28px);
+        margin-top: 8px; text-shadow: 0 2px 8px rgba(0,0,0,0.8);
         letter-spacing: 2px;
     `;
     spinsSpan.textContent = `🎰 ${totalSpins} SPINS`;
     textOverlay.appendChild(spinsSpan);
 
     wrapper.appendChild(textOverlay);
+    box.appendChild(wrapper);
+    document.body.appendChild(box);
 
-    // ★ ပုံမပါရင် Fallback
     img.onerror = function() {
         this.style.display = 'none';
         const fallback = document.createElement('div');
         fallback.style.cssText = `
             background: linear-gradient(145deg, #1a2f44, #0b1a2e);
-            border: 4px solid #f3b33d;
-            padding: 40px 60px;
-            border-radius: 30px;
-            text-align: center;
-            color: white;
-            min-width: 320px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
+            border: 4px solid #f3b33d; padding: 40px 60px; border-radius: 30px;
+            text-align: center; color: white; min-width: 320px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.9);
         `;
         fallback.innerHTML = `
             <div style="font-size:16px;color:#aaccdd;text-transform:uppercase;letter-spacing:4px;margin-bottom:10px;">🎰 AUTO SPIN COMPLETE</div>
@@ -3072,99 +3041,339 @@ function showAutoSpinSummary(totalWin, totalSpins) {
         wrapper.appendChild(fallback);
     };
 
-    box.appendChild(wrapper);
-    document.body.appendChild(box);
-
-    // ★ ၅ စက္ကန့်ကြာရင် ပျောက်မယ်
     setTimeout(function() {
         if (wrapper) {
             wrapper.style.animation = 'summaryPopOut 0.4s ease-in forwards';
-            setTimeout(function() {
-                if (box.parentNode) box.remove();
-            }, 400);
+            setTimeout(function() { if (box.parentNode) box.remove(); }, 400);
         }
     }, 5000);
 }
-// ============================================
-// EVENT LISTENERS (FIXED)
-// ============================================
 
-// ---- (၁) Lobby မှ လာတဲ့ Message တွေကို လက်ခံတဲ့ Listener ----
+// ================================================================
+// 18. MAIN SPIN
+// ================================================================
+
+async function spin() {
+    if (state.isSpinning) return;
+    if (!state.isFreeSpin && state.balance < state.bet) {
+        if (state.autoSpin) stopAutoSpin();
+        return;
+    }
+
+    state.isSpinning = true;
+    if (!state.isFreeSpin) state.balance -= state.bet;
+    notifyBetToLobby(state.bet);
+    state.totalWin = 0;
+    updateUI();
+    disableControls(true);
+    setSpinButtonState(true);
+    clearReelEffects();
+
+    const rules = generateScaleRules();
+    console.log('🎰 Phase:', rules.phase, 'Round:', SCALE_CYCLE.currentRound + 1, 'Spin:', SCALE_CYCLE.phaseSpins);
+
+    state.reels = generateReels(rules);
+    await runSpinAnimation();
+    renderReels();
+
+    const winResult = checkWins();
+    const scatterResult = checkScatters();
+
+    highlightScatters();
+
+    updateGameStats(winResult.totalWin, state.bet);
+    updateConsecutiveWins(winResult.totalWin);
+
+    let winDuration = 0;
+    if (winResult.totalWin > 0 && !rules.houseWin) {
+        state.totalWin = winResult.totalWin;
+
+        if (state.autoSpin) {
+            state.accumulatedWin += winResult.totalWin;
+            updateUI();
+            winDuration = 0;
+            highlightWins(winResult.winCells);
+            animateWinLines(winResult.winCells);
+        } else {
+            state.balance += winResult.totalWin;
+            notifyWinToLobby(winResult.totalWin);
+            highlightWins(winResult.winCells);
+            animateWinLines(winResult.winCells);
+            winDuration = triggerWinAnimation(winResult);
+            updateUI();
+            await delay(winDuration);
+        }
+    } else if (rules.houseWin) {
+        console.log('💀 HOUSE WIN (Ch1) - Phase triggered!');
+    }
+
+    // Scatter handling
+    if (scatterResult.count >= 3 && !state.isFreeSpin) {
+        SoundManager.noti();
+        const reward = SCATTER_REWARDS[Math.min(scatterResult.count, 5)];
+        if (state.autoSpin) {
+            state.scatterQueue.push({ type: 'scatter3', count: scatterResult.count, reward: reward, positions: scatterResult.positions });
+            console.log('📦 Scatter 3 queued. Size:', state.scatterQueue.length);
+        } else {
+            await startFreeSpinMode(scatterResult.count, reward);
+            state.isSpinning = false;
+            setSpinButtonState(false);
+            return;
+        }
+    }
+
+    if (scatterResult.count >= 2 && !state.isFreeSpin) {
+        if (state.autoSpin) {
+            state.scatterQueue.push({ type: 'scatter2', count: scatterResult.count, positions: scatterResult.positions });
+            console.log('📦 Scatter 2 queued. Size:', state.scatterQueue.length);
+        } else {
+            await handleScatterSuspense(scatterResult);
+            state.isSpinning = false;
+            setSpinButtonState(false);
+            return;
+        }
+    }
+
+    // Free spin continuation
+    if (state.isFreeSpin) {
+        state.freeSpinTotalWin += state.totalWin;
+        state.freeSpins--;
+        updateFreeSpinUI();
+
+        if (state.freeSpins <= 0) {
+            await endFreeSpins();
+            if (state.autoSpin && state.autoSpinRemaining > 0) {
+                state.isSpinning = false;
+                setSpinButtonState(false);
+                setTimeout(() => spin(), 1000);
+                return;
+            }
+            state.isSpinning = false;
+            setSpinButtonState(false);
+            return;
+        }
+        state.isSpinning = false;
+        setSpinButtonState(false);
+        return;
+    }
+
+    // Auto spin continuation
+    if (state.autoSpin && state.autoSpinRemaining > 0) {
+        state.autoSpinRemaining--;
+        updateAutoSpinUI();
+
+        if (state.autoSpinRemaining > 0) {
+            const waitTime = winDuration > 0 ? winDuration + 500 : 1000;
+            await delay(waitTime);
+            state.isSpinning = false;
+            setSpinButtonState(false);
+            setTimeout(() => spin(), 50);
+            return;
+        } else {
+            if (state.scatterQueue.length > 0) {
+                state.isSpinning = false;
+                setSpinButtonState(false);
+                console.log('🎉 Processing Scatter Queue. Size:', state.scatterQueue.length);
+                processScatterQueue();
+                return;
+            }
+            stopAutoSpin();
+        }
+    }
+
+    disableControls(false);
+    state.isSpinning = false;
+    setSpinButtonState(false);
+}
+
+// ================================================================
+// 19. BET CONTROLS
+// ================================================================
+
+function decreaseBet() {
+    if (state.betIndex > 0) {
+        state.betIndex--;
+        state.bet = BET_TABLE[state.coinValue][state.betIndex];
+        updateUI();
+    }
+}
+
+function increaseBet() {
+    if (state.betIndex < 4) {
+        state.betIndex++;
+        state.bet = BET_TABLE[state.coinValue][state.betIndex];
+        updateUI();
+    }
+}
+
+function maxBet() {
+    state.betIndex = 4;
+    state.bet = BET_TABLE[state.coinValue][4];
+    updateUI();
+}
+
+// ================================================================
+// 20. COIN SELECTOR
+// ================================================================
+
+let coinStripOpen = false;
+
+function toggleCoinStrip() {
+    const strip = document.getElementById('coin-strip');
+    if (!strip) return;
+
+    if (coinStripOpen) {
+        strip.classList.add('hidden');
+        coinStripOpen = false;
+    } else {
+        strip.querySelectorAll('.coin-option').forEach(opt =>
+            opt.classList.toggle('active', opt.dataset.coin === state.coinValue)
+        );
+        strip.classList.remove('hidden');
+        coinStripOpen = true;
+    }
+}
+
+function selectCoin(coin) {
+    state.coinValue = coin;
+    state.betIndex = 0;
+    state.bet = BET_TABLE[state.coinValue][0];
+
+    const strip = document.getElementById('coin-strip');
+    if (strip) {
+        strip.querySelectorAll('.coin-option').forEach(opt =>
+            opt.classList.toggle('active', opt.dataset.coin === coin)
+        );
+    }
+
+    updateCoinUI();
+    setTimeout(() => {
+        if (strip) {
+            strip.classList.add('hidden');
+            coinStripOpen = false;
+        }
+    }, 300);
+    updateUI();
+}
+
+// Close coin strip on outside click
+document.addEventListener('click', (e) => {
+    if (!coinStripOpen) return;
+    const strip = document.getElementById('coin-strip');
+    const coinBtn = document.getElementById('fb-coin');
+    if (strip && !strip.contains(e.target) && !coinBtn.contains(e.target)) {
+        strip.classList.add('hidden');
+        coinStripOpen = false;
+    }
+});
+
+// ================================================================
+// 21. WIN ANIMATION INIT
+// ================================================================
+
+function initWinAnimation() {
+    if (typeof WinAnimation === 'undefined') {
+        console.warn('WinAnimation class not found');
+        return;
+    }
+    winAnim = new WinAnimation('winCanvas');
+    winAnim.loadImages({
+        winBig: 'images/win_big.png',
+        winMega: 'images/win_mega.png',
+        winSuper: 'images/win_super.png',
+        starGreen: 'images/star_green.png',
+        starRed: 'images/star_red.png',
+        starBlue: 'images/star_blue.png',
+        coins: 'images/coins.png',
+        scoreBox: 'images/score_box.png'
+    }).then(() => console.log('Win animation ready!'))
+      .catch(err => console.error('Win animation load failed:', err));
+}
+
+// ================================================================
+// 22. BUTTON SOUNDS
+// ================================================================
+
+function initButtonSounds() {
+    const buttonIds = ['btn_spin', 'btn_max', 'btn_minus', 'btn_plus', 'btn_coin', 'btn_stop', 'btn_auto'];
+    buttonIds.forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) {
+            btn.addEventListener('click', () => {
+                playSound('button');
+                playSound('pop');
+            });
+        }
+    });
+}
+
+// ================================================================
+// 23. NOTIFICATION
+// ================================================================
+
+function showNotification(message, type) {
+    var old = document.getElementById('game-notification');
+    if (old) old.remove();
+
+    var noti = document.createElement('div');
+    noti.id = 'game-notification';
+    noti.style.cssText = `
+        position:fixed; top:50%; left:50%; transform:translate(-50%, -50%);
+        z-index:9999999; background:rgba(0,0,0,0.85); color:white;
+        padding:20px 40px; border-radius:16px; font-size:24px; font-weight:bold;
+        text-align:center; backdrop-filter:blur(8px); box-shadow:0 10px 40px rgba(0,0,0,0.6);
+        border:3px solid ${type === 'error' ? '#ff4757' : '#2ed573'};
+        color: ${type === 'error' ? '#ff6b81' : '#7bed9f'};
+        min-width:200px; pointer-events:none;
+    `;
+    noti.textContent = message;
+    document.body.appendChild(noti);
+
+    setTimeout(function() { if (noti.parentNode) noti.remove(); }, 2000);
+}
+
+// ================================================================
+// 24. EVENT LISTENERS & INIT
+// ================================================================
+
+// ---- Lobby message listener ----
 window.addEventListener('message', function(event) {
     const data = event.data;
     if (!data || !data.type) return;
 
-    // Lobby က SYNC_BALANCE လက်ခံရင် balance ကို update လုပ်
     if (data.type === 'SYNC_BALANCE' && data.game === 'superWays') {
         state.balance = data.balance;
         updateUI();
         console.log('✅ Balance synced from Lobby:', state.balance);
     }
 
-    // Lobby က REQUEST_BALANCE ပို့ရင် ပြန်ပို့ပေး
     if (data.type === 'REQUEST_BALANCE' && data.game === 'superWays') {
         syncBalanceToLobby(state.balance);
     }
 });
 
-// ===== DOMContentLoaded - ALL IN ONE =====
+// ---- DOM Ready ----
 document.addEventListener('DOMContentLoaded', function() {
-    
-    // ============================================
-    // 1. ANTI-COPY PROTECTION
-    // ============================================
-    
-    // Anti-Copy
-    document.addEventListener('copy', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        return false;
-    }, false);
 
-    // Anti-Cut
-    document.addEventListener('cut', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        return false;
-    }, false);
-
-    // Anti-Right Click
-    document.addEventListener('contextmenu', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        return false;
-    }, true);
-
-    // Anti-Drag Images
-    document.addEventListener('dragstart', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        return false;
-    }, true);
-
-    // Anti-Double Click
-    document.addEventListener('mousedown', function(e) {
-        if (e.detail > 1) e.preventDefault();
-    }, false);
-
-    // Anti-Key Combo
+    // ---- Anti-Copy Protection ----
+    document.addEventListener('copy', function(e) { e.preventDefault(); e.stopPropagation(); return false; }, false);
+    document.addEventListener('cut', function(e) { e.preventDefault(); e.stopPropagation(); return false; }, false);
+    document.addEventListener('contextmenu', function(e) { e.preventDefault(); e.stopPropagation(); return false; }, true);
+    document.addEventListener('dragstart', function(e) { e.preventDefault(); e.stopPropagation(); return false; }, true);
+    document.addEventListener('mousedown', function(e) { if (e.detail > 1) e.preventDefault(); }, false);
     document.addEventListener('keydown', function(e) {
-        if ((e.ctrlKey || e.metaKey) && ['c','x','a','s','p'].includes(e.key)) {
+        if ((e.ctrlKey || e.metaKey) && ['c', 'x', 'a', 's', 'p'].includes(e.key)) {
             e.preventDefault();
             e.stopPropagation();
             return false;
         }
     }, false);
 
-    // Disable draggable on all existing images
     document.querySelectorAll('img').forEach(img => {
         img.setAttribute('draggable', 'false');
     });
 
-    // ============================================
-    // 2. GAME INITIALIZATION
-    // ============================================
-    
+    // ---- Game Init ----
     const frameImg = document.querySelector('#slot-frame img');
 
     function initGame() {
@@ -3172,8 +3381,6 @@ document.addEventListener('DOMContentLoaded', function() {
         renderReels();
         updateUI();
         initWinAnimation();
-
-        // Lobby က balance ကို အရင်ဆုံး တစ်ခါတောင်းမယ်
         requestBalanceFromLobby();
 
         if (typeof SoundManager !== 'undefined') {
@@ -3190,638 +3397,877 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         initGame();
     }
-    
 });
 
- // ============================================
-// WinAnimation.js - Casino Win Effect Module v18
-// ============================================
+ 
+// ================================================================
+// WinAnimation.js - Casino Win Effect Module v18 (FIXED)
+// ================================================================
 
 class WinAnimation {
-  constructor(canvasId, options = {}) {
-    this.canvas = document.getElementById(canvasId);
-    if (!this.canvas) {
-      throw new Error(`Canvas #${canvasId} not found!`);
-    }
-    this.ctx = this.canvas.getContext('2d');
-    
-    this.config = {
-      winDuration: options.winDuration || 350,
-      maxCoins: options.maxCoins || 250,
-      maxSparkles: options.maxSparkles || 150,
-      coinGravity: options.coinGravity || 0.18,
-      coinSpawnRate: options.coinSpawnRate || 5,
-      sparkleSpawnRate: options.sparkleSpawnRate || 6,
-      scoreCountDuration: options.scoreCountDuration || 1000,
-      scoreBoxDelay: options.scoreBoxDelay || 100,
-      riseDuration: options.riseDuration || 40,
-      ...options
-    };
-    
-    this.winActive = false;
-    this.winTimer = 0;
-    this.winType = 'big';
-    this.score = 0;
-    this.targetScore = 0;
-    this.scoreDisplay = 0;
-    
-    this.images = {};
-    this.loaded = false;
-    
-    this.coins = [];
-    this.sparkles = [];
-    this.bgStripes = [];
-    
-    this.onComplete = null;
-    this.onStart = null;
-    
-    this.resize();
-    window.addEventListener('resize', () => this.resize());
-    
-    this.loop();
-  }
-  
-  getWinConfig() {
-    const configs = {
-      big: {
-        bgColor: { r: 20, g: 20, b: 20 },
-        bgColor2: { r: 5, g: 5, b: 5 },
-        stripeColor: 'rgba(255, 255, 255, 0.03)',
-        rayColor: { r: 0, g: 220, b: 60 },
-        textGlow: 'rgba(0, 220, 60, 0.8)',
-        imgKey: 'winBig'
-      },
-      mega: {
-        bgColor: { r: 20, g: 20, b: 20 },
-        bgColor2: { r: 5, g: 5, b: 5 },
-        stripeColor: 'rgba(255, 255, 255, 0.03)',
-        rayColor: { r: 255, g: 40, b: 40 },
-        textGlow: 'rgba(255, 0, 0, 0.8)',
-        imgKey: 'winMega'
-      },
-      super: {
-        bgColor: { r: 20, g: 20, b: 20 },
-        bgColor2: { r: 5, g: 5, b: 5 },
-        stripeColor: 'rgba(255, 255, 255, 0.03)',
-        rayColor: { r: 40, g: 130, b: 255 },
-        textGlow: 'rgba(0, 90, 255, 0.8)',
-        imgKey: 'winSuper'
-      }
-    };
-    return configs[this.winType] || configs.big;
-  }
-  
-  resize() {
-    this.canvas.width = this.canvas.parentElement?.clientWidth || window.innerWidth;
-    this.canvas.height = this.canvas.parentElement?.clientHeight || window.innerHeight;
-    this.cx = this.canvas.width / 2;
-    this.cy = this.canvas.height / 2;
-    
-    const minDim = Math.min(this.canvas.width, this.canvas.height);
-    this.isLandscape = this.canvas.width > this.canvas.height;
-    
-    if (this.isLandscape) {
-      this.baseScale = Math.min(1, this.canvas.height / 800);
-    } else {
-      this.baseScale = Math.min(1, this.canvas.width / 500);
-    }
-    this.baseScale = Math.max(this.baseScale, 0.35);
-    
-    this.createBgStripes();
-  }
-  
-  createBgStripes() {
-    this.bgStripes = [];
-    const stripeCount = 8;
-    for (let i = 0; i < stripeCount; i++) {
-      this.bgStripes.push({
-        offset: (i / stripeCount) * Math.PI * 2,
-        speed: 0.08 + Math.random() * 0.1
-      });
-    }
-  }
-  
-  loadImages(imageMap) {
-    return new Promise((resolve) => {
-      let loaded = 0;
-      const total = Object.keys(imageMap).length;
-      
-      if (total === 0) {
-        this.loaded = true;
-        resolve(this.images);
-        return;
-      }
-      
-      for (const [key, src] of Object.entries(imageMap)) {
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        
-        img.onload = () => {
-          this.images[key] = img;
-          loaded++;
-          console.log(`WinAnimation: Loaded ${key}`);
-          if (loaded === total) {
-            this.loaded = true;
-            resolve(this.images);
-          }
-        };
-        
-        img.onerror = () => {
-          console.warn(`WinAnimation: Failed to load ${key}: ${src}`);
-          loaded++;
-          if (loaded === total) {
-            this.loaded = true;
-            resolve(this.images);
-          }
-        };
-        
-        img.src = src;
-      }
-    });
-  }
-  
-  trigger(type, score, options = {}) {
-    if (!this.loaded) {
-      console.warn('WinAnimation: Images not loaded yet!');
-      return;
-    }
-    
-    this.winActive = true;
-    this.winTimer = 0;
-    this.winType = type;
-    this.targetScore = score;
-    this.scoreDisplay = 0;
-    
-    this.coins = [];
-    this.sparkles = [];
-    
-    const duration = options.duration || this.config.winDuration;
-    this.config.winDuration = duration;
-    
-    this.onComplete = options.onComplete || null;
-    this.onStart = options.onStart || null;
-    
-    if (this.onStart) this.onStart(type, score);
-    
-    const burstCount = type === 'super' ? 180 : type === 'mega' ? 160 : 150;
-    for (let i = 0; i < burstCount; i++) {
-      this.coins.push(new CoinParticle(
-        this.cx + (Math.random() - 0.5) * 250 * this.baseScale,
-        this.cy - 80 * this.baseScale,
-        this.config.coinGravity,
-        this.baseScale
-      ));
-    }
-    
-    setTimeout(() => {
-      this.stop();
-    }, (duration / 60) * 1000);
-  }
-  
-  stop() {
-    this.winActive = false;
-    this.coins = [];
-    this.sparkles = [];
-    if (this.onComplete) {
-      this.onComplete(this.winType, this.scoreDisplay);
-    }
-  }
-  
-  isActive() {
-    return this.winActive;
-  }
-  
-  loop() {
-    const ctx = this.ctx;
-    const w = this.canvas.width;
-    const h = this.canvas.height;
-    
-    ctx.clearRect(0, 0, w, h);
-    
-    if (this.winActive) {
-      this.winTimer++;
-      const cfg = this.getWinConfig();
-      
-      const riseProgress = Math.min(this.winTimer / this.config.riseDuration, 1);
-      const riseEase = 1 - Math.pow(1 - riseProgress, 3);
-      const riseOffset = (1 - riseEase) * 300 * this.baseScale;
-      
-      const scoreStartTime = this.config.scoreBoxDelay;
-      if (this.winTimer > scoreStartTime && this.scoreDisplay < this.targetScore) {
-        const scoreProgress = Math.min((this.winTimer - scoreStartTime) / this.config.scoreCountDuration, 1);
-        const easeOut = 1 - Math.pow(1 - scoreProgress, 2);
-        this.scoreDisplay = Math.floor(this.targetScore * easeOut);
-        if (this.scoreDisplay > this.targetScore) {
-          this.scoreDisplay = this.targetScore;
+    constructor(canvasId, options = {}) {
+        this.canvas = document.getElementById(canvasId);
+        if (!this.canvas) {
+            throw new Error(`Canvas #${canvasId} not found!`);
         }
-      }
-      
-      const coinEndTime = this.config.winDuration - 600;
-      if (this.winTimer < coinEndTime && 
-          this.coins.length < this.config.maxCoins && 
-          this.winTimer % this.config.coinSpawnRate === 0) {
-        this.coins.push(new CoinParticle(
-          this.cx + (Math.random() - 0.5) * 450 * this.baseScale,
-          this.cy - 120 * this.baseScale,
-          this.config.coinGravity,
-          this.baseScale
-        ));
-      }
-      
-      if (this.sparkles.length < this.config.maxSparkles && 
-          this.winTimer % this.config.sparkleSpawnRate === 0) {
-        this.sparkles.push(new Sparkle(
-          this.cx + (Math.random() - 0.5) * 550 * this.baseScale,
-          this.cy + (Math.random() - 0.5) * 400 * this.baseScale,
-          cfg,
-          this.baseScale
-        ));
-      }
-      
-      this.drawOverlay(w, h);
-      this.drawBackground(w, h, cfg);
-      this.drawLightRays(w, h, cfg);
-      
-      // Draw win text image (stars already included in image)
-      this.drawWinImage(cfg, riseOffset);
-      
-      this.sparkles = this.sparkles.filter(s => {
-        s.update();
-        s.draw(ctx);
-        return s.active;
-      });
-      
-      this.coins = this.coins.filter(coin => {
-        coin.update();
-        coin.draw(ctx, this.images.coins);
-        return coin.active;
-      });
-      
-      if (this.winTimer > this.config.scoreBoxDelay) {
-        this.drawScore();
-      }
-      
-      if (this.winTimer >= this.config.winDuration) {
-        this.stop();
-      }
+        this.ctx = this.canvas.getContext('2d');
+
+        this.config = {
+            winDuration: options.winDuration || 350,
+            maxCoins: options.maxCoins || 250,
+            maxSparkles: options.maxSparkles || 150,
+            coinGravity: options.coinGravity || 0.18,
+            coinSpawnRate: options.coinSpawnRate || 5,
+            sparkleSpawnRate: options.sparkleSpawnRate || 6,
+            scoreCountDuration: options.scoreCountDuration || 1000,
+            scoreBoxDelay: options.scoreBoxDelay || 100,
+            riseDuration: options.riseDuration || 40,
+            ...options
+        };
+
+        this.winActive = false;
+        this.winTimer = 0;
+        this.winType = 'big';
+        this.score = 0;
+        this.targetScore = 0;
+        this.scoreDisplay = 0;
+
+        this.images = {};
+        this.loaded = false;
+
+        this.coins = [];
+        this.sparkles = [];
+        this.starParticles = [];  // ★ ADD THIS ★
+        this.bgStripes = [];
+
+        this.onComplete = null;
+        this.onStart = null;
+
+        this.resize();
+        window.addEventListener('resize', () => this.resize());
+
+        this.loop();
     }
-    
-    requestAnimationFrame(() => this.loop());
-  }
-  
-  drawOverlay(w, h) {
-    const ctx = this.ctx;
-    ctx.save();
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.72)';
-    ctx.fillRect(0, 0, w, h);
-    ctx.restore();
-  }
-  
-  drawBackground(w, h, cfg) {
-    const ctx = this.ctx;
-    ctx.save();
-    
-    const gradient = ctx.createRadialGradient(
-      this.cx, this.cy, 0,
-      this.cx, this.cy, Math.max(w, h) * 0.8
-    );
-    gradient.addColorStop(0, 'rgba(40, 40, 40, 0.4)');
-    gradient.addColorStop(0.5, 'rgba(15, 15, 15, 0.6)');
-    gradient.addColorStop(1, 'rgba(0, 0, 0, 0.9)');
-    
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, w, h);
-    
-    const time = Date.now() * 0.0001;
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
-    ctx.lineWidth = 2 * this.baseScale;
-    
-    for (let i = 0; i < this.bgStripes.length; i++) {
-      const stripe = this.bgStripes[i];
-      const angle = stripe.offset + time * stripe.speed;
-      
-      ctx.save();
-      ctx.translate(this.cx, this.cy);
-      ctx.rotate(angle);
-      
-      const maxDist = Math.max(w, h);
-      ctx.beginPath();
-      ctx.moveTo(-maxDist, -30 * this.baseScale);
-      ctx.lineTo(maxDist, -30 * this.baseScale);
-      ctx.moveTo(-maxDist, 30 * this.baseScale);
-      ctx.lineTo(maxDist, 30 * this.baseScale);
-      ctx.stroke();
-      
-      ctx.restore();
+
+    // ============================================================
+    // GET WIN CONFIG
+    // ============================================================
+    getWinConfig() {
+        const configs = {
+            big: {
+                bgColor: { r: 20, g: 20, b: 20 },
+                bgColor2: { r: 5, g: 5, b: 5 },
+                stripeColor: 'rgba(255, 255, 255, 0.03)',
+                rayColor: { r: 0, g: 220, b: 60 },
+                textGlow: 'rgba(0, 220, 60, 0.8)',
+                imgKey: 'winBig'
+            },
+            mega: {
+                bgColor: { r: 20, g: 20, b: 20 },
+                bgColor2: { r: 5, g: 5, b: 5 },
+                stripeColor: 'rgba(255, 255, 255, 0.03)',
+                rayColor: { r: 255, g: 40, b: 40 },
+                textGlow: 'rgba(255, 0, 0, 0.8)',
+                imgKey: 'winMega'
+            },
+            super: {
+                bgColor: { r: 20, g: 20, b: 20 },
+                bgColor2: { r: 5, g: 5, b: 5 },
+                stripeColor: 'rgba(255, 255, 255, 0.03)',
+                rayColor: { r: 40, g: 130, b: 255 },
+                textGlow: 'rgba(0, 90, 255, 0.8)',
+                imgKey: 'winSuper'
+            }
+        };
+        return configs[this.winType] || configs.big;
     }
-    
-    const glow = ctx.createRadialGradient(
-      this.cx, this.cy, 0,
-      this.cx, this.cy, 450 * this.baseScale
-    );
-    glow.addColorStop(0, 'rgba(60, 50, 30, 0.2)');
-    glow.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    ctx.fillStyle = glow;
-    ctx.fillRect(0, 0, w, h);
-    
-    ctx.restore();
-  }
-  
-  drawLightRays(w, h, cfg) {
-    const ctx = this.ctx;
-    ctx.save();
-    ctx.translate(this.cx, this.cy);
-    
-    const time = Date.now() * 0.0003;
-    const rayCount = this.winType === 'super' ? 12 : this.winType === 'mega' ? 10 : 8;
-    
-    for (let i = 0; i < rayCount; i++) {
-      const angle = (Math.PI * 2 / rayCount) * i + time;
-      const rayGradient = ctx.createLinearGradient(
-        0, 0,
-        Math.cos(angle) * 900 * this.baseScale,
-        Math.sin(angle) * 900 * this.baseScale
-      );
-      rayGradient.addColorStop(0, `rgba(${cfg.rayColor.r}, ${cfg.rayColor.g}, ${cfg.rayColor.b}, 0)`);
-      rayGradient.addColorStop(0.4, `rgba(${cfg.rayColor.r}, ${cfg.rayColor.g}, ${cfg.rayColor.b}, 0.04)`);
-      rayGradient.addColorStop(1, `rgba(${cfg.rayColor.r}, ${cfg.rayColor.g}, ${cfg.rayColor.b}, 0)`);
-      
-      ctx.fillStyle = rayGradient;
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(
-        Math.cos(angle - 0.08) * 900 * this.baseScale,
-        Math.sin(angle - 0.08) * 900 * this.baseScale
-      );
-      ctx.lineTo(
-        Math.cos(angle + 0.08) * 900 * this.baseScale,
-        Math.sin(angle + 0.08) * 900 * this.baseScale
-      );
-      ctx.closePath();
-      ctx.fill();
+
+    // ============================================================
+    // RESIZE
+    // ============================================================
+    resize() {
+        this.canvas.width = this.canvas.parentElement?.clientWidth || window.innerWidth;
+        this.canvas.height = this.canvas.parentElement?.clientHeight || window.innerHeight;
+        this.cx = this.canvas.width / 2;
+        this.cy = this.canvas.height / 2;
+
+        const minDim = Math.min(this.canvas.width, this.canvas.height);
+        this.isLandscape = this.canvas.width > this.canvas.height;
+
+        if (this.isLandscape) {
+            this.baseScale = Math.min(1, this.canvas.height / 800);
+        } else {
+            this.baseScale = Math.min(1, this.canvas.width / 500);
+        }
+        this.baseScale = Math.max(this.baseScale, 0.35);
+
+        this.createBgStripes();
     }
-    
-    ctx.restore();
-  }
-  
-  // ===== DRAW WIN IMAGE (stars included in image) =====
-  drawWinImage(cfg, riseOffset = 0) {
-    const ctx = this.ctx;
-    const img = this.images[cfg.imgKey];
-    
-    if (!img) {
-      this.drawFallbackText(cfg, riseOffset);
-      return;
+
+    // ============================================================
+    // CREATE BG STRIPES
+    // ============================================================
+    createBgStripes() {
+        this.bgStripes = [];
+        const stripeCount = 8;
+        for (let i = 0; i < stripeCount; i++) {
+            this.bgStripes.push({
+                offset: (i / stripeCount) * Math.PI * 2,
+                speed: 0.08 + Math.random() * 0.1
+            });
+        }
     }
-    
-    let animScale = 1;
-    if (this.winTimer < 300) {
-      const t = this.winTimer / 300;
-      animScale = 0.05 + t * t * 1.15;
-      if (animScale > 1.2) animScale = 1.2;
-    } else if (this.winTimer < 120) {
-      const t = (this.winTimer - 60) / 60;
-      animScale = 1.2 - t * 0.2;
-    } else {
-      animScale = 1 + Math.sin(this.winTimer * 0.03) * 0.03;
+
+    // ============================================================
+    // LOAD IMAGES
+    // ============================================================
+    loadImages(imageMap) {
+        return new Promise((resolve) => {
+            let loaded = 0;
+            const total = Object.keys(imageMap).length;
+
+            if (total === 0) {
+                this.loaded = true;
+                resolve(this.images);
+                return;
+            }
+
+            for (const [key, src] of Object.entries(imageMap)) {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+
+                img.onload = () => {
+                    this.images[key] = img;
+                    loaded++;
+                    console.log(`WinAnimation: Loaded ${key}`);
+                    if (loaded === total) {
+                        this.loaded = true;
+                        resolve(this.images);
+                    }
+                };
+
+                img.onerror = () => {
+                    console.warn(`WinAnimation: Failed to load ${key}: ${src}`);
+                    loaded++;
+                    if (loaded === total) {
+                        this.loaded = true;
+                        resolve(this.images);
+                    }
+                };
+
+                img.src = src;
+            }
+        });
     }
-    
-    const scale = animScale * this.baseScale;
-    
-    let shakeX = 0, shakeY = 0;
-    if (this.winType !== 'big' && this.winTimer > 120 && this.winTimer < 300) {
-      shakeX = Math.sin(this.winTimer * 0.3) * 2 * this.baseScale;
-      shakeY = Math.cos(this.winTimer * 0.2) * 1.5 * this.baseScale;
+
+    // ============================================================
+    // TRIGGER
+    // ============================================================
+    trigger(type, score, options = {}) {
+        if (!this.loaded) {
+            console.warn('WinAnimation: Images not loaded yet!');
+            return;
+        }
+
+        this.winActive = true;
+        this.winTimer = 0;
+        this.winType = type;
+        this.targetScore = score;
+        this.scoreDisplay = 0;
+
+        this.coins = [];
+        this.sparkles = [];
+        this.starParticles = [];  // ★ RESET STARS ★
+
+        const duration = options.duration || this.config.winDuration;
+        this.config.winDuration = duration;
+
+        this.onComplete = options.onComplete || null;
+        this.onStart = options.onStart || null;
+
+        if (this.onStart) this.onStart(type, score);
+
+        const burstCount = type === 'super' ? 180 : type === 'mega' ? 160 : 150;
+        for (let i = 0; i < burstCount; i++) {
+            this.coins.push(new CoinParticle(
+                this.cx + (Math.random() - 0.5) * 250 * this.baseScale,
+                this.cy - 80 * this.baseScale,
+                this.config.coinGravity,
+                this.baseScale
+            ));
+        }
+
+        setTimeout(() => {
+            this.stop();
+        }, (duration / 60) * 1000);
     }
-    
-    const winTextY = this.cy - 50 * this.baseScale + riseOffset;
-    
-    ctx.save();
-    ctx.translate(this.cx + shakeX, winTextY + shakeY);
-    ctx.scale(scale, scale);
-    
-    const glowIntensity = 50 + Math.sin(this.winTimer * 0.05) * 15;
-    ctx.shadowBlur = glowIntensity * this.baseScale;
-    ctx.shadowColor = cfg.textGlow;
-    
-    // Draw win text image (stars already included in the image!)
-    ctx.drawImage(img, -img.width / 2, -img.height / 2, img.width, img.height);
-    
-    ctx.restore();
-  }
-      
-  
-  drawFallbackText(cfg, riseOffset = 0) {
-    const ctx = this.ctx;
-    const text = this.winType === 'super' ? 'SUPER WIN' : this.winType === 'mega' ? 'MEGA WIN' : 'BIG WIN';
-    
-    let animScale = 1;
-    if (this.winTimer < 300) {
-      const t = this.winTimer / 300;
-      animScale = 0.05 + t * t * 1.15;
-    } else if (this.winTimer < 600) {
-      const t = (this.winTimer - 300) / 300;
-      animScale = 1.2 - t * 0.2;
-    } else {
-      animScale = 1 + Math.sin(this.winTimer * 0.03) * 0.03;
+
+    // ============================================================
+    // STOP
+    // ============================================================
+    stop() {
+        this.winActive = false;
+        this.coins = [];
+        this.sparkles = [];
+        this.starParticles = [];
+        if (this.onComplete) {
+            this.onComplete(this.winType, this.scoreDisplay);
+        }
     }
-    
-    const scale = animScale * this.baseScale;
-    const fontSize = 100 * scale;
-    
-    const winTextY = this.cy - 50 * this.baseScale + riseOffset;
-    
-    ctx.save();
-    ctx.translate(this.cx, winTextY);
-    ctx.scale(scale, scale);
-    
-    ctx.font = `bold ${fontSize}px Impact, Arial Black, sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    
-    const glowIntensity = 40 + Math.sin(this.winTimer * 0.05) * 10;
-    ctx.shadowBlur = glowIntensity * this.baseScale;
-    ctx.shadowColor = cfg.textGlow;
-    ctx.fillStyle = 'rgba(255, 200, 0, 0.9)';
-    ctx.fillText(text, 0, 0);
-    
-    ctx.restore();
-  }
-  
-  drawScore() {
-    const ctx = this.ctx;
-    const frame = this.images.scoreBox;
-    
-    const boxScale = 0.5;
-    const scoreBoxY = this.cy + 350 * this.baseScale;
-    
-    ctx.save();
-    ctx.translate(this.cx, scoreBoxY);
-    
-    if (frame && frame.width > 0) {
-      const frameW = frame.width * this.baseScale * boxScale * 1.3;
-      const frameH = frame.height * this.baseScale * boxScale * 1.3;
-      ctx.drawImage(frame, -frameW / 2, -frameH / 2, frameW, frameH);
-    } else {
-      const boxW = 550 * this.baseScale * boxScale;
-      const boxH = 120 * this.baseScale * boxScale;
-      
-      ctx.fillStyle = 'rgba(40, 10, 10, 0.9)';
-      ctx.strokeStyle = '#FFD700';
-      ctx.lineWidth = 4 * this.baseScale;
-      
-      const r = 15 * this.baseScale;
-      ctx.beginPath();
-      ctx.moveTo(-boxW / 2 + r, -boxH / 2);
-      ctx.lineTo(boxW / 2 - r, -boxH / 2);
-      ctx.quadraticCurveTo(boxW / 2, -boxH / 2, boxW / 2, -boxH / 2 + r);
-      ctx.lineTo(boxW / 2, boxH / 2 - r);
-      ctx.quadraticCurveTo(boxW / 2, boxH / 2, boxW / 2 - r, boxH / 2);
-      ctx.lineTo(-boxW / 2 + r, boxH / 2);
-      ctx.quadraticCurveTo(-boxW / 2, boxH / 2, -boxW / 2, boxH / 2 - r);
-      ctx.lineTo(-boxW / 2, -boxH / 2 + r);
-      ctx.quadraticCurveTo(-boxW / 2, -boxH / 2, -boxW / 2 + r, -boxH / 2);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
+
+    // ============================================================
+    // IS ACTIVE
+    // ============================================================
+    isActive() {
+        return this.winActive;
     }
-    
-    const fontSize = 90 * this.baseScale;
-    ctx.font = `bold ${fontSize}px Impact, sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    
-    const shimmer = Math.sin(this.winTimer * 0.08) * 0.3 + 0.7;
-    ctx.shadowBlur = 20 * shimmer;
-    ctx.shadowColor = '#FFD700';
-    
-    const textGradient = ctx.createLinearGradient(0, -30 * this.baseScale, 0, 30 * this.baseScale);
-    textGradient.addColorStop(0, '#FFF8DC');
-    textGradient.addColorStop(0.4, '#FFD700');
-    textGradient.addColorStop(0.6, '#FFA500');
-    textGradient.addColorStop(1, '#B8860B');
-    ctx.fillStyle = textGradient;
-    
-    ctx.fillText(this.scoreDisplay.toLocaleString(), 0, 0);
-    
-    ctx.restore();
-  }
+
+    // ============================================================
+    // LOOP
+    // ============================================================
+    loop() {
+        const ctx = this.ctx;
+        const w = this.canvas.width;
+        const h = this.canvas.height;
+
+        ctx.clearRect(0, 0, w, h);
+
+        if (this.winActive) {
+            this.winTimer++;
+            const cfg = this.getWinConfig();
+
+            const riseProgress = Math.min(this.winTimer / this.config.riseDuration, 1);
+            const riseEase = 1 - Math.pow(1 - riseProgress, 3);
+            const riseOffset = (1 - riseEase) * 300 * this.baseScale;
+
+            const scoreStartTime = this.config.scoreBoxDelay;
+            if (this.winTimer > scoreStartTime && this.scoreDisplay < this.targetScore) {
+                const scoreProgress = Math.min((this.winTimer - scoreStartTime) / this.config.scoreCountDuration, 1);
+                const easeOut = 1 - Math.pow(1 - scoreProgress, 2);
+                this.scoreDisplay = Math.floor(this.targetScore * easeOut);
+                if (this.scoreDisplay > this.targetScore) {
+                    this.scoreDisplay = this.targetScore;
+                }
+            }
+
+            const coinEndTime = this.config.winDuration - 600;
+            if (this.winTimer < coinEndTime &&
+                this.coins.length < this.config.maxCoins &&
+                this.winTimer % this.config.coinSpawnRate === 0) {
+                this.coins.push(new CoinParticle(
+                    this.cx + (Math.random() - 0.5) * 450 * this.baseScale,
+                    this.cy - 120 * this.baseScale,
+                    this.config.coinGravity,
+                    this.baseScale
+                ));
+            }
+
+            if (this.sparkles.length < this.config.maxSparkles &&
+                this.winTimer % this.config.sparkleSpawnRate === 0) {
+                this.sparkles.push(new Sparkle(
+                    this.cx + (Math.random() - 0.5) * 550 * this.baseScale,
+                    this.cy + (Math.random() - 0.5) * 400 * this.baseScale,
+                    cfg,
+                    this.baseScale
+                ));
+            }
+
+            this.drawOverlay(w, h);
+            this.drawBackground(w, h, cfg);
+            this.drawLightRays(w, h, cfg);
+
+            // Draw win text image (with stars)
+            this.drawWinImage(cfg, riseOffset);
+
+            this.sparkles = this.sparkles.filter(s => {
+                s.update();
+                s.draw(ctx);
+                return s.active;
+            });
+
+            this.coins = this.coins.filter(coin => {
+                coin.update();
+                coin.draw(ctx, this.images.coins);
+                return coin.active;
+            });
+
+            if (this.winTimer > this.config.scoreBoxDelay) {
+                this.drawScore();
+            }
+
+            if (this.winTimer >= this.config.winDuration) {
+                this.stop();
+            }
+        }
+
+        requestAnimationFrame(() => this.loop());
+    }
+
+    // ============================================================
+    // DRAW OVERLAY
+    // ============================================================
+    drawOverlay(w, h) {
+        const ctx = this.ctx;
+        ctx.save();
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.72)';
+        ctx.fillRect(0, 0, w, h);
+        ctx.restore();
+    }
+
+    // ============================================================
+    // DRAW BACKGROUND
+    // ============================================================
+    drawBackground(w, h, cfg) {
+        const ctx = this.ctx;
+        ctx.save();
+
+        const gradient = ctx.createRadialGradient(
+            this.cx, this.cy, 0,
+            this.cx, this.cy, Math.max(w, h) * 0.8
+        );
+        gradient.addColorStop(0, 'rgba(40, 40, 40, 0.4)');
+        gradient.addColorStop(0.5, 'rgba(15, 15, 15, 0.6)');
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0.9)');
+
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, w, h);
+
+        const time = Date.now() * 0.0001;
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+        ctx.lineWidth = 2 * this.baseScale;
+
+        for (let i = 0; i < this.bgStripes.length; i++) {
+            const stripe = this.bgStripes[i];
+            const angle = stripe.offset + time * stripe.speed;
+
+            ctx.save();
+            ctx.translate(this.cx, this.cy);
+            ctx.rotate(angle);
+
+            const maxDist = Math.max(w, h);
+            ctx.beginPath();
+            ctx.moveTo(-maxDist, -30 * this.baseScale);
+            ctx.lineTo(maxDist, -30 * this.baseScale);
+            ctx.moveTo(-maxDist, 30 * this.baseScale);
+            ctx.lineTo(maxDist, 30 * this.baseScale);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        const glow = ctx.createRadialGradient(
+            this.cx, this.cy, 0,
+            this.cx, this.cy, 450 * this.baseScale
+        );
+        glow.addColorStop(0, 'rgba(60, 50, 30, 0.2)');
+        glow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.restore();
+    }
+
+    // ============================================================
+    // DRAW LIGHT RAYS
+    // ============================================================
+    drawLightRays(w, h, cfg) {
+        const ctx = this.ctx;
+        ctx.save();
+        ctx.translate(this.cx, this.cy);
+
+        const time = Date.now() * 0.0003;
+        const rayCount = this.winType === 'super' ? 12 : this.winType === 'mega' ? 10 : 8;
+
+        for (let i = 0; i < rayCount; i++) {
+            const angle = (Math.PI * 2 / rayCount) * i + time;
+            const rayGradient = ctx.createLinearGradient(
+                0, 0,
+                Math.cos(angle) * 900 * this.baseScale,
+                Math.sin(angle) * 900 * this.baseScale
+            );
+            rayGradient.addColorStop(0, `rgba(${cfg.rayColor.r}, ${cfg.rayColor.g}, ${cfg.rayColor.b}, 0)`);
+            rayGradient.addColorStop(0.4, `rgba(${cfg.rayColor.r}, ${cfg.rayColor.g}, ${cfg.rayColor.b}, 0.04)`);
+            rayGradient.addColorStop(1, `rgba(${cfg.rayColor.r}, ${cfg.rayColor.g}, ${cfg.rayColor.b}, 0)`);
+
+            ctx.fillStyle = rayGradient;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(
+                Math.cos(angle - 0.08) * 900 * this.baseScale,
+                Math.sin(angle - 0.08) * 900 * this.baseScale
+            );
+            ctx.lineTo(
+                Math.cos(angle + 0.08) * 900 * this.baseScale,
+                Math.sin(angle + 0.08) * 900 * this.baseScale
+            );
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        ctx.restore();
+    }
+
+    // ============================================================
+    // DRAW WIN IMAGE (WITH STARS)
+    // ============================================================
+    drawWinImage(cfg, riseOffset = 0) {
+        const ctx = this.ctx;
+        const img = this.images[cfg.imgKey];
+
+        if (!img) {
+            this.drawFallbackText(cfg, riseOffset);
+            return;
+        }
+
+        const t = this.winTimer;
+
+        let scale = 1;
+        let alpha = 1;
+        let rotation = 0;
+
+        // 1) Entrance Pop
+        if (t < 35) {
+            const p = t / 35;
+            scale = 0.25 + easeOutBack(p) * 1.05;
+            alpha = p;
+        }
+        // 2) Settle
+        else if (t < 65) {
+            const p = (t - 35) / 30;
+            scale = 1.30 - easeOutQuad(p) * 0.30;
+        }
+        // 3) Idle breathing
+        else {
+            scale = 1 + Math.sin(t * 0.045) * 0.025;
+        }
+
+        // Super / Mega only: small impact shake
+        let shakeX = 0;
+        let shakeY = 0;
+
+        if (this.winType !== 'big' && t > 35 && t < 85) {
+            const shakePower = (1 - (t - 35) / 50) * this.baseScale;
+            shakeX = Math.sin(t * 0.8) * 6 * shakePower;
+            shakeY = Math.cos(t * 0.7) * 4 * shakePower;
+            rotation = Math.sin(t * 0.6) * 0.015 * shakePower;
+        }
+
+        const x = this.cx + shakeX;
+        const y = this.cy - 50 * this.baseScale + riseOffset + shakeY;
+
+        const finalScale = scale * this.baseScale;
+
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.translate(x, y);
+        ctx.rotate(rotation);
+        ctx.scale(finalScale, finalScale);
+
+        // Glow behind image
+        ctx.shadowBlur = (45 + Math.sin(t * 0.06) * 15) * this.baseScale;
+        ctx.shadowColor = cfg.textGlow;
+
+        ctx.drawImage(
+            img,
+            -img.width / 2,
+            -img.height / 2,
+            img.width,
+            img.height
+        );
+
+        ctx.restore();
+
+        // Shine sweep
+        if (t > 60 && t < 150) {
+            this.drawWinImageShine(img, x, y, finalScale, t - 60);
+        }
+
+        // ★ DRAW STARS AROUND IMAGE ★
+        this.drawWinStars(cfg, x, y, finalScale);
+    }
+
+    // ============================================================
+    // DRAW WIN IMAGE SHINE
+    // ============================================================
+    drawWinImageShine(img, x, y, scale, localT) {
+        const ctx = this.ctx;
+        const p = localT / 90;
+
+        if (p < 0 || p > 1) return;
+
+        const w = img.width * scale;
+        const h = img.height * scale;
+
+        const shineX = -w / 2 + p * w * 1.4;
+
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.rotate(-0.25);
+
+        const grad = ctx.createLinearGradient(
+            shineX - 40 * this.baseScale, -h / 2,
+            shineX + 40 * this.baseScale, h / 2
+        );
+
+        grad.addColorStop(0, 'rgba(255,255,255,0)');
+        grad.addColorStop(0.5, 'rgba(255,255,255,0.75)');
+        grad.addColorStop(1, 'rgba(255,255,255,0)');
+
+        ctx.fillStyle = grad;
+        ctx.fillRect(shineX - 60 * this.baseScale, -h / 2, 120 * this.baseScale, h);
+
+        ctx.restore();
+    }
+
+    // ============================================================
+    // DRAW WIN STARS (COLORFUL SPARKLES)
+    // ============================================================
+    drawWinStars(cfg, centerX, centerY, scale) {
+        // Safety check
+        if (!this.starParticles) {
+            this.starParticles = [];
+            return;
+        }
+
+        const ctx = this.ctx;
+        const baseScale = this.baseScale || 1;
+
+        // Only start after image appears
+        if (this.winTimer < 25) return;
+
+        const starCount = this.winType === 'super' ? 40 : this.winType === 'mega' ? 30 : 20;
+
+        // Spawn stars gradually
+        if (this.winTimer < 600 && this.winTimer % 2 === 0) {
+            if (this.starParticles.length < starCount) {
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 60 + Math.random() * 180;
+                const hue = Math.random() * 360;
+                const size = 3 + Math.random() * 12;
+
+                this.starParticles.push({
+                    x: centerX + Math.cos(angle) * distance * 0.2,
+                    y: centerY + Math.sin(angle) * distance * 0.2 - 20 * baseScale,
+                    targetX: centerX + Math.cos(angle) * distance,
+                    targetY: centerY + Math.sin(angle) * distance,
+                    size: size * baseScale,
+                    angle: Math.random() * Math.PI * 2,
+                    rotSpeed: (Math.random() - 0.5) * 0.06,
+                    life: 0.5 + Math.random() * 0.5,
+                    maxLife: 0.5 + Math.random() * 0.5,
+                    hue: hue,
+                    saturation: 85 + Math.random() * 15,
+                    lightness: 65 + Math.random() * 25,
+                    delay: Math.random() * 200
+                });
+            }
+        }
+
+        // Update and draw stars
+        const remainingStars = [];
+
+        for (let i = 0; i < this.starParticles.length; i++) {
+            const star = this.starParticles[i];
+
+            if (!star || typeof star !== 'object') continue;
+
+            // Delay
+            if (this.winTimer < (star.delay || 0)) {
+                remainingStars.push(star);
+                continue;
+            }
+
+            // Update position (ease toward target)
+            const progress = 1 - ((star.life || 0) / (star.maxLife || 1));
+            const ease = 1 - Math.pow(1 - progress, 2);
+
+            star.x = (star.x || 0) + ((star.targetX || 0) - (star.x || 0)) * ease * 0.04;
+            star.y = (star.y || 0) + ((star.targetY || 0) - (star.y || 0)) * ease * 0.04;
+            star.angle = (star.angle || 0) + (star.rotSpeed || 0);
+            star.life = (star.life || 0) - 0.005;
+
+            // Draw if alive
+            if (star.life > 0) {
+                const starSize = (star.size || 5) * (0.3 + Math.sin(progress * Math.PI) * 0.7);
+                const alpha = Math.min(1, ((star.life || 0) / (star.maxLife || 1)) * 1.8);
+
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, alpha);
+                ctx.translate(star.x || 0, star.y || 0);
+                ctx.rotate((star.angle || 0) + progress * 2);
+                ctx.scale(starSize / 10, starSize / 10);
+
+                const hue = star.hue || 0;
+
+                // Glow
+                ctx.shadowBlur = 25 * baseScale;
+                ctx.shadowColor = `hsl(${hue}, 100%, 70%)`;
+
+                // Star shape (4-point)
+                ctx.fillStyle = `hsl(${hue}, ${star.saturation || 85}%, ${star.lightness || 70}%)`;
+
+                ctx.beginPath();
+                for (let j = 0; j < 8; j++) {
+                    const r = j % 2 === 0 ? 10 : 4;
+                    const a = (Math.PI * j) / 4;
+                    const sx = Math.cos(a) * r;
+                    const sy = Math.sin(a) * r;
+                    if (j === 0) ctx.moveTo(sx, sy);
+                    else ctx.lineTo(sx, sy);
+                }
+                ctx.closePath();
+                ctx.fill();
+
+                // Inner glow dot
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = `hsla(${hue}, 100%, 95%, 0.4)`;
+                ctx.beginPath();
+                ctx.arc(0, 0, 3, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.restore();
+
+                remainingStars.push(star);
+            }
+        }
+
+        this.starParticles = remainingStars;
+    }
+
+    // ============================================================
+    // DRAW FALLBACK TEXT
+    // ============================================================
+    drawFallbackText(cfg, riseOffset = 0) {
+        const ctx = this.ctx;
+        const text = this.winType === 'super' ? 'SUPER WIN' : this.winType === 'mega' ? 'MEGA WIN' : 'BIG WIN';
+
+        let animScale = 1;
+        if (this.winTimer < 300) {
+            const t = this.winTimer / 300;
+            animScale = 0.05 + t * t * 1.15;
+        } else if (this.winTimer < 600) {
+            const t = (this.winTimer - 300) / 300;
+            animScale = 1.2 - t * 0.2;
+        } else {
+            animScale = 1 + Math.sin(this.winTimer * 0.03) * 0.03;
+        }
+
+        const scale = animScale * this.baseScale;
+        const fontSize = 100 * scale;
+
+        const winTextY = this.cy - 50 * this.baseScale + riseOffset;
+
+        ctx.save();
+        ctx.translate(this.cx, winTextY);
+        ctx.scale(scale, scale);
+
+        ctx.font = `bold ${fontSize}px Impact, Arial Black, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        const glowIntensity = 40 + Math.sin(this.winTimer * 0.05) * 10;
+        ctx.shadowBlur = glowIntensity * this.baseScale;
+        ctx.shadowColor = cfg.textGlow;
+        ctx.fillStyle = 'rgba(255, 200, 0, 0.9)';
+        ctx.fillText(text, 0, 0);
+
+        ctx.restore();
+    }
+
+    // ============================================================
+    // DRAW SCORE
+    // ============================================================
+    drawScore() {
+        const ctx = this.ctx;
+        const frame = this.images.scoreBox;
+
+        const boxScale = 0.5;
+        const scoreBoxY = this.cy + 350 * this.baseScale;
+
+        ctx.save();
+        ctx.translate(this.cx, scoreBoxY);
+
+        if (frame && frame.width > 0) {
+            const frameW = frame.width * this.baseScale * boxScale * 1.3;
+            const frameH = frame.height * this.baseScale * boxScale * 1.3;
+            ctx.drawImage(frame, -frameW / 2, -frameH / 2, frameW, frameH);
+        } else {
+            const boxW = 550 * this.baseScale * boxScale;
+            const boxH = 120 * this.baseScale * boxScale;
+
+            ctx.fillStyle = 'rgba(40, 10, 10, 0.9)';
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = 4 * this.baseScale;
+
+            const r = 15 * this.baseScale;
+            ctx.beginPath();
+            ctx.moveTo(-boxW / 2 + r, -boxH / 2);
+            ctx.lineTo(boxW / 2 - r, -boxH / 2);
+            ctx.quadraticCurveTo(boxW / 2, -boxH / 2, boxW / 2, -boxH / 2 + r);
+            ctx.lineTo(boxW / 2, boxH / 2 - r);
+            ctx.quadraticCurveTo(boxW / 2, boxH / 2, boxW / 2 - r, boxH / 2);
+            ctx.lineTo(-boxW / 2 + r, boxH / 2);
+            ctx.quadraticCurveTo(-boxW / 2, boxH / 2, -boxW / 2, boxH / 2 - r);
+            ctx.lineTo(-boxW / 2, -boxH / 2 + r);
+            ctx.quadraticCurveTo(-boxW / 2, -boxH / 2, -boxW / 2 + r, -boxH / 2);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+        }
+
+        const fontSize = 90 * this.baseScale;
+        ctx.font = `bold ${fontSize}px Impact, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        const shimmer = Math.sin(this.winTimer * 0.08) * 0.3 + 0.7;
+        ctx.shadowBlur = 20 * shimmer;
+        ctx.shadowColor = '#FFD700';
+
+        const textGradient = ctx.createLinearGradient(0, -30 * this.baseScale, 0, 30 * this.baseScale);
+        textGradient.addColorStop(0, '#FFF8DC');
+        textGradient.addColorStop(0.4, '#FFD700');
+        textGradient.addColorStop(0.6, '#FFA500');
+        textGradient.addColorStop(1, '#B8860B');
+        ctx.fillStyle = textGradient;
+
+        ctx.fillText(this.scoreDisplay.toLocaleString(), 0, 0);
+
+        ctx.restore();
+    }
 }
 
-// ============================================
+// ================================================================
+// EASING FUNCTIONS
+// ================================================================
+
+function easeOutBack(t) {
+    const c1 = 1.70158;
+    const c3 = c1 + 1;
+    return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+}
+
+function easeOutQuad(t) {
+    return 1 - (1 - t) * (1 - t);
+}
+
+// ================================================================
 // COIN PARTICLE
-// ============================================
+// ================================================================
 
 class CoinParticle {
-  constructor(cx, cy, gravity, baseScale = 1) {
-    this.x = cx + (Math.random() - 0.5) * 250 * baseScale;
-    this.y = cy;
-    this.vx = (Math.random() - 0.5) * 6 * baseScale;
-    this.vy = -Math.random() * 12 * baseScale - 4;
-    this.gravity = gravity;
-    this.rotation = Math.random() * Math.PI * 2;
-    this.rotSpeed = (Math.random() - 0.5) * 0.2;
-    this.scale = (Math.random() * 0.8 + 0.5) * baseScale;
-    this.opacity = 1;
-    this.life = 1;
-    this.active = true;
-    this.baseScale = baseScale;
-  }
-  
-  update() {
-    this.x += this.vx;
-    this.vy += this.gravity;
-    this.y += this.vy;
-    this.rotation += this.rotSpeed;
-    this.life -= 0.008;
-    this.opacity = Math.max(0, this.life);
-    
-    if (this.life <= 0 || this.y > window.innerHeight + 50) {
-      this.active = false;
+    constructor(cx, cy, gravity, baseScale = 1) {
+        this.x = cx + (Math.random() - 0.5) * 250 * baseScale;
+        this.y = cy;
+        this.vx = (Math.random() - 0.5) * 6 * baseScale;
+        this.vy = -Math.random() * 12 * baseScale - 4;
+        this.gravity = gravity;
+        this.rotation = Math.random() * Math.PI * 2;
+        this.rotSpeed = (Math.random() - 0.5) * 0.2;
+        this.scale = (Math.random() * 0.8 + 0.5) * baseScale;
+        this.opacity = 1;
+        this.life = 1;
+        this.active = true;
+        this.baseScale = baseScale;
     }
-  }
-  
-  draw(ctx, coinImg) {
-    if (!this.active || !coinImg) return;
-    
-    ctx.save();
-    ctx.globalAlpha = this.opacity;
-    ctx.translate(this.x, this.y);
-    ctx.rotate(this.rotation);
-    ctx.scale(this.scale, this.scale);
-    
-    const coinW = (coinImg.width / 4) * this.baseScale;
-    const coinH = (coinImg.height / 4) * this.baseScale;
-    const sx = Math.floor(Math.random() * 3) * (coinImg.width / 4);
-    const sy = Math.floor(Math.random() * 3) * (coinImg.height / 4);
-    
-    ctx.drawImage(coinImg, sx, sy, coinImg.width/4, coinImg.height/4, -coinW/2, -coinH/2, coinW, coinH);
-    
-    ctx.restore();
-  }
+
+    update() {
+        this.x += this.vx;
+        this.vy += this.gravity;
+        this.y += this.vy;
+        this.rotation += this.rotSpeed;
+        this.life -= 0.008;
+        this.opacity = Math.max(0, this.life);
+
+        if (this.life <= 0 || this.y > window.innerHeight + 50) {
+            this.active = false;
+        }
+    }
+
+    draw(ctx, coinImg) {
+        if (!this.active || !coinImg) return;
+
+        ctx.save();
+        ctx.globalAlpha = this.opacity;
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.rotation);
+        ctx.scale(this.scale, this.scale);
+
+        const coinW = (coinImg.width / 4) * this.baseScale;
+        const coinH = (coinImg.height / 4) * this.baseScale;
+        const sx = Math.floor(Math.random() * 3) * (coinImg.width / 4);
+        const sy = Math.floor(Math.random() * 3) * (coinImg.height / 4);
+
+        ctx.drawImage(coinImg, sx, sy, coinImg.width / 4, coinImg.height / 4, -coinW / 2, -coinH / 2, coinW, coinH);
+
+        ctx.restore();
+    }
 }
 
-// ============================================
+// ================================================================
 // SPARKLE
-// ============================================
+// ================================================================
 
 class Sparkle {
-  constructor(x, y, cfg, baseScale = 1) {
-    this.x = x;
-    this.y = y;
-    this.size = (Math.random() * 5 + 3) * baseScale;
-    this.maxLife = Math.random() * 180 + 120;
-    this.life = this.maxLife;
-    this.active = true;
-    this.cfg = cfg;
-    this.baseScale = baseScale;
-    this.vx = (Math.random() - 0.5) * 0.6;
-    this.vy = (Math.random() - 0.5) * 0.6;
-  }
-  
-  update() {
-    this.x += this.vx;
-    this.y += this.vy;
-    this.life--;
-    if (this.life <= 0) this.active = false;
-  }
-  
-  draw(ctx) {
-    if (!this.active) return;
-    
-    const progress = this.life / this.maxLife;
-    const alpha = Math.sin(progress * Math.PI);
-    const size = this.size * (0.3 + progress * 0.7);
-    
-    ctx.save();
-    ctx.globalAlpha = alpha;
-    ctx.shadowBlur = 12 * this.baseScale;
-    ctx.shadowColor = this.cfg.starGlow;
-    ctx.fillStyle = '#FFFFFF';
-    
-    ctx.beginPath();
-    const spikes = 4;
-    for (let i = 0; i < spikes * 2; i++) {
-      const r = i % 2 === 0 ? size : size * 0.25;
-      const a = (Math.PI * i) / spikes - Math.PI / 2;
-      const px = this.x + Math.cos(a) * r;
-      const py = this.y + Math.sin(a) * r;
-      if (i === 0) ctx.moveTo(px, py);
-      else ctx.lineTo(px, py);
+    constructor(x, y, cfg, baseScale = 1) {
+        this.x = x;
+        this.y = y;
+        this.size = (Math.random() * 5 + 3) * baseScale;
+        this.maxLife = Math.random() * 180 + 120;
+        this.life = this.maxLife;
+        this.active = true;
+        this.cfg = cfg;
+        this.baseScale = baseScale;
+        this.vx = (Math.random() - 0.5) * 0.6;
+        this.vy = (Math.random() - 0.5) * 0.6;
+        this.starGlow = cfg.textGlow || 'rgba(255,215,0,0.8)';
     }
-    ctx.closePath();
-    ctx.fill();
-    
-    ctx.restore();
-  }
+
+    update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.life--;
+        if (this.life <= 0) this.active = false;
+    }
+
+    draw(ctx) {
+        if (!this.active) return;
+
+        const progress = this.life / this.maxLife;
+        const alpha = Math.sin(progress * Math.PI);
+        const size = this.size * (0.3 + progress * 0.7);
+
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.shadowBlur = 12 * this.baseScale;
+        ctx.shadowColor = this.starGlow;
+        ctx.fillStyle = '#FFFFFF';
+
+        ctx.beginPath();
+        const spikes = 4;
+        for (let i = 0; i < spikes * 2; i++) {
+            const r = i % 2 === 0 ? size : size * 0.25;
+            const a = (Math.PI * i) / spikes - Math.PI / 2;
+            const px = this.x + Math.cos(a) * r;
+            const py = this.y + Math.sin(a) * r;
+            if (i === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.restore();
+    }
 }
 
-// Export
+// ================================================================
+// EXPORT
+// ================================================================
+
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = WinAnimation;
+    module.exports = WinAnimation;
 }
-
-
 // ============================================
 // ORIENTATION WARNING (Landscape Mode)
 // ============================================
