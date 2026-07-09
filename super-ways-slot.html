@@ -1378,6 +1378,31 @@ input, textarea {
     cursor: not-allowed !important;
 }
 
+ .suspense-column-css {
+    position: relative;
+    border: 3px solid transparent;
+    border-radius: 14px;
+    animation: fireBorderPulse 0.6s ease-in-out infinite alternate;
+    box-shadow: 
+        0 0 30px rgba(255, 100, 0, 0.6),
+        0 0 60px rgba(255, 50, 0, 0.4),
+        inset 0 0 30px rgba(255, 100, 0, 0.2);
+}
+
+@keyframes fireBorderPulse {
+    0% {
+        border-color: #FF4500;
+        box-shadow: 0 0 20px rgba(255, 69, 0, 0.6), 0 0 40px rgba(255, 69, 0, 0.3);
+    }
+    50% {
+        border-color: #FFD700;
+        box-shadow: 0 0 40px rgba(255, 215, 0, 0.8), 0 0 80px rgba(255, 215, 0, 0.4);
+    }
+    100% {
+        border-color: #FF4500;
+        box-shadow: 0 0 20px rgba(255, 69, 0, 0.6), 0 0 40px rgba(255, 69, 0, 0.3);
+    }
+}
    </style>
 </head>
 <body>
@@ -1844,13 +1869,12 @@ function generateScaleRules() {
 function buildPool(reelIndex, rules) {
     const pool = [];
     const isCh1 = rules && rules.phase === 'Ch1';
-    const isAutoSpin = state.autoSpin;
-    const isSuspense = state.isSuspense || false;
+  
 
     for (const [sym, count] of Object.entries(WEIGHTS)) {
         if (sym === 'wild' && (reelIndex === 0 || reelIndex === 4)) continue;
         if (sym === 'wild' && isCh1 && reelIndex === 1) continue;
-        if (sym === 'scatter' && isAutoSpin && !isSuspense) continue;
+      
 
         for (let i = 0; i < count; i++) {
             pool.push(sym);
@@ -2334,7 +2358,7 @@ function updateConsecutiveWins(winAmt) {
 }
 
 // ================================================================
-// SCATTER SUSPENSE (NO SCREEN SHAKE)
+// HANDLE SCATTER SUSPENSE (WITH FIRE FRAME)
 // ================================================================
 
 async function handleScatterSuspense(scatterResult) {
@@ -2364,7 +2388,8 @@ async function handleScatterSuspense(scatterResult) {
         }
     }
 
-    // ❌ NO SCREEN SHAKE - ဒီနေရာမှာ ဖယ်လိုက်ပြီ
+    // ★ ★ ★ APPLY FIRE FRAME TO AVAILABLE COLUMNS ★ ★ ★
+    applySuspenseFireToReels(availableCols);
 
     SoundManager.check();
     await delay(500);
@@ -2398,8 +2423,8 @@ async function handleScatterSuspense(scatterResult) {
                 const slot = reelEl.children[row];
                 if (slot) {
                     slot.classList.add('scatter-highlight');
-                    slot.style.boxShadow = '0 0 50px rgba(255, 20, 147, 0.8), 0 0 100px rgba(255, 20, 147, 0.4)';
-                    slot.style.border = '4px solid #FF1493';
+                   // ★ slot.style.boxShadow = '0 0 50px rgba(255, 20, 147, 0.8), 0 0 100px rgba(255, 20, 147, 0.4)';
+                   // ★slot.style.border = '4px solid #FF1493';
                     slot.style.transition = 'all 0.3s';
                     slot.style.transform = 'scale(1.15)';
                 }
@@ -2421,7 +2446,8 @@ async function handleScatterSuspense(scatterResult) {
 
     state.isSuspense = false;
 
-    // ❌ NO SCREEN SHAKE REMOVAL - မလိုတော့ဘူး
+    // ★ ★ ★ REMOVE FIRE FRAMES ★ ★ ★
+    removeAllFireFrames();
 
     await delay(800);
 
@@ -2447,6 +2473,18 @@ async function handleScatterSuspense(scatterResult) {
     } else {
         console.log('Scatter 3 မပြည့်ဘူး၊ ပုံမှန်ပြန်သွားမယ်');
         disableControls(false);
+        
+        state.isSpinning = false;
+        setSpinButtonState(false);
+        
+        if (state.autoSpin && state.autoSpinRemaining > 0) {
+            console.log('🔄 Scatter 2 done. Resuming Auto Spin. Remaining:', state.autoSpinRemaining);
+            state.scatterQueue = [];
+            setTimeout(() => spin(), 500);
+        } else {
+            finalizeAutoSpin();
+        }
+        return;
     }
 
     state.isSpinning = false;
@@ -2456,10 +2494,178 @@ async function handleScatterSuspense(scatterResult) {
     } else {
         disableControls(false);
         setSpinButtonState(false);
-        finalizeAutoSpin();
+        
+        if (state.autoSpin && state.autoSpinRemaining > 0) {
+            console.log('🔄 Scatter done (no queue). Resuming Auto Spin. Remaining:', state.autoSpinRemaining);
+            setTimeout(() => spin(), 500);
+        } else {
+            finalizeAutoSpin();
+        }
     }
 }
 
+// ================================================================
+// FIRE FRAME BORDER FOR SUSPENSE COLUMNS (FULL SET)
+// ================================================================
+
+// ---- Load fire frame image ----
+let fireFrameImage = null;
+
+function loadFireFrameImage() {
+    return new Promise((resolve) => {
+        const img = document.getElementById('fire-frame-img');
+        if (img && img.complete && img.naturalWidth > 0) {
+            fireFrameImage = img;
+            resolve(img);
+            return;
+        }
+        
+        const newImg = new Image();
+        newImg.crossOrigin = 'anonymous';
+        newImg.onload = function() {
+            fireFrameImage = this;
+            resolve(this);
+        };
+        newImg.onerror = function() {
+            console.warn('Fire frame image not found. Using fallback.');
+            fireFrameImage = null;
+            resolve(null);
+        };
+        newImg.src = 'images/fire_frame.png';
+    });
+}
+
+// ---- Apply fire frame to a single column ----
+function applyFireFrameToColumn(colIndex) {
+    const reel = document.getElementById('reel' + colIndex);
+    if (!reel) return;
+    
+    removeFireFrameFromColumn(colIndex);
+    
+    if (!fireFrameImage) {
+        reel.classList.add('suspense-column-css');
+        return;
+    }
+    
+    const rect = reel.getBoundingClientRect();
+    
+    // ★ Reel တစ်ခုရဲ့ အမြင့်ကို ယူမယ် ★
+    const reelHeight = rect.height;
+    
+    // ★ Img တစ်ခုစာလောက် ထပ်တိုးမယ် ★
+    // (အပေါ်မှာ တစ်ဝက်၊ အောက်မှာ တစ်ဝက်)
+    const extraHeight = reelHeight;  // Reel တစ်ခုလုံးအမြင့်လောက် ထပ်တိုး
+    
+    const reelWidth = rect.width * 1.1;  // ဘေးနည်းနည်းပိုကျယ်
+    const totalHeight = reelHeight + extraHeight;  // စုစုပေါင်း height
+    
+    const padding = 20;
+    
+    // ★ Canvas size သတ်မှတ် ★
+    const canvas = document.createElement('canvas');
+    canvas.className = 'fire-frame-overlay';
+    canvas.dataset.col = colIndex;
+    
+    canvas.width = reelWidth + padding;
+    canvas.height = totalHeight + padding;
+    
+    canvas.style.cssText = `
+        position: absolute;
+        top: -${(totalHeight - reelHeight) / 2 + padding/2}px;
+        left: -${padding/2}px;
+        width: ${canvas.width}px;
+        height: ${canvas.height}px;
+        pointer-events: none;
+        z-index: 10;
+        border-radius: 10px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    `;
+    
+    if (getComputedStyle(reel).position === 'static') {
+        reel.style.position = 'relative';
+    }
+    
+    reel.appendChild(canvas);
+    
+    const ctx = canvas.getContext('2d');
+    
+    ctx.save();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw fire frame image stretched to full canvas
+    ctx.drawImage(
+        fireFrameImage,
+        0, 0,
+        canvas.width,
+        canvas.height
+    );
+    
+    // Add glow overlay
+    const glowGradient = ctx.createRadialGradient(
+        canvas.width/2, canvas.height/2, 0,
+        canvas.width/2, canvas.height/2, Math.max(canvas.width, canvas.height) * 0.7
+    );
+    glowGradient.addColorStop(0, 'rgba(255, 200, 50, 0.05)');
+    glowGradient.addColorStop(0.5, 'rgba(255, 100, 0, 0.15)');
+    glowGradient.addColorStop(1, 'rgba(255, 0, 0, 0)');
+    ctx.fillStyle = glowGradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.restore();
+    
+    requestAnimationFrame(() => {
+        canvas.style.opacity = '1';
+    });
+    
+    console.log(`🔥 Fire frame applied to reel ${colIndex}: ${canvas.width}x${canvas.height}`);
+}
+// ---- Remove fire frame from a column ----
+function removeFireFrameFromColumn(colIndex) {
+    const reel = document.getElementById('reel' + colIndex);
+    if (!reel) return;
+    
+    const canvas = reel.querySelector('.fire-frame-overlay');
+    if (canvas) {
+        canvas.style.opacity = '0';
+        setTimeout(() => {
+            if (canvas.parentNode) canvas.remove();
+        }, 300);
+    }
+    
+    reel.classList.remove('suspense-column-css');
+}
+
+// ---- ★★ APPLY FIRE FRAMES TO MULTIPLE COLUMNS ★★ ----
+function applySuspenseFireToReels(activeColumns) {
+    // If no columns, return
+    if (!activeColumns || activeColumns.length === 0) return;
+    
+    // First, ensure image is loaded
+    if (!fireFrameImage) {
+        loadFireFrameImage().then(() => {
+            applySuspenseFireToReels(activeColumns);
+        });
+        return;
+    }
+    
+    activeColumns.forEach(colIndex => {
+        applyFireFrameToColumn(colIndex);
+    });
+}
+
+// ---- Remove all fire frames ----
+function removeAllFireFrames() {
+    document.querySelectorAll('.fire-frame-overlay').forEach(el => {
+        el.style.opacity = '0';
+        setTimeout(() => {
+            if (el.parentNode) el.remove();
+        }, 300);
+    });
+    document.querySelectorAll('.suspense-column-css').forEach(el => {
+        el.classList.remove('suspense-column-css');
+    });
+}
 // ================================================================
 // 13. FREE SPINS
 // ================================================================
@@ -2781,11 +2987,20 @@ function createScatterParticles() {
 }
 
 // ================================================================
-// 15. SCATTER QUEUE
+// PROCESS SCATTER QUEUE (FIXED - Better Resume)
 // ================================================================
 
 async function processScatterQueue() {
     if (state.scatterQueue.length === 0) {
+        // ★ Queue ကုန်ရင် Auto Spin ကျန်နေသေးရင် ဆက်လည် ★
+        if (state.autoSpin && state.autoSpinRemaining > 0) {
+            console.log('🔄 Queue done. Resuming Auto Spin. Remaining:', state.autoSpinRemaining);
+            state.isSpinning = false;
+            setSpinButtonState(false);
+            disableControls(false);
+            setTimeout(() => spin(), 500);
+            return;
+        }
         finalizeAutoSpin();
         return;
     }
@@ -2805,10 +3020,21 @@ async function processScatterQueue() {
         console.error('Queue processing error:', error);
     }
 
-    if (state.scatterQueue.length === 0 && !state.isFreeSpin) {
-        state.isSpinning = false;
-        setSpinButtonState(false);
-        disableControls(false);
+    // ★ Queue ထဲမှာ ကျန်နေသေးရင် ဆက် process လုပ် ★
+    if (state.scatterQueue.length > 0) {
+        setTimeout(() => processScatterQueue(), 500);
+        return;
+    }
+
+    // ★ Queue ကုန်ပြီ → Auto Spin ကျန်နေသေးရင် ဆက်လည် ★
+    state.isSpinning = false;
+    setSpinButtonState(false);
+    disableControls(false);
+
+    if (state.autoSpin && state.autoSpinRemaining > 0) {
+        console.log('🔄 All Scatters done. Resuming Auto Spin. Remaining:', state.autoSpinRemaining);
+        setTimeout(() => spin(), 500);
+    } else {
         finalizeAutoSpin();
     }
 }
@@ -2886,7 +3112,14 @@ function stopAutoSpin() {
 }
 
 function finalizeAutoSpin() {
-    if (state.accumulatedWin > 0) {
+     if (state.scatterQueue.length > 0) {
+        console.log('📦 Scatter Queue pending. Processing first...');
+        processScatterQueue();
+        return;
+    }
+
+     
+   if (state.accumulatedWin > 0) {
         state.balance += state.accumulatedWin;
         notifyWinToLobby(state.accumulatedWin);
     }
@@ -2921,12 +3154,6 @@ function finalizeAutoSpin() {
     state.accumulatedWin = 0;
     state.totalWin = 0;
     updateUI();
-
-    var statusMsg = document.getElementById('statusMsg');
-    if (statusMsg) {
-        statusMsg.textContent = '✅ Auto Spin ပြီးပါပြီ!';
-        statusMsg.className = '';
-    }
 
     console.log('✅ Auto Spin finalized. Total accumulated:', totalWinAmount);
 }
@@ -3050,10 +3277,10 @@ function showAutoSpinSummary(totalWin, totalSpins) {
 }
 
 // ================================================================
-// 18. MAIN SPIN
+//18. MAIN SPIN FUNCTION (FIXED - async)
 // ================================================================
 
-async function spin() {
+async function spin() {   // ← ★ ADD 'async' HERE ★
     if (state.isSpinning) return;
     if (!state.isFreeSpin && state.balance < state.bet) {
         if (state.autoSpin) stopAutoSpin();
@@ -3107,34 +3334,49 @@ async function spin() {
         console.log('💀 HOUSE WIN (Ch1) - Phase triggered!');
     }
 
-    // Scatter handling
+    // ============================================================
+    // SCATTER HANDLING (FIXED - No await inside non-async)
+    // ============================================================
+
+    // ---- SCATTER 3+ ----
     if (scatterResult.count >= 3 && !state.isFreeSpin) {
         SoundManager.noti();
         const reward = SCATTER_REWARDS[Math.min(scatterResult.count, 5)];
-        if (state.autoSpin) {
-            state.scatterQueue.push({ type: 'scatter3', count: scatterResult.count, reward: reward, positions: scatterResult.positions });
-            console.log('📦 Scatter 3 queued. Size:', state.scatterQueue.length);
-        } else {
-            await startFreeSpinMode(scatterResult.count, reward);
-            state.isSpinning = false;
-            setSpinButtonState(false);
-            return;
-        }
+
+        state.scatterQueue.push({
+            type: 'scatter3',
+            count: scatterResult.count,
+            reward: reward,
+            positions: scatterResult.positions
+        });
+        console.log('📦 Scatter 3 queued. Size:', state.scatterQueue.length);
+
+        // ★ Process queue and RETURN (don't continue) ★
+        state.isSpinning = false;
+        setSpinButtonState(false);
+        await processScatterQueue();  // ← await ကို async function ထဲမှာသုံးလို့ရပြီ
+        return;
     }
 
+    // ---- SCATTER 2+ (Suspense) ----
     if (scatterResult.count >= 2 && !state.isFreeSpin) {
-        if (state.autoSpin) {
-            state.scatterQueue.push({ type: 'scatter2', count: scatterResult.count, positions: scatterResult.positions });
-            console.log('📦 Scatter 2 queued. Size:', state.scatterQueue.length);
-        } else {
-            await handleScatterSuspense(scatterResult);
-            state.isSpinning = false;
-            setSpinButtonState(false);
-            return;
-        }
+        SoundManager.check();
+
+        state.scatterQueue.push({
+            type: 'scatter2',
+            count: scatterResult.count,
+            positions: scatterResult.positions
+        });
+        console.log('📦 Scatter 2+ queued. Size:', state.scatterQueue.length);
+
+        // ★ Process queue and RETURN ★
+        state.isSpinning = false;
+        setSpinButtonState(false);
+        await processScatterQueue();  // ← await ကို async function ထဲမှာသုံးလို့ရပြီ
+        return;
     }
 
-    // Free spin continuation
+    // ---- FREE SPIN CONTINUATION ----
     if (state.isFreeSpin) {
         state.freeSpinTotalWin += state.totalWin;
         state.freeSpins--;
@@ -3157,24 +3399,40 @@ async function spin() {
         return;
     }
 
-    // Auto spin continuation
+    // ---- AUTO SPIN CONTINUATION ----
     if (state.autoSpin && state.autoSpinRemaining > 0) {
         state.autoSpinRemaining--;
         updateAutoSpinUI();
 
         if (state.autoSpinRemaining > 0) {
-            const waitTime = winDuration > 0 ? winDuration + 500 : 1000;
+            // ★ Check if queue has items ★
+            if (state.scatterQueue.length > 0) {
+                state.isSpinning = false;
+                setSpinButtonState(false);
+                console.log('🎉 Processing Scatter Queue first. Size:', state.scatterQueue.length);
+                await processScatterQueue();
+                // Queue ပြီးရင် ကျန်တဲ့ Auto Spin ဆက်လည်
+                if (state.autoSpin && state.autoSpinRemaining > 0) {
+                    state.isSpinning = false;
+                    setSpinButtonState(false);
+                    setTimeout(() => spin(), 500);
+                }
+                return;
+            }
+
+            const waitTime = winDuration > 0 ? winDuration + 500 : 800;
             await delay(waitTime);
             state.isSpinning = false;
             setSpinButtonState(false);
             setTimeout(() => spin(), 50);
             return;
         } else {
+            // ★ Auto Spin ကုန်ပြီ၊ Scatter Queue ရှိရင် process လုပ် ★
             if (state.scatterQueue.length > 0) {
                 state.isSpinning = false;
                 setSpinButtonState(false);
-                console.log('🎉 Processing Scatter Queue. Size:', state.scatterQueue.length);
-                processScatterQueue();
+                console.log('🎉 Processing Scatter Queue (Auto Spin ended). Size:', state.scatterQueue.length);
+                await processScatterQueue();
                 return;
             }
             stopAutoSpin();
@@ -3185,7 +3443,6 @@ async function spin() {
     state.isSpinning = false;
     setSpinButtonState(false);
 }
-
 // ================================================================
 // 19. BET CONTROLS
 // ================================================================
@@ -3382,7 +3639,7 @@ document.addEventListener('DOMContentLoaded', function() {
         updateUI();
         initWinAnimation();
         requestBalanceFromLobby();
-
+        loadFireFrameImage();
         if (typeof SoundManager !== 'undefined') {
             SoundManager.init();
             SoundManager.playBGM();
