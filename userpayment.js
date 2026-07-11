@@ -576,39 +576,47 @@ function hideLoading() {
         }, 300);
     }
 }
+// ================================================================
+// SHOW SUCCESS WITH POPUP 3 (INSTEAD OF LOADING OVERLAY)
+// ================================================================
 
 async function showSuccessWithCheckmark(title, message, details) {
-    const overlay = document.getElementById('loadingOverlay');
+    // 1. Hide loading spinner
     const spinner = document.getElementById('loadingSpinner');
-    const success = document.getElementById('loadingSuccess');
-    const successMessage = document.getElementById('loadingSuccessMessage');
-    
     if (spinner) spinner.style.display = 'none';
     
-    // Update success message
-    if (successMessage) {
-        successMessage.innerHTML = message + '<br><br>' + details.map(d => `✅ ${d}`).join('<br>');
-    }
+    // 2. Get amount from details
+    let amount = 0;
+    let method = 'KBZ Pay';
     
-    if (success) {
-        success.style.display = 'flex';
-        // Re-trigger animation
-        const checkmark = success.querySelector('.fa-check')?.parentElement;
-        if (checkmark) {
-            checkmark.style.animation = 'none';
-            setTimeout(() => {
-                checkmark.style.animation = 'popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-            }, 10);
+    if (details && details.length > 0) {
+        // Extract amount from first detail (e.g. "💰 ငွေပမာဏ: 10,000 ကျပ်")
+        const amountMatch = details[0].match(/([\d,]+)/);
+        if (amountMatch) {
+            amount = parseInt(amountMatch[0].replace(/,/g, ''));
         }
     }
     
-    // Auto hide after 3 seconds
-    setTimeout(() => {
+    // 3. Close Deposit Popup 2
+    if (typeof closeDepositPopup2 === 'function') {
+        closeDepositPopup2();
+    }
+    
+    // 4. Hide loading overlay
+    if (typeof hideLoading === 'function') {
         hideLoading();
-        closeModal('depositModal');
-    }, 3000);
+    }
+    
+    // 5. Open Deposit Popup 3 (Success)
+    setTimeout(() => {
+        if (typeof openDepositPopup3 === 'function') {
+            openDepositPopup3(amount, method);
+        } else {
+            // Fallback: show notification
+            showNotification('✅ ငွေသွင်းပြီးပါပြီ။', 'success');
+        }
+    }, 300);
 }
-
     // ============================================
     // WITHDRAW FUNCTIONS
     // ============================================
@@ -1159,3 +1167,456 @@ window.copyToClipboard = copyToClipboard;
 window.filterTx = filterTx;
 })();
 
+// ================================================================
+// WITHDRAW POPUP CONTROLS (Popup 1, 2, 3)
+// ================================================================
+
+let withdrawAmount = 0;
+let withdrawFee = 0;
+let withdrawNet = 0;
+let withdrawBank = 'KBZ Pay';
+
+// ---- Popup 1 ----
+function openWithdrawPopup1() {
+    const popup = document.getElementById('withdrawPopup1');
+    if (!popup) return;
+    
+    popup.style.display = 'flex';
+    popup.classList.remove('hidden');
+    
+    // Update balance
+    const balance = window.getCurrentBalance ? window.getCurrentBalance() : 0;
+    const balanceEl = document.getElementById('withdrawPopupBalance');
+    if (balanceEl) balanceEl.textContent = balance.toLocaleString() + ' KS';
+    
+    // Reset
+    document.getElementById('withdrawAmount1').value = '';
+    document.getElementById('withdrawFee1').textContent = '0 KS';
+    document.getElementById('withdrawNet1').textContent = '0 KS';
+}
+
+function closeWithdrawPopup1() {
+    const popup = document.getElementById('withdrawPopup1');
+    if (!popup) return;
+    popup.style.display = 'none';
+    popup.classList.add('hidden');
+}
+
+// ---- Popup 2 ----
+function openWithdrawPopup2() {
+    const popup = document.getElementById('withdrawPopup2');
+    if (!popup) return;
+    
+    popup.style.display = 'flex';
+    popup.classList.remove('hidden');
+    
+    // Update summary
+    document.getElementById('withdrawSummaryAmount').textContent = withdrawAmount.toLocaleString() + ' KS';
+    document.getElementById('withdrawSummaryFee').textContent = withdrawFee.toLocaleString() + ' KS';
+    document.getElementById('withdrawSummaryNet').textContent = withdrawNet.toLocaleString() + ' KS';
+    document.getElementById('withdrawSummaryBank').textContent = withdrawBank;
+}
+
+function closeWithdrawPopup2() {
+    const popup = document.getElementById('withdrawPopup2');
+    if (!popup) return;
+    popup.style.display = 'none';
+    popup.classList.add('hidden');
+}
+
+// ---- Popup 3 ----
+function openWithdrawPopup3(amount, net, bank) {
+    const popup = document.getElementById('withdrawPopup3');
+    if (!popup) return;
+    
+    popup.style.display = 'flex';
+    popup.classList.remove('hidden');
+    
+    document.getElementById('withdrawSuccessAmount').textContent = amount.toLocaleString() + ' KS';
+    document.getElementById('withdrawSuccessNet').textContent = net.toLocaleString() + ' KS';
+    document.getElementById('withdrawSuccessBank').textContent = bank;
+}
+
+function closeWithdrawPopup3() {
+    const popup = document.getElementById('withdrawPopup3');
+    if (!popup) return;
+    popup.style.display = 'none';
+    popup.classList.add('hidden');
+}
+
+// ---- Navigation ----
+function goToWithdrawPopup2() {
+    const input = document.getElementById('withdrawAmount1');
+    const amount = parseInt(input.value);
+    const bank = document.getElementById('withdrawBank1').value;
+    
+    if (!amount || amount < 5000) {
+        showNotification('အနည်းဆုံး ၅,၀၀၀ ကျပ်ထည့်ပါ။', 'error');
+        return;
+    }
+    if (amount > 500000) {
+        showNotification('အများဆုံး ၅၀၀,၀၀၀ ကျပ်သာ ငွေထုတ်နိုင်ပါသည်။', 'error');
+        return;
+    }
+    
+    const fee = Math.floor(amount * 0.05);
+    const net = amount - fee;
+    
+    withdrawAmount = amount;
+    withdrawFee = fee;
+    withdrawNet = net;
+    withdrawBank = bank;
+    
+    closeWithdrawPopup1();
+    openWithdrawPopup2();
+}
+
+function goBackToWithdrawPopup1() {
+    closeWithdrawPopup2();
+    openWithdrawPopup1();
+}
+
+// ---- Set Withdraw Amount (Preset) ----
+function setWithdrawAmount(amount) {
+    document.getElementById('withdrawAmount1').value = amount;
+    calculateWithdrawFee1();
+}
+
+// ---- Calculate Fee ----
+function calculateWithdrawFee1() {
+    const input = document.getElementById('withdrawAmount1');
+    const amount = parseInt(input.value) || 0;
+    
+    const fee = Math.floor(amount * 0.05);
+    const net = amount - fee;
+    
+    document.getElementById('withdrawFee1').textContent = fee.toLocaleString() + ' KS';
+    document.getElementById('withdrawNet1').textContent = net.toLocaleString() + ' KS';
+}
+
+// ---- Submit Withdraw Final ----
+function submitWithdrawFinal() {
+    const accNum = document.getElementById('withdrawAccount').value.trim();
+    const accName = document.getElementById('withdrawName').value.trim();
+    
+    if (!accNum || !accName) {
+        showNotification('အကောင့်အချက်အလက် အပြည့်အစုံထည့်ပါ။', 'error');
+        return;
+    }
+    
+    // Call original submitWithdraw function
+    if (typeof window.submitWithdraw === 'function') {
+        // Set values for original function
+        document.getElementById('withdrawAmount').value = withdrawAmount;
+        document.getElementById('withdrawBank').value = withdrawBank;
+        document.getElementById('withdrawAccount').value = accNum;
+        document.getElementById('withdrawName').value = accName;
+        
+        window.submitWithdraw();
+    }
+    
+    closeWithdrawPopup2();
+    openWithdrawPopup3(withdrawAmount, withdrawNet, withdrawBank);
+}
+
+// ---- Open Withdraw from Wallet ----
+window.openWithdrawModal = function() {
+    if (typeof playSound === 'function') playSound('button');
+    openWithdrawPopup1();
+};
+
+// ================================================================
+// DEPOSIT POPUP CONTROLS (Popup 1, 2, 3)
+// ================================================================
+
+// ---- Global Variables ----
+let selectedMethod = 'kbzpay';
+let selectedAmount = 0;
+
+// ---- Popup 1 ----
+function openDepositPopup1() {
+    const popup = document.getElementById('depositPopup1');
+    if (!popup) return;
+    
+    popup.style.display = 'flex';
+    popup.classList.remove('hidden');
+    
+    // Update balance
+    const balance = window.getCurrentBalance ? window.getCurrentBalance() : 0;
+    const balanceEl = document.getElementById('popupBalance');
+    if (balanceEl) balanceEl.textContent = balance.toLocaleString() + ' KS';
+    
+    // Populate payment methods
+    if (typeof renderPaymentMethods === 'function') {
+        renderPaymentMethods();
+    }
+}
+
+function closeDepositPopup1() {
+    const popup = document.getElementById('depositPopup1');
+    if (!popup) return;
+    popup.style.display = 'none';
+    popup.classList.add('hidden');
+}
+
+// ---- Popup 2 ----
+function openDepositPopup2() {
+    const popup = document.getElementById('depositPopup2');
+    if (!popup) return;
+    
+    popup.style.display = 'flex';
+    popup.classList.remove('hidden');
+    
+    const amountEl = document.getElementById('popup2Amount');
+    if (amountEl) amountEl.textContent = selectedAmount.toLocaleString() + ' KS';
+}
+
+function closeDepositPopup2() {
+    const popup = document.getElementById('depositPopup2');
+    if (!popup) return;
+    popup.style.display = 'none';
+    popup.classList.add('hidden');
+}
+
+// ---- Popup 3 ----
+function openDepositPopup3(amount, method) {
+    const popup = document.getElementById('depositPopup3');
+    if (!popup) return;
+    
+    popup.style.display = 'flex';
+    popup.classList.remove('hidden');
+    
+    const amountEl = document.getElementById('successAmount');
+    const methodEl = document.getElementById('successMethod');
+    if (amountEl) amountEl.textContent = amount.toLocaleString() + ' KS';
+    if (methodEl) methodEl.textContent = method || 'KBZ Pay';
+}
+
+function closeDepositPopup3() {
+    const popup = document.getElementById('depositPopup3');
+    if (!popup) return;
+    popup.style.display = 'none';
+    popup.classList.add('hidden');
+}
+
+// ---- Navigation ----
+function goToDepositPopup2() {
+    const amountDisplay = document.getElementById('selectedAmountDisplay');
+    if (!amountDisplay) return;
+    
+    const amountText = amountDisplay.textContent.replace(' KS', '').replace(/,/g, '');
+    selectedAmount = parseInt(amountText) || 0;
+    
+    if (selectedAmount <= 0) {
+        showNotification('ငွေပမာဏ ရွေးပါ။', 'error');
+        return;
+    }
+    
+    closeDepositPopup1();
+    openDepositPopup2();
+}
+
+function goBackToDepositPopup1() {
+    closeDepositPopup2();
+    openDepositPopup1();
+}
+
+// ---- Select Amount (Override if needed) ----
+window.selectAmount = function(element, amount) {
+    // Play sound
+    if (typeof playSound === 'function') playSound('button');
+    
+    // Update UI
+    document.querySelectorAll('.amount-chip').forEach(chip => chip.classList.remove('active'));
+    element.classList.add('active');
+    
+    selectedAmount = amount;
+    document.getElementById('selectedAmountDisplay').textContent = amount.toLocaleString() + ' KS';
+    document.getElementById('customAmount').value = '';
+};
+
+// ---- Use Custom Amount ----
+window.useCustomAmount = function() {
+    if (typeof playSound === 'function') playSound('button');
+    
+    const input = document.getElementById('customAmount');
+    const amount = parseInt(input.value);
+    
+    if (!amount || amount < 3000) {
+        showNotification('အနည်းဆုံး ၃,၀၀၀ ကျပ်ထည့်ပါ။', 'error');
+        return;
+    }
+    if (amount > 1000000) {
+        showNotification('အများဆုံး ၁,၀၀၀,၀၀၀ ကျပ်သာ ငွေသွင်းနိုင်ပါသည်။', 'error');
+        return;
+    }
+    
+    document.querySelectorAll('.amount-chip').forEach(chip => chip.classList.remove('active'));
+    selectedAmount = amount;
+    document.getElementById('selectedAmountDisplay').textContent = amount.toLocaleString() + ' KS';
+    input.value = '';
+    showNotification(amount.toLocaleString() + ' ကျပ် ကိုရွေးချယ်ပြီးပါပြီ။', 'success');
+};
+
+// ---- Select Payment Method ----
+window.selectPaymentMethod = function(element, method) {
+    if (typeof playSound === 'function') playSound('button');
+    
+    document.querySelectorAll('.method-btn').forEach(btn => btn.classList.remove('active'));
+    element.classList.add('active');
+    selectedMethod = method;
+    
+    // Update bank info
+    if (typeof updateBankInfo === 'function') {
+        updateBankInfo(method);
+    }
+};
+
+// ---- File Upload ----
+window.triggerFileUpload = function() {
+    if (typeof playSound === 'function') playSound('button');
+    document.getElementById('fileInput').click();
+};
+
+window.handleFileSelect = function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    if (file.size > 5 * 1024 * 1024) {
+        showNotification('ဖိုင်အရွယ်အစား 5MB ထက်မကြီးရပါ။', 'error');
+        return;
+    }
+    if (!file.type.startsWith('image/')) {
+        showNotification('ပုံဖိုင်သာ တင်နိုင်ပါသည်။', 'error');
+        return;
+    }
+    
+    // Store file in paymentState
+    if (window.paymentState) {
+        window.paymentState.selectedFile = file;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        document.getElementById('previewImage').src = e.target.result;
+        document.getElementById('previewContainer').style.display = 'block';
+        document.getElementById('uploadArea').style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+};
+
+window.removeImage = function() {
+    if (typeof playSound === 'function') playSound('button');
+    
+    if (window.paymentState) {
+        window.paymentState.selectedFile = null;
+    }
+    
+    document.getElementById('previewContainer').style.display = 'none';
+    document.getElementById('uploadArea').style.display = 'block';
+    document.getElementById('fileInput').value = '';
+};
+
+// ---- Copy to Clipboard ----
+window.copyToClipboard = function(elementId) {
+    if (typeof playSound === 'function') playSound('button');
+    
+    const element = document.getElementById(elementId);
+    if (!element) return;
+    
+    const text = element.textContent;
+    navigator.clipboard.writeText(text).then(() => {
+        showNotification('📋 ကူးယူပြီးပါပြီ။', 'success');
+    }).catch(() => {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showNotification('📋 ကူးယူပြီးပါပြီ။', 'success');
+    });
+};
+
+// ---- Show Notification ----
+function showNotification(msg, type = 'info') {
+    const n = document.getElementById('notification');
+    if (!n) {
+        // Fallback alert
+        alert(msg);
+        return;
+    }
+    
+    const msgEl = n.querySelector('#notificationMessage');
+    if (msgEl) msgEl.textContent = msg;
+    
+    n.style.background = type === 'success' ? '#00c853' : type === 'error' ? '#ff5252' : '#2196f3';
+    n.style.display = 'flex';
+    n.style.padding = '12px 20px';
+    n.style.borderRadius = '12px';
+    n.style.color = 'white';
+    n.style.fontWeight = '600';
+    n.style.boxShadow = '0 4px 20px rgba(0,0,0,0.3)';
+    
+    clearTimeout(window.notificationTimer);
+    window.notificationTimer = setTimeout(() => {
+        n.style.display = 'none';
+    }, 3000);
+}
+
+// ---- Get Current Balance ----
+window.getCurrentBalance = function() {
+    if (window.gameState && typeof window.gameState.balance === 'number') {
+        return window.gameState.balance;
+    }
+    const balanceEl = document.getElementById('lobbyBalance');
+    if (balanceEl) {
+        const raw = balanceEl.textContent.replace(/,/g, '');
+        return parseInt(raw) || 0;
+    }
+    return 10000;
+};
+
+// ================================================================
+// HISTORY POPUP CONTROLS
+// ================================================================
+
+// ---- Open History Popup ----
+function openHistoryPopup() {
+    const popup = document.getElementById('historyPopup');
+    if (!popup) return;
+    
+    popup.style.display = 'flex';
+    popup.classList.remove('hidden');
+    
+    // Render transactions
+    if (typeof renderTransactions === 'function') {
+        renderTransactions('all');
+    }
+}
+
+// ---- Close History Popup ----
+function closeHistoryPopup() {
+    const popup = document.getElementById('historyPopup');
+    if (!popup) return;
+    
+    popup.style.display = 'none';
+    popup.classList.add('hidden');
+}
+
+// ---- Close on backdrop click ----
+document.addEventListener('click', function(e) {
+    const popup = document.getElementById('historyPopup');
+    if (!popup) return;
+    
+    if (e.target === popup) {
+        closeHistoryPopup();
+    }
+});
+
+// ---- Close on Escape key ----
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeHistoryPopup();
+    }
+});

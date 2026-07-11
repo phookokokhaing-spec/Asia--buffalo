@@ -1616,20 +1616,22 @@ const IMAGE_PATHS = {
     'coin': 'images/sym_coin.png'
 };
 
-// ---- Paytable ----
+// ============================================
+// PAYTABLE (HARD MODE)
+// ============================================
 const PAYTABLE = {
-    'buffalo': {2: 2, 3: 8, 4: 15, 5: 30},
-    'lion':    {3: 2, 4: 5, 5: 15},
-    'ele':     {3: 1, 4: 3, 5: 10},
-    'zebra':   {3: 1, 4: 2, 5: 8},
-    'deer':    {3: 1, 4: 2, 5: 5},
-    'a':       {3: 1, 4: 1, 5: 4},
-    'k':       {3: 1, 4: 1, 5: 3},
-    'q':       {3: 1, 4: 1, 5: 2},
-    'j':       {3: 1, 4: 1, 5: 2},
-    'ten':     {3: 1, 4: 1, 5: 1},
-    'coin':    {3: 1, 4: 1, 5: 1},
-    'nine':    {3: 1, 4: 1, 5: 1}
+    'buffalo': {2: 2,  3: 8,  4: 15, 5: 30},
+    'lion':    {3: 2,  4: 5,  5: 15},
+    'ele':     {3: 1,  4: 3,  5: 10},
+    'zebra':   {3: 1,  4: 2,  5: 8},
+    'deer':    {3: 1,  4: 2,  5: 5},
+    'a':       {3: 1,  4: 1,  5: 4},
+    'k':       {3: 1,  4: 1,  5: 3},
+    'q':       {3: 1,  4: 1,  5: 2},
+    'j':       {3: 1,  4: 1,  5: 2},
+    'ten':     {3: 1,  4: 1,  5: 1},
+    'coin':    {3: 1,  4: 1,  5: 1},
+    'nine':    {3: 1,  4: 1,  5: 1}
 };
 
 // ---- Scatter Rewards ----
@@ -1670,19 +1672,22 @@ const WEIGHTS = {
     'wild': 1, 'scatter': 1
 };
 
-// ---- Scale Cycle ----
+// ============================================
+// SCALE CYCLE (Hard House Edge)
+// ============================================
 const SCALE_CYCLE = {
     rounds: [
-        { normal: 3, ch1: 15, ch2: 10, ch3: 1, ch4: 1 },
-        { normal: 2, ch1: 12, ch2: 8, ch3: 1, ch4: 1 },
-        { normal: 2, ch1: 10, ch2: 6, ch3: 2, ch4: 1 },
-        { normal: 1, ch1: 14, ch2: 5, ch3: 1, ch4: 1 },
-        { normal: 2, ch1: 11, ch2: 4, ch3: 2, ch4: 1 }
+        { normal: 3, ch1: 15, ch2: 5, ch3: 1, ch4: 1 },
+        { normal: 2, ch1: 12, ch2: 3, ch3: 1, ch4: 1 },
+        { normal: 2, ch1: 10, ch2: 2, ch3: 2, ch4: 1 },
+        { normal: 1, ch1: 14, ch2: 1, ch3: 1, ch4: 1 },
+        { normal: 2, ch1: 11, ch2: 1, ch3: 2, ch4: 1 }
     ],
     currentRound: 0,
     currentPhase: 'normal',
     phaseSpins: 0
 };
+
 
 const SCALE_CHECKS = {
     Ch1: { name: 'Ch1', reel1: 0, reel2: 1, userCanWin: false },

@@ -3952,3 +3952,18 @@ body.wallet-open {
     }
 }
 
+
+/* ================================================================ */
+/* DEPOSIT & WITHDRAW POPUP - FIXED BG                             */
+/* ================================================================ */
+/* Popup 3 - Fixed Size */
+#depositPopup3 .glass-panel {
+    width: 340px;
+    height: 480px;
+    max-width: 90vw;
+    max-height: 90vh;
+    border-radius: 24px;
+    overflow: hidden;
+    border: 2px solid rgba(255, 215, 0, 0.15);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+}
