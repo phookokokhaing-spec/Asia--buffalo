@@ -31,12 +31,16 @@
     <i class="fas fa-wallet text-white text-2xl"></i>
 </button>
 
-  <!-- ================================================================ -->
+
+
+<!-- ================================================================ -->
 <!-- POPUP 1: ငွေသွင်း (Payment Method + Amount)                      -->
 <!-- ================================================================ -->
 <div id="depositPopup1" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4 bg-black/80 backdrop-blur-sm" style="display:none;">
     <div class="glass-panel w-full max-w-md rounded-3xl overflow-hidden animate-fade-in relative flex flex-col max-h-[90vh]"
-         style="background-image: url('images/popup_bg_1.png'); background-size: 750px 600px; background-position: center; background-repeat: no-repeat;">        
+         style=" background-image: url('images/popup_bg_1.png'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; max-width: 500px;height: 88vh;max-height: 680px;">
+
+          
         <!-- Header -->
         <div class="p-4 border-b border-white/10 flex justify-between items-center bg-slate-900/50 shrink-0">
             <div class="flex items-center gap-3">
@@ -45,7 +49,7 @@
                 </div>
                 <div>
                     <h2 class="font-bold text-lg text-white">💰 ငွေသွင်း</h2>
-                    <p class="text-xs text-slate-400">အဆင့် ၁/၃</p>
+                    <p class="text-xs text-slate-400">အဆင့် ၁/၂</p>
                 </div>
             </div>
             <button onclick="closeDepositPopup1()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition">
@@ -62,84 +66,65 @@
                 <div class="text-xl font-bold text-emerald-400" id="popupBalance">0 KS</div>
             </div>
 
-            <!-- Payment Methods -->
-            <div>
+            <!-- Payment Methods (ဘဏ်ရွေးမယ်) -->
+            <div class="glass-panel rounded-xl p-3">
                 <label class="text-xs text-slate-400 font-medium mb-2 block">ငွေလွှဲနည်းလမ်း ရွေးပါ</label>
                 <div class="grid grid-cols-3 gap-2 method-grid" id="methodGrid">
                     <!-- Dynamically populated by JS -->
                 </div>
             </div>
 
-            <!-- Bank Info Preview -->
-            <div class="glass-panel rounded-xl p-3 border-l-4 border-emerald-500 text-xs space-y-2 mt-3">
-                <div class="flex items-center gap-2">
-                    <i class="fas fa-university text-emerald-400"></i>
-                    <span class="font-bold text-white" id="bankName">KBZ Pay</span>
-                </div>
-                <div class="flex justify-between items-center">
-                    <span class="text-slate-400">Name:</span>
-                    <span class="text-white" id="accountName">ဒေါ်အေးအေး</span>
-                </div>
-                <div class="flex justify-between items-center">
-                    <span class="text-slate-400">Phone:</span>
-                    <span class="text-white font-mono" id="accountPhone">09-123456789</span>
-                </div>
-                <div class="flex justify-between items-center">
-                    <span class="text-slate-400">Ref ID:</span>
-                    <span class="text-amber-400 font-mono" id="accountRef">KBZ12345</span>
-                </div>
-            </div>
-
             <!-- Amount Chips -->
-            <div class="mt-3">
+            <div class="glass-panel rounded-xl p-3 mt-3">
                 <label class="text-xs text-slate-400 font-medium mb-2 block">ငွေပမာဏ ရွေးပါ (MMK)</label>
                 <div class="grid grid-cols-3 gap-2 mb-3">
-                    <div class="amount-chip active rounded-xl p-2 text-center cursor-pointer" onclick="selectAmount(this, 3000)">
+                    <div class="amount-chip active rounded-xl p-2 text-center cursor-pointer" onclick="window.selectAmount(this, 3000)">
                         <div class="font-bold text-white text-sm">3K</div>
                     </div>
-                    <div class="amount-chip rounded-xl p-2 text-center cursor-pointer" onclick="selectAmount(this, 5000)">
+                    <div class="amount-chip rounded-xl p-2 text-center cursor-pointer" onclick="window.selectAmount(this, 5000)">
                         <div class="font-bold text-white text-sm">5K</div>
                     </div>
-                    <div class="amount-chip rounded-xl p-2 text-center cursor-pointer" onclick="selectAmount(this, 10000)">
+                    <div class="amount-chip rounded-xl p-2 text-center cursor-pointer" onclick="window.selectAmount(this, 10000)">
                         <div class="font-bold text-white text-sm">10K</div>
                     </div>
-                    <div class="amount-chip rounded-xl p-2 text-center cursor-pointer" onclick="selectAmount(this, 20000)">
+                    <div class="amount-chip rounded-xl p-2 text-center cursor-pointer" onclick="window.selectAmount(this, 20000)">
                         <div class="font-bold text-white text-sm">20K</div>
                     </div>
-                    <div class="amount-chip rounded-xl p-2 text-center cursor-pointer" onclick="selectAmount(this, 50000)">
+                    <div class="amount-chip rounded-xl p-2 text-center cursor-pointer" onclick="window.selectAmount(this, 50000)">
                         <div class="font-bold text-white text-sm">50K</div>
                     </div>
-                    <div class="amount-chip rounded-xl p-2 text-center cursor-pointer" onclick="selectAmount(this, 100000)">
+                    <div class="amount-chip rounded-xl p-2 text-center cursor-pointer" onclick="window.selectAmount(this, 100000)">
                         <div class="font-bold text-white text-sm">100K</div>
                     </div>
                 </div>
                 <div class="flex gap-2">
                     <input type="number" id="customAmount" placeholder="ကိုယ်ပိုင်ပမာဏ" class="game-input flex-1 px-3 py-2.5 rounded-xl text-sm">
-                    <button onclick="useCustomAmount()" class="btn-primary px-4 rounded-xl text-white font-bold text-sm">သတ်မှတ်</button>
+                    <button onclick="window.useCustomAmount()" class="btn-primary px-4 rounded-xl text-white font-bold text-sm">သတ်မှတ်</button>
                 </div>
             </div>
 
             <!-- Selected Amount Display -->
-            <div class="mt-3 p-3 glass-panel rounded-xl text-center border border-emerald-500/20">
+            <div class="glass-panel rounded-xl p-3 mt-3 text-center border border-emerald-500/20">
                 <span class="text-xs text-slate-400">ရွေးချယ်ထားသောပမာဏ</span>
                 <div class="text-2xl font-bold text-emerald-400" id="selectedAmountDisplay">0 KS</div>
             </div>
 
             <!-- Next Button -->
-            <button onclick="goToDepositPopup2()" class="btn-primary w-full py-3 rounded-xl text-white font-bold flex items-center justify-center gap-2 mt-4">
+            <button onclick="window.goToDepositPopup2()" class="btn-primary w-full py-3 rounded-xl text-white font-bold flex items-center justify-center gap-2 mt-4">
                 <i class="fas fa-arrow-right"></i> ဆက်လုပ်မည်
             </button>
         </div>
     </div>
 </div>
-
 <!-- ================================================================ -->
 <!-- POPUP 2: ငွေသွင်းအချက်အလက်များ                                  -->
 <!-- ================================================================ -->
+
 <div id="depositPopup2" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4 bg-black/80 backdrop-blur-sm" style="display:none;">
     <div class="glass-panel w-full max-w-md rounded-3xl overflow-hidden animate-fade-in relative flex flex-col max-h-[90vh]"
-         style="background-image: url('images/popup_bg_1.png'); background-size: 750px 600px; background-position: center; background-repeat: no-repeat;">
+         style="background-image: url('images/popup_bg_1.png'); background-size: 100% 100% ; background-position: center; background-repeat: no-repeat; max-width: 500px;height: 88vh;max-height: 680px;">
         
+          
         <!-- Header -->
         <div class="p-4 border-b border-white/10 flex justify-between items-center bg-slate-900/50 shrink-0">
             <div class="flex items-center gap-3">
@@ -148,7 +133,7 @@
                 </div>
                 <div>
                     <h2 class="font-bold text-lg text-white">💰 ငွေသွင်း</h2>
-                    <p class="text-xs text-slate-400">အဆင့် ၂/၃</p>
+                    <p class="text-xs text-slate-400">အဆင့် ၂/၂</p>
                 </div>
             </div>
             <button onclick="closeDepositPopup2()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition">
@@ -159,7 +144,7 @@
         <!-- Content -->
         <div class="flex-1 overflow-y-auto p-4 custom-scrollbar">
             
-            <!-- Bank Info (Original IDs) -->
+            <!-- ★ Bank Info (တစ်ခါပဲပြမယ်) ★ -->
             <div class="glass-panel rounded-xl p-3 border-l-4 border-emerald-500 text-xs space-y-2">
                 <div class="flex items-center gap-2">
                     <i class="fas fa-university text-emerald-400"></i>
@@ -189,72 +174,71 @@
                 </div>
             </div>
 
-            <!-- User Inputs (Original IDs) -->
-            <input type="tel" id="senderPhone" placeholder="သင့်ဖုန်းနံပါတ်" maxlength="11" class="game-input w-full px-3 py-2.5 rounded-xl text-sm mt-3">
-            <input type="text" id="transferId" placeholder="ငွေလွှဲ ID (၅လုံး)" maxlength="5" class="game-input w-full px-3 py-2.5 rounded-xl text-sm mt-2">
+            <!-- ★ User Inputs ★ -->
+            <div class="glass-panel rounded-xl p-3 mt-3 space-y-2">
+                <input type="tel" id="senderPhone" placeholder="သင့်ဖုန်းနံပါတ်" maxlength="11" class="game-input w-full px-3 py-2.5 rounded-xl text-sm">
+                <input type="text" id="transferId" placeholder="ငွေလွှဲ ID (၅လုံး)" maxlength="5" class="game-input w-full px-3 py-2.5 rounded-xl text-sm">
+            </div>
 
-            <!-- Upload Screenshot (Original IDs) -->
-            <div class="mt-3">
+            <!-- ★ Upload Screenshot ★ -->
+            <div class="glass-panel rounded-xl p-3 mt-3">
                 <label class="text-xs text-slate-400 font-medium mb-2 block">Screenshot</label>
-                <div class="upload-area rounded-xl p-4 text-center cursor-pointer" id="uploadArea" onclick="triggerFileUpload()">
+                <div class="upload-area rounded-xl p-4 text-center cursor-pointer" id="uploadArea" onclick="window.triggerFileUpload()">
                     <i class="fas fa-cloud-upload-alt text-emerald-400 text-2xl mb-1"></i>
                     <p class="text-xs text-white">Screenshot တင်ရန် နှိပ်ပါ</p>
                     <small class="text-[10px] text-slate-500">Max 5MB</small>
                 </div>
-                <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="handleFileSelect(event)">
+                <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="window.handleFileSelect(event)">
                 <div class="preview-container hidden mt-2 relative" id="previewContainer">
                     <img class="w-full h-24 object-cover rounded-xl border border-slate-700" id="previewImage" src="#" alt="Preview">
-                    <button onclick="removeImage()" class="absolute top-2 right-2 w-6 h-6 bg-rose-500 rounded-full flex items-center justify-center text-white text-xs hover:bg-rose-600 transition">
+                    <button onclick="window.removeImage()" class="absolute top-2 right-2 w-6 h-6 bg-rose-500 rounded-full flex items-center justify-center text-white text-xs hover:bg-rose-600 transition">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
             </div>
 
-            <!-- Submit Button (Original ID) -->
-            <button onclick="submitDeposit()" class="btn-primary w-full py-3 rounded-xl text-white font-bold flex items-center justify-center gap-2 mt-4">
+            <!-- ★ Submit Button ★ -->
+            <button onclick="window.submitDeposit()" class="btn-primary w-full py-3 rounded-xl text-white font-bold flex items-center justify-center gap-2 mt-4">
                 <i class="fas fa-paper-plane"></i> ငွေသွင်းရန် တင်ပြမည်
             </button>
 
-            <!-- Back Button -->
-            <button onclick="goBackToDepositPopup1()" class="w-full py-2 rounded-xl text-slate-400 text-sm mt-2 hover:text-white transition">
+            <!-- ★ Back Button ★ -->
+            <button onclick="window.goBackToDepositPopup1()" class="w-full py-2 rounded-xl text-slate-400 text-sm mt-2 hover:text-white transition">
                 <i class="fas fa-arrow-left"></i> နောက်သို့
             </button>
         </div>
     </div>
-</div>
-
+</div>        
 <!-- ================================================================ -->
 <!-- POPUP 3: အောင်မြင်ကြောင်း (Success)                              -->
 <!-- ================================================================ -->
 <div id="depositPopup3" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4 bg-black/80 backdrop-blur-sm" style="display:none;">
-    <div class="glass-panel w-full max-w-sm rounded-3xl overflow-hidden animate-fade-in relative"
-         style="background-image: url('images/success_bg.png'); background-size: 550px 500px; background-position: center; background-repeat: no-repeat; padding: 30px 24px;">
+    <div class="glass-panel w-full max-w-md rounded-3xl overflow-hidden animate-fade-in relative"
+         style="background-image: url('images/success_bg.png'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; padding: 30px 24px; max-width: 500px;height: 88vh;max-height: 680px;">
+
+        
         <!-- Close Button (အပေါ်ထောင့်) -->
-        <button onclick="closeDepositPopup3()" 
+        <button onclick="window.closeDepositPopup3()"
                 class="absolute top-3 right-3 w-10 h-10 rounded-full bg-black/40 hover:bg-black/60 flex items-center justify-center transition border border-white/10 z-10">
             <i class="fas fa-times text-white text-lg"></i>
         </button>
 
         <!-- OK Button (အောက်ခြေ) -->
-        <button onclick="closeDepositPopup3()" 
+        <button onclick="window.closeDepositPopup3()" 
                 class="absolute bottom-8 left-1/2 transform -translate-x-1/2 w-32 py-3 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold text-sm shadow-lg shadow-emerald-500/30 transition-all hover:scale-105 z-10">
             <i class="fas fa-check mr-2"></i> OK
         </button>
         
-        <!-- Success Icon (အလယ်မှာ သေးသေးလေး) -->
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
-            <div class="w-16 h-16 rounded-full bg-emerald-500/30 flex items-center justify-center backdrop-blur-sm border border-emerald-400/30">
-                <i class="fas fa-check-circle text-emerald-400 text-3xl"></i>
-            </div>
         </div>
     </div>
 </div>
+
 <!-- ================================================================ -->
 <!-- POPUP 1: ငွေထုတ် (Amount + Bank)                                -->
 <!-- ================================================================ -->
 <div id="withdrawPopup1" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4 bg-black/80 backdrop-blur-sm" style="display:none;">
     <div class="glass-panel w-full max-w-md rounded-3xl overflow-hidden animate-fade-in relative flex flex-col max-h-[90vh]"
-         style="background-image: url('images/popup_bg_1.png'); background-size: 750px 600px; background-position: center; background-repeat: no-repeat;">
+         style="background-image: url('images/popup_bg_1.png'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; max-width: 500px;height: 88vh;max-height: 680px;">
 
         <!-- Header -->
         <div class="p-4 border-b border-white/10 flex justify-between items-center bg-slate-900/50 shrink-0">
@@ -348,7 +332,7 @@
 
 <div id="withdrawPopup2" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4 bg-black/80 backdrop-blur-sm" style="display:none;">
     <div class="glass-panel w-full max-w-md rounded-3xl overflow-hidden animate-fade-in relative flex flex-col max-h-[90vh]"
-         style="background-image: url('images/popup_bg_1.png'); background-size: 750px 600px; background-position: center; background-repeat: no-repeat;">        
+         style="background-image: url('images/popup_bg_1.png'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat;">        
         <!-- Header -->
         <div class="p-4 border-b border-white/10 flex justify-between items-center bg-slate-900/50 shrink-0">
             <div class="flex items-center gap-3">
@@ -421,8 +405,8 @@
 <!-- ================================================================ -->
 
 <div id="withdrawPopup3" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4 bg-black/80 backdrop-blur-sm" style="display:none;">
-    <div class="glass-panel w-full max-w-sm rounded-3xl overflow-hidden animate-fade-in relative"
-         style="background-image: url('images/success_bg.png'); background-size: 750px 600px; background-position: center; background-repeat: no-repeat; padding: 30px 24px;">        
+    <div class="glass-panel w-full max-w-md rounded-3xl overflow-hidden animate-fade-in relative"
+         style="background-image: url('images/success_bg.png'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; padding: 30px 24px;">        
         <!-- Close Button -->
         <button onclick="closeWithdrawPopup3()" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition">
             <i class="fas fa-times text-slate-300"></i>
@@ -473,7 +457,7 @@
 
 <div id="historyPopup" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4 bg-black/80 backdrop-blur-sm" style="display:none;">
     <div class="glass-panel w-full max-w-md rounded-3xl overflow-hidden animate-fade-in relative flex flex-col max-h-[90vh]"
-         style="background-image: url('images/popup_bg_1.png'); background-size: 750px 600px; background-position: center; background-repeat: no-repeat;">
+         style="background-image: url('images/popup_bg_1.png'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat;">
         
         <!-- Header -->
         <div class="p-4 border-b border-white/10 flex justify-between items-center bg-slate-900/50 shrink-0">
@@ -1881,6 +1865,7 @@ function switchLobbyTab(element, tabName) {
 <script src="login.js"></script>
   <script src="supprisebox.js"></script>
   <script src="userpayment.js"></script>
+<script src="popup-fix.js"></script>
   <script src="game.js"></script>
   <script src="script.js"></script>
   <script src="userchat.js"></script>

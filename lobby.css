@@ -3967,3 +3967,865 @@ body.wallet-open {
     border: 2px solid rgba(255, 215, 0, 0.15);
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
 }
+
+
+
+    /* ================================================================
+       DEPOSIT POPUP
+    ================================================================= */
+
+    .deposit-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+
+        display: none;
+        align-items: center;
+        justify-content: center;
+
+        padding: 8px;
+
+        /* Lobby Background ကို လုံးဝဖုံးရန် */
+        background: #000;
+    }
+
+    .deposit-overlay.is-open {
+        display: flex;
+    }
+
+    .deposit-frame {
+        position: relative;
+
+        width: min(96vw, 680px);
+        height: min(92vh, 760px);
+
+        overflow: hidden;
+        isolation: isolate;
+
+        animation: depositPopupShow 0.25s ease;
+    }
+
+    .deposit-frame-image {
+        position: absolute;
+        inset: 0;
+
+        width: 100%;
+        height: 100%;
+
+        /*
+           Background ပုံအပြည့်မြင်ရန်။
+           Frame Size အတိုင်း အနည်းငယ်ဆန့်နိုင်သည်။
+        */
+        object-fit: fill;
+
+        pointer-events: none;
+        user-select: none;
+
+        z-index: 0;
+    }
+
+    /*
+       Background Frame ရဲ့ အတွင်းပိုင်းမှာ
+       HTML Content တွေထားမယ့်နေရာ
+    */
+    .deposit-inner {
+        position: absolute;
+
+        top: 17%;
+        left: 9%;
+        right: 9%;
+        bottom: 10%;
+
+        display: flex;
+        flex-direction: column;
+
+        min-height: 0;
+        overflow: hidden;
+
+        z-index: 2;
+    }
+
+    .deposit-header {
+        flex-shrink: 0;
+
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        padding: 10px 12px;
+        margin-bottom: 8px;
+
+        border: 1px solid rgba(255, 215, 100, 0.25);
+        border-radius: 12px;
+
+        background: rgba(40, 0, 0, 0.7);
+        backdrop-filter: blur(5px);
+    }
+
+    .deposit-content {
+        flex: 1;
+        min-height: 0;
+
+        overflow-y: auto;
+        overflow-x: hidden;
+
+        padding: 4px 6px 16px;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255, 190, 70, 0.8) transparent;
+    }
+
+    .deposit-content::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .deposit-content::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .deposit-content::-webkit-scrollbar-thumb {
+        background: rgba(255, 190, 70, 0.8);
+        border-radius: 20px;
+    }
+
+    .deposit-box {
+        background: rgba(40, 0, 0, 0.7);
+        border: 1px solid rgba(255, 210, 100, 0.25);
+        backdrop-filter: blur(5px);
+    }
+
+    .deposit-close-button {
+        width: 34px;
+        height: 34px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        flex-shrink: 0;
+
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 50%;
+
+        color: white;
+        background: rgba(0, 0, 0, 0.45);
+
+        transition: 0.2s;
+    }
+
+    .deposit-close-button:hover {
+        background: rgba(190, 20, 20, 0.8);
+        transform: scale(1.06);
+    }
+
+    .deposit-method,
+    .amount-chip {
+        border: 1px solid rgba(255, 210, 100, 0.25);
+        background: rgba(50, 0, 0, 0.65);
+        transition: 0.2s;
+    }
+
+    .deposit-method:hover,
+    .amount-chip:hover {
+        border-color: rgba(255, 210, 100, 0.8);
+        transform: translateY(-1px);
+    }
+
+    .deposit-method.active,
+    .amount-chip.active {
+        border-color: #34d399;
+        background: rgba(16, 185, 129, 0.2);
+        box-shadow: 0 0 12px rgba(16, 185, 129, 0.25);
+    }
+
+    .deposit-input {
+        width: 100%;
+
+        color: white;
+        background: rgba(30, 0, 0, 0.75);
+
+        border: 1px solid rgba(255, 210, 100, 0.25);
+        outline: none;
+
+        transition: 0.2s;
+    }
+
+    .deposit-input::placeholder {
+        color: rgba(255, 255, 255, 0.45);
+    }
+
+    .deposit-input:focus {
+        border-color: #34d399;
+        box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.14);
+    }
+
+    .deposit-primary-button {
+        border: 1px solid rgba(255, 255, 255, 0.15);
+
+        background: linear-gradient(135deg, #10b981, #0d9488);
+
+        box-shadow: 0 7px 18px rgba(16, 185, 129, 0.2);
+        transition: 0.2s;
+    }
+
+    .deposit-primary-button:hover {
+        transform: translateY(-1px);
+        filter: brightness(1.08);
+    }
+
+    .upload-area {
+        border: 1px dashed rgba(52, 211, 153, 0.55);
+        background: rgba(30, 0, 0, 0.65);
+        transition: 0.2s;
+    }
+
+    .upload-area:hover {
+        border-color: #34d399;
+        background: rgba(16, 185, 129, 0.1);
+    }
+
+    /* Success Popup */
+
+    .success-frame {
+        position: relative;
+
+        width: min(92vw, 360px);
+        aspect-ratio: 340 / 480;
+
+        overflow: hidden;
+        isolation: isolate;
+
+        animation: depositPopupShow 0.25s ease;
+    }
+
+    .success-frame-image {
+        position: absolute;
+        inset: 0;
+
+        width: 100%;
+        height: 100%;
+
+        object-fit: fill;
+
+        pointer-events: none;
+        user-select: none;
+
+        z-index: 0;
+    }
+
+    @keyframes depositPopupShow {
+        from {
+            opacity: 0;
+            transform: scale(0.92);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    @media (max-width: 480px) {
+        .deposit-overlay {
+            padding: 3px;
+        }
+
+        .deposit-frame {
+            width: 98vw;
+            height: 94vh;
+        }
+
+        .deposit-inner {
+            top: 16%;
+            left: 8%;
+            right: 8%;
+            bottom: 9%;
+        }
+
+        .deposit-header {
+            padding: 8px 9px;
+        }
+
+        .deposit-content {
+            padding-left: 2px;
+            padding-right: 2px;
+        }
+    }
+
+    @media (max-height: 600px) {
+        .deposit-frame {
+            height: 98vh;
+        }
+
+        .deposit-inner {
+            top: 15%;
+            bottom: 8%;
+        }
+    }
+
+
+
+.deposit-overlay {
+    background: #000 !important;
+}
+
+.deposit-frame {
+    isolation: isolate;
+}
+
+.deposit-frame > img {
+    display: block;
+}
+
+#depositPopup1 .glass-panel,
+#depositPopup2 .glass-panel {
+    backdrop-filter: blur(5px);
+}
+
+#depositPopup1 .amount-chip,
+#depositPopup2 .amount-chip {
+    border: 1px solid rgba(255, 210, 100, 0.25);
+    background: rgba(45, 0, 0, 0.7);
+    transition: 0.2s ease;
+}
+
+#depositPopup1 .amount-chip.active {
+    border-color: #34d399;
+    background: rgba(16, 185, 129, 0.22);
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.25);
+}
+
+.custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 190, 70, 0.8) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    width: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 190, 70, 0.8);
+    border-radius: 20px;
+}
+
+@media (max-width: 480px) {
+    .deposit-frame {
+        width: 99vw;
+        height: 96vh;
+    }
+
+    .deposit-frame > div {
+        top: 16%;
+        left: 8%;
+        right: 8%;
+        bottom: 9%;
+    }
+}
+
+/* Deposit Popup 1 & 2 UI only */
+#depositPopup1 > .glass-panel,
+#depositPopup2 > .glass-panel {
+    width: min(94vw, 500px) !important;
+    height: min(88vh, 650px) !important;
+
+    max-width: none !important;
+    max-height: none !important;
+
+    border-radius: 0 !important;
+    background-color: transparent !important;
+
+    background-size: 100% 100% !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+}
+
+/* Header ကို frame အတွင်းပိုင်းဆင်း */
+#depositPopup1 > .glass-panel > div:first-child,
+#depositPopup2 > .glass-panel > div:first-child {
+    margin-top: 16%;
+    margin-left: 10%;
+    margin-right: 10%;
+
+    padding: 10px 12px !important;
+    border-radius: 12px;
+
+    background: rgba(20, 0, 0, 0.68) !important;
+}
+
+/* Content ကို frame အတွင်းထား */
+#depositPopup1 > .glass-panel > div:nth-child(2),
+#depositPopup2 > .glass-panel > div:nth-child(2) {
+    margin-left: 10%;
+    margin-right: 10%;
+    margin-bottom: 10%;
+
+    padding: 8px 6px 16px !important;
+
+    min-height: 0;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+
+/* Inner glass panels */
+#depositPopup1 .glass-panel .glass-panel,
+#depositPopup2 .glass-panel .glass-panel {
+    background: rgba(25, 0, 0, 0.65) !important;
+    backdrop-filter: blur(4px);
+}
+
+/* Lobby background လုံးဝဖုံး */
+#depositPopup1,
+#depositPopup2 {
+    background: #000 !important;
+    padding: 12px !important;
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+    #depositPopup1 > .glass-panel,
+    #depositPopup2 > .glass-panel {
+        width: 94vw !important;
+        height: 86vh !important;
+    }
+
+    #depositPopup1 > .glass-panel > div:first-child,
+    #depositPopup2 > .glass-panel > div:first-child {
+        margin-top: 15%;
+        margin-left: 9%;
+        margin-right: 9%;
+    }
+
+    #depositPopup1 > .glass-panel > div:nth-child(2),
+    #depositPopup2 > .glass-panel > div:nth-child(2) {
+        margin-left: 9%;
+        margin-right: 9%;
+        margin-bottom: 10%;
+    }
+}
+
+/* ================================================================
+   WITHDRAW POPUP 1 & 2 UI
+================================================================ */
+
+#withdrawPopup1 > .glass-panel,
+#withdrawPopup2 > .glass-panel {
+    width: min(94vw, 500px) !important;
+    height: min(88vh, 650px) !important;
+
+    max-width: none !important;
+    max-height: none !important;
+
+    border-radius: 0 !important;
+    background-color: transparent !important;
+
+    background-size: 100% 100% !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+}
+
+/* Header ကို frame အတွင်းထည့် */
+#withdrawPopup1 > .glass-panel > div:first-child,
+#withdrawPopup2 > .glass-panel > div:first-child {
+    margin-top: 16%;
+    margin-left: 10%;
+    margin-right: 10%;
+
+    padding: 10px 12px !important;
+    border-radius: 12px;
+
+    background: rgba(20, 0, 0, 0.68) !important;
+}
+
+/* Content area */
+#withdrawPopup1 > .glass-panel > div:nth-child(2),
+#withdrawPopup2 > .glass-panel > div:nth-child(2) {
+    margin-left: 10%;
+    margin-right: 10%;
+    margin-bottom: 10%;
+
+    padding: 8px 6px 16px !important;
+
+    min-height: 0;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+
+/* Inner glass panels */
+#withdrawPopup1 .glass-panel .glass-panel,
+#withdrawPopup2 .glass-panel .glass-panel {
+    background: rgba(25, 0, 0, 0.65) !important;
+    backdrop-filter: blur(4px);
+}
+
+/* Inputs */
+#withdrawPopup1 .game-input,
+#withdrawPopup2 .game-input {
+    background: rgba(35, 0, 0, 0.72) !important;
+    border: 1px solid rgba(255, 210, 100, 0.25) !important;
+    color: white !important;
+}
+
+/* Preset amount buttons */
+#withdrawPopup1 .amount-chip,
+#withdrawPopup2 .amount-chip {
+    background: rgba(45, 0, 0, 0.7) !important;
+    border: 1px solid rgba(255, 210, 100, 0.25) !important;
+}
+
+/* Primary buttons */
+#withdrawPopup1 .btn-primary,
+#withdrawPopup2 .btn-primary {
+    background: linear-gradient(135deg, #10b981, #0d9488) !important;
+}
+
+/* Lobby background ဖုံးရန် */
+#withdrawPopup1,
+#withdrawPopup2 {
+    background: #000 !important;
+    padding: 12px !important;
+}
+
+
+/* ================================================================
+   WITHDRAW POPUP 3 SUCCESS
+================================================================ */
+
+#withdrawPopup3 {
+    background: #000 !important;
+    padding: 12px !important;
+}
+
+#withdrawPopup3 > .glass-panel {
+    width: min(92vw, 360px) !important;
+    aspect-ratio: 340 / 480 !important;
+
+    max-width: none !important;
+    max-height: none !important;
+
+    padding: 0 !important;
+    border-radius: 0 !important;
+
+    background-color: transparent !important;
+    background-size: 100% 100% !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+
+    overflow: hidden !important;
+}
+
+/* Popup 3 ရဲ့ close button */
+#withdrawPopup3 > .glass-panel > button:first-of-type {
+    top: 7% !important;
+    right: 7% !important;
+}
+
+/* Popup 3 ရဲ့ OK button */
+#withdrawPopup3 > .glass-panel > button:last-of-type {
+    bottom: 8% !important;
+}
+
+/* Success icon */
+#withdrawPopup3 > .glass-panel > div {
+    top: 50% !important;
+    left: 50% !important;
+}
+
+
+/* ================================================================
+   MOBILE
+================================================================ */
+
+@media (max-width: 480px) {
+
+    #withdrawPopup1 > .glass-panel,
+    #withdrawPopup2 > .glass-panel {
+        width: 94vw !important;
+        height: 86vh !important;
+    }
+
+    #withdrawPopup1 > .glass-panel > div:first-child,
+    #withdrawPopup2 > .glass-panel > div:first-child {
+        margin-top: 15%;
+        margin-left: 9%;
+        margin-right: 9%;
+    }
+
+    #withdrawPopup1 > .glass-panel > div:nth-child(2),
+    #withdrawPopup2 > .glass-panel > div:nth-child(2) {
+        margin-left: 9%;
+        margin-right: 9%;
+        margin-bottom: 10%;
+    }
+
+    #withdrawPopup3 > .glass-panel {
+        width: 90vw !important;
+    }
+}
+
+/* ==========================================================
+   HISTORY POPUP UI
+========================================================== */
+
+#historyPopup > .glass-panel{
+    width: min(94vw, 500px) !important;
+    height: min(88vh, 650px) !important;
+
+    max-width: none !important;
+    max-height: none !important;
+
+    border-radius: 0 !important;
+    background-color: transparent !important;
+
+    background-size: 100% 100% !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+}
+
+/* Header */
+#historyPopup > .glass-panel > div:first-child{
+    margin-top:16%;
+    margin-left:10%;
+    margin-right:10%;
+
+    padding:10px 12px !important;
+
+    border-radius:12px;
+
+    background:rgba(20,0,0,.68) !important;
+}
+
+/* Content */
+#historyPopup > .glass-panel > div:nth-child(2){
+
+    margin-left:10%;
+    margin-right:10%;
+    margin-bottom:10%;
+
+    padding:8px 6px 16px !important;
+
+    min-height:0;
+
+    overflow-y:auto !important;
+    overflow-x:hidden !important;
+}
+
+/* Transaction Cards */
+
+#historyPopup .glass-panel .glass-panel{
+    background:rgba(25,0,0,.65) !important;
+    backdrop-filter:blur(4px);
+}
+
+/* Filter Buttons */
+
+#historyPopup button{
+    transition:.2s;
+}
+
+#historyPopup button:hover{
+    transform:scale(1.03);
+}
+
+/* Scroll */
+
+#historyPopup .custom-scrollbar{
+
+    scrollbar-width:thin;
+}
+
+#historyPopup .custom-scrollbar::-webkit-scrollbar{
+
+    width:5px;
+}
+
+#historyPopup .custom-scrollbar::-webkit-scrollbar-thumb{
+
+    background:#d4af37;
+    border-radius:10px;
+}
+
+/* Overlay */
+
+#historyPopup{
+
+    background:#000 !important;
+    padding:12px !important;
+}
+
+
+/* ==========================================================
+   MOBILE
+========================================================== */
+
+@media (max-width:480px){
+
+#historyPopup>.glass-panel{
+
+    width:94vw !important;
+    height:86vh !important;
+}
+
+#historyPopup>.glass-panel>div:first-child{
+
+    margin-top:15%;
+    margin-left:9%;
+    margin-right:9%;
+}
+
+#historyPopup>.glass-panel>div:nth-child(2){
+
+    margin-left:9%;
+    margin-right:9%;
+    margin-bottom:10%;
+}
+
+}
+/* ================================================================
+   DEPOSIT POPUP 3 - SUCCESS UI POLISH
+================================================================ */
+
+#depositPopup3 {
+    background: rgba(0, 0, 0, 0.88) !important;
+    backdrop-filter: blur(7px);
+    padding: 10px !important;
+}
+
+/* Main success frame */
+#depositPopup3 > .glass-panel {
+    width: min(92vw, 420px) !important;
+    height: min(82vh, 570px) !important;
+
+    max-width: none !important;
+    max-height: none !important;
+
+    padding: 0 !important;
+    border-radius: 22px !important;
+
+    background-color: transparent !important;
+    background-size: 100% 100% !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+
+    overflow: hidden !important;
+    position: relative !important;
+
+    box-shadow:
+        0 0 0 1px rgba(255, 215, 120, 0.2),
+        0 20px 50px rgba(0, 0, 0, 0.65);
+}
+
+/* Close button */
+#depositPopup3 > .glass-panel > button:first-of-type {
+    top: 3% !important;
+    right: 4% !important;
+
+    width: 42px !important;
+    height: 42px !important;
+
+    background: rgba(0, 0, 0, 0.55) !important;
+    border: 1px solid rgba(255, 255, 255, 0.18) !important;
+
+    z-index: 30 !important;
+}
+
+/* Success icon wrapper */
+#depositPopup3 > .glass-panel > div {
+    top: 67% !important;
+    left: 50% !important;
+
+    transform: translate(-50%, -50%) !important;
+
+    z-index: 20 !important;
+}
+
+/* Success icon circle */
+#depositPopup3 > .glass-panel > div > div {
+    width: 58px !important;
+    height: 58px !important;
+
+    background: rgba(16, 185, 129, 0.92) !important;
+    border: 3px solid rgba(255, 255, 255, 0.8) !important;
+
+    box-shadow:
+        0 8px 24px rgba(16, 185, 129, 0.45),
+        0 0 20px rgba(16, 185, 129, 0.35) !important;
+
+    backdrop-filter: none !important;
+}
+
+/* Check icon */
+#depositPopup3 > .glass-panel > div > div i {
+    color: white !important;
+    font-size: 30px !important;
+}
+
+/* OK button */
+#depositPopup3 > .glass-panel > button:last-of-type {
+    bottom: 4.5% !important;
+    left: 50% !important;
+
+    transform: translateX(-50%) !important;
+
+    width: 170px !important;
+    min-height: 54px !important;
+
+    border-radius: 999px !important;
+
+    background: linear-gradient(
+        135deg,
+        #10b981,
+        #14b8a6
+    ) !important;
+
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+
+    box-shadow:
+        0 10px 25px rgba(16, 185, 129, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+
+    font-size: 17px !important;
+    z-index: 25 !important;
+}
+
+/* OK button hover */
+#depositPopup3 > .glass-panel > button:last-of-type:hover {
+    transform: translateX(-50%) scale(1.04) !important;
+    filter: brightness(1.08);
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+    #depositPopup3 > .glass-panel {
+        width: 94vw !important;
+        height: min(80vh, 540px) !important;
+    }
+
+    #depositPopup3 > .glass-panel > div {
+        top: 66% !important;
+    }
+
+    #depositPopup3 > .glass-panel > button:last-of-type {
+        bottom: 4% !important;
+        width: 165px !important;
+    }
+}
+
+/* Short screen */
+@media (max-height: 650px) {
+    #depositPopup3 > .glass-panel {
+        height: 94vh !important;
+        width: min(86vw, 390px) !important;
+    }
+
+    #depositPopup3 > .glass-panel > div {
+        top: 65% !important;
+    }
+
+    #depositPopup3 > .glass-panel > button:last-of-type {
+        bottom: 3% !important;
+    }
+}
