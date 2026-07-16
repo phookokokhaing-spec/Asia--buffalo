@@ -145,7 +145,7 @@ html { scrollbar-width: none; }
     position: absolute;
     top: 15%;
     left: 30%;
-    color: #ff6b6b;
+    color: #FFC107;
     z-index: 10;
     font-size: 22px;
     font-weight: 900;
@@ -182,7 +182,7 @@ html { scrollbar-width: none; }
 .win-box .value {
     font-size: 22px;
     font-weight: 900;
-    color: #ff6b6b;
+    color: #FFD700;
 }
 
 .bet-box {
@@ -347,7 +347,7 @@ html { scrollbar-width: none; }
 .bet-value-box span {
     font-size: 24px !important;
     font-weight: 900 !important;
-    color: #00ff88 !important;
+    color: #FFD700; !important;
 }
 
 #fb-coin {
@@ -413,7 +413,7 @@ html { scrollbar-width: none; }
 .win-display span {
     font-size: 22px !important;
     font-weight: 900 !important;
-    color: #ff6b6b !important;
+    color: #FFD700; !important;
 }
 
 /* ============================================
@@ -1403,6 +1403,93 @@ input, textarea {
         box-shadow: 0 0 20px rgba(255, 69, 0, 0.6), 0 0 40px rgba(255, 69, 0, 0.3);
     }
 }
+
+/* ================================================================ */
+/* SCATTER FIRE EFFECT                                              */
+/* ================================================================ */
+
+@keyframes firePulse {
+    0% {
+        border-color: #FF4500;
+        box-shadow: 0 0 20px rgba(255, 69, 0, 0.6), 0 0 40px rgba(255, 69, 0, 0.3);
+        transform: scale(1);
+    }
+    50% {
+        border-color: #FFD700;
+        box-shadow: 0 0 40px rgba(255, 215, 0, 0.8), 0 0 80px rgba(255, 215, 0, 0.4);
+        transform: scale(1.05);
+    }
+    100% {
+        border-color: #FF4500;
+        box-shadow: 0 0 20px rgba(255, 69, 0, 0.6), 0 0 40px rgba(255, 69, 0, 0.3);
+        transform: scale(1);
+    }
+}
+
+.scatter-fire {
+    animation: firePulse 0.8s ease-in-out infinite alternate !important;
+    border: 3px solid #FF6B00 !important;
+    box-shadow: 0 0 40px rgba(255, 107, 0, 0.8), 0 0 80px rgba(255, 107, 0, 0.4) !important;
+    border-radius: 8px !important;
+    transition: all 0.3s ease !important;
+    z-index: 5 !important;
+}
+
+/* Suspense Effect */
+.suspense-active {
+    animation: suspensePulse 0.3s ease-in-out infinite;
+    border: 3px solid #ff0000;
+}
+
+@keyframes suspensePulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+/* ================================================================ */
+/* SCATTER NOTIFICATION POPUP (FIXED - Center)                     */
+/* ================================================================ */
+
+#scatterNotiPopup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 99999;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    pointer-events: none;
+}
+
+#scatterNotiPopup > div {
+    pointer-events: auto;
+    margin: 0 auto;
+}
+
+/* Popup Animation */
+@keyframes pop-in {
+    0% { transform: scale(0.5) rotate(-5deg); opacity: 0; }
+    60% { transform: scale(1.05) rotate(1deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+.animate-pop-in {
+ 
+   animation: pop-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+@keyframes winPulse {
+    0% { transform: scale(1); text-shadow: 0 0 30px rgba(255, 215, 0, 0.4); }
+    100% { transform: scale(1.05); text-shadow: 0 0 60px rgba(255, 215, 0, 0.7), 0 0 90px rgba(255, 100, 0, 0.3); }
+}
+
+@keyframes progressShrink {
+    0% { width: 100%; }
+    100% { width: 0%; }
+}
+
    </style>
 </head>
 <body>
@@ -1556,6 +1643,61 @@ input, textarea {
 <audio id="bsmSound" preload="auto"></audio>
 <audio id="checkSound" preload="auto"></audio>
 <audio id="spinBtnSound" preload="auto"></audio>
+
+
+<!-- ================================================================ -->
+<!-- SCATTER NOTIFICATION POPUP (လှပပြီး BG Image ပါ)            -->
+<!-- ================================================================ -->
+
+<div id="scatterNotiPopup" class="fixed inset-0 z-[99999] hidden items-center justify-center p-4 bg-black/60 backdrop-blur-sm" style="display:none;">
+    <div class="relative w-[420px] max-w-[90vw] rounded-3xl overflow-hidden animate-pop-in"
+         style="background-image: url('images/notification_bg.png'); background-size: 100% 100%; background-position: center; box-shadow: 0 20px 60px rgba(0,0,0,0.9); border: 2px solid rgba(255, 215, 0, 0.2);">
+        
+        <!-- Dark Overlay (စာတွေပိုထင်အောင်) -->
+        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 0;"></div>
+        
+        <!-- Content -->
+        <div style="position: relative; z-index: 1; padding: 40px 30px 30px; text-align: center;">
+            
+            <!-- Close Button -->
+            <button onclick="closeScatterNotification()" 
+                    class="absolute top-3 right-3 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center position-right transition border border-white/10 z-10">
+                <i class="fas fa-times text-white/70 text-lg"></i>
+            </button>
+            
+            <!-- Scatter Icon -->
+            <div class="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-amber-500/30 to-orange-500/20 flex items-center justify-center border-2 border-amber-400/30 backdrop-blur-sm mb-4">
+                <i class="fas fa-star text-5xl text-amber-400" style="text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);"></i>
+            </div>
+            
+            <!-- Title -->
+            <div style="font-family: 'Impact', 'Arial Black', sans-serif; font-size: 28px; font-weight: 900; color: #FFD700; text-shadow: 0 0 30px rgba(255, 215, 0, 0.3); letter-spacing: 3px; margin-bottom: 4px;">
+                SCATTER <span id="scatterCountDisplay" style="color: #fff;">3</span>
+            </div>
+            
+            <!-- Win Amount -->
+            <div style="font-family: 'Impact', 'Arial Black', sans-serif; font-size: 48px; font-weight: 900; color: #fff; text-shadow: 0 0 30px rgba(255, 215, 0, 0.4), 0 2px 8px rgba(0,0,0,0.8); margin: 8px 0; animation: winPulse 1s ease-in-out infinite alternate;">
+                <span id="scatterWinAmount">0</span> <span style="font-size: 28px; color: #FFD700;">KS</span>
+            </div>
+            
+            <!-- Win Type Badge -->
+            <div id="scatterWinBadge" style="display: none; margin: 8px auto 16px; padding: 4px 24px; border-radius: 20px; font-family: 'Impact', sans-serif; font-size: 16px; font-weight: 900; text-transform: uppercase; letter-spacing: 3px; background: linear-gradient(135deg, #FFD70044, #FF6B0044); border: 2px solid #FFD700; color: #FFD700; text-shadow: 0 0 20px rgba(255, 215, 0, 0.3); display: inline-block;">
+                <span id="scatterWinTypeText">BIG</span>
+            </div>
+            
+            <!-- Sub Text -->
+            <div style="font-size: 14px; color: rgba(255,255,255,0.6); margin-top: 8px;">
+                ⏳ Free Spin ပြီးမှ ငွေပေါင်းပေးပါမည်။
+            </div>
+            
+            <!-- Progress Bar -->
+            <div style="width: 80%; height: 3px; background: rgba(255,255,255,0.1); border-radius: 10px; margin: 16px auto 0; overflow: hidden;">
+                <div id="scatterNotiProgress" style="width: 100%; height: 100%; background: linear-gradient(90deg, #FFD700, #FF6B00); border-radius: 10px; animation: progressShrink 3s linear forwards;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
   <!-- Old overlay remove or hide -->
 <div id="win-overlay" style="display: none;">
     <img id="win-tier-img" class="hidden">
@@ -1666,7 +1808,7 @@ const WIN_DURATION = 500;
 
 // ---- Symbol Weights ----
 const WEIGHTS = {
-    'buffalo': 1, 'ele': 2, 'lion': 2, 'zebra': 3,
+    'buffalo': 3, 'ele': 2, 'lion': 2, 'zebra': 3,
     'deer': 3, 'a': 4, 'k': 4, 'q': 4,
     'j': 4, 'ten': 5, 'nine': 5, 'coin': 5,
     'wild': 1, 'scatter': 1
@@ -1677,11 +1819,11 @@ const WEIGHTS = {
 // ============================================
 const SCALE_CYCLE = {
     rounds: [
-        { normal: 3, ch1: 15, ch2: 5, ch3: 1, ch4: 1 },
-        { normal: 2, ch1: 12, ch2: 3, ch3: 1, ch4: 1 },
-        { normal: 2, ch1: 10, ch2: 2, ch3: 2, ch4: 1 },
-        { normal: 1, ch1: 14, ch2: 1, ch3: 1, ch4: 1 },
-        { normal: 2, ch1: 11, ch2: 1, ch3: 2, ch4: 1 }
+        { normal: 1, ch1: 50, ch2: 5, ch3: 1, ch4: 1 },
+        { normal: 2, ch1: 20, ch2: 3, ch3: 1, ch4: 1 },
+        { normal: 2, ch1: 17, ch2: 2, ch3: 2, ch4: 1 },
+        { normal: 1, ch1: 15, ch2: 1, ch3: 1, ch4: 1 },
+        { normal: 2, ch1: 10, ch2: 1, ch3: 2, ch4: 1 }
     ],
     currentRound: 0,
     currentPhase: 'normal',
@@ -1721,6 +1863,9 @@ let state = {
     scatterQueue: [],
     isSuspense: false,
     freeSpinOriginalCount: 0,
+   scatterAccumulatedWin: 0,
+   freeSpinAccumulatedScatterWin: 0,
+   freeSpinScatterWinType: '',
     gameStats: {
         totalSpins: 0,
         totalBets: 0,
@@ -1762,12 +1907,32 @@ function calculateScatterReward(scatterCount) {
 }
 
 function getWinType(amt) {
-    const m = amt / state.bet;
-    if (m >= 50) return { type: 'mega', duration: WIN_DURATION };
-    if (m >= 20) return { type: 'super', duration: WIN_DURATION };
-    if (m >= 5) return { type: 'big', duration: WIN_DURATION };
-    return { type: '', duration: WIN_DURATION };
+  const m = amt / state.bet;
+    
+    if (m >= 50) {
+        return { 
+            type: 'mega', 
+            duration: 7000
+        };
+    }
+    if (m >= 20) {
+        return { 
+            type: 'super', 
+            duration: 7000
+        };
+    }
+    if (m >= 5) {
+        return { 
+            type: 'big', 
+            duration: 7000
+        };
+    }
+    return { 
+        type: '', 
+        duration: 7000
+    };
 }
+
 
 // ================================================================
 // 5. SOUND MANAGER WRAPPER
@@ -1780,32 +1945,53 @@ function playSound(name) {
 }
 
 function playWinSound(type, lines) {
-    if (typeof SoundManager === 'undefined') return;
-    if (lines) {
+    console.log('🔊 playWinSound called with type:', type);
+    
+    if (typeof SoundManager === 'undefined') {
+        console.warn('⚠️ SoundManager not available');
+        return;
+    }
+    
+    // ★ Symbol-specific sounds
+    if (lines && lines.length > 0) {
         for (const line of lines) {
             if (line.count === 5) {
-                if (line.symbol === 'buffalo') playSound('buffalo');
-                else if (line.symbol === 'lion') playSound('lion');
+                if (line.symbol === 'buffalo') {
+                    playSound('buffalo');
+                    console.log('🔊 buffalo sound');
+                } else if (line.symbol === 'lion') {
+                    playSound('lion');
+                    console.log('🔊 lion sound');
+                }
             }
         }
     }
+    
+    // ★ Win type sounds
     if (type === 'mega') {
+        console.log('🔊 MEGA WIN sounds');
         playSound('bsm');
         playSound('lion');
         playSound('coin');
+        playSound('congratulations');
         playSound('buffalo');
     } else if (type === 'super') {
+        console.log('🔊 SUPER WIN sounds');
+        playSound('congratulations');
         playSound('bsm');
         playSound('lion');
         playSound('coin');
     } else if (type === 'big') {
+        console.log('🔊 BIG WIN sounds');
+       playSound('congratulations');
         playSound('bsm');
         playSound('lion');
     } else {
+        console.log('🔊 Normal win sound');
+        playSound('congratulations');
         playSound('win');
     }
 }
-
 // ================================================================
 // 6. SCALE RULES GENERATOR
 // ================================================================
@@ -1871,20 +2057,23 @@ function generateScaleRules() {
 // 7. REEL GENERATION
 // ================================================================
 
-function buildPool(reelIndex, rules) {
+function buildPool(reelIndex, rules = null) {
     const pool = [];
-    const isCh1 = rules && rules.phase === 'Ch1';
-  
+    const isCh1 = rules?.phase === 'Ch1';
+    const isFreeSpin = state.isFreeSpin === true;
 
     for (const [sym, count] of Object.entries(WEIGHTS)) {
         if (sym === 'wild' && (reelIndex === 0 || reelIndex === 4)) continue;
         if (sym === 'wild' && isCh1 && reelIndex === 1) continue;
-      
+
+        // Free Spin အတွင်း Scatter မထည့်
+        if (sym === 'scatter' && isFreeSpin) continue;
 
         for (let i = 0; i < count; i++) {
             pool.push(sym);
         }
     }
+
     return pool;
 }
 
@@ -1892,13 +2081,29 @@ function generateOneColumn(colIndex, rules = null) {
     const col = [];
     const pool = buildPool(colIndex, rules);
     const used = {};
+    let scatterCount = 0;
 
     for (let r = 0; r < ROWS; r++) {
-        let sym, att = 0;
+        let sym;
+        let att = 0;
+
         do {
             sym = randomSym(pool);
             att++;
-        } while (used[sym] > 1 && att < 50);
+        } while ((used[sym] || 0) > 1 && att < 50);
+
+        // Column တစ်ခုထဲမှာ Scatter တစ်ပြားပဲခွင့်ပြု
+        if (sym === 'scatter') {
+            if (scatterCount >= 1) {
+                const nonScatterPool = pool.filter(s => s !== 'scatter');
+
+                sym = nonScatterPool.length > 0
+                    ? randomSym(nonScatterPool)
+                    : 'nine';
+            } else {
+                scatterCount++;
+            }
+        }
 
         col.push(sym);
         used[sym] = (used[sym] || 0) + 1;
@@ -2144,7 +2349,7 @@ async function fastSpinSingleReel(colIndex, duration = 2000) {
             });
         }, 100);
 
-        setTimeout(() => {
+     setTimeout(() => {
             clearInterval(interval);
             const reelData = state.reels[colIndex];
             slots.forEach((img, idx) => {
@@ -2162,7 +2367,7 @@ async function fastSpinSingleReel(colIndex, duration = 2000) {
 // 10. WIN DETECTION & HIGHLIGHT
 // ================================================================
 
-function checkWins() {
+      function checkWins() {
     let totalWin = 0, winCells = [], winLines = [];
 
     for (const sym of Object.keys(PAYTABLE)) {
@@ -2320,19 +2525,43 @@ function showWinOverlay(amount, winLines) {
     }
 }
 
-function triggerWinAnimation(winResult) {
-    const winInfo = getWinType(winResult.totalWin);
-    const winType = winInfo.type;
-    const duration = winInfo.duration;
 
-    if (winAnim && winType) {
-        const m = winAnim.play || winAnim.show || winAnim.trigger;
-        if (m) m.call(winAnim, winType, winResult.totalWin);
-    }
-    playWinSound(winType, winResult.winLines);
-    showWinOverlay(winResult.totalWin, winResult.winLines);
-    return duration;
+// ================================================================
+// TRIGGER WIN ANIMATION (FIXED)
+// ================================================================
+
+function triggerWinAnimation(winResult) {
+    return new Promise((resolve) => {
+        const winInfo = getWinType(winResult.totalWin);
+        const winType = winInfo.type;
+        const duration = winInfo.duration || 7000;
+
+        console.log('🎬 Win Animation called:', winType, winResult.totalWin);
+
+        // ★ ★ ★ WIN ANIMATION ကိုပြမယ် ★ ★ ★
+        if (typeof WinAnimation !== 'undefined' && winAnim) {
+            console.log('✅ WinAnimation found, playing...');
+            winAnim.trigger(winType, winResult.totalWin, {
+                duration: duration,
+                onComplete: function() {
+                    console.log('✅ WinAnimation complete');
+                    resolve();
+                }
+            });
+        } else {
+            console.warn('⚠️ WinAnimation not available, using fallback');
+            // ★ Fallback: Overlay ပြမယ် ★
+            showWinOverlay(winResult.totalWin, winResult.winLines);
+            setTimeout(() => {
+                resolve();
+            }, duration);
+        }
+
+        // ★ Sound ဖွင့်
+        playWinSound(winType, winResult.winLines);
+    });
 }
+
 
 // ================================================================
 // 11. GAME STATS
@@ -2362,8 +2591,9 @@ function updateConsecutiveWins(winAmt) {
     }
 }
 
+
 // ================================================================
-// HANDLE SCATTER SUSPENSE (WITH FIRE FRAME)
+// HANDLE SCATTER SUSPENSE (FIXED - With Fire Scatter)
 // ================================================================
 
 async function handleScatterSuspense(scatterResult) {
@@ -2372,16 +2602,45 @@ async function handleScatterSuspense(scatterResult) {
     const initialPositions = scatterResult.positions || [];
     const lockedCols = new Set(initialPositions.map(pos => pos.col));
 
-    // ★ Highlight existing scatters
+    // ================================================================
+    // ★ ★ ★ SCATTER 2 → FIRE SCATTER ★ ★ ★
+    // ================================================================
+    
+    if (scatterResult.count === 2) {
+        console.log('🔥 2 Scatters found! Replacing with Fire Scatters...');
+        
+        for (const pos of initialPositions) {
+            const reel = document.getElementById('reel' + pos.col);
+            if (!reel || !reel.children[pos.row]) continue;
+            
+            const slot = reel.children[pos.row];
+            const img = slot.querySelector('img');
+            if (!img) continue;
+            
+            // ★ ပုံကို မီးတောက် Scatter နဲ့ အစားထိုး ★
+            img.src = 'images/sym_scatter_fire.png';  // ← မီးတောက် Scatter ပုံ
+            
+            // ★ မီးတောက် Class ထည့် ★
+            slot.classList.add('scatter-fire');
+            slot.style.cssText = `
+                animation: firePulse 0.8s ease-in-out infinite alternate;
+                border: 2px solid #FF6B00;
+                box-shadow: 0 0 40px rgba(255, 107, 0, 0.8), 0 0 80px rgba(255, 107, 0, 0.4);
+                border-radius: 8px;
+                transition: all 0.3s ease;
+                z-index: 5;
+            `;
+            
+            console.log('🔥 Normal Scatter → Fire Scatter at:', pos.col, pos.row);
+        }
+    }
+
+    // Highlight existing scatters
     for (const pos of initialPositions) {
         const reel = document.getElementById('reel' + pos.col);
         if (reel && reel.children[pos.row]) {
             const slot = reel.children[pos.row];
             slot.classList.add('scatter-highlight');
-            slot.style.boxShadow = '0 0 50px rgba(255, 20, 147, 0.8), 0 0 100px rgba(255, 20, 147, 0.4)';
-            slot.style.border = '4px solid #FF1493';
-            slot.style.transition = 'all 0.3s';
-            slot.style.transform = 'scale(1.15)';
         }
     }
 
@@ -2393,8 +2652,10 @@ async function handleScatterSuspense(scatterResult) {
         }
     }
 
-    // ★ ★ ★ APPLY FIRE FRAME TO AVAILABLE COLUMNS ★ ★ ★
-    applySuspenseFireToReels(availableCols);
+    // Apply fire frames
+    if (typeof applySuspenseFireToReels === 'function') {
+        applySuspenseFireToReels(availableCols);
+    }
 
     SoundManager.check();
     await delay(500);
@@ -2404,17 +2665,12 @@ async function handleScatterSuspense(scatterResult) {
     state.isSuspense = true;
     disableControls(true);
 
-    // ★ Check remaining reels one by one
+    // Check remaining reels one by one
     for (let i = 0; i < availableCols.length; i++) {
         const colToCheck = availableCols[i];
         state.reels[colToCheck] = generateOneColumn(colToCheck, null);
 
         const reelEl = document.getElementById('reel' + colToCheck);
-        if (reelEl) {
-            reelEl.style.border = '4px solid #FF1493';
-            reelEl.style.boxShadow = '0 0 50px rgba(255, 20, 147, 0.8), 0 0 100px rgba(255, 20, 147, 0.4)';
-        }
-
         await fastSpinSingleReel(colToCheck);
 
         const reelData = state.reels[colToCheck];
@@ -2428,17 +2684,8 @@ async function handleScatterSuspense(scatterResult) {
                 const slot = reelEl.children[row];
                 if (slot) {
                     slot.classList.add('scatter-highlight');
-                   // ★ slot.style.boxShadow = '0 0 50px rgba(255, 20, 147, 0.8), 0 0 100px rgba(255, 20, 147, 0.4)';
-                   // ★slot.style.border = '4px solid #FF1493';
-                    slot.style.transition = 'all 0.3s';
-                    slot.style.transform = 'scale(1.15)';
                 }
             }
-        }
-
-        if (reelEl) {
-            reelEl.style.border = '';
-            reelEl.style.boxShadow = '';
         }
 
         if (foundScatter) {
@@ -2451,12 +2698,30 @@ async function handleScatterSuspense(scatterResult) {
 
     state.isSuspense = false;
 
-    // ★ ★ ★ REMOVE FIRE FRAMES ★ ★ ★
-    removeAllFireFrames();
+    // Remove fire frames
+    if (typeof removeAllFireFrames === 'function') {
+        removeAllFireFrames();
+    }
 
     await delay(800);
 
-    // ★ Remove highlights
+    // ================================================================
+    // ★ ★ ★ SCATTER 3 မပြည့်ရင် မီးတောက် Scatter ကိုပြန်ဖယ် ★ ★ ★
+    // ================================================================
+    
+    if (totalScatters < 3) {
+        console.log('🔥 Scatter 3 not reached. Removing fire scatters...');
+        document.querySelectorAll('.scatter-fire').forEach(el => {
+            el.classList.remove('scatter-fire');
+            el.style.cssText = '';
+            const img = el.querySelector('img');
+            if (img) {
+                img.src = 'images/sym_scatter.png';  // ← မူလ Scatter ပုံပြန်
+            }
+        });
+    }
+
+    // Remove highlights
     document.querySelectorAll('.scatter-highlight').forEach(el => {
         el.classList.remove('scatter-highlight');
         el.style.boxShadow = '';
@@ -2467,41 +2732,99 @@ async function handleScatterSuspense(scatterResult) {
 
     console.log(`✅ Suspense ပြီးဆုံး။ စုစုပေါင်း Scatter: ${totalScatters}`);
 
-    if (totalScatters >= 3) {
-        const reward = calculateScatterReward(totalScatters);
-        state.scatterQueue.push({
-            type: 'doFreeSpin',
-            count: totalScatters,
-            reward: reward,
-            positions: allPositions
-        });
-    } else {
-        console.log('Scatter 3 မပြည့်ဘူး၊ ပုံမှန်ပြန်သွားမယ်');
-        disableControls(false);
-        
-        state.isSpinning = false;
-        setSpinButtonState(false);
-        
-        if (state.autoSpin && state.autoSpinRemaining > 0) {
-            console.log('🔄 Scatter 2 done. Resuming Auto Spin. Remaining:', state.autoSpinRemaining);
-            state.scatterQueue = [];
-            setTimeout(() => spin(), 500);
-        } else {
-            finalizeAutoSpin();
-        }
-        return;
+   // ================================================================
+    // ★ SCATTER WIN HANDLING ★
+    // ================================================================
+
+    const betAmount = state.bet || 80;
+    console.log('🔍 DEBUG betAmount:', betAmount, 'state.bet:', state.bet);
+    let scatterWin = 0;
+    let winType = '';
+
+    if (typeof state.scatterAccumulatedWin === 'undefined') {
+        state.scatterAccumulatedWin = 0;
     }
 
-    state.isSpinning = false;
+    if (totalScatters >= 3) {
+        if (totalScatters === 3) {
+            scatterWin = betAmount * 3;
+            winType = 'big';
+        } else if (totalScatters === 4) {
+            scatterWin = betAmount * 10;
+            winType = 'super';
+        } else if (totalScatters >= 5) {
+            scatterWin = betAmount * 25;
+            winType = 'mega';
+        }
+
+        console.log(`🎯 Scatter ${totalScatters} win: ${scatterWin} KS (${winType}) | betAmount: ${betAmount} × ${totalScatters === 3 ? 3 : totalScatters === 4 ? 10 : 25}`);
+
+        // ★★★ Scatter Win ကို Win Box ထဲထား (Balance မပေါင်းဘူး) ★★★
+        if (typeof state.freeSpinWinBoxTotal === 'undefined') {
+            state.freeSpinWinBoxTotal = 0;
+        }
+        state.freeSpinWinBoxTotal += scatterWin;
+
+        // ★★★ Win Box UI update ★★★
+        updateUI();
+        updateWinBox(state.freeSpinWinBoxTotal);
+
+        // ★★★ Scatter Notification ★★★
+        showScatterNotification(totalScatters, scatterWin, winType);
+
+        // Scatter Win Data ကို သတ်မှတ်မယ်
+        const scatterWinData = {
+            count: totalScatters,
+            winAmount: scatterWin,
+            winType: winType
+        };
+
+        // ★★★ Win Animation ခေါ် (Balance မပေါင်းဘူး) ★★★
+        if (winType) {
+            triggerWinAnimation({
+                totalWin: scatterWin,
+                winCells: [],
+                winLines: [{ 
+                    symbol: `SCATTER ${totalScatters}`, 
+                    count: totalScatters, 
+                    ways: 0, 
+                    win: scatterWin 
+                }]
+            });
+        }
+
+        // ★ Free Spin ကိုဆက်သွားမယ် ★
+        const reward = SCATTER_REWARDS[Math.min(totalScatters, 5)];
+        if (reward) {
+            state.scatterQueue.push({
+                type: 'freeSpin',
+                count: totalScatters,
+                reward: reward,
+                positions: allPositions,
+                scatterWin: scatterWin,
+                winType: winType,
+                scatterWinData: scatterWinData
+            });
+        }
+
+    } else {
+        console.log(`ℹ️ Scatter ${totalScatters} only - no win, no free spin`);
+    }
+
+    // ================================================================
+    // ★ ★ ★ CONTINUE - processScatterQueue ကိုခေါ်မယ် ★ ★ ★
+    // ================================================================
 
     if (state.scatterQueue.length > 0) {
-        await processScatterQueue();
+        console.log('📦 Processing scatter queue...');
+        await processScatterQueue();  // ← ဒီမှာ ခေါ်တယ်
     } else {
+        console.log('✅ No queue, continuing...');
         disableControls(false);
         setSpinButtonState(false);
-        
+
         if (state.autoSpin && state.autoSpinRemaining > 0) {
-            console.log('🔄 Scatter done (no queue). Resuming Auto Spin. Remaining:', state.autoSpinRemaining);
+            console.log('🔄 Resuming Auto Spin. Remaining:', state.autoSpinRemaining);
             setTimeout(() => spin(), 500);
         } else {
             finalizeAutoSpin();
@@ -2509,11 +2832,10 @@ async function handleScatterSuspense(scatterResult) {
     }
 }
 
-// ================================================================
+ //===================================================
 // FIRE FRAME BORDER FOR SUSPENSE COLUMNS (FULL SET)
 // ================================================================
 
-// ---- Load fire frame image ----
 let fireFrameImage = null;
 
 function loadFireFrameImage() {
@@ -2540,7 +2862,6 @@ function loadFireFrameImage() {
     });
 }
 
-// ---- Apply fire frame to a single column ----
 function applyFireFrameToColumn(colIndex) {
     const reel = document.getElementById('reel' + colIndex);
     if (!reel) return;
@@ -2554,19 +2875,16 @@ function applyFireFrameToColumn(colIndex) {
     
     const rect = reel.getBoundingClientRect();
     
-    // ★ Reel တစ်ခုရဲ့ အမြင့်ကို ယူမယ် ★
+   
     const reelHeight = rect.height;
     
-    // ★ Img တစ်ခုစာလောက် ထပ်တိုးမယ် ★
-    // (အပေါ်မှာ တစ်ဝက်၊ အောက်မှာ တစ်ဝက်)
-    const extraHeight = reelHeight;  // Reel တစ်ခုလုံးအမြင့်လောက် ထပ်တိုး
+    const extraHeight = reelHeight;  
     
-    const reelWidth = rect.width * 1.1;  // ဘေးနည်းနည်းပိုကျယ်
-    const totalHeight = reelHeight + extraHeight;  // စုစုပေါင်း height
+    const reelWidth = rect.width * 1.1; 
+    const totalHeight = reelHeight + extraHeight;
     
     const padding = 20;
     
-    // ★ Canvas size သတ်မှတ် ★
     const canvas = document.createElement('canvas');
     canvas.className = 'fire-frame-overlay';
     canvas.dataset.col = colIndex;
@@ -2625,7 +2943,7 @@ function applyFireFrameToColumn(colIndex) {
     
     console.log(`🔥 Fire frame applied to reel ${colIndex}: ${canvas.width}x${canvas.height}`);
 }
-// ---- Remove fire frame from a column ----
+
 function removeFireFrameFromColumn(colIndex) {
     const reel = document.getElementById('reel' + colIndex);
     if (!reel) return;
@@ -2641,7 +2959,6 @@ function removeFireFrameFromColumn(colIndex) {
     reel.classList.remove('suspense-column-css');
 }
 
-// ---- ★★ APPLY FIRE FRAMES TO MULTIPLE COLUMNS ★★ ----
 function applySuspenseFireToReels(activeColumns) {
     // If no columns, return
     if (!activeColumns || activeColumns.length === 0) return;
@@ -2659,7 +2976,6 @@ function applySuspenseFireToReels(activeColumns) {
     });
 }
 
-// ---- Remove all fire frames ----
 function removeAllFireFrames() {
     document.querySelectorAll('.fire-frame-overlay').forEach(el => {
         el.style.opacity = '0';
@@ -2696,8 +3012,9 @@ async function runFreeSpinLoop() {
     }
 }
 
+
 // ================================================================
-// RUN ONE FREE SPIN (FIXED - Wait for Win Animation)
+// RUN ONE FREE SPIN (FIXED - Multiplier Check)
 // ================================================================
 
 async function runOneFreeSpin() {
@@ -2716,62 +3033,146 @@ async function runOneFreeSpin() {
     updateConsecutiveWins(winResult.totalWin);
 
     if (winResult.totalWin > 0) {
-        state.totalWin = winResult.totalWin;
-        state.freeSpinTotalWin += winResult.totalWin;
+        let winAmount = winResult.totalWin;
+        
+        // ★ ★ ★ Multiplier ကို checkWins() မှာ မြှောက်ပြီးသားလား စစ် ★ ★ ★
+        // checkWins() က multiplier မြှောက်ပြီးသားဆိုရင် ဒီမှာ ထပ်မြှောက်တော့ဘူး
+        // checkWins() က multiplier မြှောက်မထားရင် ဒီမှာ မြှောက်
+        
+        // ★ ★ ★ ဒီမှာ multiplier ထည့်မယ် (checkWins() က မြှောက်မထားရင်) ★ ★ ★
+        // if (state.freeSpinMultiplier > 1) {
+        //     winAmount = winAmount * state.freeSpinMultiplier;
+        //     console.log('💰 Multiplier applied:', state.freeSpinMultiplier, 'x →', winAmount);
+        // }
 
+        state.totalWin = winAmount;
+        
+        // ★ ★ ★ Win Box ထဲမှာ ပေါင်းမယ် ★ ★ ★
+        // ★★★ BUG FIX #2: Ensure freeSpinWinBoxTotal is initialized ★★★
+        if (typeof state.freeSpinWinBoxTotal === 'undefined') {
+            state.freeSpinWinBoxTotal = 0;
+        }
+        state.freeSpinWinBoxTotal += winAmount;
+        state.freeSpinTotalWin += winAmount;
+
+        // ★ ★ ★ UPDATE UI ★ ★ ★
         updateUI();
+        updateWinBox(state.freeSpinWinBoxTotal);
+
         highlightWins(winResult.winCells);
         animateWinLines(winResult.winCells);
-
-        // ★ WIN ANIMATION ပြီးမှ ဆက်သွားမယ် ★
-        const winDuration = triggerWinAnimation(winResult);
-        await delay(winDuration);  // ← ဒီဟာကို ထည့်လိုက်တယ်
     }
 
     state.isSpinning = false;
 }
 
+
+// ================================================================
+// END FREE SPINS (FIXED - Remove duplicate Win Animation)
+// ================================================================
+
 async function endFreeSpins() {
-    const totalWinAmount = state.freeSpinTotalWin;
+    // ★ Win Box ထဲက Total Win ★
+    const totalWinAmount = state.freeSpinWinBoxTotal || 0;
+
+    console.log('💰 Free Spin Total Win (from Win Box):', totalWinAmount);
 
     state.isFreeSpin = false;
     state.freeSpinMultiplier = 1;
     state.freeSpins = 0;
 
     if (totalWinAmount > 0) {
+        // ★★★ Step 1: Show Summary Box first (5 seconds) ★★★
+        await delay(300);
+        showAutoSpinSummary(totalWinAmount, state.freeSpinOriginalCount);
+        await delay(5200);  // Wait for summary to finish
+
+        // ★★★ Step 2: Win Animation ပေါ် (တစ်ခါပဲ) ★★★
+        const winInfo = getWinType(totalWinAmount);
+        if (winInfo.type) {
+            await triggerWinAnimation({
+                totalWin: totalWinAmount,
+                winCells: [],
+                winLines: [{ 
+                    symbol: 'FREE SPIN TOTAL', 
+                    count: 0, 
+                    ways: 0, 
+                    win: totalWinAmount 
+                }]
+            });
+        }
+
+        // ★★★ Step 3: Balance ထဲ ငွေပေါင်း (နောက်ဆုံး) ★★★
         state.balance += totalWinAmount;
         notifyWinToLobby(totalWinAmount);
     }
 
-    updateUI();
     hideFreeSpinIndicator();
 
-    if (totalWinAmount > 0) {
-        showAutoSpinSummary(totalWinAmount, state.freeSpinOriginalCount || 10);
-        await delay(800);
-        triggerWinAnimation({
-            totalWin: totalWinAmount,
-            winCells: [],
-            winLines: []
-        });
-    }
-
+    // ================================================================
+    // ★ ★ ★ CLEANUP အားလုံးပြီးမှ UI UPDATE ★ ★ ★
+    // ================================================================
+    
     state.accumulatedWin = 0;
     state.totalWin = 0;
     state.freeSpinTotalWin = 0;
-    state.freeSpinBaseWin = 0;
-    state.freeSpinOriginalCount = 0;
+    state.freeSpinWinBoxTotal = 0;
+    state.freeSpinScatterWinType = '';
+    state.scatterAccumulatedWin = 0;
 
+    // ★ ★ ★ Win Box ကိုရှင်း ★ ★ ★
+    updateWinBox(0);
     updateUI();
+
     console.log('✅ Free Spins finished. Total won:', totalWinAmount);
+
+    // Auto Spin ကျန်နေသေးရင် ဆက်လည်
+    state.isSpinning = false;
+    setSpinButtonState(false);
+    disableControls(false);
+
+    if (state.autoSpin && state.autoSpinRemaining > 0) {
+        console.log('🔄 Resuming Auto Spin. Remaining:', state.autoSpinRemaining);
+        setTimeout(() => spin(), 500);
+    } else {
+        finalizeAutoSpin();
+    }
 }
 
 // ================================================================
-// FREE SPIN TRIGGER (FIXED - Popup closes first)
+// UPDATE UI (FIXED - Check Free Spin)
+// ================================================================
+function updateUI() {
+    const balanceEl = document.getElementById('balance');
+    const betEl = document.getElementById('bet-display');
+    const winEl = document.getElementById('win-display');
+    const betBottom = document.getElementById('bet-value-1');
+    const winBottom = document.getElementById('win-value-1');
+
+    if (balanceEl) balanceEl.textContent = state.balance.toLocaleString();
+    if (betEl) betEl.textContent = state.bet;
+    if (betBottom) betBottom.textContent = state.bet;
+
+    // ★ ★ ★ WIN BOX - Free Spin စစ်မယ် ★ ★ ★
+    if (state.isFreeSpin) {
+        // ★★★ BUG FIX #2: Ensure freeSpinWinBoxTotal exists ★★★
+        const winAmount = state.freeSpinWinBoxTotal || 0;
+        if (winEl) winEl.textContent = winAmount.toLocaleString();
+        if (winBottom) winBottom.textContent = winAmount.toLocaleString();
+    } else {
+        if (winEl) winEl.textContent = state.totalWin.toLocaleString();
+        if (winBottom) winBottom.textContent = state.totalWin.toLocaleString();
+    }
+}
+
+// ================================================================
+// START FREE SPIN MODE (FIXED - Show Notification AFTER Animation)
 // ================================================================
 
-async function startFreeSpinMode(scatterCount, reward) {
-    // 1. Setup state
+async function startFreeSpinMode(scatterCount, reward, scatterWinData) {
+    console.log('🎰 Starting Free Spin Mode...');
+
+    // Setup state
     state.isFreeSpin = true;
     state.freeSpins = reward.spins;
     state.freeSpinOriginalCount = reward.spins;
@@ -2779,21 +3180,63 @@ async function startFreeSpinMode(scatterCount, reward) {
     state.freeSpinTotalWin = 0;
     state.accumulatedWin = 0;
 
-    // 2. Play animation
+    // Scatter Win ကို Win Box ထဲ စထည့်
+    if (typeof state.freeSpinWinBoxTotal === 'undefined') {
+        state.freeSpinWinBoxTotal = 0;
+    }
+    state.freeSpinWinBoxTotal = state.scatterAccumulatedWin || 0;
+    updateWinBox(state.freeSpinWinBoxTotal);
+    updateUI();
+
     SoundManager.noti();
+
+    // ================================================================
+    // ★ ★ ★ 1. Scatter Animation ကိုအရင်ပြ (၃.၃ စက္ကန့်) ★ ★ ★
+    // ================================================================
     await playScatterFreeSpinAnimation();
 
-    // 3. ★ SHOW POPUP AND WAIT FOR IT TO CLOSE ★
+    // ================================================================
+    // ★ ★ ★ 2. Animation ပြီးရင် Notification ကိုပြ (၃ စက္ကန့်) ★ ★ ★
+    // ================================================================
+    if (scatterWinData && scatterWinData.winAmount > 0) {
+        showScatterNotification(
+            scatterWinData.count,
+            scatterWinData.winAmount,
+            scatterWinData.winType,
+            3000
+        );
+    }
+
+    // ★ ★ ★ SHOW POPUP AND WAIT ★ ★ ★
     await showFreeSpinPopupAndWait(reward.spins, reward.multiplier);
 
-    // 4. ★ POPUP CLOSED → NOW START FREE SPINS ★
+    // Run free spin loop
     await runFreeSpinLoop();
+
+    // End and cleanup
     await endFreeSpins();
 
     state.isSpinning = false;
     disableControls(false);
     setSpinButtonState(false);
 }
+// ================================================================
+// UPDATE WIN BOX (With Animation)
+// ================================================================
+
+function updateWinBox(amount) {
+    const winEl = document.getElementById('winAmount');
+    if (!winEl) return;
+    
+    winEl.textContent = amount.toLocaleString();
+    
+    // ★ ငွေပြောင်းတိုင်း လှုပ်ရှားမှု ★
+    winEl.style.animation = 'none';
+    setTimeout(() => {
+        winEl.style.animation = 'popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+    }, 10);
+}
+
 
 // ================================================================
 // POPUP WITH PROMISE (WAIT UNTIL CLOSED)
@@ -2911,12 +3354,91 @@ function showExtraFreeSpinAnimation(extra) {
 
 
 // ================================================================
-// SCATTER FREE SPIN ANIMATION (FIXED - All Scatters)
+// SHOW SCATTER NOTIFICATION (FIXED - Auto Close)
+// ================================================================
+
+function showScatterNotification(count, winAmount, winType, duration) {
+    // ★ Default duration 3000ms
+    const notiDuration = duration || 7000;
+
+    const popup = document.getElementById('scatterNotiPopup');
+    if (!popup) {
+        console.warn('⚠️ scatterNotiPopup not found');
+        return;
+    }
+
+    // Update content
+    document.getElementById('scatterCountDisplay').textContent = count;
+    document.getElementById('scatterWinAmount').textContent = winAmount.toLocaleString();
+
+    // Win Type
+    const badge = document.getElementById('scatterWinBadge');
+    const typeText = document.getElementById('scatterWinTypeText');
+    const colors = {
+        'big': { color: '#00ff88', label: 'BIG WIN' },
+        'super': { color: '#ff6600', label: '🔥 SUPER WIN' },
+        'mega': { color: '#ff0044', label: '💎 MEGA WIN' }
+    };
+
+    if (winType && colors[winType]) {
+        badge.style.display = 'inline-block';
+        badge.style.borderColor = colors[winType].color;
+        badge.style.color = colors[winType].color;
+        badge.style.background = `linear-gradient(135deg, ${colors[winType].color}33, ${colors[winType].color}11)`;
+        typeText.textContent = colors[winType].label;
+    } else {
+        badge.style.display = 'none';
+    }
+
+    // Reset progress bar
+    const progress = document.getElementById('scatterNotiProgress');
+    if (progress) {
+        progress.style.animation = 'none';
+        setTimeout(() => {
+            progress.style.animation = `progressShrink ${notiDuration/1000}s linear forwards`;
+        }, 10);
+    }
+
+    // Show popup
+    popup.style.display = 'flex';
+    popup.classList.remove('hidden');
+
+    // Play sound
+    if (typeof SoundManager !== 'undefined') {
+        if (winType === 'mega' && SoundManager.congratulations) {
+            SoundManager.congratulations();
+        } else if (winType === 'super' && SoundManager.noti) {
+            SoundManager.noti();
+        } else if (SoundManager.noti) {
+            SoundManager.noti();
+        }
+    }
+
+    // ★ ★ ★ AUTO CLOSE AFTER DURATION ★ ★ ★
+    clearTimeout(window._scatterNotiTimer);
+    window._scatterNotiTimer = setTimeout(function() {
+        closeScatterNotification();
+    }, notiDuration);
+}
+
+function closeScatterNotification() {
+    console.log('🔴 closeScatterNotification called');
+    const popup = document.getElementById('scatterNotiPopup');
+    if (popup) {
+        popup.style.display = 'none';
+        popup.classList.add('hidden');
+    }
+    clearTimeout(window._scatterNotiTimer);
+}
+
+// ================================================================
+// SCATTER FREE SPIN ANIMATION (FIXED - Returns Duration)
 // ================================================================
 
 function playScatterFreeSpinAnimation() {
     return new Promise(resolve => {
-        const positions = checkScatters().positions;  // Scatter အကုန်ယူတယ်
+        const positions = checkScatters().positions;
+        const ANIMATION_DURATION = 4000;  // ★ Duration ကိုသိမ်းထား
 
         const overlay = document.createElement('div');
         overlay.id = 'scatter-pro-overlay';
@@ -2935,8 +3457,6 @@ function playScatterFreeSpinAnimation() {
         text.textContent = 'SCATTER FREE SPIN!';
         overlay.appendChild(text);
 
-        // ★ Scatter အကုန်လုံးကို ပြောင်းပြီး animate လုပ် ★
-        // (အရင်က slice(0,3) နဲ့ ၃ ခုပဲပြတာ)
         positions.forEach((pos, index) => {
             const reel = document.getElementById('reel' + pos.col);
             if (!reel || !reel.children[pos.row]) return;
@@ -2965,16 +3485,16 @@ function playScatterFreeSpinAnimation() {
 
         createScatterParticles();
 
+        // ★ ★ ★ ANIMATION_DURATION ကိုသုံးပြီး resolve ★ ★ ★
         setTimeout(() => {
             overlay.remove();
             document.querySelectorAll('.scatter-highlight').forEach(el => {
                 el.classList.remove('scatter-highlight');
             });
-            resolve();
-        }, 3300);
+            resolve(ANIMATION_DURATION);  // ← Duration ကိုပြန်ပေး
+        }, ANIMATION_DURATION);
     });
 }
-
 function createScatterParticles() {
     for (let i = 0; i < 90; i++) {
         const p = document.createElement('div');
@@ -2991,15 +3511,18 @@ function createScatterParticles() {
     }
 }
 
+
 // ================================================================
-// PROCESS SCATTER QUEUE (FIXED - Better Resume)
+// PROCESS SCATTER QUEUE (FIXED - Handle freeSpin)
 // ================================================================
 
 async function processScatterQueue() {
+    console.log('📦 Processing scatter queue. Size:', state.scatterQueue.length);
+    
     if (state.scatterQueue.length === 0) {
-        // ★ Queue ကုန်ရင် Auto Spin ကျန်နေသေးရင် ဆက်လည် ★
+        console.log('✅ Queue empty, finalizing...');
         if (state.autoSpin && state.autoSpinRemaining > 0) {
-            console.log('🔄 Queue done. Resuming Auto Spin. Remaining:', state.autoSpinRemaining);
+            console.log('🔄 Resuming Auto Spin. Remaining:', state.autoSpinRemaining);
             state.isSpinning = false;
             setSpinButtonState(false);
             disableControls(false);
@@ -3011,33 +3534,39 @@ async function processScatterQueue() {
     }
 
     const item = state.scatterQueue.shift();
+    console.log('📦 Processing item:', item.type);
+
     state.isSpinning = true;
     setSpinButtonState(true);
     disableControls(true);
 
     try {
-        if (item.type === 'scatter3' || item.type === 'doFreeSpin') {
-            await startFreeSpinMode(item.count, item.reward);
+        if (item.type === 'freeSpin' || item.type === 'scatter3') {
+            console.log('🎰 Starting free spin mode...');
+            await startFreeSpinMode(item.count, item.reward, item.scatterWinData);
         } else if (item.type === 'scatter2') {
+            console.log('🔍 Handling scatter suspense...');
             await handleScatterSuspense(item);
         }
     } catch (error) {
         console.error('Queue processing error:', error);
     }
 
-    // ★ Queue ထဲမှာ ကျန်နေသေးရင် ဆက် process လုပ် ★
+    // Queue မှာ ကျန်နေသေးရင် ဆက်လုပ်
     if (state.scatterQueue.length > 0) {
+        console.log('📦 More items in queue, continuing...');
         setTimeout(() => processScatterQueue(), 500);
         return;
     }
 
-    // ★ Queue ကုန်ပြီ → Auto Spin ကျန်နေသေးရင် ဆက်လည် ★
+    // Queue ကုန်ပြီ
+    console.log('✅ Queue done.');
     state.isSpinning = false;
     setSpinButtonState(false);
     disableControls(false);
 
     if (state.autoSpin && state.autoSpinRemaining > 0) {
-        console.log('🔄 All Scatters done. Resuming Auto Spin. Remaining:', state.autoSpinRemaining);
+        console.log('🔄 Resuming Auto Spin. Remaining:', state.autoSpinRemaining);
         setTimeout(() => spin(), 500);
     } else {
         finalizeAutoSpin();
@@ -3124,7 +3653,11 @@ function finalizeAutoSpin() {
     }
 
      
-   if (state.accumulatedWin > 0) {
+    // ★★★ BUG FIX #3: Save totalSpins BEFORE resetting state ★★★
+    var totalWinAmount = state.accumulatedWin;
+    var totalSpins = state.autoSpinTotal;
+
+    if (state.accumulatedWin > 0) {
         state.balance += state.accumulatedWin;
         notifyWinToLobby(state.accumulatedWin);
     }
@@ -3140,20 +3673,27 @@ function finalizeAutoSpin() {
     closeAutoSpinPopup();
     updateUI();
 
-    var totalWinAmount = state.accumulatedWin;
-    var totalSpins = state.autoSpinTotal;
-
+    // ★★★ Show Auto Spin Summary popup (Total box) ★★★
+    // Summary ပြီးရင် Win Animation ခေါ်မယ်
     if (totalWinAmount > 0) {
         showAutoSpinSummary(totalWinAmount, totalSpins);
-        setTimeout(function() {
-            if (totalWinAmount > 0) {
+
+        // Summary 5s ပြီးရင် Win Animation
+        const winInfo = getWinType(totalWinAmount);
+        if (winInfo.type) {
+            setTimeout(() => {
                 triggerWinAnimation({
                     totalWin: totalWinAmount,
                     winCells: [],
-                    winLines: []
+                    winLines: [{ 
+                        symbol: 'AUTO SPIN TOTAL', 
+                        count: 0, 
+                        ways: 0, 
+                        win: totalWinAmount 
+                    }]
                 });
-            }
-        }, 600);
+            }, 5200);  // Summary 5s + 200ms buffer
+        }
     }
 
     state.accumulatedWin = 0;
@@ -3281,8 +3821,10 @@ function showAutoSpinSummary(totalWin, totalSpins) {
     }, 5000);
 }
 
+
+
 // ================================================================
-//18. MAIN SPIN FUNCTION (FIXED - async)
+// MAIN SPIN FUNCTION (FIXED - async)
 // ================================================================
 
 async function spin() {   // ← ★ ADD 'async' HERE ★
@@ -3331,9 +3873,9 @@ async function spin() {   // ← ★ ADD 'async' HERE ★
             notifyWinToLobby(winResult.totalWin);
             highlightWins(winResult.winCells);
             animateWinLines(winResult.winCells);
-            winDuration = triggerWinAnimation(winResult);
+            // ★★★ BUG FIX #1: triggerWinAnimation returns Promise, must await it ★★★
+            await triggerWinAnimation(winResult);
             updateUI();
-            await delay(winDuration);
         }
     } else if (rules.houseWin) {
         console.log('💀 HOUSE WIN (Ch1) - Phase triggered!');
@@ -3341,27 +3883,77 @@ async function spin() {   // ← ★ ADD 'async' HERE ★
 
     // ============================================================
     // SCATTER HANDLING (FIXED - No await inside non-async)
-    // ============================================================
-
-    // ---- SCATTER 3+ ----
-    if (scatterResult.count >= 3 && !state.isFreeSpin) {
-        SoundManager.noti();
-        const reward = SCATTER_REWARDS[Math.min(scatterResult.count, 5)];
-
+    // ==============================================
+         // ---- SCATTER 3+ (ချက်ချင်းပေးမယ်) ----
+if (scatterResult.count >= 3 && !state.isFreeSpin) {
+    console.log('🎯 Scatter 3+ detected! Count:', scatterResult.count);
+    
+    // ★ Scatter Win တွက်
+    const betAmount = state.bet || 80;
+    let scatterWin = 0;
+    let winType = '';
+    
+    if (scatterResult.count === 3) {
+        scatterWin = betAmount * 3;
+        winType = 'big';
+    } else if (scatterResult.count === 4) {
+        scatterWin = betAmount * 10;
+        winType = 'super';
+    } else if (scatterResult.count >= 5) {
+        scatterWin = betAmount * 25;
+        winType = 'mega';
+    }
+    
+    console.log(`🎯 Scatter ${scatterResult.count} win: ${scatterWin} KS (${winType})`);
+    
+    // ★ ★ ★ Scatter Win ကို Win Box ထဲထည့် (Balance မပေါင်းရသေး) ★ ★ ★
+    if (typeof state.freeSpinWinBoxTotal === 'undefined') {
+        state.freeSpinWinBoxTotal = 0;
+    }
+    state.freeSpinWinBoxTotal += scatterWin;
+    updateWinBox(state.freeSpinWinBoxTotal);
+    updateUI();
+    
+    // ★ Scatter Notification ပြ
+    showScatterNotification(scatterResult.count, scatterWin, winType);
+    
+    // ★ Win Animation ပြ (Balance မပေါင်းဘူး)
+    if (winType) {
+        triggerWinAnimation({
+            totalWin: scatterWin,
+            winCells: [],
+            winLines: [{ 
+                symbol: `SCATTER ${scatterResult.count}`, 
+                count: scatterResult.count, 
+                ways: 0, 
+                win: scatterWin 
+            }]
+        });
+    }
+    
+    // ★ Free Spin ကိုဆက်သွား
+    const reward = SCATTER_REWARDS[Math.min(scatterResult.count, 5)];
+    if (reward) {
         state.scatterQueue.push({
-            type: 'scatter3',
+            type: 'freeSpin',
             count: scatterResult.count,
             reward: reward,
-            positions: scatterResult.positions
+            positions: scatterResult.positions,
+            scatterWin: scatterWin,
+            winType: winType,
+            scatterWinData: {
+                count: scatterResult.count,
+                winAmount: scatterWin,
+                winType: winType
+            }
         });
-        console.log('📦 Scatter 3 queued. Size:', state.scatterQueue.length);
-
-        // ★ Process queue and RETURN (don't continue) ★
-        state.isSpinning = false;
-        setSpinButtonState(false);
-        await processScatterQueue();  // ← await ကို async function ထဲမှာသုံးလို့ရပြီ
-        return;
     }
+    
+    state.isSpinning = false;
+    setSpinButtonState(false);
+    await processScatterQueue();
+    return;
+}
 
     // ---- SCATTER 2+ (Suspense) ----
     if (scatterResult.count >= 2 && !state.isFreeSpin) {
@@ -3448,6 +4040,7 @@ async function spin() {   // ← ★ ADD 'async' HERE ★
     state.isSpinning = false;
     setSpinButtonState(false);
 }
+
 // ================================================================
 // 19. BET CONTROLS
 // ================================================================
@@ -3571,71 +4164,87 @@ function initButtonSounds() {
 
 // ================================================================
 // 23. NOTIFICATION
-// ================================================================
+// ===============================================================
+// ============================================
+// EVENT LISTENERS (FIXED)
+// ============================================
 
-function showNotification(message, type) {
-    var old = document.getElementById('game-notification');
-    if (old) old.remove();
-
-    var noti = document.createElement('div');
-    noti.id = 'game-notification';
-    noti.style.cssText = `
-        position:fixed; top:50%; left:50%; transform:translate(-50%, -50%);
-        z-index:9999999; background:rgba(0,0,0,0.85); color:white;
-        padding:20px 40px; border-radius:16px; font-size:24px; font-weight:bold;
-        text-align:center; backdrop-filter:blur(8px); box-shadow:0 10px 40px rgba(0,0,0,0.6);
-        border:3px solid ${type === 'error' ? '#ff4757' : '#2ed573'};
-        color: ${type === 'error' ? '#ff6b81' : '#7bed9f'};
-        min-width:200px; pointer-events:none;
-    `;
-    noti.textContent = message;
-    document.body.appendChild(noti);
-
-    setTimeout(function() { if (noti.parentNode) noti.remove(); }, 2000);
-}
-
-// ================================================================
-// 24. EVENT LISTENERS & INIT
-// ================================================================
-
-// ---- Lobby message listener ----
+// ---- (၁) Lobby မှ လာတဲ့ Message တွေကို လက်ခံတဲ့ Listener ----
 window.addEventListener('message', function(event) {
     const data = event.data;
     if (!data || !data.type) return;
 
+    // Lobby က SYNC_BALANCE လက်ခံရင် balance ကို update လုပ်
     if (data.type === 'SYNC_BALANCE' && data.game === 'superWays') {
         state.balance = data.balance;
         updateUI();
         console.log('✅ Balance synced from Lobby:', state.balance);
     }
 
+    // Lobby က REQUEST_BALANCE ပို့ရင် ပြန်ပို့ပေး
     if (data.type === 'REQUEST_BALANCE' && data.game === 'superWays') {
         syncBalanceToLobby(state.balance);
     }
 });
 
-// ---- DOM Ready ----
+// ===== DOMContentLoaded - ALL IN ONE =====
 document.addEventListener('DOMContentLoaded', function() {
+    
+    // ============================================
+    // 1. ANTI-COPY PROTECTION
+    // ============================================
+    
+    // Anti-Copy
+    document.addEventListener('copy', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+    }, false);
 
-    // ---- Anti-Copy Protection ----
-    document.addEventListener('copy', function(e) { e.preventDefault(); e.stopPropagation(); return false; }, false);
-    document.addEventListener('cut', function(e) { e.preventDefault(); e.stopPropagation(); return false; }, false);
-    document.addEventListener('contextmenu', function(e) { e.preventDefault(); e.stopPropagation(); return false; }, true);
-    document.addEventListener('dragstart', function(e) { e.preventDefault(); e.stopPropagation(); return false; }, true);
-    document.addEventListener('mousedown', function(e) { if (e.detail > 1) e.preventDefault(); }, false);
+    // Anti-Cut
+    document.addEventListener('cut', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+    }, false);
+
+    // Anti-Right Click
+    document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+    }, true);
+
+    // Anti-Drag Images
+    document.addEventListener('dragstart', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+    }, true);
+
+    // Anti-Double Click
+    document.addEventListener('mousedown', function(e) {
+        if (e.detail > 1) e.preventDefault();
+    }, false);
+
+    // Anti-Key Combo
     document.addEventListener('keydown', function(e) {
-        if ((e.ctrlKey || e.metaKey) && ['c', 'x', 'a', 's', 'p'].includes(e.key)) {
+        if ((e.ctrlKey || e.metaKey) && ['c','x','a','s','p'].includes(e.key)) {
             e.preventDefault();
             e.stopPropagation();
             return false;
         }
     }, false);
 
+    // Disable draggable on all existing images
     document.querySelectorAll('img').forEach(img => {
         img.setAttribute('draggable', 'false');
     });
 
-    // ---- Game Init ----
+    // ============================================
+    // 2. GAME INITIALIZATION
+    // ============================================
+    
     const frameImg = document.querySelector('#slot-frame img');
 
     function initGame() {
@@ -3643,8 +4252,10 @@ document.addEventListener('DOMContentLoaded', function() {
         renderReels();
         updateUI();
         initWinAnimation();
+
+        // Lobby က balance ကို အရင်ဆုံး တစ်ခါတောင်းမယ်
         requestBalanceFromLobby();
-        loadFireFrameImage();
+
         if (typeof SoundManager !== 'undefined') {
             SoundManager.init();
             SoundManager.playBGM();
@@ -3659,877 +4270,799 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         initGame();
     }
+    
 });
 
- 
+
 // ================================================================
-// WinAnimation.js - Casino Win Effect Module v18 (FIXED)
+// WinAnimation.js — Ultra Premium Smooth Smart v3
+// Pure Canvas + Vanilla JavaScript
 // ================================================================
 
 class WinAnimation {
-    constructor(canvasId, options = {}) {
-        this.canvas = document.getElementById(canvasId);
-        if (!this.canvas) {
-            throw new Error(`Canvas #${canvasId} not found!`);
+  constructor(canvasId, options = {}) {
+    this.canvas = document.getElementById(canvasId);
+    if (!this.canvas) throw new Error(`Canvas #${canvasId} not found`);
+
+    this.ctx = this.canvas.getContext('2d');
+
+    const isMobile = matchMedia('(pointer: coarse)').matches || innerWidth <= 768;
+    const isLowEnd = (navigator.hardwareConcurrency || 4) <= 4 || (navigator.deviceMemory || 4) <= 4;
+    const perf = isLowEnd ? 0.72 : isMobile ? 0.88 : 1;
+
+    this.options = {
+      duration: options.duration || 7000,
+      scoreDelay: options.scoreDelay ?? 5,
+      scoreDuration: options.scoreDuration || 30,
+      coinCount: options.coinCount || Math.round(170 * perf),
+      maxCoins: options.maxCoins || Math.round(240 * perf),
+      sparkleCount: options.sparkleCount || Math.round(85 * perf),
+      shardCount: options.shardCount || Math.round(22 * perf),
+      confettiCount: options.confettiCount || Math.round(42 * perf),
+      quality: options.quality || 'auto',
+      allowSkip: options.allowSkip ?? true,
+      coinScale: options.coinScale || 1.45,
+      coinFrontRatio: options.coinFrontRatio ?? 0.32,
+      coinCols: options.coinCols || 4,
+      coinRows: options.coinRows || 4,
+      ...options
+    };
+
+    this.isMobile = isMobile;
+    this.isLowEnd = isLowEnd;
+    this.images = {};
+    this.loaded = false;
+    this.active = false;
+    this.type = 'mega';
+    this.timer = 0;
+    this.targetScore = 1000000;
+    this.displayScore = 0;
+    this.flash = 0;
+    this.shake = 0;
+    this.ringRotation = 0;
+    this.ringPulse = 0;
+    this.onComplete = null;
+    this.onStart = null;
+    this._stopTimer = null;
+
+    this.coinsBack = [];
+    this.coinsFront = [];
+    this.sparkles = [];
+    this.shards = [];
+    this.shockwaves = [];
+    this.confetti = [];
+
+    this.resize();
+    addEventListener('resize', () => this.resize());
+
+    this.canvas.addEventListener('pointerdown', () => {
+      if (this.active && this.options.allowSkip) {
+        this.displayScore = this.targetScore;
+        this.stop();
+      }
+    });
+
+    this.loop();
+  }
+
+  resize() {
+    const parent = this.canvas.parentElement;
+    const cssW = parent?.clientWidth || innerWidth;
+    const cssH = parent?.clientHeight || innerHeight;
+
+    this.dpr = 1;
+    this.canvas.width = cssW;
+    this.canvas.height = cssH;
+    this.canvas.style.width = cssW + 'px';
+    this.canvas.style.height = cssH + 'px';
+    this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+    this.w = cssW;
+    this.h = cssH;
+    this.cx = cssW / 2;
+    this.cy = cssH / 2;
+    this.baseScale = Math.max(.38, Math.min(1, Math.min(cssW / 900, cssH / 900) + .14));
+  }
+
+  getTheme() {
+    const themes = {
+      big: { winKey: 'winBig', a: '#00e86f', b: '#8dffc2', c: '#ffe66b', glow: 'rgba(0,232,111,.95)', score: 250000 },
+      mega: { winKey: 'winMega', a: '#ff3f4b', b: '#ff9b57', c: '#ffe66b', glow: 'rgba(255,63,75,.95)', score: 1000000 },
+      super: { winKey: 'winSuper', a: '#4b8dff', b: '#76efff', c: '#da7dff', glow: 'rgba(75,141,255,.95)', score: 5000000 }
+    };
+    return themes[this.type] || themes.big;
+  }
+
+  getDuration(type) {
+    return { big: 7000, mega: 7000, super: 7000 }[type] || this.options.duration;
+  }
+
+  getParticleConfig(type) {
+    const m = type === 'super' ? 1.25 : type === 'mega' ? 1 : .82;
+    return {
+      coins: Math.min(Math.round(this.options.coinCount * m), this.options.maxCoins),
+      sparkles: Math.round(this.options.sparkleCount * m),
+      shards: Math.round(this.options.shardCount * m),
+      confetti: Math.round(this.options.confettiCount * m)
+    };
+  }
+
+  getQualitySettings() {
+    if (this.options.quality === 'low') return { layers: 1, ring: 18, bright: 22, blur: 10, rays: 12 };
+    if (this.options.quality === 'high') return { layers: 3, ring: 36, bright: 42, blur: 28, rays: 24 };
+    if (this.isMobile || this.isLowEnd) return { layers: 2, ring: 24, bright: 28, blur: 16, rays: 16 };
+    return { layers: 3, ring: 36, bright: 42, blur: 26, rays: 22 };
+  }
+
+  loadImages(map) {
+    return new Promise(resolve => {
+      const entries = Object.entries(map);
+      if (!entries.length) {
+        this.loaded = true;
+        resolve(this.images);
+        return;
+      }
+
+      let done = 0;
+      const finish = () => {
+        done++;
+        if (done === entries.length) {
+          this.loaded = true;
+          resolve(this.images);
         }
-        this.ctx = this.canvas.getContext('2d');
+      };
 
-        this.config = {
-            winDuration: options.winDuration || 350,
-            maxCoins: options.maxCoins || 250,
-            maxSparkles: options.maxSparkles || 150,
-            coinGravity: options.coinGravity || 0.18,
-            coinSpawnRate: options.coinSpawnRate || 5,
-            sparkleSpawnRate: options.sparkleSpawnRate || 6,
-            scoreCountDuration: options.scoreCountDuration || 1000,
-            scoreBoxDelay: options.scoreBoxDelay || 100,
-            riseDuration: options.riseDuration || 40,
-            ...options
-        };
+      for (const [key, src] of entries) {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => { this.images[key] = img; finish(); };
+        img.onerror = () => { console.warn('Failed image:', key, src); finish(); };
+        img.src = src;
+      }
+    });
+  }
 
-        this.winActive = false;
-        this.winTimer = 0;
-        this.winType = 'big';
-        this.score = 0;
-        this.targetScore = 0;
-        this.scoreDisplay = 0;
+  trigger(type = 'mega', score = null, options = {}) {
+    if (this.active) this.stop(false);
 
-        this.images = {};
-        this.loaded = false;
+    this.type = type;
+    const theme = this.getTheme();
+    const particle = this.getParticleConfig(type);
+    const duration = options.duration ?? this.getDuration(type);
 
-        this.coins = [];
-        this.sparkles = [];
-        this.starParticles = [];  // ★ ADD THIS ★
-        this.bgStripes = [];
+    this.active = true;
+    this.timer = 0;
+    this.targetScore = score ?? theme.score;
+    this.displayScore = 0;
+    this.flash = 1;
+    this.shake = type === 'super' ? 18 : type === 'mega' ? 12 : 8;
+    this.ringRotation = 0;
+    this.ringPulse = 1;
 
-        this.onComplete = null;
-        this.onStart = null;
+    this.clearParticles();
 
-        this.resize();
-        window.addEventListener('resize', () => this.resize());
+    this.onStart = options.onStart || null;
+    this.onComplete = options.onComplete || null;
+    if (this.onStart) this.onStart(type, this.targetScore);
 
-        this.loop();
+    for (let i = 0; i < particle.coins; i++) {
+      const coin = new PremiumCoin(
+        this.cx,
+        this.cy,
+        this.baseScale * this.options.coinScale,
+        theme,
+        this.w,
+        this.h,
+        this.options.coinCols,
+        this.options.coinRows
+      );
+      (Math.random() < this.options.coinFrontRatio ? this.coinsFront : this.coinsBack).push(coin);
     }
 
-    // ============================================================
-    // GET WIN CONFIG
-    // ============================================================
-    getWinConfig() {
-        const configs = {
-            big: {
-                bgColor: { r: 20, g: 20, b: 20 },
-                bgColor2: { r: 5, g: 5, b: 5 },
-                stripeColor: 'rgba(255, 255, 255, 0.03)',
-                rayColor: { r: 0, g: 220, b: 60 },
-                textGlow: 'rgba(0, 220, 60, 0.8)',
-                imgKey: 'winBig'
-            },
-            mega: {
-                bgColor: { r: 20, g: 20, b: 20 },
-                bgColor2: { r: 5, g: 5, b: 5 },
-                stripeColor: 'rgba(255, 255, 255, 0.03)',
-                rayColor: { r: 255, g: 40, b: 40 },
-                textGlow: 'rgba(255, 0, 0, 0.8)',
-                imgKey: 'winMega'
-            },
-            super: {
-                bgColor: { r: 20, g: 20, b: 20 },
-                bgColor2: { r: 5, g: 5, b: 5 },
-                stripeColor: 'rgba(255, 255, 255, 0.03)',
-                rayColor: { r: 40, g: 130, b: 255 },
-                textGlow: 'rgba(0, 90, 255, 0.8)',
-                imgKey: 'winSuper'
-            }
-        };
-        return configs[this.winType] || configs.big;
+    for (let i = 0; i < particle.sparkles; i++) this.sparkles.push(new PremiumSpark(this.cx, this.cy, theme));
+    for (let i = 0; i < particle.shards; i++) this.shards.push(new LightShard(this.cx, this.cy, theme));
+
+    this.shockwaves.push(new Shockwave(this.cx, this.cy, theme.a, 12));
+    this.shockwaves.push(new Shockwave(this.cx, this.cy, theme.b, 8));
+
+    for (let i = 0; i < particle.confetti; i++) this.confetti.push(new Confetti(this.cx, this.cy, theme));
+
+    clearTimeout(this._stopTimer);
+    this._stopTimer = setTimeout(() => this.stop(true), duration);
+  }
+
+  stop(runCallback = true) {
+    if (!this.active && !this._stopTimer) return;
+
+    this.active = false;
+    this.displayScore = this.targetScore;
+    clearTimeout(this._stopTimer);
+    this._stopTimer = null;
+
+    this.clearParticles();
+    this.flash = 0;
+    this.shake = 0;
+    this.ringPulse = 0;
+
+    const callback = this.onComplete;
+    this.onStart = null;
+    this.onComplete = null;
+
+    this.ctx.clearRect(0, 0, this.w, this.h);
+    if (runCallback && callback) callback(this.type, this.targetScore);
+  }
+
+  clearParticles() {
+    this.coinsBack.length = 0;
+    this.coinsFront.length = 0;
+    this.sparkles.length = 0;
+    this.shards.length = 0;
+    this.shockwaves.length = 0;
+    this.confetti.length = 0;
+  }
+
+  loop() {
+    requestAnimationFrame(() => this.loop());
+
+    const ctx = this.ctx;
+    ctx.clearRect(0, 0, this.w, this.h);
+    if (!this.active) return;
+
+    this.timer++;
+    const theme = this.getTheme();
+
+    this.flash *= .89;
+    this.shake *= .90;
+    this.ringRotation += this.type === 'super' ? .012 : .009;
+    this.ringPulse *= .965;
+
+    const p = Math.min(
+    Math.max((this.timer - this.options.scoreDelay) / this.options.scoreDuration, 0),
+    1
+);
+this.displayScore = this.targetScore; 
+
+    ctx.save();
+
+    if (this.shake > .4) {
+      ctx.translate((Math.random() - .5) * this.shake, (Math.random() - .5) * this.shake);
     }
 
-    // ============================================================
-    // RESIZE
-    // ============================================================
-    resize() {
-        this.canvas.width = this.canvas.parentElement?.clientWidth || window.innerWidth;
-        this.canvas.height = this.canvas.parentElement?.clientHeight || window.innerHeight;
-        this.cx = this.canvas.width / 2;
-        this.cy = this.canvas.height / 2;
+    this.drawBackground(theme);
+    this.drawRainbowCycle(theme);
+    this.drawArray(this.shockwaves);
+    this.drawArray(this.shards);
+    this.drawArray(this.sparkles);
+    this.drawArray(this.coinsBack, this.images.coins);
+    this.drawArray(this.confetti);
+    this.drawWinImage(theme);
 
-        const minDim = Math.min(this.canvas.width, this.canvas.height);
-        this.isLandscape = this.canvas.width > this.canvas.height;
+    if (this.timer > this.options.scoreDelay) this.drawScoreBox(theme);
 
-        if (this.isLandscape) {
-            this.baseScale = Math.min(1, this.canvas.height / 800);
-        } else {
-            this.baseScale = Math.min(1, this.canvas.width / 500);
-        }
-        this.baseScale = Math.max(this.baseScale, 0.35);
+    this.drawArray(this.coinsFront, this.images.coins);
+    ctx.restore();
+    this.drawPostFX();
+  }
 
-        this.createBgStripes();
+  drawArray(arr, extra) {
+    for (let i = arr.length - 1; i >= 0; i--) {
+      const item = arr[i];
+      item.update();
+      item.draw(this.ctx, extra);
+      if (!item.active) arr.splice(i, 1);
+    }
+  }
+
+  drawBackground(theme) {
+    const ctx = this.ctx;
+    const q = this.getQualitySettings();
+
+    const g = ctx.createRadialGradient(this.cx, this.cy, 20, this.cx, this.cy, Math.max(this.w, this.h) * .8);
+    g.addColorStop(0, '#202638');
+    g.addColorStop(.32, '#0b1020');
+    g.addColorStop(1, '#010208');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, this.w, this.h);
+
+    ctx.save();
+    ctx.translate(this.cx, this.cy);
+    ctx.rotate(this.ringRotation * .15);
+
+    const len = Math.max(this.w, this.h) * .9;
+    for (let i = 0; i < q.rays; i++) {
+      const a = i / q.rays * Math.PI * 2;
+      const rg = ctx.createLinearGradient(0, 0, Math.cos(a) * len, Math.sin(a) * len);
+      rg.addColorStop(0, 'rgba(255,255,255,0)');
+      rg.addColorStop(.28, hexAlpha(theme.a, .10));
+      rg.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = rg;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(Math.cos(a - .045) * len, Math.sin(a - .045) * len);
+      ctx.lineTo(Math.cos(a + .045) * len, Math.sin(a + .045) * len);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  drawRainbowCycle(theme) {
+    const ctx = this.ctx;
+    const q = this.getQualitySettings();
+    const radius = Math.min(this.w, this.h) * .25;
+    const ringWidth = Math.max(18, radius * .15);
+
+    ctx.save();
+    ctx.translate(this.cx, this.cy - 18 * this.baseScale);
+    ctx.rotate(this.ringRotation);
+    ctx.globalCompositeOperation = 'lighter';
+
+    for (let layer = 0; layer < q.layers; layer++) {
+      ctx.save();
+      ctx.rotate(layer * .17);
+      ctx.globalAlpha = .16 - layer * .035;
+      ctx.lineWidth = ringWidth * (2.8 + layer);
+      ctx.shadowBlur = q.blur + layer * 5;
+      ctx.shadowColor = theme.b;
+
+      for (let i = 0; i < q.ring; i++) {
+        const a0 = i / q.ring * Math.PI * 2;
+        const a1 = a0 + Math.PI * 2 / q.ring * .72;
+        ctx.strokeStyle = `hsl(${(i * 15 + this.timer * 2.2 + layer * 35) % 360},100%,62%)`;
+        ctx.beginPath();
+        ctx.arc(0, 0, radius + layer * 12, a0, a1);
+        ctx.stroke();
+      }
+      ctx.restore();
     }
 
-    // ============================================================
-    // CREATE BG STRIPES
-    // ============================================================
-    createBgStripes() {
-        this.bgStripes = [];
-        const stripeCount = 8;
-        for (let i = 0; i < stripeCount; i++) {
-            this.bgStripes.push({
-                offset: (i / stripeCount) * Math.PI * 2,
-                speed: 0.08 + Math.random() * 0.1
-            });
-        }
+    ctx.globalAlpha = .92;
+    ctx.lineWidth = ringWidth;
+    ctx.shadowBlur = q.blur;
+
+    for (let i = 0; i < q.bright; i++) {
+      const a0 = i / q.bright * Math.PI * 2;
+      const a1 = a0 + Math.PI * 2 / q.bright * .62;
+      ctx.strokeStyle = `hsl(${(i * 12.8 + this.timer * 3.1) % 360},100%,67%)`;
+      ctx.shadowColor = ctx.strokeStyle;
+      ctx.beginPath();
+      ctx.arc(0, 0, radius, a0, a1);
+      ctx.stroke();
     }
 
-    // ============================================================
-    // LOAD IMAGES
-    // ============================================================
-    loadImages(imageMap) {
-        return new Promise((resolve) => {
-            let loaded = 0;
-            const total = Object.keys(imageMap).length;
+    ctx.globalAlpha = .42;
+    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = '#fff';
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = '#fff';
+    ctx.beginPath();
+    ctx.arc(0, 0, radius - ringWidth * .72, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  }
 
-            if (total === 0) {
-                this.loaded = true;
-                resolve(this.images);
-                return;
-            }
+  drawWinImage(theme) {
+    const ctx = this.ctx;
+    const img = this.images[theme.winKey];
+    const t = this.timer;
 
-            for (const [key, src] of Object.entries(imageMap)) {
-                const img = new Image();
-                img.crossOrigin = 'anonymous';
+    let scale;
+    if (t < 26) scale = .18 + easeOutBack(t / 26) * 1.08;
+    else if (t < 46) scale = 1.28 - easeOutQuad((t - 26) / 20) * .28;
+    else scale = 1 + Math.sin(t * .055) * .018;
 
-                img.onload = () => {
-                    this.images[key] = img;
-                    loaded++;
-                    console.log(`WinAnimation: Loaded ${key}`);
-                    if (loaded === total) {
-                        this.loaded = true;
-                        resolve(this.images);
-                    }
-                };
+    const y = this.cy - 18 * this.baseScale;
+    const finalScale = scale * this.baseScale * 1.38;
 
-                img.onerror = () => {
-                    console.warn(`WinAnimation: Failed to load ${key}: ${src}`);
-                    loaded++;
-                    if (loaded === total) {
-                        this.loaded = true;
-                        resolve(this.images);
-                    }
-                };
+    ctx.save();
+    ctx.translate(this.cx, y);
 
-                img.src = src;
-            }
-        });
+    const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, 220 * this.baseScale);
+    glow.addColorStop(0, 'rgba(255,255,255,.16)');
+    glow.addColorStop(.18, hexAlpha(theme.a, .24));
+    glow.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(0, 0, 220 * this.baseScale, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.scale(finalScale, finalScale);
+    ctx.shadowBlur = 42 * this.baseScale;
+    ctx.shadowColor = theme.glow;
+
+    if (img) {
+      ctx.drawImage(img, -img.width / 2, -img.height / 2);
+    } else {
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = '900 88px Impact, Arial Black, sans-serif';
+      const tg = ctx.createLinearGradient(-220, 0, 220, 0);
+      tg.addColorStop(0, theme.b);
+      tg.addColorStop(.45, '#fff');
+      tg.addColorStop(.75, theme.c);
+      tg.addColorStop(1, theme.a);
+      ctx.fillStyle = tg;
+      ctx.fillText(this.type.toUpperCase() + ' WIN', 0, 0);
     }
 
-    // ============================================================
-    // TRIGGER
-    // ============================================================
-    trigger(type, score, options = {}) {
-        if (!this.loaded) {
-            console.warn('WinAnimation: Images not loaded yet!');
-            return;
-        }
+    ctx.restore();
 
-        this.winActive = true;
-        this.winTimer = 0;
-        this.winType = type;
-        this.targetScore = score;
-        this.scoreDisplay = 0;
+    if (t > 48 && t < 112) this.drawWinShine(img, y, finalScale, (t - 48) / 64);
+  }
 
-        this.coins = [];
-        this.sparkles = [];
-        this.starParticles = [];  // ★ RESET STARS ★
+  drawWinShine(img, y, scale, p) {
+    const ctx = this.ctx;
+    const width = img ? img.width * scale : 520 * this.baseScale;
+    const height = img ? img.height * scale : 150 * this.baseScale;
+    const x = -width / 2 + p * width * 1.45;
 
-        const duration = options.duration || this.config.winDuration;
-        this.config.winDuration = duration;
+    ctx.save();
+    ctx.translate(this.cx, y);
+    ctx.beginPath();
+    ctx.rect(-width / 2, -height / 2, width, height);
+    ctx.clip();
+    ctx.rotate(-.22);
+    ctx.globalCompositeOperation = 'lighter';
 
-        this.onComplete = options.onComplete || null;
-        this.onStart = options.onStart || null;
+    const sg = ctx.createLinearGradient(x - 38, -height / 2, x + 38, height / 2);
+    sg.addColorStop(0, 'rgba(255,255,255,0)');
+    sg.addColorStop(.5, 'rgba(255,255,255,.95)');
+    sg.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = sg;
+    ctx.fillRect(x - 60, -height / 2, 120, height);
+    ctx.restore();
+  }
 
-        if (this.onStart) this.onStart(type, score);
+  drawScoreBox(theme) {
+    const ctx = this.ctx;
+    const img = this.images.scoreBox;
+    const p = Math.min(Math.max((this.timer - this.options.scoreDelay) / 20, 0), 1);
+    const scale = .72 + easeOutBack(p) * .28;
+    const y = this.cy + 225 * this.baseScale;
 
-        const burstCount = type === 'super' ? 180 : type === 'mega' ? 160 : 150;
-        for (let i = 0; i < burstCount; i++) {
-            this.coins.push(new CoinParticle(
-                this.cx + (Math.random() - 0.5) * 250 * this.baseScale,
-                this.cy - 80 * this.baseScale,
-                this.config.coinGravity,
-                this.baseScale
-            ));
-        }
+    ctx.save();
+    ctx.translate(this.cx, y);
+    ctx.scale(scale, scale);
+    ctx.globalAlpha = p;
 
-        setTimeout(() => {
-            this.stop();
-        }, (duration / 60) * 1000);
+    if (img) {
+      const sw = img.width * this.baseScale * .72;
+      const sh = img.height * this.baseScale * .72;
+      ctx.shadowBlur = 18;
+      ctx.shadowColor = theme.c;
+      ctx.drawImage(img, -sw / 2, -sh / 2, sw, sh);
+    } else {
+      const bw = 380 * this.baseScale;
+      const bh = 86 * this.baseScale;
+      roundedRect(ctx, -bw / 2, -bh / 2, bw, bh, 24 * this.baseScale);
+      ctx.fillStyle = 'rgba(18,20,30,.88)';
+      ctx.fill();
+      ctx.strokeStyle = theme.c;
+      ctx.lineWidth = 3;
+      ctx.stroke();
     }
 
-    // ============================================================
-    // STOP
-    // ============================================================
-    stop() {
-        this.winActive = false;
-        this.coins = [];
-        this.sparkles = [];
-        this.starParticles = [];
-        if (this.onComplete) {
-            this.onComplete(this.winType, this.scoreDisplay);
-        }
+    const fontSize = 58 * this.baseScale;
+    ctx.font = `900 ${fontSize}px Impact, Arial Black, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    const tg = ctx.createLinearGradient(-150, 0, 150, 0);
+    tg.addColorStop(0, '#fff8d7');
+    tg.addColorStop(.45, theme.c);
+    tg.addColorStop(1, '#ff9d00');
+    ctx.fillStyle = tg;
+    ctx.shadowBlur = 16;
+    ctx.shadowColor = theme.c;
+    ctx.fillText(this.formatScore(this.displayScore), 0, 2);
+    ctx.restore();
+  }
+
+  formatScore(value) {
+    return Math.floor(value).toLocaleString('en-US');
+  }
+
+  drawPostFX() {
+    const ctx = this.ctx;
+
+    if (this.flash > .01) {
+      ctx.fillStyle = `rgba(255,255,255,${this.flash * .42})`;
+      ctx.fillRect(0, 0, this.w, this.h);
     }
 
-    // ============================================================
-    // IS ACTIVE
-    // ============================================================
-    isActive() {
-        return this.winActive;
-    }
-
-    // ============================================================
-    // LOOP
-    // ============================================================
-    loop() {
-        const ctx = this.ctx;
-        const w = this.canvas.width;
-        const h = this.canvas.height;
-
-        ctx.clearRect(0, 0, w, h);
-
-        if (this.winActive) {
-            this.winTimer++;
-            const cfg = this.getWinConfig();
-
-            const riseProgress = Math.min(this.winTimer / this.config.riseDuration, 1);
-            const riseEase = 1 - Math.pow(1 - riseProgress, 3);
-            const riseOffset = (1 - riseEase) * 300 * this.baseScale;
-
-            const scoreStartTime = this.config.scoreBoxDelay;
-            if (this.winTimer > scoreStartTime && this.scoreDisplay < this.targetScore) {
-                const scoreProgress = Math.min((this.winTimer - scoreStartTime) / this.config.scoreCountDuration, 1);
-                const easeOut = 1 - Math.pow(1 - scoreProgress, 2);
-                this.scoreDisplay = Math.floor(this.targetScore * easeOut);
-                if (this.scoreDisplay > this.targetScore) {
-                    this.scoreDisplay = this.targetScore;
-                }
-            }
-
-            const coinEndTime = this.config.winDuration - 600;
-            if (this.winTimer < coinEndTime &&
-                this.coins.length < this.config.maxCoins &&
-                this.winTimer % this.config.coinSpawnRate === 0) {
-                this.coins.push(new CoinParticle(
-                    this.cx + (Math.random() - 0.5) * 450 * this.baseScale,
-                    this.cy - 120 * this.baseScale,
-                    this.config.coinGravity,
-                    this.baseScale
-                ));
-            }
-
-            if (this.sparkles.length < this.config.maxSparkles &&
-                this.winTimer % this.config.sparkleSpawnRate === 0) {
-                this.sparkles.push(new Sparkle(
-                    this.cx + (Math.random() - 0.5) * 550 * this.baseScale,
-                    this.cy + (Math.random() - 0.5) * 400 * this.baseScale,
-                    cfg,
-                    this.baseScale
-                ));
-            }
-
-            this.drawOverlay(w, h);
-            this.drawBackground(w, h, cfg);
-            this.drawLightRays(w, h, cfg);
-
-            // Draw win text image (with stars)
-            this.drawWinImage(cfg, riseOffset);
-
-            this.sparkles = this.sparkles.filter(s => {
-                s.update();
-                s.draw(ctx);
-                return s.active;
-            });
-
-            this.coins = this.coins.filter(coin => {
-                coin.update();
-                coin.draw(ctx, this.images.coins);
-                return coin.active;
-            });
-
-            if (this.winTimer > this.config.scoreBoxDelay) {
-                this.drawScore();
-            }
-
-            if (this.winTimer >= this.config.winDuration) {
-                this.stop();
-            }
-        }
-
-        requestAnimationFrame(() => this.loop());
-    }
-
-    // ============================================================
-    // DRAW OVERLAY
-    // ============================================================
-    drawOverlay(w, h) {
-        const ctx = this.ctx;
-        ctx.save();
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.72)';
-        ctx.fillRect(0, 0, w, h);
-        ctx.restore();
-    }
-
-    // ============================================================
-    // DRAW BACKGROUND
-    // ============================================================
-    drawBackground(w, h, cfg) {
-        const ctx = this.ctx;
-        ctx.save();
-
-        const gradient = ctx.createRadialGradient(
-            this.cx, this.cy, 0,
-            this.cx, this.cy, Math.max(w, h) * 0.8
-        );
-        gradient.addColorStop(0, 'rgba(40, 40, 40, 0.4)');
-        gradient.addColorStop(0.5, 'rgba(15, 15, 15, 0.6)');
-        gradient.addColorStop(1, 'rgba(0, 0, 0, 0.9)');
-
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, w, h);
-
-        const time = Date.now() * 0.0001;
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
-        ctx.lineWidth = 2 * this.baseScale;
-
-        for (let i = 0; i < this.bgStripes.length; i++) {
-            const stripe = this.bgStripes[i];
-            const angle = stripe.offset + time * stripe.speed;
-
-            ctx.save();
-            ctx.translate(this.cx, this.cy);
-            ctx.rotate(angle);
-
-            const maxDist = Math.max(w, h);
-            ctx.beginPath();
-            ctx.moveTo(-maxDist, -30 * this.baseScale);
-            ctx.lineTo(maxDist, -30 * this.baseScale);
-            ctx.moveTo(-maxDist, 30 * this.baseScale);
-            ctx.lineTo(maxDist, 30 * this.baseScale);
-            ctx.stroke();
-
-            ctx.restore();
-        }
-
-        const glow = ctx.createRadialGradient(
-            this.cx, this.cy, 0,
-            this.cx, this.cy, 450 * this.baseScale
-        );
-        glow.addColorStop(0, 'rgba(60, 50, 30, 0.2)');
-        glow.addColorStop(1, 'rgba(0, 0, 0, 0)');
-        ctx.fillStyle = glow;
-        ctx.fillRect(0, 0, w, h);
-
-        ctx.restore();
-    }
-
-    // ============================================================
-    // DRAW LIGHT RAYS
-    // ============================================================
-    drawLightRays(w, h, cfg) {
-        const ctx = this.ctx;
-        ctx.save();
-        ctx.translate(this.cx, this.cy);
-
-        const time = Date.now() * 0.0003;
-        const rayCount = this.winType === 'super' ? 12 : this.winType === 'mega' ? 10 : 8;
-
-        for (let i = 0; i < rayCount; i++) {
-            const angle = (Math.PI * 2 / rayCount) * i + time;
-            const rayGradient = ctx.createLinearGradient(
-                0, 0,
-                Math.cos(angle) * 900 * this.baseScale,
-                Math.sin(angle) * 900 * this.baseScale
-            );
-            rayGradient.addColorStop(0, `rgba(${cfg.rayColor.r}, ${cfg.rayColor.g}, ${cfg.rayColor.b}, 0)`);
-            rayGradient.addColorStop(0.4, `rgba(${cfg.rayColor.r}, ${cfg.rayColor.g}, ${cfg.rayColor.b}, 0.04)`);
-            rayGradient.addColorStop(1, `rgba(${cfg.rayColor.r}, ${cfg.rayColor.g}, ${cfg.rayColor.b}, 0)`);
-
-            ctx.fillStyle = rayGradient;
-            ctx.beginPath();
-            ctx.moveTo(0, 0);
-            ctx.lineTo(
-                Math.cos(angle - 0.08) * 900 * this.baseScale,
-                Math.sin(angle - 0.08) * 900 * this.baseScale
-            );
-            ctx.lineTo(
-                Math.cos(angle + 0.08) * 900 * this.baseScale,
-                Math.sin(angle + 0.08) * 900 * this.baseScale
-            );
-            ctx.closePath();
-            ctx.fill();
-        }
-
-        ctx.restore();
-    }
-
-    // ============================================================
-    // DRAW WIN IMAGE (WITH STARS)
-    // ============================================================
-    drawWinImage(cfg, riseOffset = 0) {
-        const ctx = this.ctx;
-        const img = this.images[cfg.imgKey];
-
-        if (!img) {
-            this.drawFallbackText(cfg, riseOffset);
-            return;
-        }
-
-        const t = this.winTimer;
-
-        let scale = 1;
-        let alpha = 1;
-        let rotation = 0;
-
-        // 1) Entrance Pop
-        if (t < 35) {
-            const p = t / 35;
-            scale = 0.25 + easeOutBack(p) * 1.05;
-            alpha = p;
-        }
-        // 2) Settle
-        else if (t < 65) {
-            const p = (t - 35) / 30;
-            scale = 1.30 - easeOutQuad(p) * 0.30;
-        }
-        // 3) Idle breathing
-        else {
-            scale = 1 + Math.sin(t * 0.045) * 0.025;
-        }
-
-        // Super / Mega only: small impact shake
-        let shakeX = 0;
-        let shakeY = 0;
-
-        if (this.winType !== 'big' && t > 35 && t < 85) {
-            const shakePower = (1 - (t - 35) / 50) * this.baseScale;
-            shakeX = Math.sin(t * 0.8) * 6 * shakePower;
-            shakeY = Math.cos(t * 0.7) * 4 * shakePower;
-            rotation = Math.sin(t * 0.6) * 0.015 * shakePower;
-        }
-
-        const x = this.cx + shakeX;
-        const y = this.cy - 50 * this.baseScale + riseOffset + shakeY;
-
-        const finalScale = scale * this.baseScale;
-
-        ctx.save();
-        ctx.globalAlpha = alpha;
-        ctx.translate(x, y);
-        ctx.rotate(rotation);
-        ctx.scale(finalScale, finalScale);
-
-        // Glow behind image
-        ctx.shadowBlur = (45 + Math.sin(t * 0.06) * 15) * this.baseScale;
-        ctx.shadowColor = cfg.textGlow;
-
-        ctx.drawImage(
-            img,
-            -img.width / 2,
-            -img.height / 2,
-            img.width,
-            img.height
-        );
-
-        ctx.restore();
-
-        // Shine sweep
-        if (t > 60 && t < 150) {
-            this.drawWinImageShine(img, x, y, finalScale, t - 60);
-        }
-
-        // ★ DRAW STARS AROUND IMAGE ★
-        this.drawWinStars(cfg, x, y, finalScale);
-    }
-
-    // ============================================================
-    // DRAW WIN IMAGE SHINE
-    // ============================================================
-    drawWinImageShine(img, x, y, scale, localT) {
-        const ctx = this.ctx;
-        const p = localT / 90;
-
-        if (p < 0 || p > 1) return;
-
-        const w = img.width * scale;
-        const h = img.height * scale;
-
-        const shineX = -w / 2 + p * w * 1.4;
-
-        ctx.save();
-        ctx.translate(x, y);
-        ctx.globalCompositeOperation = 'lighter';
-        ctx.rotate(-0.25);
-
-        const grad = ctx.createLinearGradient(
-            shineX - 40 * this.baseScale, -h / 2,
-            shineX + 40 * this.baseScale, h / 2
-        );
-
-        grad.addColorStop(0, 'rgba(255,255,255,0)');
-        grad.addColorStop(0.5, 'rgba(255,255,255,0.75)');
-        grad.addColorStop(1, 'rgba(255,255,255,0)');
-
-        ctx.fillStyle = grad;
-        ctx.fillRect(shineX - 60 * this.baseScale, -h / 2, 120 * this.baseScale, h);
-
-        ctx.restore();
-    }
-
-    // ============================================================
-    // DRAW WIN STARS (COLORFUL SPARKLES)
-    // ============================================================
-    drawWinStars(cfg, centerX, centerY, scale) {
-        // Safety check
-        if (!this.starParticles) {
-            this.starParticles = [];
-            return;
-        }
-
-        const ctx = this.ctx;
-        const baseScale = this.baseScale || 1;
-
-        // Only start after image appears
-        if (this.winTimer < 25) return;
-
-        const starCount = this.winType === 'super' ? 40 : this.winType === 'mega' ? 30 : 20;
-
-        // Spawn stars gradually
-        if (this.winTimer < 600 && this.winTimer % 2 === 0) {
-            if (this.starParticles.length < starCount) {
-                const angle = Math.random() * Math.PI * 2;
-                const distance = 60 + Math.random() * 180;
-                const hue = Math.random() * 360;
-                const size = 3 + Math.random() * 12;
-
-                this.starParticles.push({
-                    x: centerX + Math.cos(angle) * distance * 0.2,
-                    y: centerY + Math.sin(angle) * distance * 0.2 - 20 * baseScale,
-                    targetX: centerX + Math.cos(angle) * distance,
-                    targetY: centerY + Math.sin(angle) * distance,
-                    size: size * baseScale,
-                    angle: Math.random() * Math.PI * 2,
-                    rotSpeed: (Math.random() - 0.5) * 0.06,
-                    life: 0.5 + Math.random() * 0.5,
-                    maxLife: 0.5 + Math.random() * 0.5,
-                    hue: hue,
-                    saturation: 85 + Math.random() * 15,
-                    lightness: 65 + Math.random() * 25,
-                    delay: Math.random() * 200
-                });
-            }
-        }
-
-        // Update and draw stars
-        const remainingStars = [];
-
-        for (let i = 0; i < this.starParticles.length; i++) {
-            const star = this.starParticles[i];
-
-            if (!star || typeof star !== 'object') continue;
-
-            // Delay
-            if (this.winTimer < (star.delay || 0)) {
-                remainingStars.push(star);
-                continue;
-            }
-
-            // Update position (ease toward target)
-            const progress = 1 - ((star.life || 0) / (star.maxLife || 1));
-            const ease = 1 - Math.pow(1 - progress, 2);
-
-            star.x = (star.x || 0) + ((star.targetX || 0) - (star.x || 0)) * ease * 0.04;
-            star.y = (star.y || 0) + ((star.targetY || 0) - (star.y || 0)) * ease * 0.04;
-            star.angle = (star.angle || 0) + (star.rotSpeed || 0);
-            star.life = (star.life || 0) - 0.005;
-
-            // Draw if alive
-            if (star.life > 0) {
-                const starSize = (star.size || 5) * (0.3 + Math.sin(progress * Math.PI) * 0.7);
-                const alpha = Math.min(1, ((star.life || 0) / (star.maxLife || 1)) * 1.8);
-
-                ctx.save();
-                ctx.globalAlpha = Math.max(0, alpha);
-                ctx.translate(star.x || 0, star.y || 0);
-                ctx.rotate((star.angle || 0) + progress * 2);
-                ctx.scale(starSize / 10, starSize / 10);
-
-                const hue = star.hue || 0;
-
-                // Glow
-                ctx.shadowBlur = 25 * baseScale;
-                ctx.shadowColor = `hsl(${hue}, 100%, 70%)`;
-
-                // Star shape (4-point)
-                ctx.fillStyle = `hsl(${hue}, ${star.saturation || 85}%, ${star.lightness || 70}%)`;
-
-                ctx.beginPath();
-                for (let j = 0; j < 8; j++) {
-                    const r = j % 2 === 0 ? 10 : 4;
-                    const a = (Math.PI * j) / 4;
-                    const sx = Math.cos(a) * r;
-                    const sy = Math.sin(a) * r;
-                    if (j === 0) ctx.moveTo(sx, sy);
-                    else ctx.lineTo(sx, sy);
-                }
-                ctx.closePath();
-                ctx.fill();
-
-                // Inner glow dot
-                ctx.shadowBlur = 0;
-                ctx.fillStyle = `hsla(${hue}, 100%, 95%, 0.4)`;
-                ctx.beginPath();
-                ctx.arc(0, 0, 3, 0, Math.PI * 2);
-                ctx.fill();
-
-                ctx.restore();
-
-                remainingStars.push(star);
-            }
-        }
-
-        this.starParticles = remainingStars;
-    }
-
-    // ============================================================
-    // DRAW FALLBACK TEXT
-    // ============================================================
-    drawFallbackText(cfg, riseOffset = 0) {
-        const ctx = this.ctx;
-        const text = this.winType === 'super' ? 'SUPER WIN' : this.winType === 'mega' ? 'MEGA WIN' : 'BIG WIN';
-
-        let animScale = 1;
-        if (this.winTimer < 300) {
-            const t = this.winTimer / 300;
-            animScale = 0.05 + t * t * 1.15;
-        } else if (this.winTimer < 600) {
-            const t = (this.winTimer - 300) / 300;
-            animScale = 1.2 - t * 0.2;
-        } else {
-            animScale = 1 + Math.sin(this.winTimer * 0.03) * 0.03;
-        }
-
-        const scale = animScale * this.baseScale;
-        const fontSize = 100 * scale;
-
-        const winTextY = this.cy - 50 * this.baseScale + riseOffset;
-
-        ctx.save();
-        ctx.translate(this.cx, winTextY);
-        ctx.scale(scale, scale);
-
-        ctx.font = `bold ${fontSize}px Impact, Arial Black, sans-serif`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-
-        const glowIntensity = 40 + Math.sin(this.winTimer * 0.05) * 10;
-        ctx.shadowBlur = glowIntensity * this.baseScale;
-        ctx.shadowColor = cfg.textGlow;
-        ctx.fillStyle = 'rgba(255, 200, 0, 0.9)';
-        ctx.fillText(text, 0, 0);
-
-        ctx.restore();
-    }
-
-    // ============================================================
-    // DRAW SCORE
-    // ============================================================
-    drawScore() {
-        const ctx = this.ctx;
-        const frame = this.images.scoreBox;
-
-        const boxScale = 0.5;
-        const scoreBoxY = this.cy + 350 * this.baseScale;
-
-        ctx.save();
-        ctx.translate(this.cx, scoreBoxY);
-
-        if (frame && frame.width > 0) {
-            const frameW = frame.width * this.baseScale * boxScale * 1.3;
-            const frameH = frame.height * this.baseScale * boxScale * 1.3;
-            ctx.drawImage(frame, -frameW / 2, -frameH / 2, frameW, frameH);
-        } else {
-            const boxW = 550 * this.baseScale * boxScale;
-            const boxH = 120 * this.baseScale * boxScale;
-
-            ctx.fillStyle = 'rgba(40, 10, 10, 0.9)';
-            ctx.strokeStyle = '#FFD700';
-            ctx.lineWidth = 4 * this.baseScale;
-
-            const r = 15 * this.baseScale;
-            ctx.beginPath();
-            ctx.moveTo(-boxW / 2 + r, -boxH / 2);
-            ctx.lineTo(boxW / 2 - r, -boxH / 2);
-            ctx.quadraticCurveTo(boxW / 2, -boxH / 2, boxW / 2, -boxH / 2 + r);
-            ctx.lineTo(boxW / 2, boxH / 2 - r);
-            ctx.quadraticCurveTo(boxW / 2, boxH / 2, boxW / 2 - r, boxH / 2);
-            ctx.lineTo(-boxW / 2 + r, boxH / 2);
-            ctx.quadraticCurveTo(-boxW / 2, boxH / 2, -boxW / 2, boxH / 2 - r);
-            ctx.lineTo(-boxW / 2, -boxH / 2 + r);
-            ctx.quadraticCurveTo(-boxW / 2, -boxH / 2, -boxW / 2 + r, -boxH / 2);
-            ctx.closePath();
-            ctx.fill();
-            ctx.stroke();
-        }
-
-        const fontSize = 90 * this.baseScale;
-        ctx.font = `bold ${fontSize}px Impact, sans-serif`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-
-        const shimmer = Math.sin(this.winTimer * 0.08) * 0.3 + 0.7;
-        ctx.shadowBlur = 20 * shimmer;
-        ctx.shadowColor = '#FFD700';
-
-        const textGradient = ctx.createLinearGradient(0, -30 * this.baseScale, 0, 30 * this.baseScale);
-        textGradient.addColorStop(0, '#FFF8DC');
-        textGradient.addColorStop(0.4, '#FFD700');
-        textGradient.addColorStop(0.6, '#FFA500');
-        textGradient.addColorStop(1, '#B8860B');
-        ctx.fillStyle = textGradient;
-
-        ctx.fillText(this.scoreDisplay.toLocaleString(), 0, 0);
-
-        ctx.restore();
-    }
+    const vg = ctx.createRadialGradient(
+      this.cx, this.cy, Math.min(this.w, this.h) * .2,
+      this.cx, this.cy, Math.max(this.w, this.h) * .76
+    );
+    vg.addColorStop(0, 'rgba(0,0,0,0)');
+    vg.addColorStop(1, 'rgba(0,0,0,.52)');
+    ctx.fillStyle = vg;
+    ctx.fillRect(0, 0, this.w, this.h);
+  }
 }
 
-// ================================================================
-// EASING FUNCTIONS
-// ================================================================
+class PremiumCoin {
+  constructor(x, y, scale, theme, screenW, screenH, cols = 4, rows = 4) {
+    this.x = x + (Math.random() - .5) * 180 * scale;
+    this.y = y + (Math.random() - .5) * 120 * scale;
 
-function easeOutBack(t) {
-    const c1 = 1.70158;
-    const c3 = c1 + 1;
-    return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 9 + Math.random() * 21;
+
+    this.vx = Math.cos(angle) * speed;
+    this.vy = Math.sin(angle) * speed;
+    this.gravity = .10 + Math.random() * .12;
+    this.drag = .989;
+    this.rotation = Math.random() * Math.PI * 2;
+    this.rotSpeed = (Math.random() - .5) * .30;
+
+    // Bigger + longer-lived coin
+    this.size = (13 + Math.random() * 17) * scale;
+    this.life = 1;
+    this.decay = .0035 + Math.random() * .0045;
+    this.active = true;
+
+    this.theme = theme;
+    this.screenW = screenW;
+    this.screenH = screenH;
+    this.cols = Math.max(1, cols);
+    this.rows = Math.max(1, rows);
+
+    this.frameX = Math.floor(Math.random() * this.cols);
+    this.frameY = Math.floor(Math.random() * this.rows);
+  }
+
+  update() {
+    this.x += this.vx;
+    this.y += this.vy;
+    this.vx *= this.drag;
+    this.vy *= this.drag;
+    this.vy += this.gravity;
+    this.rotation += this.rotSpeed;
+    this.life -= this.decay;
+
+    if (
+      this.life <= 0 ||
+      this.x < -160 || this.x > this.screenW + 160 ||
+      this.y < -200 || this.y > this.screenH + 200
+    ) this.active = false;
+  }
+
+draw(ctx, coinImg) {
+  if (!this.active) return;
+
+  const squash =
+    Math.abs(Math.cos(this.rotation)) * .72 + .28;
+
+  ctx.save();
+
+  ctx.globalAlpha = Math.min(1, this.life * 1.6);
+
+  ctx.translate(this.x, this.y);
+  ctx.rotate(this.rotation * .18);
+  ctx.scale(squash, 1);
+
+  ctx.shadowBlur = 12;
+  ctx.shadowColor = '#ffd84d';
+
+  if (
+    coinImg &&
+    coinImg.complete &&
+    coinImg.naturalWidth > 0
+  ) {
+    ctx.drawImage(
+      coinImg,
+      -this.size,
+      -this.size,
+      this.size * 2,
+      this.size * 2
+    );
+  } else {
+    const g = ctx.createRadialGradient(
+      -this.size * .3,
+      -this.size * .3,
+      0,
+      0,
+      0,
+      this.size
+    );
+
+    g.addColorStop(0, '#ffffff');
+    g.addColorStop(.2, '#fff7a8');
+    g.addColorStop(.55, '#ffd84d');
+    g.addColorStop(1, '#9a6200');
+
+    ctx.fillStyle = g;
+
+    ctx.beginPath();
+    ctx.arc(0, 0, this.size, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#fff2a0';
+    ctx.stroke();
+  }
+
+  ctx.restore();
+ }  
+}
+class PremiumSpark {
+  constructor(x, y, theme) {
+    const a = Math.random() * Math.PI * 2;
+    const speed = 2 + Math.random() * 13;
+    this.x = x; this.y = y;
+    this.vx = Math.cos(a) * speed;
+    this.vy = Math.sin(a) * speed;
+    this.life = 1;
+    this.decay = .012 + Math.random() * .018;
+    this.size = 1 + Math.random() * 4;
+    this.color = Math.random() < .5 ? theme.a : theme.b;
+    this.active = true;
+  }
+  update() {
+    this.x += this.vx;
+    this.y += this.vy;
+    this.vx *= .97;
+    this.vy *= .97;
+    this.life -= this.decay;
+    if (this.life <= 0) this.active = false;
+  }
+  draw(ctx) {
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, this.life);
+    ctx.fillStyle = this.color;
+    ctx.shadowBlur = 12;
+    ctx.shadowColor = this.color;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+class LightShard {
+  constructor(x, y, theme) {
+    this.x = x; this.y = y;
+    this.a = Math.random() * Math.PI * 2;
+    this.speed = 7 + Math.random() * 14;
+    this.len = 40 + Math.random() * 120;
+    this.life = 1;
+    this.decay = .015 + Math.random() * .02;
+    this.color = Math.random() < .5 ? theme.a : theme.b;
+    this.active = true;
+  }
+  update() {
+    this.x += Math.cos(this.a) * this.speed;
+    this.y += Math.sin(this.a) * this.speed;
+    this.speed *= .985;
+    this.life -= this.decay;
+    if (this.life <= 0) this.active = false;
+  }
+  draw(ctx) {
+    const ex = this.x + Math.cos(this.a) * this.len;
+    const ey = this.y + Math.sin(this.a) * this.len;
+    const g = ctx.createLinearGradient(this.x, this.y, ex, ey);
+    g.addColorStop(0, '#fff');
+    g.addColorStop(.28, this.color);
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, this.life);
+    ctx.strokeStyle = g;
+    ctx.lineWidth = 2 + this.life * 2;
+    ctx.shadowBlur = 12;
+    ctx.shadowColor = this.color;
+    ctx.beginPath();
+    ctx.moveTo(this.x, this.y);
+    ctx.lineTo(ex, ey);
+    ctx.stroke();
+    ctx.restore();
+  }
+}
+
+class Shockwave {
+  constructor(x, y, color, speed) {
+    this.x = x; this.y = y;
+    this.r = 8;
+    this.speed = speed;
+    this.life = 1;
+    this.active = true;
+    this.color = color;
+  }
+  update() {
+    this.r += this.speed;
+    this.life -= .022;
+    if (this.life <= 0) this.active = false;
+  }
+  draw(ctx) {
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, this.life * .88);
+    ctx.strokeStyle = this.color;
+    ctx.lineWidth = 10 * this.life + 1;
+    ctx.shadowBlur = 20;
+    ctx.shadowColor = this.color;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  }
+}
+
+class Confetti {
+  constructor(x, y, theme) {
+    this.x = x; this.y = y;
+    this.vx = (Math.random() - .5) * 12;
+    this.vy = -4 - Math.random() * 12;
+    this.gravity = .16;
+    this.rotation = Math.random() * Math.PI * 2;
+    this.rotSpeed = (Math.random() - .5) * .25;
+    this.life = 1;
+    this.decay = .006 + Math.random() * .008;
+    this.color = [theme.a, theme.b, theme.c, '#fff'][Math.floor(Math.random() * 4)];
+    this.active = true;
+  }
+  update() {
+    this.x += this.vx;
+    this.vy += this.gravity;
+    this.y += this.vy;
+    this.rotation += this.rotSpeed;
+    this.life -= this.decay;
+    if (this.life <= 0) this.active = false;
+  }
+  draw(ctx) {
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, this.life);
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.rotation);
+    ctx.fillStyle = this.color;
+    ctx.shadowBlur = 5;
+    ctx.shadowColor = this.color;
+    ctx.fillRect(-5, -2, 10, 4);
+    ctx.restore();
+  }
+}
+
+function easeOutExpo(t) {
+  return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
 }
 
 function easeOutQuad(t) {
-    return 1 - (1 - t) * (1 - t);
+  return t * (2 - t);
 }
 
-// ================================================================
-// COIN PARTICLE
-// ================================================================
-
-class CoinParticle {
-    constructor(cx, cy, gravity, baseScale = 1) {
-        this.x = cx + (Math.random() - 0.5) * 250 * baseScale;
-        this.y = cy;
-        this.vx = (Math.random() - 0.5) * 6 * baseScale;
-        this.vy = -Math.random() * 12 * baseScale - 4;
-        this.gravity = gravity;
-        this.rotation = Math.random() * Math.PI * 2;
-        this.rotSpeed = (Math.random() - 0.5) * 0.2;
-        this.scale = (Math.random() * 0.8 + 0.5) * baseScale;
-        this.opacity = 1;
-        this.life = 1;
-        this.active = true;
-        this.baseScale = baseScale;
-    }
-
-    update() {
-        this.x += this.vx;
-        this.vy += this.gravity;
-        this.y += this.vy;
-        this.rotation += this.rotSpeed;
-        this.life -= 0.008;
-        this.opacity = Math.max(0, this.life);
-
-        if (this.life <= 0 || this.y > window.innerHeight + 50) {
-            this.active = false;
-        }
-    }
-
-    draw(ctx, coinImg) {
-        if (!this.active || !coinImg) return;
-
-        ctx.save();
-        ctx.globalAlpha = this.opacity;
-        ctx.translate(this.x, this.y);
-        ctx.rotate(this.rotation);
-        ctx.scale(this.scale, this.scale);
-
-        const coinW = (coinImg.width / 4) * this.baseScale;
-        const coinH = (coinImg.height / 4) * this.baseScale;
-        const sx = Math.floor(Math.random() * 3) * (coinImg.width / 4);
-        const sy = Math.floor(Math.random() * 3) * (coinImg.height / 4);
-
-        ctx.drawImage(coinImg, sx, sy, coinImg.width / 4, coinImg.height / 4, -coinW / 2, -coinH / 2, coinW, coinH);
-
-        ctx.restore();
-    }
+function easeOutBack(t) {
+  const c1 = 1.70158;
+  const c3 = c1 + 1;
+  return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
 }
 
-// ================================================================
-// SPARKLE
-// ================================================================
-
-class Sparkle {
-    constructor(x, y, cfg, baseScale = 1) {
-        this.x = x;
-        this.y = y;
-        this.size = (Math.random() * 5 + 3) * baseScale;
-        this.maxLife = Math.random() * 180 + 120;
-        this.life = this.maxLife;
-        this.active = true;
-        this.cfg = cfg;
-        this.baseScale = baseScale;
-        this.vx = (Math.random() - 0.5) * 0.6;
-        this.vy = (Math.random() - 0.5) * 0.6;
-        this.starGlow = cfg.textGlow || 'rgba(255,215,0,0.8)';
-    }
-
-    update() {
-        this.x += this.vx;
-        this.y += this.vy;
-        this.life--;
-        if (this.life <= 0) this.active = false;
-    }
-
-    draw(ctx) {
-        if (!this.active) return;
-
-        const progress = this.life / this.maxLife;
-        const alpha = Math.sin(progress * Math.PI);
-        const size = this.size * (0.3 + progress * 0.7);
-
-        ctx.save();
-        ctx.globalAlpha = alpha;
-        ctx.shadowBlur = 12 * this.baseScale;
-        ctx.shadowColor = this.starGlow;
-        ctx.fillStyle = '#FFFFFF';
-
-        ctx.beginPath();
-        const spikes = 4;
-        for (let i = 0; i < spikes * 2; i++) {
-            const r = i % 2 === 0 ? size : size * 0.25;
-            const a = (Math.PI * i) / spikes - Math.PI / 2;
-            const px = this.x + Math.cos(a) * r;
-            const py = this.y + Math.sin(a) * r;
-            if (i === 0) ctx.moveTo(px, py);
-            else ctx.lineTo(px, py);
-        }
-        ctx.closePath();
-        ctx.fill();
-
-        ctx.restore();
-    }
+function hexAlpha(hex, alpha) {
+  const h = hex.replace('#', '');
+  const r = parseInt(h.substring(0, 2), 16);
+  const g = parseInt(h.substring(2, 4), 16);
+  const b = parseInt(h.substring(4, 6), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
 }
 
-// ================================================================
-// EXPORT
-// ================================================================
+function roundedRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
 
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = WinAnimation;
+  module.exports = WinAnimation;
 }
+
+
+
 // ============================================
 // ORIENTATION WARNING (Landscape Mode)
 // ============================================

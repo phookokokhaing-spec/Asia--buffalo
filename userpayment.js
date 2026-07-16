@@ -1182,3 +1182,5 @@ window.removeImage = removeImage;
 window.copyToClipboard = copyToClipboard;
 window.filterTx = filterTx;
 })();
+
+
