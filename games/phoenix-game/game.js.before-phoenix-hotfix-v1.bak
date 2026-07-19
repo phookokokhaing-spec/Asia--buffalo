@@ -691,30 +691,16 @@ function clearReelEffects() {
 }
 
 function setSpinButtonState(isSpinning) {
-    const spinWrap = document.getElementById('fb-spin');
     const imgSpin = document.getElementById('img-spin');
     const imgStop = document.getElementById('img-stop');
-
-    if (imgSpin) {
-        imgSpin.classList.toggle('hidden', Boolean(isSpinning));
-        imgSpin.style.display = isSpinning ? 'none' : 'block';
-        imgSpin.style.visibility = isSpinning ? 'hidden' : 'visible';
-        imgSpin.style.opacity = isSpinning ? '0' : '1';
-    }
-
-    if (imgStop) {
-        imgStop.classList.toggle('hidden', !isSpinning);
-        imgStop.style.display = isSpinning ? 'block' : 'none';
-        imgStop.style.visibility = isSpinning ? 'visible' : 'hidden';
-        imgStop.style.opacity = isSpinning ? '1' : '0';
-    }
-
-    // Never let the clickable spin wrapper disappear.
-    if (spinWrap) {
-        spinWrap.style.display = 'flex';
-        spinWrap.style.visibility = 'visible';
-        spinWrap.style.opacity = '1';
-        spinWrap.style.pointerEvents = 'auto';
+    if (imgSpin && imgStop) {
+        if (isSpinning) {
+            imgSpin.classList.add('hidden');
+            imgStop.classList.remove('hidden');
+        } else {
+            imgSpin.classList.remove('hidden');
+            imgStop.classList.add('hidden');
+        }
     }
 }
 
@@ -1072,24 +1058,20 @@ function triggerWinAnimation(winResult) {
         const duration = winInfo.duration || 7000;
 
         let finished = false;
-        let fallbackTimer = null;
 
         function finishAnimation() {
             if (finished) return;
             finished = true;
 
-            if (fallbackTimer) {
-                clearTimeout(fallbackTimer);
-                fallbackTimer = null;
-            }
+            clearTimeout(fallbackTimer);
 
             console.log('✅ Phoenix WinAnimation complete');
             resolve();
         }
 
-        fallbackTimer = setTimeout(
+        const fallbackTimer = setTimeout(
             finishAnimation,
-            Math.max(2500, duration + 1500)
+            duration + 1500
         );
 
         const parentWinAnim =
@@ -1100,32 +1082,33 @@ function triggerWinAnimation(winResult) {
                 ? window.parent.winAnim
                 : null;
 
-        console.log('🎬 Phoenix WinAnimation called:', winType, totalWin);
+        console.log(
+            '🎬 Phoenix WinAnimation called:',
+            winType,
+            totalWin
+        );
 
-        try {
-            if (winType && parentWinAnim) {
+        if (winType && parentWinAnim) {
+            try {
                 parentWinAnim.trigger(winType, totalWin, {
                     duration: duration,
                     onComplete: finishAnimation
                 });
-            } else {
-                console.warn('⚠️ Parent WinAnimation unavailable');
+            } catch (error) {
+                console.error(
+                    '❌ Phoenix WinAnimation trigger error:',
+                    error
+                );
                 finishAnimation();
             }
-        } catch (error) {
-            console.error('❌ Phoenix WinAnimation trigger error:', error);
+        } else {
+            console.warn('⚠️ Parent WinAnimation unavailable');
             finishAnimation();
         }
 
-        // Sound failure must never reject/stall the animation Promise.
-        try {
-            playWinSound(winType, winLines);
-        } catch (soundError) {
-            console.warn('⚠️ Phoenix win sound failed:', soundError);
-        }
+        playWinSound(winType, winLines);
     });
 }
-
 // ================================================================
 // 11. GAME STATS
 // ================================================================
@@ -2433,18 +2416,7 @@ async function spin() {   // ← ★ ADD 'async' HERE ★
             highlightWins(winResult.winCells);
             animateWinLines(winResult.winCells);
             // ★★★ BUG FIX #1: triggerWinAnimation returns Promise, must await it ★★★
-            try {
-                await triggerWinAnimation(winResult);
-            } catch (animationError) {
-                console.error('❌ Phoenix animation wait failed:', animationError);
-            } finally {
-                // Do not interfere with scatter/free-spin or auto-spin state.
-                if (!state.isFreeSpin && !state.autoSpin && scatterResult.count < 2) {
-                    state.isSpinning = false;
-                    setSpinButtonState(false);
-                    disableControls(false);
-                }
-            }
+            await triggerWinAnimation(winResult);
             updateUI();
         }
     } else if (rules.houseWin) {

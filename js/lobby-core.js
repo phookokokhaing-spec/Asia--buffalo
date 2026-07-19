@@ -461,6 +461,85 @@
     }, location.origin);
   }
 
+  function forceRestoreSuperWaysSpin(frame) {
+    try {
+      const doc = frame?.contentDocument;
+      const win = frame?.contentWindow;
+      if (!doc || !win) return;
+
+      const spinWrap = doc.getElementById('fb-spin');
+      const spinImg = doc.getElementById('img-spin');
+      const stopImg = doc.getElementById('img-stop');
+
+      if (spinWrap) {
+        spinWrap.hidden = false;
+        spinWrap.style.setProperty('display', 'flex', 'important');
+        spinWrap.style.setProperty('visibility', 'visible', 'important');
+        spinWrap.style.setProperty('opacity', '1', 'important');
+        spinWrap.style.setProperty('pointer-events', 'auto', 'important');
+      }
+      if (spinImg) {
+        spinImg.hidden = false;
+        spinImg.classList.remove('hidden');
+        spinImg.style.setProperty('display', 'block', 'important');
+        spinImg.style.setProperty('visibility', 'visible', 'important');
+        spinImg.style.setProperty('opacity', '1', 'important');
+      }
+      if (stopImg) {
+        stopImg.classList.add('hidden');
+        stopImg.style.setProperty('display', 'none', 'important');
+      }
+
+      // Do not change the free-spin counters here. This only repairs the
+      // normal SPIN/STOP artwork after the parent win animation completes.
+      if (!win.state?.isFreeSpin && typeof win.setSpinButtonState === 'function') {
+        try { win.setSpinButtonState(false); } catch (_) {}
+      }
+    } catch (error) {
+      console.warn('Super Ways spin restore failed:', error.message);
+    }
+  }
+
+  function patchSuperWaysFrame(frame) {
+    try {
+      const win = frame?.contentWindow;
+      if (!win || win.__mini883WinPromisePatch) return;
+
+      const original = win.triggerWinAnimation;
+      if (typeof original !== 'function') {
+        // game.js may not be ready at the first load callback
+        setTimeout(() => patchSuperWaysFrame(frame), 250);
+        return;
+      }
+
+      win.triggerWinAnimation = function patchedTriggerWinAnimation(winResult) {
+        const animationPromise = (() => {
+          try {
+            return Promise.resolve(original.call(win, winResult));
+          } catch (error) {
+            console.error('Super Ways animation error:', error);
+            return Promise.resolve();
+          }
+        })();
+
+        // WinAnimation is currently 7 seconds. Never let a missed callback
+        // keep spin() awaiting forever. The watchdog resolves at 8.5 seconds.
+        const watchdog = new Promise(resolve => setTimeout(resolve, 8500));
+
+        return Promise.race([animationPromise, watchdog]).finally(() => {
+          forceRestoreSuperWaysSpin(frame);
+          setTimeout(() => forceRestoreSuperWaysSpin(frame), 120);
+        });
+      };
+
+      win.__mini883WinPromisePatch = true;
+      forceRestoreSuperWaysSpin(frame);
+      console.log('✅ Super Ways animation/spin recovery installed');
+    } catch (error) {
+      console.warn('Super Ways patch failed:', error.message);
+    }
+  }
+
   function openGame(action) {
     const config = GAME_MAP[action];
     if (!config) {
@@ -485,7 +564,10 @@
     $('#lobbyCanvas')?.classList.add('is-hidden');
     window.SoundManager?.stopBGM?.();
 
-    const sync = () => setTimeout(() => sendBalanceToFrame(frame, config.game), 250);
+    const sync = () => setTimeout(() => {
+      sendBalanceToFrame(frame, config.game);
+      if (config.game === 'superWays') patchSuperWaysFrame(frame);
+    }, 250);
     frame.addEventListener('load', sync, { once: true });
     try {
       const currentSrc = frame.getAttribute('src');
@@ -547,14 +629,15 @@
       canvas.style.setProperty('display', 'none', 'important');
       canvas.style.setProperty('visibility', 'hidden', 'important');
       canvas.style.setProperty('opacity', '0', 'important');
+      canvas.style.setProperty('pointer-events', 'none', 'important');
       canvas.getContext('2d')?.clearRect(0, 0, canvas.width, canvas.height);
     }
 
+    // Do not send generic animation/spin completion messages here.
+    // Some games use those same message names for their free-spin state machine,
+    // which can hide or replace the normal spin button after a win animation.
+    // Balance sync is the only cross-frame message that is safe for every game.
     if (sourceFrame?.contentWindow) {
-      const balance = getCurrentBalance();
-      ['WIN_ANIMATION_COMPLETE', 'ANIMATION_COMPLETE', 'ENABLE_SPIN'].forEach(type => {
-        sourceFrame.contentWindow.postMessage({ type, balance }, location.origin);
-      });
       sendBalanceToFrame(sourceFrame, app.activeGame?.game || 'game');
       try { sourceFrame.focus(); } catch (_) {}
     }
