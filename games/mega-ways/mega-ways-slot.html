@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>🎰 1024 WAYS SLOT</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="bg-particles" id="bgParticles"></div>
+
+    <div class="orientation-warning">
+        <div class="warning-icon">📱 🔄</div>
+        <div class="warning-text">ကျေးဇူးပြု၍ ဖုန်းကို ဘေးတိုက်လှန်ပါ</div>
+        <div class="warning-sub">Landscape Mode Required</div>
+    </div>
+
+    <div class="game-container">
+        <div class="top-row">
+            <div class="stat-box"><div class="stat-label">CREDIT</div><div class="stat-value" id="creditValue">10000</div></div>
+            <div class="stat-box"><div class="stat-label">BET</div><div class="stat-value" id="betValue">80</div></div>
+                 <div class="stat-box"><div class="stat-label">WIN</div><div class="stat-value" id="winValue">0</div></div>
+        </div>
+
+                  <div class="middle-section">
+            <div class="jackpot-panel">
+                <div class="jackpot-item grand">1024<div class="jackpot-name grand">1024</div><div class="jackpot-amount"></div></div>
+                <div class="jackpot-item major">WAYS<div class="jackpot-name major">WAYS</div><div class="jackpot-amount"></div></div>
+                <div class="jackpot-item minor">TO<div class="jackpot-name minor">TO</div><div class="jackpot-amount"></div></div>
+                <div class="jackpot-item mini">WIN<div class="jackpot-name mini">WIN</div><div class="jackpot-amount"></div></div>
+            </div>
+      
+
+            <div class="center-panel">
+                <div class="grid-5x4" id="slotGrid"></div>
+            </div>
+
+            <div class="ways-panel">
+                <div class="ways-number" id="waysNumber">1024</div>
+                <div class="ways-label">WAYS</div>
+                <div class="win-history">
+                    <div class="history-title">🏆 WIN HISTORY</div>
+                    <div class="history-list" id="historyList"><div class="history-item">— No history —</div></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bottom-bar">
+            <div class="bet-control">
+                <div class="bet-btn" id="decBet">−</div>
+                <div class="bet-value" id="betAmountLabel">80</div>
+                <div class="bet-btn" id="incBet">+</div>
+            </div>
+            <div class="unit-btn" id="unitSelectBtn">1C</div>
+               <div class="lobby-buttons">
+           <button class="back-to-lobby" onclick="window.parent.document.getElementById('megaWaysContainer').style.display = 'none'; window.parent.document.getElementById('lobbyScreen').style.display = 'block';">◀ ပင်မ</button>
+           <button class="spin-btn" id="spinBtn">🎰 SPIN</button>
+        </div>
+    </div>
+
+    <div id="freeSpinsIndicator"><span id="freeSpinsCount">0</span> FREE SPIN(S) REMAINING</div>
+
+    <div class="modal-overlay" id="cModalOverlay"><div class="modal-content"><div class="modal-title">🎰 SELECT C TYPE</div><div class="c-options" id="cOptions"></div><button class="modal-close" onclick="closeCModal()">Close</button></div></div>
+    <div class="toast" id="toast"></div>
+
+    <script src="game.js"></script>
+</body>
+</html>
+

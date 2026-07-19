@@ -25,7 +25,839 @@
 
 <body oncontextmenu="return false" ondragstart="return false" onselectstart="return false" oncopy="return false">
 
+
+<audio id="bgm" loop="" preload="auto"></audio>
+<audio id="loadingSound" preload="auto"></audio>
+<audio id="allbuttonSound" preload="auto"></audio>
+<audio id="clickSound" preload="auto"></audio>
+<audio id="popbuttonSound" preload="auto"></audio>
+<audio id="spinSound" preload="auto"></audio>
+<audio id="winlineSound" preload="auto"></audio>
+<audio id="nowinSound" preload="auto"></audio>
+<audio id="buffaloSound" preload="auto"></audio>
+<audio id="lionSound" preload="auto"></audio>
+<audio id="boomSound" preload="auto"></audio>
+<audio id="coinSound" preload="auto"></audio>
+<audio id="coinrainSound" preload="auto"></audio>
+<audio id="sixcoinSound" preload="auto"></audio>
+<audio id="jackpotspinSound" preload="auto"></audio>
+<audio id="jackpotSound" preload="auto"></audio>
+<audio id="congratulationsSound" preload="auto"></audio>
+<audio id="congratsSound" preload="auto"></audio>
+<audio id="notiSound" preload="auto"></audio>
+<audio id="notificationSound" preload="auto"></audio>
+<audio id="adminSound" preload="auto"></audio>
+<audio id="paymentreseiveSound" preload="auto"></audio>
+<audio id="withdrawSound" preload="auto"></audio>
+<audio id="thankyouboxSound" preload="auto"></audio>
+<audio id="coinboxSound" preload="auto"></audio>
+<audio id="boxbgSound" loop="" preload="auto"></audio>
+<audio id="babaSound" preload="auto"></audio>
+<audio id="wheelSound" preload="auto"></audio>
+<audio id="shanPoker" preload="auto">
+    <source src="sounds/poker.mp3" type="audio/mpeg"/>
+</audio>
+<audio id="shanChip" preload="auto">
+    <source src="sounds/chip.mp3" type="audio/mpeg"/>
+</audio>
+<audio id="shanSec" preload="auto">
+    <source src="sounds/sec.mp3" type="audio/mpeg"/>
+</audio>
+<audio id="shanTwox" preload="auto">
+    <source src="sounds/twox.mp3" type="audio/mpeg"/>
+</audio>
+<audio id="shanTain" preload="auto">
+    <source src="sounds/tain.mp3" type="audio/mpeg"/>
+</audio>
+<audio id="shanGood" preload="auto">
+    <source src="sounds/good.mp3" type="audio/mpeg"/>
+</audio>
+<audio id="shanChange" preload="auto">
+    <source src="sounds/change.mp3" type="audio/mpeg"/>
+</audio>
+<audio id="shanEnd" preload="auto">
+    <source src="sounds/end.mp3" type="audio/mpeg"/>
+</audio>
+<audio id="shanLose" preload="auto">
+    <source src="sounds/lose.mp3" type="audio/mpeg"/>
+</audio>
+<audio id="shanSew" preload="auto">
+    <source src="sounds/sew.mp3" type="audio/mpeg"/>
+</audio>
+<audio id="shanTwoSew" preload="auto">
+    <source src="sounds/twosew.mp3" type="audio/mpeg"/>
+</audio>
+<audio id="shanNoneed" preload="auto">
+    <source src="sounds/noneed.mp3" type="audio/mpeg"/>
+</audio>
+<audio id="shanAutoeight" preload="auto">
+    <source src="sounds/autoeight.mp3" type="audio/mpeg"/>
+</audio>
+<audio id="shanAutonine" preload="auto">
+    <source src="sounds/autonine.mp3" type="audio/mpeg"/>
+</audio>
+<audio id="shanWin" preload="auto">
+    <source src="sounds/win.mp3" type="audio/mpeg"/>
+</audio>
+<audio id="bsmSound" preload="auto"></audio>
+<audio id="checkSound" preload="auto"></audio>
+<audio id="spinBtnSound" preload="auto"></audio>
   
+
+
+<div id="loadingScreen">
+    <!-- Full Splash Background -->
+    <div class="loading-bg" style="background-image: url('images/splash_bg.png');"></div>
+    
+    <!-- Start Button (small, bottom center) -->
+    <div class="start-wrapper" id="startWrapper">
+        <button class="start-btn" id="startBtn">
+            <i class="fas fa-play"></i>
+            </button>
+        <span class="tap-text">TAP TO START</span>
+      
+    </div>
+    
+    <!-- Progress Bar (bottom, over splash) -->
+    <div class="loading-bar" id="loadingBar" style="display: none;">
+        <div class="progress-track">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-text" id="progressText">0%</div>
+    </div>
+    
+</div>
+
+
+
+<div class="login-container" id="loginScreen">
+        <!-- LOGIN FORM -->
+        <div class="login-box" id="loginForm">
+            <h2 class="form-title"><i class="fas fa-user-circle"></i> Login</h2>
+            <div class="message" id="loginMessage"></div>
+            <input id="loginUsername" placeholder="Username"/>
+            <div class="password-container">
+                <input id="loginPassword" placeholder="Password" type="password"/>
+                <button class="toggle-password" onclick="togglePassword('loginPassword', this)">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
+            <button onclick="handleLogin()">Login</button>
+            <button class="secondary" onclick="showSignupForm()">Create Account</button>
+        </div>
+        
+        <!-- SIGNUP FORM -->
+        <div class="login-box" id="signupForm" style="display:none;">
+            <h2 class="form-title"><i class="fas fa-user-plus"></i> Sign Up</h2>
+            <div class="message" id="signupMessage"></div>
+            <input id="signupUsername" placeholder="Choose Username"/>
+            <div class="password-container">
+                <input id="signupPassword" placeholder="Choose Password" type="password"/>
+                <button class="toggle-password" onclick="togglePassword('signupPassword', this)">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
+            <button onclick="handleSignup()">Create Account</button>
+            <button class="secondary" onclick="showLoginForm()">◀ Back to Login</button>
+        </div>
+    </div>
+
+<div class="orientation-warning" id="orientationWarning">  
+        <div class="warning-content">  
+            <i class="fas fa-mobile-alt"></i>  
+            <h2>ကျေးဇူးပြု၍ ဖုန်းကို ဘေးတိုက်လှန်ပါ</h2>  
+            <p>ဒီဂိမ်းကို Landscape Mode နဲ့သာ ကစားနိုင်ပါသည်</p>  
+        </div>  
+    </div>
+
+
+
+<div id="lobbyScreen" style="display: none;">
+
+    <!-- ========== TOP BAR ========== -->
+    <div class="top-bar">
+        <!-- LEFT: Avatar + Balance -->
+        <div class="top-left">
+               <button class="icon-btn facebook">
+                <svg viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+            </button>
+            <div class="avatar-btn" onclick="showLobbyNotification('ပရိုဖိုင်')">
+                <i class="fas fa-user"></i>
+                <div class="vip-level">6</div>
+            </div>
+            <div class="balance-box">
+                <span class="coin-img"></span>
+                <span class="balance-amount" id="lobbyBalance">49</span>
+            </div>
+        </div>
+
+        <!-- CENTER: Game Logo -->
+        <div class="top-center">
+            <div class="game-logo">
+                <i class="fas fa-dragon"></i> ASIA BUFFALO
+            </div>
+        </div>
+
+        <!-- RIGHT: Daily Bonus + Settings -->
+        <div class="top-right">
+            <div class="daily-box">
+                            <button class="piggy-btn">
+                <svg viewBox="0 0 24 24"><path d="M19 5c-1.5 0-2.8 1.4-3 2-3.5-1.5-11-.3-11 5 0 1.8 0 3 2 4.5V20h4v-2h3v2h4v-4c1-.5 1.7-1 2-2h2v-4h-2c0-1-.5-1.5-1-2h0V5z"></path><circle cx="7.5" cy="9.5" fill="#000" opacity="0.3" r="1.5"></circle></svg>
+            </button>
+                <span></span>
+                <span class="display-balance" id="displayBalance">0</span>
+            </div>
+
+            <!-- 🔥 NEW: Fullscreen Button (Lobby ထဲမှာ ထည့်ထားတယ်) -->
+        <button class="icon-btn fullscreen-btn" id="lobbyFullscreenBtn">
+    <i class="fas fa-expand" id="lobbyFullscreenIcon"></i>
+        </button>
+            <button class="settings-btn" onclick="openSettingsModal()">
+                <i class="fas fa-cog"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- ========== TAB CONTENTS ========== -->
+    
+    <!-- HOME TAB: Game Cards -->
+    <div class="tab-content" id="home-content" style="display: block;">
+        <div class="games-area">
+            <div class="games-scroll">
+
+                <!-- Crocodile (MAJOR) -->
+                <div class="game-card" onclick="showGameContainer()">
+                    <div class="game-frame">
+                        <div class="game-frame-inner" style="background: linear-gradient(145deg, #00331a, #001a0d);">
+                            <div class="card-jackpot-badge major">
+                                <span class="badge-name">MAJOR</span>
+                                <span class="badge-value" id="jackpotMajor">11,026,483</span>
+                            </div>
+                            <img alt="Crocodile" class="game-card-img" src="images/crocodile.png"/>
+                            <div class="game-title-overlay">
+                                <div class="game-title-text">CROCODILE<br/>ADVENTURE</div>
+                                <div class="game-subtitle-text">Jungle Quest</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+                <!-- Super WAYS 1024 Slot Game Card  -->
+                <div class="game-card" onclick="openSuperWaysGame()">
+                    <div class="game-frame purple-border"> 
+                        <div class="game-frame-inner" style="background: linear-gradient(145deg, #4a0000, #2d0000);">
+                         <div class="card-jackpot-badge mini"> 
+                              <span class="badge-name">MINI</span>
+                                <span class="badge-value" id="jackpotMini">4,229,689</span>
+                            </div>
+                            <img alt="White" class="game-card-img" src="images/buffalo.png"/>
+                            <div class="game-title-overlay">
+                                <div class="game-title-text">ASIA<br/>BUFFALO</div>
+                                   <div class="game-subtitle-text">1024 Ways</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                   
+                <!-- MEGA WAYS 1024 Slot Game Card -->
+                <div class="game-card" onclick="openMegaWaysGame()">
+                    <div class="game-frame purple-border">
+                        <div class="game-frame-inner" style="background: linear-gradient(145deg, #4a0000, #2d0000);">
+                            <div class="card-jackpot-badge minor">
+                                <span class="badge-name">MINOR</span>
+                                <span class="badge-value" id="jackpotMinor2">5,229,739</span>
+                            </div>
+                            <img alt="Whitebf" class="game-card-img" src="images/whitebf.png"/>
+                            <div class="game-title-overlay">
+                                <div class="game-title-text">WHITE<br/>BUFFALO</div>
+                                <div class="game-subtitle-text">888 Ways</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                 
+              
+                              <!-- Super WAYS 1024 Slot Game Card  -->
+                <div class="game-card" onclick="openSuperWaysGame()">
+                    <div class="game-frame purple-border">
+                        <div class="game-frame-inner" style="background: linear-gradient(145deg, #4a0000, #2d0000);">
+                         <div class="card-jackpot-badge mini">
+                                <span class="badge-name">JACKPORT</span>
+                                <span class="badge-value" id="jackpotMini">4,229,689</span>
+                            </div>
+                            <img alt="White" class="game-card-img" src="images/firelink.png"/>
+                            <div class="game-title-overlay">
+                                <div class="game-title-text">AFICA<br/>BUFFALO(2)</div>
+                                   <div class="game-subtitle-text">1024 Ways</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+
+                              <!-- Super WAYS 1024 Slot Game Card  -->
+                <div class="game-card" onclick="openSuperWaysGame()">
+                    <div class="game-frame purple-border">
+                        <div class="game-frame-inner" style="background: linear-gradient(145deg, #4a0000, #2d0000);">  
+                         <div class="card-jackpot-badge mini">
+                                <span class="badge-name">Grand</span>
+                                <span class="badge-value" id="jackpotMini">4,229,689</span>
+                            </div>
+                            <img alt="White" class="game-card-img" src="images/dragon.png"/>
+                            <div class="game-title-overlay">
+                                <div class="game-title-text">ASIA<br/>BUFFALO</div>  
+                                   <div class="game-subtitle-text">1024 Ways</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                
+                              <!-- Super WAYS 1024 Slot Game Card  -->
+                <div class="game-card" onclick="openSuperWaysGame()">
+                    <div class="game-frame purple-border">
+                        <div class="game-frame-inner" style="background: linear-gradient(145deg, #4a0000, #2d0000);">
+                         <div class="card-jackpot-badge mini">
+                                <span class="badge-name">MINOR</span>
+                                <span class="badge-value" id="jackpotMini">4,229,689</span>
+                            </div>
+                            <img alt="White" class="game-card-img" src="images/buffalos.png"/>
+                            <div class="game-title-overlay">
+                                <div class="game-title-text">A.F.C<br/>Buffalo</div>
+                                   <div class="game-subtitle-text">1024 Ways</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+               
+                   <!-- ===== PHOENIX GAME ===== -->
+                   <div class="game-card" onclick="openPhoenixGame()">
+                 <div class="game-frame purple-border">
+                   <div class="game-frame-inner" style="background: linear-gradient(145deg, #1a0a3a, #0d0520);">
+                        <div class="phoenix-jackpot-badge major">
+                    <span class="badge-name">MAJOR</span>
+                   <span class="badge-value" id="phoenixGameJackpot">1,234,567</span>
+                      </div>
+                          <img alt="Cover" class="game-card-img" src="images/cover.png"/>
+                 <div class="game-title-overlay">
+                  <div class="game-title-text">WHITE<br/>Phoenix_Slot</div>
+                  <div class="game-subtitle-text">1024ways</div>
+                   </div>
+                    </div>
+                    </div>
+                </div>
+             
+                <!-- slot-jackpot.html Game Card -->
+                <div class="game-card" onclick="openJackpotWaysGame()">
+                    <div class="game-frame">
+                        <div class="game-frame-inner" style="background: linear-gradient(145deg, #1a0f0a, #0d0705);">
+                            <div class="card-jackpot-badge grand">
+                                <span class="badge-name">GRAND</span>
+                                <span class="badge-value" id="jackpotWaysGrand">10,000,000</span>
+                            </div>
+                            <div style="font-size: 70px; text-align: center; padding: 30px 0;">
+                                <i class="fas fa-dice-d6" style="color: #ffd700;"></i>
+                            </div>
+                            <div class="game-title-overlay">
+                                <div class="game-title-text">JACKPOT<br/>WAYS</div>
+                                <div class="game-subtitle-text">1024 Ways Slot</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+             
+            </div> <!-- end games-scroll -->
+        </div> <!-- end games-area -->
+    </div> <!-- end home-content -->
+
+
+
+
+<!-- ==================== DAILY GOALS / CASHBACK TAB (REPLACE လုပ်ရန်) ==================== -->
+<div class="tab-content" id="daily-content" style="display: none;">
+    <div class="daily-layout">
+        <!-- Left Sidebar -->
+        <div class="daily-sidebar">
+            <div class="daily-goals-header">
+                <h2><i class="fas fa-crown"></i> 5% CASHBACK</h2>
+                <p>5 ရက်ဆက်တိုက် ငွေသွင်းပြီး 5% cashback ရယူပါ!</p>
+                <div class="streak-counter" id="cashbackStreak">
+                    <i class="fas fa-fire"></i>
+                    <span id="streakText">0 Day Streak</span>
+                </div>
+            </div>
+            
+            <div class="daily-stats-panel">
+                <h3><i class="fas fa-chart-line"></i> Cashback Stats</h3>
+                <div class="stat-row">
+                    <span class="stat-label">Total Deposits (5 days)</span>
+                    <span class="stat-value" id="totalDeposits">0 KS</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Cashback Ready</span>
+                    <span class="stat-value" id="cashbackReady" style="color: #ffd700;">0 KS</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Current Day</span>
+                    <span class="stat-value" id="currentDay">0 / 5</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Next Reset</span>
+                    <span class="stat-value" id="nextReset" style="color: #ff4757;">--:--:--</span>
+                </div>
+            </div>
+
+            <!-- Delay Bonus Panel -->
+            <div class="daily-stats-panel" style="margin-top: 20px; border-color: rgba(0, 191, 255, 0.3);">
+                <h3 style="color: #00bfff;"><i class="fas fa-gift"></i> Delay Bonus</h3>
+                <div class="stat-row">
+                    <span class="stat-label">Your Deposits</span>
+                    <span class="stat-value" id="delayTotalDeposits">0 KS</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">5% Bonus</span>
+                    <span class="stat-value" id="delayBonusAmount" style="color: #00ff7f;">0 KS</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Claimable</span>
+                    <span class="stat-value" id="delayClaimable" style="color: #ffd700;">0 KS</span>
+                </div>
+                <button class="claim-btn" disabled="" id="delayClaimBtn" onclick="claimDelayBonus()" style="width: 100%; margin-top: 15px;">
+                    <i class="fas fa-gift"></i> Claim Delay Bonus
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="goals-grid" id="dailyGoalsGrid">
+            <!-- Day 1 -->
+            <div class="goal-card" id="day1Card">
+                <div class="goal-top">
+                    <div class="goal-icon"><i class="fas fa-calendar-day"></i></div>
+                    <div class="goal-info">
+                        <div class="goal-title">Day 1 - First Step</div>
+                        <div class="goal-desc">Deposit any amount today</div>
+                    </div>
+                </div>
+                <div class="goal-progress">
+                    <div class="goal-progress-bar" id="day1Progress" style="width: 0%;"></div>
+                </div>
+                <div class="goal-bottom">
+                    <div class="goal-reward">
+                        <i class="fas fa-coins"></i> <span id="day1Deposit">0 KS</span>
+                    </div>
+                    <button class="claim-btn" disabled="" id="day1Btn" onclick="claimDailyReward(1)">Locked</button>
+                </div>
+            </div>
+
+            <!-- Day 2 -->
+            <div class="goal-card" id="day2Card">
+                <div class="goal-top">
+                    <div class="goal-icon"><i class="fas fa-calendar-day"></i></div>
+                    <div class="goal-info">
+                        <div class="goal-title">Day 2 - Keep Going</div>
+                        <div class="goal-desc">Deposit again tomorrow</div>
+                    </div>
+                </div>
+                <div class="goal-progress">
+                    <div class="goal-progress-bar" id="day2Progress" style="width: 0%;"></div>
+                </div>
+                <div class="goal-bottom">
+                    <div class="goal-reward">
+                        <i class="fas fa-coins"></i> <span id="day2Deposit">0 KS</span>
+                    </div>
+                    <button class="claim-btn" disabled="" id="day2Btn" onclick="claimDailyReward(2)">Locked</button>
+                </div>
+            </div>
+
+            <!-- Day 3 -->
+            <div class="goal-card" id="day3Card">
+                <div class="goal-top">
+                    <div class="goal-icon"><i class="fas fa-calendar-day"></i></div>
+                    <div class="goal-info">
+                        <div class="goal-title">Day 3 - Halfway</div>
+                        <div class="goal-desc">3rd day deposit streak</div>
+                    </div>
+                </div>
+                <div class="goal-progress">
+                    <div class="goal-progress-bar" id="day3Progress" style="width: 0%;"></div>
+                </div>
+                <div class="goal-bottom">
+                    <div class="goal-reward">
+                        <i class="fas fa-coins"></i> <span id="day3Deposit">0 KS</span>
+                    </div>
+                    <button class="claim-btn" disabled="" id="day3Btn" onclick="claimDailyReward(3)">Locked</button>
+                </div>
+            </div>
+
+            <!-- Day 4 -->
+            <div class="goal-card" id="day4Card">
+                <div class="goal-top">
+                    <div class="goal-icon"><i class="fas fa-calendar-day"></i></div>
+                    <div class="goal-info">
+                        <div class="goal-title">Day 4 - Almost</div>
+                        <div class="goal-desc">One more day to go!</div>
+                    </div>
+                </div>
+                <div class="goal-progress">
+                    <div class="goal-progress-bar" id="day4Progress" style="width: 0%;"></div>
+                </div>
+                <div class="goal-bottom">
+                    <div class="goal-reward">
+                        <i class="fas fa-coins"></i> <span id="day4Deposit">0 KS</span>
+                    </div>
+                    <button class="claim-btn" disabled="" id="day4Btn" onclick="claimDailyReward(4)">Locked</button>
+                </div>
+            </div>
+
+            <!-- Day 5 -->
+            <div class="goal-card" id="day5Card">
+                <div class="goal-top">
+                    <div class="goal-icon"><i class="fas fa-trophy"></i></div>
+                    <div class="goal-info">
+                        <div class="goal-title">Day 5 - CASHBACK!</div>
+                        <div class="goal-desc">Claim your 5% cashback</div>
+                    </div>
+                </div>
+                <div class="goal-progress">
+                    <div class="goal-progress-bar" id="day5Progress" style="width: 0%; background: linear-gradient(90deg, #ffd700, #ff8c00);"></div>
+                </div>
+                <div class="goal-bottom">
+                    <div class="goal-reward" style="color: #ff4757; font-size: 1.1em;">
+                        <i class="fas fa-gift"></i> <span id="day5Cashback">0 KS</span>
+                    </div>
+                    <button class="claim-btn" disabled="" id="day5Btn" onclick="claimCashback()" style="background: linear-gradient(135deg, #ff4757, #ff6348);">
+                        <i class="fas fa-crown"></i> CLAIM
+                    </button>
+                </div>
+            </div>
+
+            <!-- History -->
+            <div class="goal-card" style="grid-column: span 2;">
+                <div class="goal-top">
+                    <div class="goal-icon" style="background: linear-gradient(135deg, #00bfff, #8a2be2);"><i class="fas fa-history"></i></div>
+                    <div class="goal-info">
+                        <div class="goal-title">Deposit History</div>
+                        <div class="goal-desc">Your last 5 days deposits</div>
+                    </div>
+                </div>
+                <div id="depositHistoryList" style="max-height: 150px; overflow-y: auto; margin-top: 10px;">
+                    <div style="color: #666; text-align: center; padding: 20px;">No deposits yet</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== JOURNEY / SHOP TAB (REPLACE လုပ်ရန်) ==================== -->
+<div class="tab-content" id="shop-content" style="display: none;">
+    <div class="journey-layout">
+        <!-- Main Content -->
+        <div class="journey-main">
+            <div class="journey-header">
+                <h2><i class="fas fa-compass"></i> World Journey</h2>
+                <p>New worlds unlock as you play! Complete each world to advance.</p>
+            </div>
+
+            <div class="journey-path-horizontal" id="journeyPath">
+                <div class="path-node active" id="pathNode1">1</div>
+                <div class="path-line" id="pathLine1"></div>
+                <div class="path-node locked" id="pathNode2"><i class="fas fa-lock"></i></div>
+                <div class="path-line locked" id="pathLine2"></div>
+                <div class="path-node locked" id="pathNode3"><i class="fas fa-lock"></i></div>
+                <div class="path-line locked" id="pathLine3"></div>
+                <div class="path-node locked" id="pathNode4"><i class="fas fa-lock"></i></div>
+            </div>
+
+            <div class="worlds-grid" id="worldsGrid">
+                <!-- World 1: Neon Vegas (Unlocked) -->
+                <div class="world-card" id="world1">
+                    <div class="world-image">
+                        <i class="fas fa-city"></i>
+                    </div>
+                    <div class="world-info">
+                        <div class="world-name">
+                            <i class="fas fa-unlock"></i>
+                            Neon Vegas
+                        </div>
+                        <div class="world-desc">
+                            The city of lights! Classic slots and poker tables await.
+                        </div>
+                        <div class="world-stats">
+                            <div class="stat"><i class="fas fa-star"></i> Level 1</div>
+                            <div class="stat"><i class="fas fa-coins"></i> 2.5M</div>
+                            <div class="stat"><i class="fas fa-trophy"></i> <span id="world1Progress">0/20</span></div>
+                        </div>
+                        <button class="world-btn enter" onclick="enterWorld(1)">
+                            <i class="fas fa-play"></i> Enter World
+                        </button>
+                    </div>
+                </div>
+
+                <!-- World 2: Atlantis Bay -->
+                <div class="world-card locked" id="world2">
+                    <div class="lock-overlay" id="world2Lock">
+                        <i class="fas fa-lock"></i>
+                        <div class="lock-text">Complete Neon Vegas</div>
+                    </div>
+                    <div class="world-image">
+                        <i class="fas fa-water"></i>
+                    </div>
+                    <div class="world-info">
+                        <div class="world-name">
+                            <i class="fas fa-lock"></i>
+                            Atlantis Bay
+                        </div>
+                        <div class="world-desc">
+                            Dive into underwater treasures and pearl slots.
+                        </div>
+                        <div class="world-stats">
+                            <div class="stat"><i class="fas fa-star"></i> Level 5</div>
+                            <div class="stat"><i class="fas fa-coins"></i> 5M</div>
+                            <div class="stat"><i class="fas fa-trophy"></i> 0/15</div>
+                        </div>
+                        <button class="world-btn locked" disabled="">
+                            <i class="fas fa-lock"></i> Locked
+                        </button>
+                    </div>
+                </div>
+
+                <!-- World 3: Dragon's Lair -->
+                <div class="world-card locked" id="world3">
+                    <div class="lock-overlay" id="world3Lock">
+                        <i class="fas fa-lock"></i>
+                        <div class="lock-text">Complete Atlantis Bay</div>
+                    </div>
+                    <div class="world-image">
+                        <i class="fas fa-dragon"></i>
+                    </div>
+                    <div class="world-info">
+                        <div class="world-name">
+                            <i class="fas fa-lock"></i>
+                            Dragon's Lair
+                        </div>
+                        <div class="world-desc">
+                            Face the ancient dragon! High stakes and legendary jackpots.
+                        </div>
+                        <div class="world-stats">
+                            <div class="stat"><i class="fas fa-star"></i> Level 10</div>
+                            <div class="stat"><i class="fas fa-coins"></i> 10M</div>
+                            <div class="stat"><i class="fas fa-trophy"></i> 0/25</div>
+                        </div>
+                        <button class="world-btn locked" disabled="">
+                            <i class="fas fa-lock"></i> Locked
+                        </button>
+                    </div>
+                </div>
+
+                <!-- World 4: Cosmic Casino -->
+                <div class="world-card locked" id="world4">
+                    <div class="lock-overlay" id="world4Lock">
+                        <i class="fas fa-lock"></i>
+                        <div class="lock-text">Complete Dragon's Lair</div>
+                    </div>
+                    <div class="world-image">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                    <div class="world-info">
+                        <div class="world-name">
+                            <i class="fas fa-lock"></i>
+                            Cosmic Casino
+                        </div>
+                        <div class="world-desc">
+                            Beyond the stars! Zero-gravity slots and alien poker.
+                        </div>
+                        <div class="world-stats">
+                            <div class="stat"><i class="fas fa-star"></i> Level 20</div>
+                            <div class="stat"><i class="fas fa-coins"></i> 50M</div>
+                            <div class="stat"><i class="fas fa-trophy"></i> 0/30</div>
+                        </div>
+                        <button class="world-btn locked" disabled="">
+                            <i class="fas fa-lock"></i> Locked
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="journey-sidebar">
+            <div class="journey-rewards-panel">
+                <h3><i class="fas fa-gift"></i> Journey Rewards</h3>
+                
+                <div class="reward-item" id="reward1">
+                    <div class="reward-icon"><i class="fas fa-coins"></i></div>
+                    <div class="reward-info">
+                        <div class="reward-name">Neon Vegas Complete</div>
+                        <div class="reward-desc">Unlock: 10,000 Coins</div>
+                    </div>
+                </div>
+                
+                <div class="reward-item locked" id="reward2">
+                    <div class="reward-icon" style="background: linear-gradient(135deg, #8a2be2, #4a0080);">
+                        <i class="fas fa-gem"></i>
+                    </div>
+                    <div class="reward-info">
+                        <div class="reward-name">Atlantis Bay Complete</div>
+                        <div class="reward-desc">Unlock: 100 Gems + VIP Badge</div>
+                    </div>
+                </div>
+                
+                <div class="reward-item locked" id="reward3">
+                    <div class="reward-icon" style="background: linear-gradient(135deg, #ff4757, #c0392b);">
+                        <i class="fas fa-crown"></i>
+                    </div>
+                    <div class="reward-info">
+                        <div class="reward-name">Dragon's Lair Complete</div>
+                        <div class="reward-desc">Unlock: 500,000 Coins</div>
+                    </div>
+                </div>
+                
+                <div class="reward-item locked" id="reward4">
+                    <div class="reward-icon" style="background: linear-gradient(135deg, #00ff7f, #00cc66);">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <div class="reward-info">
+                        <div class="reward-name">Cosmic Casino Complete</div>
+                        <div class="reward-desc">Unlock: 1M Coins + Legendary</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="journey-rewards-panel" style="margin-top: 20px;">
+                <h3 style="color: #ffd700;"><i class="fas fa-chart-bar"></i> Your Progress</h3>
+                <div class="stat-row">
+                    <span class="stat-label">Worlds Unlocked</span>
+                    <span class="stat-value" id="worldsUnlocked">1 / 4</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Total Spins</span>
+                    <span class="stat-value" id="totalSpins">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Biggest Win</span>
+                    <span class="stat-value" id="journeyBiggestWin">0 KS</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    <!-- ========== TICKER CONTAINER (Below Game Cards) ========== -->
+    <div class="ticker-container" style="margin-top: auto; margin-bottom: 10px;">
+        <div class="notification-ticker">
+            <div class="ticker-content" id="tickerText">
+                 Latest Winner: Player "MgMg" won 5,000,000 KS! 
+            </div>
+        </div>
+    </div>
+       
+    <!-- ========== BOTTOM NAVIGATION ========== -->
+    <div class="bottom-nav">
+        <!-- HOME -->
+        <div class="nav-item active" onclick="switchLobbyTab(this,'home')">
+            <img alt="home" class="bottom-nav-icon" src="images/highroller.png"/>
+        </div>
+
+        <!-- DAILY GOALS -->
+        <div class="nav-item" onclick="switchLobbyTab(this,'daily')">
+            <img alt="daily" class="bottom-nav-icon" src="images/daily-goals.png"/>
+            <span class="nav-badge">1</span>
+        </div>
+
+        <!-- JOURNEY -->
+        <div class="nav-item" onclick="switchLobbyTab(this,'shop')">
+            <img alt="journey" class="bottom-nav-icon" src="images/journey.png"/>
+        </div>
+
+        <!-- CHALLENGE -->
+        <div class="nav-item" onclick="toggleChatModal()">
+            <img alt="chat" class="bottom-nav-icon" src="images/challenge.png"/>
+        </div>
+
+        <!-- WITHDRAW -->
+<div class="nav-item" onclick="openWithdrawPopup1()">
+    <img alt="withdraw" class="bottom-nav-icon" src="images/withdrawal.png"/>
+    <span class="nav-badge">3</span>
+</div>
+
+      <!-- ★ HISTORY (NEW) ★ -->
+    <div class="nav-item" onclick="openHistoryPopup()">
+        <img alt="history" class="bottom-nav-icon" src="images/history.png"/>
+        <span class="nav-badge">2</span>
+    </div>
+</div>
+
+</div>
+
+
+
+<div class="modal-glass" id="settingsModal" style="display: none;">
+    <div class="modal-content glass-panel">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="color:#0ff; margin:0;">⚙️ Game Settings</h2>
+            <span onclick="closeSettingsModal()" style="cursor:pointer; font-size:28px; color:#fff; line-height:1;">×</span>
+        </div>
+
+        <div class="setting-row">
+            <div class="setting-label"> Sound Effects</div>
+            <label class="neon-toggle">
+                <input id="soundToggle" type="checkbox"/>
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+
+        <div class="setting-row">
+            <div class="setting-label"> Vibration</div>
+            <label class="neon-toggle">
+                <input id="vibrationToggle" type="checkbox"/>
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+
+        <div class="setting-row">
+            <div class="setting-label"> Volume</div>
+            <input class="volume-slider" id="volumeSlider" max="100" min="0" type="range" value="70"/>
+        </div>
+
+        <div class="setting-row">
+            <div class="setting-label"> Language</div>
+            <select class="lang-select" id="languageSelect">
+                <option value="my">မြန်မာ</option>
+                <option value="en">English</option>
+                <option value="th">ไทย</option>
+            </select>
+        </div>
+
+        <div class="setting-row">
+            <div class="setting-label"> Theme</div>
+            <select class="theme-select" id="themeSelect">
+                <option value="neon">Neon Blue</option>
+                <option value="purple">Purple Haze</option>
+                <option value="green">Matrix Green</option>
+                <option value="red">Red Alert</option>
+            </select>
+        </div>
+
+        <div class="setting-row">
+            <div class="setting-label"> Notifications</div>
+            <label class="neon-toggle">
+                <input id="notificationToggle" type="checkbox"/>
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+
+        <button class="neon-btn" onclick="closeSettingsModal()" style="margin-top:20px; width:100%;">Close</button>
+    </div>
+</div>
+
+
+
    <!-- Trigger Button -->
 <button onclick="openDepositPopup1()" class="fixed bottom-20 right-6 w-16 h-16 rounded-full btn-primary flex items-center justify-center shadow-lg z-50 hover:scale-110 transition-transform">
     <i class="fas fa-wallet text-white text-2xl"></i>
@@ -37,9 +869,8 @@
 <!-- POPUP 1: ငွေသွင်း (Payment Method + Amount)                      -->
 <!-- ================================================================ -->
 <div id="depositPopup1" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4 bg-black/80 backdrop-blur-sm" style="display:none;">
-    <div class="glass-panel w-full max-w-md rounded-3xl overflow-hidden animate-fade-in relative flex flex-col max-h-[90vh]"
-         style=" background-image: url('images/popup_bg_1.png'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; max-width: 500px;height: 88vh;max-height: 680px;">
-
+  <div class="fixed inset-0 z-[9999] hidden items-center justify-center p-4 bg-black/80 backdrop-blur-sm" id="depositPopup1" style="display:none;">
+    <div class="glass-panel w-full max-w-md rounded-3xl overflow-hidden animate-fade-in relative flex flex-col max-h-[90vh]" style=" background-image: url('images/popup_bg_1.png'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; max-width: 500px;height: 88vh;max-height: 680px;">
           
         <!-- Header -->
         <div class="p-4 border-b border-white/10 flex justify-between items-center bg-slate-900/50 shrink-0">
@@ -436,7 +1267,7 @@
 </div>
         
        
-   <!-- ================================================================ -->
+ <!-- ================================================================ -->
 <!-- HISTORY POPUP                                                    -->
 <!-- ================================================================ -->
 
@@ -516,922 +1347,8 @@
     <i class="fas fa-info-circle mr-2" id="notificationIcon"></i>
     <span id="notificationMessage"></span>
 </div>
-    
-    <!-- LOGIN SCREEN -->
-    <div class="login-container" id="loginScreen">
-        <!-- LOGIN FORM -->
-        <div class="login-box" id="loginForm">
-            <h2 class="form-title"><i class="fas fa-user-circle"></i> Login</h2>
-            <div class="message" id="loginMessage"></div>
-            <input id="loginUsername" placeholder="Username" />
-            <div class="password-container">
-                <input id="loginPassword" type="password" placeholder="Password" />
-                <button class="toggle-password" onclick="togglePassword('loginPassword', this)">
-                    <i class="fas fa-eye"></i>
-                </button>
-            </div>
-            <button onclick="handleLogin()">Login</button>
-            <button class="secondary" onclick="showSignupForm()">Create Account</button>
-        </div>
-        
-        <!-- SIGNUP FORM -->
-        <div class="login-box" id="signupForm" style="display:none;">
-            <h2 class="form-title"><i class="fas fa-user-plus"></i> Sign Up</h2>
-            <div class="message" id="signupMessage"></div>
-            <input id="signupUsername" placeholder="Choose Username" />
-            <div class="password-container">
-                <input id="signupPassword" type="password" placeholder="Choose Password" />
-                <button class="toggle-password" onclick="togglePassword('signupPassword', this)">
-                    <i class="fas fa-eye"></i>
-                </button>
-            </div>
-            <button onclick="handleSignup()">Create Account</button>
-            <button class="secondary" onclick="showLoginForm()">◀ Back to Login</button>
-        </div>
-    </div>
+   
 
-    <!-- Orientation Warning -->
-    <div class="orientation-warning" id="orientationWarning">  
-        <div class="warning-content">  
-            <i class="fas fa-mobile-alt"></i>  
-            <h2>ကျေးဇူးပြု၍ ဖုန်းကို ဘေးတိုက်လှန်ပါ</h2>  
-            <p>ဒီဂိမ်းကို Landscape Mode နဲ့သာ ကစားနိုင်ပါသည်</p>  
-        </div>  
-    </div>
-
-    
-<!-- All Game Sounds (Complete) -->
-<audio id="bgm" loop preload="auto"></audio>
-<audio id="loadingSound" preload="auto"></audio>
-<audio id="allbuttonSound" preload="auto"></audio>
-<audio id="clickSound" preload="auto"></audio>
-<audio id="popbuttonSound" preload="auto"></audio> 
- <audio id="spinSound" preload="auto"></audio>
-<audio id="winlineSound" preload="auto"></audio>
-<audio id="nowinSound" preload="auto"></audio>
-<audio id="buffaloSound" preload="auto"></audio>
-<audio id="lionSound" preload="auto"></audio>
-<audio id="boomSound" preload="auto"></audio>
-<audio id="coinSound" preload="auto"></audio>
-<audio id="coinrainSound" preload="auto"></audio>
-<audio id="sixcoinSound" preload="auto"></audio>
-<audio id="jackpotspinSound" preload="auto"></audio>
-<audio id="jackpotSound" preload="auto"></audio>
-<audio id="congratulationsSound" preload="auto"></audio>
-<audio id="congratsSound" preload="auto"></audio>
-<audio id="notiSound" preload="auto"></audio>
-<audio id="notificationSound" preload="auto"></audio>
-<audio id="adminSound" preload="auto"></audio>
-<audio id="paymentreseiveSound" preload="auto"></audio>
-<audio id="withdrawSound" preload="auto"></audio>
-<audio id="thankyouboxSound" preload="auto"></audio>
-<audio id="coinboxSound" preload="auto"></audio> 
- <audio id="boxbgSound" loop preload="auto"></audio>                                
-<audio id="babaSound" preload="auto"></audio>
-<audio id="wheelSound" preload="auto"></audio>
-<!-- Shan Koe Mee Sounds -->
-<audio id="shanPoker" preload="auto">
-    <source src="sounds/poker.mp3" type="audio/mpeg">
-</audio>
-<audio id="shanChip" preload="auto">
-    <source src="sounds/chip.mp3" type="audio/mpeg">
-</audio>
-<audio id="shanSec" preload="auto">
-    <source src="sounds/sec.mp3" type="audio/mpeg">
-</audio>
-<audio id="shanTwox" preload="auto">
-    <source src="sounds/twox.mp3" type="audio/mpeg">
-</audio>
-<audio id="shanTain" preload="auto">
-    <source src="sounds/tain.mp3" type="audio/mpeg">
-</audio>
-<audio id="shanGood" preload="auto">
-    <source src="sounds/good.mp3" type="audio/mpeg">
-</audio>
-<audio id="shanChange" preload="auto">
-    <source src="sounds/change.mp3" type="audio/mpeg">
-</audio>
-<audio id="shanEnd" preload="auto">
-    <source src="sounds/end.mp3" type="audio/mpeg">
-</audio>
-<audio id="shanLose" preload="auto">
-    <source src="sounds/lose.mp3" type="audio/mpeg">
-</audio>
-<audio id="shanSew" preload="auto">
-    <source src="sounds/sew.mp3" type="audio/mpeg">
-</audio>
-<audio id="shanTwoSew" preload="auto">
-    <source src="sounds/twosew.mp3" type="audio/mpeg">
-</audio>
-<audio id="shanNoneed" preload="auto">
-    <source src="sounds/noneed.mp3" type="audio/mpeg">
-</audio>
-<audio id="shanAutoeight" preload="auto">
-    <source src="sounds/autoeight.mp3" type="audio/mpeg">
-</audio>
-<audio id="shanAutonine" preload="auto">
-    <source src="sounds/autonine.mp3" type="audio/mpeg">
-</audio>
-<audio id="shanWin" preload="auto">
-    <source src="sounds/win.mp3" type="audio/mpeg">
-</audio>   
-    <!-- LOADING SCREEN -->
-<div id="loadingScreen">
-    <!-- Full Splash Background -->
-    <div class="loading-bg" style="background-image: url('images/splash_bg.png');"></div>
-    
-    <!-- Start Button (small, bottom center) -->
-    <div class="start-wrapper" id="startWrapper">
-        <button id="startBtn" class="start-btn">
-            <i class="fas fa-play"></i>
-            </button>
-        <span class="tap-text">TAP TO START</span>
-      
-    </div>
-    
-    <!-- Progress Bar (bottom, over splash) -->
-    <div class="loading-bar" id="loadingBar" style="display: none;">
-        <div class="progress-track">
-            <div class="progress-fill" id="progressFill"></div>
-        </div>
-        <div class="progress-text" id="progressText">0%</div>
-    </div>
-    
-</div>
-
-<!-- ==================== LOBBY SCREEN ==================== -->
-<div id="lobbyScreen" style="display: none;">
-
-    <!-- ========== TOP BAR ========== -->
-    <div class="top-bar">
-        <!-- LEFT: Avatar + Balance -->
-        <div class="top-left">
-               <button class="icon-btn facebook">
-                <svg viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
-            </button>
-            <div class="avatar-btn" onclick="showLobbyNotification('ပရိုဖိုင်')">
-                <i class="fas fa-user"></i>
-                <div class="vip-level">6</div>
-            </div>
-            <div class="balance-box">
-                <span class="coin-img"></span>
-                <span class="balance-amount" id="lobbyBalance">49</span>
-            </div>
-        </div>
-
-        <!-- CENTER: Game Logo -->
-        <div class="top-center">
-            <div class="game-logo">
-                <i class="fas fa-dragon"></i> ASIA BUFFALO
-            </div>
-        </div>
-
-        <!-- RIGHT: Daily Bonus + Settings -->
-        <div class="top-right">
-            <div class="daily-box">
-                            <button class="piggy-btn">
-                <svg viewBox="0 0 24 24"><path d="M19 5c-1.5 0-2.8 1.4-3 2-3.5-1.5-11-.3-11 5 0 1.8 0 3 2 4.5V20h4v-2h3v2h4v-4c1-.5 1.7-1 2-2h2v-4h-2c0-1-.5-1.5-1-2h0V5z"/><circle cx="7.5" cy="9.5" r="1.5" fill="#000" opacity="0.3"/></svg>
-            </button>
-                <span></span>
-                <span class="display-balance" id="displayBalance">0</span>
-            </div>
-
-            <!-- 🔥 NEW: Fullscreen Button (Lobby ထဲမှာ ထည့်ထားတယ်) -->
-        <button class="icon-btn fullscreen-btn" id="lobbyFullscreenBtn">
-    <i class="fas fa-expand" id="lobbyFullscreenIcon"></i>
-        </button>
-            <button class="settings-btn" onclick="openSettingsModal()">
-                <i class="fas fa-cog"></i>
-            </button>
-        </div>
-    </div>
-
-    <!-- ========== TAB CONTENTS ========== -->
-    
-    <!-- HOME TAB: Game Cards -->
-    <div id="home-content" class="tab-content" style="display: block;">
-        <div class="games-area">
-            <div class="games-scroll">
-
-                <!-- Crocodile (MAJOR) -->
-                <div class="game-card" onclick="showGameContainer()">
-                    <div class="game-frame">
-                        <div class="game-frame-inner" style="background: linear-gradient(145deg, #00331a, #001a0d);">
-                            <div class="card-jackpot-badge major">
-                                <span class="badge-name">MAJOR</span>
-                                <span class="badge-value" id="jackpotMajor">11,026,483</span>
-                            </div>
-                            <img src="images/crocodile.png" alt="Crocodile" class="game-card-img">
-                            <div class="game-title-overlay">
-                                <div class="game-title-text">CROCODILE<br>ADVENTURE</div>
-                                <div class="game-subtitle-text">Jungle Quest</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                
-                <!-- Super WAYS 1024 Slot Game Card  -->
-                <div class="game-card" onclick="openSuperWaysGame()">
-                    <div class="game-frame purple-border"> 
-                        <div class="game-frame-inner" style="background: linear-gradient(145deg, #4a0000, #2d0000);">
-                         <div class="card-jackpot-badge mini"> 
-                              <span class="badge-name">MINI</span>
-                                <span class="badge-value" id="jackpotMini">4,229,689</span>
-                            </div>
-                            <img src="images/buffalo.png" alt="White" class="game-card-img">
-                            <div class="game-title-overlay">
-                                <div class="game-title-text">ASIA<br>BUFFALO</div>
-                                   <div class="game-subtitle-text">1024 Ways</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                   
-                <!-- MEGA WAYS 1024 Slot Game Card -->
-                <div class="game-card" onclick="openMegaWaysGame()">
-                    <div class="game-frame purple-border">
-                        <div class="game-frame-inner" style="background: linear-gradient(145deg, #4a0000, #2d0000);">
-                            <div class="card-jackpot-badge minor">
-                                <span class="badge-name">MINOR</span>
-                                <span class="badge-value" id="jackpotMinor2">5,229,739</span>
-                            </div>
-                            <img src="images/whitebf.png" alt="Whitebf" class="game-card-img">
-                            <div class="game-title-overlay">
-                                <div class="game-title-text">WHITE<br>BUFFALO</div>
-                                <div class="game-subtitle-text">888 Ways</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                 
-              
-                              <!-- Super WAYS 1024 Slot Game Card  -->
-                <div class="game-card" onclick="openSuperWaysGame()">
-                    <div class="game-frame purple-border">
-                        <div class="game-frame-inner" style="background: linear-gradient(145deg, #4a0000, #2d0000);">
-                         <div class="card-jackpot-badge mini">
-                                <span class="badge-name">JACKPORT</span>
-                                <span class="badge-value" id="jackpotMini">4,229,689</span>
-                            </div>
-                            <img src="images/firelink.png" alt="White" class="game-card-img">
-                            <div class="game-title-overlay">
-                                <div class="game-title-text">AFICA<br>BUFFALO(2)</div>
-                                   <div class="game-subtitle-text">1024 Ways</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                
-
-                              <!-- Super WAYS 1024 Slot Game Card  -->
-                <div class="game-card" onclick="openSuperWaysGame()">
-                    <div class="game-frame purple-border">
-                        <div class="game-frame-inner" style="background: linear-gradient(145deg, #4a0000, #2d0000);">  
-                         <div class="card-jackpot-badge mini">
-                                <span class="badge-name">Grand</span>
-                                <span class="badge-value" id="jackpotMini">4,229,689</span>
-                            </div>
-                            <img src="images/dragon.png" alt="White" class="game-card-img">
-                            <div class="game-title-overlay">
-                                <div class="game-title-text">ASIA<br>BUFFALO</div>  
-                                   <div class="game-subtitle-text">1024 Ways</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                
-                              <!-- Super WAYS 1024 Slot Game Card  -->
-                <div class="game-card" onclick="openSuperWaysGame()">
-                    <div class="game-frame purple-border">
-                        <div class="game-frame-inner" style="background: linear-gradient(145deg, #4a0000, #2d0000);">
-                         <div class="card-jackpot-badge mini">
-                                <span class="badge-name">MINOR</span>
-                                <span class="badge-value" id="jackpotMini">4,229,689</span>
-                            </div>
-                            <img src="images/buffalos.png" alt="White" class="game-card-img">
-                            <div class="game-title-overlay">
-                                <div class="game-title-text">A.F.C<br>Buffalo</div>
-                                   <div class="game-subtitle-text">1024 Ways</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ===== THREE CARD POKER GAME CARD ===== -->
-<div class="game-card" onclick="openCardGame()">
-    <div class="game-frame purple-border">
-        <div class="game-frame-inner" style="background: linear-gradient(145deg, #1a0a3a, #0d0520);">
-            <div class="card-jackpot-badge major">
-                <span class="badge-name">MAJOR</span>
-                <span class="badge-value" id="cardGameJackpot">1,234,567</span>
-            </div>
-               <img src="images/cover.png" alt="Cover" class="game-card-img"> 
-                 <div class="game-title-overlay">
-                  <div class="game-title-text">WHITE<br>ShanKoeMee</div>
-                  <div class="game-subtitle-text">3Card</div>
-                   </div>
-                    </div>
-                    </div>
-                </div>
-             
-                <!-- slot-jackpot.html Game Card -->
-                <div class="game-card" onclick="openJackpotWaysGame()">
-                    <div class="game-frame">
-                        <div class="game-frame-inner" style="background: linear-gradient(145deg, #1a0f0a, #0d0705);">
-                            <div class="card-jackpot-badge grand">
-                                <span class="badge-name">GRAND</span>
-                                <span class="badge-value" id="jackpotWaysGrand">10,000,000</span>
-                            </div>
-                            <div style="font-size: 70px; text-align: center; padding: 30px 0;">
-                                <i class="fas fa-dice-d6" style="color: #ffd700;"></i>
-                            </div>
-                            <div class="game-title-overlay">
-                                <div class="game-title-text">JACKPOT<br>WAYS</div>
-                                <div class="game-subtitle-text">1024 Ways Slot</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-             
-            </div> <!-- end games-scroll -->
-        </div> <!-- end games-area -->
-    </div> <!-- end home-content -->
-
-<!-- ==================== DAILY GOALS / CASHBACK TAB (REPLACE လုပ်ရန်) ==================== -->
-<div id="daily-content" class="tab-content" style="display: none;">
-    <div class="daily-layout">
-        <!-- Left Sidebar -->
-        <div class="daily-sidebar">
-            <div class="daily-goals-header">
-                <h2><i class="fas fa-crown"></i> 5% CASHBACK</h2>
-                <p>5 ရက်ဆက်တိုက် ငွေသွင်းပြီး 5% cashback ရယူပါ!</p>
-                <div class="streak-counter" id="cashbackStreak">
-                    <i class="fas fa-fire"></i>
-                    <span id="streakText">0 Day Streak</span>
-                </div>
-            </div>
-            
-            <div class="daily-stats-panel">
-                <h3><i class="fas fa-chart-line"></i> Cashback Stats</h3>
-                <div class="stat-row">
-                    <span class="stat-label">Total Deposits (5 days)</span>
-                    <span class="stat-value" id="totalDeposits">0 KS</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Cashback Ready</span>
-                    <span class="stat-value" id="cashbackReady" style="color: #ffd700;">0 KS</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Current Day</span>
-                    <span class="stat-value" id="currentDay">0 / 5</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Next Reset</span>
-                    <span class="stat-value" id="nextReset" style="color: #ff4757;">--:--:--</span>
-                </div>
-            </div>
-
-            <!-- Delay Bonus Panel -->
-            <div class="daily-stats-panel" style="margin-top: 20px; border-color: rgba(0, 191, 255, 0.3);">
-                <h3 style="color: #00bfff;"><i class="fas fa-gift"></i> Delay Bonus</h3>
-                <div class="stat-row">
-                    <span class="stat-label">Your Deposits</span>
-                    <span class="stat-value" id="delayTotalDeposits">0 KS</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">5% Bonus</span>
-                    <span class="stat-value" id="delayBonusAmount" style="color: #00ff7f;">0 KS</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Claimable</span>
-                    <span class="stat-value" id="delayClaimable" style="color: #ffd700;">0 KS</span>
-                </div>
-                <button class="claim-btn" onclick="claimDelayBonus()" id="delayClaimBtn" style="width: 100%; margin-top: 15px;" disabled>
-                    <i class="fas fa-gift"></i> Claim Delay Bonus
-                </button>
-            </div>
-        </div>
-
-        <!-- Main Content -->
-        <div class="goals-grid" id="dailyGoalsGrid">
-            <!-- Day 1 -->
-            <div class="goal-card" id="day1Card">
-                <div class="goal-top">
-                    <div class="goal-icon"><i class="fas fa-calendar-day"></i></div>
-                    <div class="goal-info">
-                        <div class="goal-title">Day 1 - First Step</div>
-                        <div class="goal-desc">Deposit any amount today</div>
-                    </div>
-                </div>
-                <div class="goal-progress">
-                    <div class="goal-progress-bar" id="day1Progress" style="width: 0%;"></div>
-                </div>
-                <div class="goal-bottom">
-                    <div class="goal-reward">
-                        <i class="fas fa-coins"></i> <span id="day1Deposit">0 KS</span>
-                    </div>
-                    <button class="claim-btn" id="day1Btn" onclick="claimDailyReward(1)" disabled>Locked</button>
-                </div>
-            </div>
-
-            <!-- Day 2 -->
-            <div class="goal-card" id="day2Card">
-                <div class="goal-top">
-                    <div class="goal-icon"><i class="fas fa-calendar-day"></i></div>
-                    <div class="goal-info">
-                        <div class="goal-title">Day 2 - Keep Going</div>
-                        <div class="goal-desc">Deposit again tomorrow</div>
-                    </div>
-                </div>
-                <div class="goal-progress">
-                    <div class="goal-progress-bar" id="day2Progress" style="width: 0%;"></div>
-                </div>
-                <div class="goal-bottom">
-                    <div class="goal-reward">
-                        <i class="fas fa-coins"></i> <span id="day2Deposit">0 KS</span>
-                    </div>
-                    <button class="claim-btn" id="day2Btn" onclick="claimDailyReward(2)" disabled>Locked</button>
-                </div>
-            </div>
-
-            <!-- Day 3 -->
-            <div class="goal-card" id="day3Card">
-                <div class="goal-top">
-                    <div class="goal-icon"><i class="fas fa-calendar-day"></i></div>
-                    <div class="goal-info">
-                        <div class="goal-title">Day 3 - Halfway</div>
-                        <div class="goal-desc">3rd day deposit streak</div>
-                    </div>
-                </div>
-                <div class="goal-progress">
-                    <div class="goal-progress-bar" id="day3Progress" style="width: 0%;"></div>
-                </div>
-                <div class="goal-bottom">
-                    <div class="goal-reward">
-                        <i class="fas fa-coins"></i> <span id="day3Deposit">0 KS</span>
-                    </div>
-                    <button class="claim-btn" id="day3Btn" onclick="claimDailyReward(3)" disabled>Locked</button>
-                </div>
-            </div>
-
-            <!-- Day 4 -->
-            <div class="goal-card" id="day4Card">
-                <div class="goal-top">
-                    <div class="goal-icon"><i class="fas fa-calendar-day"></i></div>
-                    <div class="goal-info">
-                        <div class="goal-title">Day 4 - Almost</div>
-                        <div class="goal-desc">One more day to go!</div>
-                    </div>
-                </div>
-                <div class="goal-progress">
-                    <div class="goal-progress-bar" id="day4Progress" style="width: 0%;"></div>
-                </div>
-                <div class="goal-bottom">
-                    <div class="goal-reward">
-                        <i class="fas fa-coins"></i> <span id="day4Deposit">0 KS</span>
-                    </div>
-                    <button class="claim-btn" id="day4Btn" onclick="claimDailyReward(4)" disabled>Locked</button>
-                </div>
-            </div>
-
-            <!-- Day 5 -->
-            <div class="goal-card" id="day5Card">
-                <div class="goal-top">
-                    <div class="goal-icon"><i class="fas fa-trophy"></i></div>
-                    <div class="goal-info">
-                        <div class="goal-title">Day 5 - CASHBACK!</div>
-                        <div class="goal-desc">Claim your 5% cashback</div>
-                    </div>
-                </div>
-                <div class="goal-progress">
-                    <div class="goal-progress-bar" id="day5Progress" style="width: 0%; background: linear-gradient(90deg, #ffd700, #ff8c00);"></div>
-                </div>
-                <div class="goal-bottom">
-                    <div class="goal-reward" style="color: #ff4757; font-size: 1.1em;">
-                        <i class="fas fa-gift"></i> <span id="day5Cashback">0 KS</span>
-                    </div>
-                    <button class="claim-btn" id="day5Btn" onclick="claimCashback()" disabled style="background: linear-gradient(135deg, #ff4757, #ff6348);">
-                        <i class="fas fa-crown"></i> CLAIM
-                    </button>
-                </div>
-            </div>
-
-            <!-- History -->
-            <div class="goal-card" style="grid-column: span 2;">
-                <div class="goal-top">
-                    <div class="goal-icon" style="background: linear-gradient(135deg, #00bfff, #8a2be2);"><i class="fas fa-history"></i></div>
-                    <div class="goal-info">
-                        <div class="goal-title">Deposit History</div>
-                        <div class="goal-desc">Your last 5 days deposits</div>
-                    </div>
-                </div>
-                <div id="depositHistoryList" style="max-height: 150px; overflow-y: auto; margin-top: 10px;">
-                    <div style="color: #666; text-align: center; padding: 20px;">No deposits yet</div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- ==================== JOURNEY / SHOP TAB (REPLACE လုပ်ရန်) ==================== -->
-<div id="shop-content" class="tab-content" style="display: none;">
-    <div class="journey-layout">
-        <!-- Main Content -->
-        <div class="journey-main">
-            <div class="journey-header">
-                <h2><i class="fas fa-compass"></i> World Journey</h2>
-                <p>New worlds unlock as you play! Complete each world to advance.</p>
-            </div>
-
-            <div class="journey-path-horizontal" id="journeyPath">
-                <div class="path-node active" id="pathNode1">1</div>
-                <div class="path-line" id="pathLine1"></div>
-                <div class="path-node locked" id="pathNode2"><i class="fas fa-lock"></i></div>
-                <div class="path-line locked" id="pathLine2"></div>
-                <div class="path-node locked" id="pathNode3"><i class="fas fa-lock"></i></div>
-                <div class="path-line locked" id="pathLine3"></div>
-                <div class="path-node locked" id="pathNode4"><i class="fas fa-lock"></i></div>
-            </div>
-
-            <div class="worlds-grid" id="worldsGrid">
-                <!-- World 1: Neon Vegas (Unlocked) -->
-                <div class="world-card" id="world1">
-                    <div class="world-image">
-                        <i class="fas fa-city"></i>
-                    </div>
-                    <div class="world-info">
-                        <div class="world-name">
-                            <i class="fas fa-unlock"></i>
-                            Neon Vegas
-                        </div>
-                        <div class="world-desc">
-                            The city of lights! Classic slots and poker tables await.
-                        </div>
-                        <div class="world-stats">
-                            <div class="stat"><i class="fas fa-star"></i> Level 1</div>
-                            <div class="stat"><i class="fas fa-coins"></i> 2.5M</div>
-                            <div class="stat"><i class="fas fa-trophy"></i> <span id="world1Progress">0/20</span></div>
-                        </div>
-                        <button class="world-btn enter" onclick="enterWorld(1)">
-                            <i class="fas fa-play"></i> Enter World
-                        </button>
-                    </div>
-                </div>
-
-                <!-- World 2: Atlantis Bay -->
-                <div class="world-card locked" id="world2">
-                    <div class="lock-overlay" id="world2Lock">
-                        <i class="fas fa-lock"></i>
-                        <div class="lock-text">Complete Neon Vegas</div>
-                    </div>
-                    <div class="world-image">
-                        <i class="fas fa-water"></i>
-                    </div>
-                    <div class="world-info">
-                        <div class="world-name">
-                            <i class="fas fa-lock"></i>
-                            Atlantis Bay
-                        </div>
-                        <div class="world-desc">
-                            Dive into underwater treasures and pearl slots.
-                        </div>
-                        <div class="world-stats">
-                            <div class="stat"><i class="fas fa-star"></i> Level 5</div>
-                            <div class="stat"><i class="fas fa-coins"></i> 5M</div>
-                            <div class="stat"><i class="fas fa-trophy"></i> 0/15</div>
-                        </div>
-                        <button class="world-btn locked" disabled>
-                            <i class="fas fa-lock"></i> Locked
-                        </button>
-                    </div>
-                </div>
-
-                <!-- World 3: Dragon's Lair -->
-                <div class="world-card locked" id="world3">
-                    <div class="lock-overlay" id="world3Lock">
-                        <i class="fas fa-lock"></i>
-                        <div class="lock-text">Complete Atlantis Bay</div>
-                    </div>
-                    <div class="world-image">
-                        <i class="fas fa-dragon"></i>
-                    </div>
-                    <div class="world-info">
-                        <div class="world-name">
-                            <i class="fas fa-lock"></i>
-                            Dragon's Lair
-                        </div>
-                        <div class="world-desc">
-                            Face the ancient dragon! High stakes and legendary jackpots.
-                        </div>
-                        <div class="world-stats">
-                            <div class="stat"><i class="fas fa-star"></i> Level 10</div>
-                            <div class="stat"><i class="fas fa-coins"></i> 10M</div>
-                            <div class="stat"><i class="fas fa-trophy"></i> 0/25</div>
-                        </div>
-                        <button class="world-btn locked" disabled>
-                            <i class="fas fa-lock"></i> Locked
-                        </button>
-                    </div>
-                </div>
-
-                <!-- World 4: Cosmic Casino -->
-                <div class="world-card locked" id="world4">
-                    <div class="lock-overlay" id="world4Lock">
-                        <i class="fas fa-lock"></i>
-                        <div class="lock-text">Complete Dragon's Lair</div>
-                    </div>
-                    <div class="world-image">
-                        <i class="fas fa-rocket"></i>
-                    </div>
-                    <div class="world-info">
-                        <div class="world-name">
-                            <i class="fas fa-lock"></i>
-                            Cosmic Casino
-                        </div>
-                        <div class="world-desc">
-                            Beyond the stars! Zero-gravity slots and alien poker.
-                        </div>
-                        <div class="world-stats">
-                            <div class="stat"><i class="fas fa-star"></i> Level 20</div>
-                            <div class="stat"><i class="fas fa-coins"></i> 50M</div>
-                            <div class="stat"><i class="fas fa-trophy"></i> 0/30</div>
-                        </div>
-                        <button class="world-btn locked" disabled>
-                            <i class="fas fa-lock"></i> Locked
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Sidebar -->
-        <div class="journey-sidebar">
-            <div class="journey-rewards-panel">
-                <h3><i class="fas fa-gift"></i> Journey Rewards</h3>
-                
-                <div class="reward-item" id="reward1">
-                    <div class="reward-icon"><i class="fas fa-coins"></i></div>
-                    <div class="reward-info">
-                        <div class="reward-name">Neon Vegas Complete</div>
-                        <div class="reward-desc">Unlock: 10,000 Coins</div>
-                    </div>
-                </div>
-                
-                <div class="reward-item locked" id="reward2">
-                    <div class="reward-icon" style="background: linear-gradient(135deg, #8a2be2, #4a0080);">
-                        <i class="fas fa-gem"></i>
-                    </div>
-                    <div class="reward-info">
-                        <div class="reward-name">Atlantis Bay Complete</div>
-                        <div class="reward-desc">Unlock: 100 Gems + VIP Badge</div>
-                    </div>
-                </div>
-                
-                <div class="reward-item locked" id="reward3">
-                    <div class="reward-icon" style="background: linear-gradient(135deg, #ff4757, #c0392b);">
-                        <i class="fas fa-crown"></i>
-                    </div>
-                    <div class="reward-info">
-                        <div class="reward-name">Dragon's Lair Complete</div>
-                        <div class="reward-desc">Unlock: 500,000 Coins</div>
-                    </div>
-                </div>
-                
-                <div class="reward-item locked" id="reward4">
-                    <div class="reward-icon" style="background: linear-gradient(135deg, #00ff7f, #00cc66);">
-                        <i class="fas fa-trophy"></i>
-                    </div>
-                    <div class="reward-info">
-                        <div class="reward-name">Cosmic Casino Complete</div>
-                        <div class="reward-desc">Unlock: 1M Coins + Legendary</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="journey-rewards-panel" style="margin-top: 20px;">
-                <h3 style="color: #ffd700;"><i class="fas fa-chart-bar"></i> Your Progress</h3>
-                <div class="stat-row">
-                    <span class="stat-label">Worlds Unlocked</span>
-                    <span class="stat-value" id="worldsUnlocked">1 / 4</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Total Spins</span>
-                    <span class="stat-value" id="totalSpins">0</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Biggest Win</span>
-                    <span class="stat-value" id="journeyBiggestWin">0 KS</span>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-
-    <!-- ========== TICKER CONTAINER (Below Game Cards) ========== -->
-    <div class="ticker-container" style="margin-top: auto; margin-bottom: 10px;">
-        <div class="notification-ticker">
-            <div class="ticker-content" id="tickerText">
-                 Latest Winner: Player "MgMg" won 5,000,000 KS! 
-            </div>
-        </div>
-    </div>
-       
-    <!-- ========== BOTTOM NAVIGATION ========== -->
-    <div class="bottom-nav">
-        <!-- HOME -->
-        <div class="nav-item active" onclick="switchLobbyTab(this,'home')">
-            <img src="images/highroller.png" class="bottom-nav-icon" alt="home">
-        </div>
-
-        <!-- DAILY GOALS -->
-        <div class="nav-item" onclick="switchLobbyTab(this,'daily')">
-            <img src="images/daily-goals.png" class="bottom-nav-icon" alt="daily">
-            <span class="nav-badge">1</span>
-        </div>
-
-        <!-- JOURNEY -->
-        <div class="nav-item" onclick="switchLobbyTab(this,'shop')">
-            <img src="images/journey.png" class="bottom-nav-icon" alt="journey">
-        </div>
-
-        <!-- CHALLENGE -->
-        <div class="nav-item" onclick="toggleChatModal()">
-            <img src="images/challenge.png" class="bottom-nav-icon" alt="chat">
-        </div>
-
-        <!-- WITHDRAW -->
-<div class="nav-item" onclick="openWithdrawPopup1()">
-    <img src="images/withdrawal.png" class="bottom-nav-icon" alt="withdraw">
-    <span class="nav-badge">3</span>
-</div>
-
-      <!-- ★ HISTORY (NEW) ★ -->
-    <div class="nav-item" onclick="openHistoryPopup()">
-        <img src="images/history.png" class="bottom-nav-icon" alt="history">
-        <span class="nav-badge">2</span>
-    </div>
-</div>
-
-</div> <!-- end lobbyScreen -->
-
-<!-- ==================== MAIN GAME CONTAINER ==================== -->
-<div class="game-container" id="gameContainer">
-    <!-- TOP PANEL -->
-    <div class="top-panel">
-        <div class="player-info">
-            <div class="user-profile-mini">
-                <div class="user-avatar" id="userAvatar"><i class="fas fa-user-circle"></i></div>
-                <div class="user-details-mini">
-                    <div class="username-mini" id="usernameMini">WaiYanPhyo</div>
-                    <div class="user-level">Level <span id="userLevel">12</span></div>
-                </div>
-            </div>
-            <div class="balance-box">
-           <small>Balance</small>
-        
-         <div class="balance-amount" id="balanceAmount">0</div>
-      </div>
-    
-            <div class="vip-badge" id="vipBadge"><i class="fas fa-crown"></i> VIP <span id="vipLevel">3</span></div>
-        </div>
-        <div class="game-logo"><i class="fas fa-slot-machine"></i> MINI SLOT</div>
-        <div class="top-actions">
-            <button class="icon-btn fullscreen-btn" id="fullScreenBtn">
-              <i class="fas fa-expand" id="fullscreenIcon"></i>
-           </button>
-               <button class="menu-btn" id="mainMenuBtn" onclick="toggleMainMenu()">
-                <i class="fas fa-bars"></i><span class="btn-label">MENU</span>
-            </button>
-         </div>
-       </div>
-
- <!-- MIDDLE SECTION -->
- <div class="middle-section">
-    <!-- LEFT PANEL - Chat -->
-    <div class="left-panel">
-        <div class="chat-trigger" onclick="toggleChatModal()">
-            <i class="fas fa-comment-dots"></i>
-            <span class="chat-badge" id="chatBadge" style="display: none;">1</span>
-            <div class="chat-trigger-text">Chat with Admin</div>
-        </div>
-        <div class="chat-messages-preview" id="chatMessagesPreview"></div>
-    </div>
-    
-    <!-- CENTER - 5x4 GRID -->
-    <div class="center-area expanded">
-        <div class="grid-5x4" id="slotGrid"></div>
-    </div>
-
-    <!-- RIGHT PANEL (1024 Ways) -->
-    <div class="right-panel compact">
-        <div class="ways-display">
-            <i class="fas fa-bolt"></i>
-            <span class="ways-number">1024</span>
-            <span class="ways-text">WAYS</span>
-        </div>
-        <div class="win-history" id="winHistory">
-            <div class="history-title"><i class="fas fa-history"></i> Wins</div>
-            <div class="history-list" id="historyList"></div>
-        </div>
-    </div>
- </div>
-
-    <!-- BOTTOM BAR -->
-    <div class="bottom-bar">
-        <div class="bet-control">
-            <div class="bet-controls">
-                <button id="decreaseBetBtn" class="bet-btn minus">−</button>
-                <div id="betAmountDisplay" class="bet-display">80</div>
-                <button id="increaseBetBtn" class="bet-btn plus">+</button>
-                <div class="bet-btn-container">
-                    <button id="betSelectBtn" class="bet-select-btn">1C</button>
-                    <div id="betOptions" class="bet-options" style="display:none;">
-                        <div class="bet-option" data-c="50">50C</div>
-                        <div class="bet-option" data-c="20">20C</div>
-                        <div class="bet-option" data-c="10">10C</div>
-                        <div class="bet-option" data-c="5">5C</div>
-                        <div class="bet-option active" data-c="1">1C</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="win-display">
-            <div class="win-label">WIN</div>
-            <div class="win-amount" id="winAmount">0</div>
-        </div>
-        <button class="back-to-lobby" onclick="hideGameContainer()">◀ ပင်မ စာမျက်နှာသို့</button>
-        <button class="spin-btn" id="spinBtn"><i class="fas fa-play"></i> SPIN</button>
-    </div>
-</div>
-
-<!-- ==================== MODALS ==================== -->
-
-<!-- SETTINGS MODAL -->
-<div id="settingsModal" class="modal-glass" style="display: none;">
-    <div class="modal-content glass-panel">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h2 style="color:#0ff; margin:0;">⚙️ Game Settings</h2>
-            <span onclick="closeSettingsModal()" style="cursor:pointer; font-size:28px; color:#fff; line-height:1;">&times;</span>
-        </div>
-
-        <div class="setting-row">
-            <div class="setting-label"> Sound Effects</div>
-            <label class="neon-toggle">
-                <input type="checkbox" id="soundToggle">
-                <span class="toggle-slider"></span>
-            </label>
-        </div>
-
-        <div class="setting-row">
-            <div class="setting-label"> Vibration</div>
-            <label class="neon-toggle">
-                <input type="checkbox" id="vibrationToggle">
-                <span class="toggle-slider"></span>
-            </label>
-        </div>
-
-        <div class="setting-row">
-            <div class="setting-label"> Volume</div>
-            <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="70">
-        </div>
-
-        <div class="setting-row">
-            <div class="setting-label"> Language</div>
-            <select id="languageSelect" class="lang-select">
-                <option value="my">မြန်မာ</option>
-                <option value="en">English</option>
-                <option value="th">ไทย</option>
-            </select>
-        </div>
-
-        <div class="setting-row">
-            <div class="setting-label"> Theme</div>
-            <select id="themeSelect" class="theme-select">
-                <option value="neon">Neon Blue</option>
-                <option value="purple">Purple Haze</option>
-                <option value="green">Matrix Green</option>
-                <option value="red">Red Alert</option>
-            </select>
-        </div>
-
-        <div class="setting-row">
-            <div class="setting-label"> Notifications</div>
-            <label class="neon-toggle">
-                <input type="checkbox" id="notificationToggle">
-                <span class="toggle-slider"></span>
-            </label>
-        </div>
-
-        <button onclick="closeSettingsModal()" class="neon-btn" style="margin-top:20px; width:100%;">Close</button>
-    </div>
-</div>
-
-<!-- USER CHAT MODAL -->
 <div class="user-chat-modal" id="userChatModal">
     <div class="user-chat-header">
         <div class="user-chat-title">
@@ -1448,411 +1365,81 @@
     </div>
 
     <div class="user-chat-input-area">
-        <input type="text" 
-               id="userChatInput" 
-               placeholder="စာရိုက်ရန်..."
-               onkeypress="handleUserChatKeyPress(event)">
+        <input id="userChatInput" onkeypress="handleUserChatKeyPress(event)" placeholder="စာရိုက်ရန်..." type="text"/>
         <button class="user-chat-send" onclick="sendUserMessage()">
             <i class="fas fa-paper-plane"></i>
         </button>
     </div>
 </div>
- 
-
-<div class="mega-jackpot-container" id="megaJackpot">
-    <div class="crown" style="top: 15%; left: 20%;"></div>
-    <div class="crown" style="top: 15%; right: 20%;"></div>
-    <div class="mega-text">MEGA</div>
-    <div class="jackpot-subtext">JACKPOT</div>
-    <div class="win-amount-mega" id="megaWinAmount">$10,000,000</div>
-    
-    <div class="sound-bars" id="soundBars">
-        <div class="bar"></div>
-        <div class="bar"></div>
-        <div class="bar"></div>
-        <div class="bar"></div>
-        <div class="bar"></div>
-    </div>
-</div>
 
 
 
+ <!-- ======================================================================== -->
+<!-- Jackpot  SLOT GAME I FRAME.                                                 -->
+<!-- ========================================================================== -->
 
-<!-- Win Animation Overlay (Required for win-animation.js) -->
-<div id="win-animation-container" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:9999;">
-    <canvas id="animCanvas" style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:9998;"></canvas>
-    <div id="win-text" style="position:fixed; top:40%; left:50%; transform:translate(-50%,-50%); font-size:clamp(32px, 8vw, 64px); font-weight:bold; color:#ffd700; text-shadow:0 0 20px rgba(255,215,0,0.8), 0 0 40px rgba(255,140,0,0.5); z-index:10000; pointer-events:none; opacity:0; white-space:nowrap;"></div>
-    <div id="amount-text" style="position:fixed; top:52%; left:50%; transform:translate(-50%,-50%); font-size:clamp(24px, 6vw, 48px); font-weight:bold; color:#00ffff; text-shadow:0 0 15px rgba(0,255,255,0.8); z-index:10000; pointer-events:none; opacity:0; white-space:nowrap;"></div>
-    <div id="sub-text" style="position:fixed; top:62%; left:50%; transform:translate(-50%,-50%); font-size:clamp(14px, 3vw, 20px); color:#fff; text-shadow:0 0 10px rgba(255,255,255,0.5); z-index:10000; pointer-events:none; opacity:0; white-space:nowrap;"></div>
-</div>
-
-
-<!-- ==================== IFRAME GAME CONTAINERS ==================== -->
-
-<!-- JACKPOT GAME CONTAINER -->
 <div id="jackpotGameContainer" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100000; background: #0d0705;">
-    <iframe id="jackpotframe" src="slot-jackpot.html" style="width: 100%; height: 100%; border: none;"></iframe>
+    <iframe id="jackpotframe" src="game/slot-jackpot/slot-jackpot.html" style="width: 100%; height: 100%; border: none;"></iframe>
     <button onclick="closeJackpotWaysGame()" style="position: absolute; top: 20px; right: 20px; background: #ffd700; border: none; width: 50px; height: 50px; border-radius: 50%; font-size: 24px; cursor: pointer; z-index: 100001;">✕</button>
 </div>
 
-<!-- MEGA WAYS Game Container -->
+   
+ <!-- ======================================================================== -->
+<!-- Mega Ways SLOT GAME I FRAME.                                                 -->
+<!-- ========================================================================== -->
+
 <div id="megaWaysContainer" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100000; background: #0a0718;">
-    <iframe id="megaWaysIframe" src="mega-ways-slot.html" style="width: 100%; height: 100%; border: none;"></iframe>
+    <iframe id="megaWaysIframe" src="games/mega-ways/mega-ways-slot.html" style="width: 100%; height: 100%; border: none;"></iframe>
     <button onclick="closeMegaWaysGame()" style="position: absolute; top: 15px; right: 15px; background: #ff4444; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 20px; cursor: pointer; z-index: 100001;">✕</button>
 </div>
 
-<!-- SUPER WAYS Game Container (NEW - သင့်အတွက်) -->
+   
+ <!-- ======================================================================== -->
+<!-- SUPER-WAYS  SLOT GAME I FRAME.                                                 -->
+<!-- ========================================================================== -->
+
 <div id="superWaysContainer" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100000; background: #0a0718;">
-    <iframe id="superWaysIframe" src="super-ways-slot.html" style="width: 100%; height: 100%; border: none;"></iframe>
+    <iframe id="superWaysIframe" src="games/super-ways/super-ways-slot.html" style="width: 100%; height: 100%; border: none;"></iframe>
 <button onclick="closeSuperWaysGame()" style="position: absolute; top: 20px; left: 80px; background: none; color: black; border: none; width: 50px; height: 50px; border-radius: 50%; font-size: 50px; cursor: pointer; z-index: 100001;">←</button>
 </div>
-<!-- ===== CARD GAME CONTAINER ===== -->
-<div id="cardGameContainer" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100000; background: #0a0718;">
-    <iframe id="cardGameIframe" src="card-game.html" style="width: 100%; height: 100%; border: none;"></iframe>
-    <button onclick="closeCardGame()" style="position: absolute;">
-    </button>
+
+ <!-- ======================================================================== -->
+<!-- PHOENIX  SLOT GAME I FRAME.                                                 -->
+<!-- ========================================================================== -->
+
+
+<div id="phoenixGameContainer" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100000; background: #0a0718;">
+    <iframe id="phoenixGameIframe" src="games/phoenix-game/phoenix-game.html" style="width: 100%; height: 100%; border: none;"></iframe>
+    <button onclick="closePhoenixGame()" style="position: absolute; top: 20px; left: 80px; background: none; color: black; border: none; width: 50px; height: 50px; border-radius: 50%; font-size: 50px; cursor: pointer; z-index: 100001;">←</button>
 </div>
 
-<script> 
+<canvas
+  id="winCanvas"
+  style="
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 200000;
+  "
+></canvas>
+
+<!-- ==================== IFRAME GAME CONTAINERS ==================== -->
 
 
-// ============================================
-// SHARED FUNCTIONS - 3i frame အတွက် 
-// ============================================
-
-function safeNumber(value) {
-    if (value === undefined || value === null) return 0;
-    if (typeof value === 'number' && !isNaN(value)) return value;
-    let str = String(value).replace(/,/g, '').trim();
-    let num = parseFloat(str);
-    if (isNaN(num)) {
-        console.warn('⚠️ safeNumber received NaN for:', value);
-        return 0;
-    }
-    return num;
-}
-
-function updateLobbyBalance(newBalance) {
-    let safeBalance = safeNumber(newBalance);
-    if (isNaN(safeBalance)) {
-        console.error('❌ Attempted to update lobby with NaN! Ignoring...');
-        return false;
-    }
-    let formattedBalance = safeBalance.toLocaleString();
-    const lobbyElem = document.getElementById('lobbyBalance');
-    if (lobbyElem) lobbyElem.innerText = formattedBalance;
-    const gameElem = document.getElementById('balanceAmount');
-    if (gameElem) gameElem.innerText = formattedBalance;
-    if (window.gameState) {
-        window.gameState.balance = safeBalance;
-        window.gameState.displayBalance = safeBalance;
-    }
-    if (typeof updateUI === 'function') updateUI(safeBalance);
-    const currentUser = localStorage.getItem('currentUser');
-    if (currentUser) {
-        const user = JSON.parse(currentUser);
-        user.balance = safeBalance;
-        localStorage.setItem('currentUser', JSON.stringify(user));
-        if (window.db && user.uid) {
-            window.db.collection('users').doc(user.uid).update({
-                balance: safeBalance,
-                displayBalance: safeBalance
-            }).catch(e => console.warn('Firebase update error:', e));
-        }
-    }
-    return true;
-}
-
-function getCurrentBalance() {
-    if (window.gameState && typeof window.gameState.balance === 'number' && !isNaN(window.gameState.balance)) {
-        return window.gameState.balance;
-    }
-    const lobbyElem = document.getElementById('lobbyBalance');
-    if (lobbyElem) {
-        let rawText = lobbyElem.innerText || '0';
-        return safeNumber(rawText);
-    }
-    return 10000;
-}
-
-// ========== JACKPOT GAME ==========
-const jackpotContainer = document.getElementById('jackpotGameContainer');
-const jackpotIframe = document.getElementById('jackpotframe');
-
-function openJackpotWaysGame() {
-    if (!jackpotContainer) return;
-    const lobbyScreen = document.getElementById('lobbyScreen');
-    if (lobbyScreen) lobbyScreen.style.display = 'none';
-    jackpotContainer.style.display = 'block';
-    let currentBalance = getCurrentBalance();
-    console.log('🎰 Opening Jackpot Game, balance:', currentBalance);
-    if (jackpotIframe) {
-        jackpotIframe.src = jackpotIframe.src;
-        jackpotIframe.onload = function() {
-            setTimeout(() => {
-                jackpotIframe.contentWindow.postMessage({ type: 'SYNC_BALANCE', balance: currentBalance }, '*');
-            }, 500);
-        };
-    }
-}
-
-function closeJackpotWaysGame() {
-    if (jackpotContainer) jackpotContainer.style.display = 'none';
-    const lobbyScreen = document.getElementById('lobbyScreen');
-    if (lobbyScreen) lobbyScreen.style.display = 'block';
-}
-
-// ========== MEGA WAYS GAME ==========
-const megaWaysContainer = document.getElementById('megaWaysContainer');
-const megaWaysIframe = document.getElementById('megaWaysIframe');
-
-function openMegaWaysGame() {
-    if (!megaWaysContainer) return;
-    const lobbyScreen = document.getElementById('lobbyScreen');
-    if (lobbyScreen) lobbyScreen.style.display = 'none';
-    megaWaysContainer.style.display = 'block';
-    let currentBalance = getCurrentBalance();
-    console.log('🎰 Opening Mega Ways Game, balance:', currentBalance);
-    if (megaWaysIframe) {
-        megaWaysIframe.src = megaWaysIframe.src;
-        megaWaysIframe.onload = function() {
-            setTimeout(() => {
-                megaWaysIframe.contentWindow.postMessage({ type: 'SYNC_BALANCE', balance: currentBalance }, '*');
-            }, 500);
-        };
-    }
-}
-
-function closeMegaWaysGame() {
-    if (megaWaysContainer) megaWaysContainer.style.display = 'none';
-    const lobbyScreen = document.getElementById('lobbyScreen');
-    if (lobbyScreen) lobbyScreen.style.display = 'block';
-}
-
-
-
-// ============================================
-// SUPER WAYS GAME (NEW - သင့်အတွက်)
-// ============================================
-const superWaysContainer = document.getElementById('superWaysContainer');
-const superWaysIframe = document.getElementById('superWaysIframe');
-
-function openSuperWaysGame() {
-    if (!superWaysContainer) return;
-    const lobbyScreen = document.getElementById('lobbyScreen');
-    if (lobbyScreen) lobbyScreen.style.display = 'none';
-    superWaysContainer.style.display = 'block';
-    let currentBalance = getCurrentBalance();
-    console.log('🎰 Opening Super Ways Game, balance:', currentBalance);
-    if (superWaysIframe) {
-        superWaysIframe.src = superWaysIframe.src;
-        superWaysIframe.onload = function() {
-            setTimeout(() => {
-                superWaysIframe.contentWindow.postMessage({ type: 'SYNC_BALANCE', balance: currentBalance, game: 'superWays' }, '*');
-            }, 500);
-        };
-    }
-}
-
-function closeSuperWaysGame() {
-    if (superWaysContainer) superWaysContainer.style.display = 'none';
-    const lobbyScreen = document.getElementById('lobbyScreen');
-    if (lobbyScreen) lobbyScreen.style.display = 'block';
-}
-
-
-     // ============================================
-// CARD GAME - LOBBY INTEGRATION (Three Card Poker)
-// ============================================
-
-const cardGameContainer = document.getElementById('cardGameContainer');
-const cardGameIframe = document.getElementById('cardGameIframe');
-
-// ========== OPEN CARD GAME ==========
-function openCardGame() {
-    if (!cardGameContainer) return;
-
-    // Hide lobby screen
-    const lobbyScreen = document.getElementById('lobbyScreen');
-    if (lobbyScreen) lobbyScreen.style.display = 'none';
-
-    // Show card game container
-    cardGameContainer.style.display = 'block';
-
-    let currentBalance = getCurrentBalance();
-    console.log('🃏 Opening Card Game, balance:', currentBalance);
-
-    // Refresh iframe and send balance
-    if (cardGameIframe) {
-        cardGameIframe.src = cardGameIframe.src;
-        cardGameIframe.onload = function() {
-            setTimeout(() => {
-                cardGameIframe.contentWindow.postMessage({
-                    type: 'SYNC_BALANCE',
-                    balance: currentBalance
-
-                }, '*');
-            }, 500);
-        };
-    }
-}
-
-// ========== CLOSE CARD GAME ==========
-function closeCardGame() {
-    if (cardGameContainer) cardGameContainer.style.display = 'none';
-
-    // Show lobby screen back
-    const lobbyScreen = document.getElementById('lobbyScreen');
-    if (lobbyScreen) lobbyScreen.style.display = 'block';
-}
-
-// ========== SINGLE MESSAGE LISTENER (ထပ်မခံရအောင် တစ်ခုတည်း) ==========
-window.addEventListener('message', function(event) {
-    const data = event.data;
-    console.log('📨 Lobby received:', data);
-
-    if (!data || !data.type) return;
-   
-
-    if (data.type === 'GO_LOBBY') {
-        closeSuperWaysGame();
-    }
-    let currentBalance, winAmount, betAmount, newBalance;
-
-    switch (data.type) {
-        case 'WIN_AMOUNT':
-            currentBalance = getCurrentBalance();
-            winAmount = safeNumber(data.amount);
-            newBalance = currentBalance + winAmount;
-            console.log(`💰 WIN: ${currentBalance} + ${winAmount} = ${newBalance}`);
-            updateLobbyBalance(newBalance);
-            if (typeof updateUserBalanceInStorage === 'function') updateUserBalanceInStorage();
-            showWinNotification(winAmount, data.game);
-            break;
-
-        case 'BET_DEDUCT':
-            currentBalance = getCurrentBalance();
-            betAmount = safeNumber(data.amount);
-            newBalance = currentBalance - betAmount;
-            if (newBalance < 0) newBalance = 0;
-            console.log(`💸 BET: ${currentBalance} - ${betAmount} = ${newBalance}`);
-            updateLobbyBalance(newBalance);
-            if (typeof updateUserBalanceInStorage === 'function') updateUserBalanceInStorage();
-            break;
-         // Chip ပျံတဲ့ effect
-        const loserPos = { x: 100, y: 100 };
-        const winnerPos = { x: 500, y: 500 };
-         for(let i = 0; i < 10; i++) {
-        setTimeout(() => createFlyingChip(loserPos, winnerPos), i * 80);
-      }
-      break;
-      case 'REQUEST_BALANCE':
-    currentBalance = getCurrentBalance();
-    let targetIframe = null;
-    if (data.game === 'superWays') target = superWaysIframe;
-    else if (data.game === 'jackpot') targetIframe = jackpotIframe;
-    else if (data.game === 'megaWays') targetIframe = megaWaysIframe;
-    else if (data.game === 'cardGame') targetIframe = cardGameIframe;
-
-    if (targetIframe && targetIframe.contentWindow) {
-        targetIframe.contentWindow.postMessage({ type: 'SYNC_BALANCE', balance: currentBalance }, '*');
-    }
-    break;
-    
-    }
-});
-
-function showWinNotification(amount, gameType = '') {
-    let safeAmount = safeNumber(amount);
-    let message = gameType === 'jackpot' 
-        ? `🎰 Jackpot Game မှ ${safeAmount.toLocaleString()} KS ရရှိပါသည်! 🎰`
-        : `🎰 Mega Ways 1024 မှ ${safeAmount.toLocaleString()} KS ရရှိပါသည်! 🎰`;
-    const notif = document.createElement('div');
-    notif.innerText = message;
-    notif.style.cssText = 'position:fixed;top:20%;left:50%;transform:translateX(-50%);background:#ffd700;color:#1a0f0a;padding:12px 24px;border-radius:50px;font-weight:bold;z-index:40001;font-size:16px;box-shadow:0 0 20px gold;white-space:nowrap';
-    document.body.appendChild(notif);
-    setTimeout(() => notif.remove(), 3000);
-}
-
-// ========== IFRAME LOAD SYNC ==========
-if (jackpotIframe) {
-    jackpotIframe.addEventListener('load', function() {
-        jackpotIframe.contentWindow.postMessage({ type: 'SYNC_BALANCE', balance: getCurrentBalance(), game: 'jackpot' }, '*');
-    });
-}
-if (megaWaysIframe) {
-    megaWaysIframe.addEventListener('load', function() {
-        megaWaysIframe.contentWindow.postMessage({ type: 'SYNC_BALANCE', balance: getCurrentBalance(), game: 'megaWays' }, '*');
-    });
-}
-
-if (cardGameIframe) {
-    cardGameIframe.addEventListener('load', function() {
-             cardGameIframe.contentWindow.postMessage({ type: 'SYNC_BALANCE', balance: getCurrentBalance(), game: 'cardGame' }, '*');
-    });
-}
-
-if (superWaysIframe) {  // ← NEW
-    superWaysIframe.addEventListener('load', function() {
-        superWaysIframe.contentWindow.postMessage({ type: 'SYNC_BALANCE', balance: getCurrentBalance(), game: 'superWays' }, '*');
-    });
-}
-
-
-// ========== EXTRA LOBBY FUNCTIONS ==========
-function updateBalance(amount) {
-    const currentBalance = getCurrentBalance();
-    const newBalance = currentBalance + amount;
-    document.getElementById('lobbyBalance').innerText = newBalance.toLocaleString();
-    const user = JSON.parse(localStorage.getItem('currentUser'));
-    if (user) {
-        user.balance = newBalance;
-        localStorage.setItem('currentUser', JSON.stringify(user));
-    }
-    if (jackpotIframe && jackpotIframe.contentWindow) {
-        jackpotIframe.contentWindow.postMessage({ type: 'SYNC_BALANCE', balance: newBalance }, '*');
-    }
-        if (cardGameIframe && cardGameIframe.contentWindow) {
-        cardGameIframe.contentWindow.postMessage({ type: 'SYNC_BALANCE', balance: newBalance }, '*');
-    }
-    if (megaWaysIframe && megaWaysIframe.contentWindow) {
-        megaWaysIframe.contentWindow.postMessage({ type: 'SYNC_BALANCE', balance: newBalance }, '*');
-    }
-    if (superWaysIframe && superWaysIframe.contentWindow) {
-        superWaysIframe.contentWindow.postMessage({ type: 'SYNC_BALANCE', balance: newBalance }, '*');
-    }
-}
-
-function switchLobbyTab(element, tabName) {
-    const navItems = document.querySelectorAll('.bottom-nav .nav-item');
-    navItems.forEach(item => item.classList.remove('active'));
-    element.classList.add('active');
-    const allTabs = ['home', 'daily', 'shop'];
-    allTabs.forEach(tab => {
-        const tabContent = document.getElementById(tab + '-content');
-        if (tabContent) tabContent.style.display = 'none';
-    });
-    const selectedTab = document.getElementById(tabName + '-content');
-    if (selectedTab) selectedTab.style.display = 'block';
-}
-</script>
-   <!-- Core Libraries & Helpers -->
-  <script src="firebase-config.js"></script>
-  <script src="sound-manager.js"></script>
-  
-  <!-- Animations -->
-  <script src="win-animation.js"></script>
-  <script src="baba-jackpot.js"></script>
-  
-  <!-- Game & UI -->
+   <!-- Core Libraries & Helpers -->  
+<script src="firebase-config.js"></script>
+<script src="sound-manager.js"></script>
+<script src="WinAnimation.js"></script>
+<script src="lobby.js"></script>
 <script src="daily-journey.js"></script>
-  <script src="menu.js"></script>
+<script src="menu.js"></script>
 <script src="login.js"></script>
-  <script src="supprisebox.js"></script>
-  <script src="userpayment.js"></script>
+<script src="userpayment.js"></script>
 <script src="popup-fix.js"></script>
-  <script src="game.js"></script>
-  <script src="script.js"></script>
-  <script src="userchat.js"></script>
-</body>
-</html>
+<script src="script.js"></script>
+<script src="userchat.js"></script>
+<script src="baba-jackpot.js"></script>
+</body></html>
+

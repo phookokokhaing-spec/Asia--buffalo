@@ -1,0 +1,2983 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+  />
+  <meta name="screen-orientation" content="landscape" />
+  <meta name="x5-orientation" content="landscape" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#120303" />
+  <title>Mini883 Casino Lobby</title>
+
+
+  <link rel="stylesheet" href="css/lobby-integrated.css?v=5" />
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/sound-manager.js"></script>
+  <script src="js/WinAnimation.js"></script>
+  <script src="js/baba-jackpot.js?v=3"></script>
+  <script src="js/telegram-test-config.js"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      min-height: 100dvh;
+      overflow: hidden;
+      position: fixed;
+      inset: 0;
+      background: #160404;
+      font-family: Arial, "Padauk", sans-serif;
+      touch-action: none;
+      overscroll-behavior: none;
+    }
+
+    #lobbyCanvas {
+      display: block;
+      width: 100vw;
+      height: 100dvh;
+      background: #160404;
+    }
+
+    .loading {
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background:
+        radial-gradient(circle at 50% 40%, rgba(255, 106, 0, .15), transparent 28%),
+        linear-gradient(180deg, #2a0909, #120303);
+      transition: opacity .45s ease;
+    }
+
+    .loading.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .loading-logo {
+      font-size: 64px;
+      filter: drop-shadow(0 0 24px #ff6a00);
+      animation: loadingFloat 1.1s ease-in-out infinite alternate;
+    }
+
+    @keyframes loadingFloat {
+      to { transform: translateY(-8px) scale(1.04); }
+    }
+
+    .loading-title {
+      margin-top: 10px;
+      color: #ffd86a;
+      font-size: clamp(18px, 4vw, 28px);
+      font-weight: 900;
+      letter-spacing: 4px;
+      text-shadow: 0 0 20px #ff4500;
+    }
+
+    .loading-bar {
+      width: min(240px, 62vw);
+      height: 7px;
+      margin-top: 20px;
+      overflow: hidden;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 215, 0, .22);
+      background: rgba(255,255,255,.08);
+    }
+
+    .loading-bar-fill {
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #ff3f26, #ff9a2f, #ffe36a);
+      box-shadow: 0 0 18px rgba(255, 157, 45, .75);
+      transition: width .18s ease;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="loading" id="loadingScreen">
+    <div class="loading-logo">🎰</div>
+    <div class="loading-title">LOADING...</div>
+    <div class="loading-bar">
+      <div class="loading-bar-fill" id="loadingFill"></div>
+    </div>
+  </div>
+
+  <canvas id="lobbyCanvas"></canvas>
+
+  <div class="m883-toast-wrap" id="m883ToastWrap" aria-live="polite"></div>
+
+  <canvas id="winCanvas"></canvas>
+  <canvas id="confetti-canvas"></canvas>
+
+  <div class="m883-overlay" id="profileModal" aria-hidden="true">
+    <section class="m883-modal compact" role="dialog" aria-modal="true" aria-labelledby="profileTitle">
+      <header class="m883-modal-header">
+        <div class="m883-modal-title" id="profileTitle">👤 Player Profile</div>
+        <button class="m883-close" type="button" data-close="profileModal">✕</button>
+      </header>
+      <div class="m883-modal-body">
+        <div class="m883-card" style="text-align:center;margin-bottom:14px">
+          <div style="font-size:52px">🐯</div>
+          <h2 id="profileName" style="color:var(--m883-gold-soft);margin:6px 0">Player</h2>
+          <div class="m883-muted" id="profileEmail">-</div>
+        </div>
+        <div class="m883-summary">
+          <div><small>Balance</small><strong id="profileBalance">0 KS</strong></div>
+          <div><small>VIP</small><strong id="profileVip">VIP 1</strong></div>
+          <div><small>User ID</small><strong id="profileUid" style="font-size:10px;word-break:break-all">-</strong></div>
+        </div>
+        <div class="m883-actions">
+          <button class="m883-btn secondary" id="logoutBtn" type="button">🚪 Logout</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="m883-overlay" id="depositModal" aria-hidden="true">
+    <section class="m883-modal wide" role="dialog" aria-modal="true" aria-labelledby="depositTitle">
+      <header class="m883-modal-header">
+        <div class="m883-modal-title" id="depositTitle">💰 ငွေသွင်း</div>
+        <button class="m883-close" type="button" data-close="depositModal">✕</button>
+      </header>
+      <div class="m883-modal-body">
+        <div class="m883-balance-strip"><span>လက်ရှိလက်ကျန်</span><strong id="modalBalance">0 KS</strong></div>
+        <form id="depositForm">
+          <div class="m883-grid">
+            <div>
+              <div class="m883-field">
+                <label>Payment Method</label>
+                <div class="m883-methods" id="depositMethods"></div>
+              </div>
+              <div class="m883-card">
+                <h3>ငွေလွှဲရန်အကောင့်</h3>
+                <div class="m883-list-item"><span>အမည်</span><strong id="depositAccountName">-</strong></div>
+                <div class="m883-list-item" style="margin-top:8px">
+                  <span>နံပါတ်</span>
+                  <div class="m883-account-copy">
+                    <strong id="depositAccountNumber">-</strong>
+                    <button class="m883-copy-btn" id="copyDepositAccount" type="button" disabled>Copy</button>
+                  </div>
+                </div>
+              </div>
+              <div class="m883-field" style="margin-top:13px">
+                <label>Amount</label>
+                <div class="m883-amounts" id="depositAmounts">
+                  <button class="m883-amount" type="button" data-amount="3000">3,000</button>
+                  <button class="m883-amount" type="button" data-amount="5000">5,000</button>
+                  <button class="m883-amount" type="button" data-amount="10000">10,000</button>
+                  <button class="m883-amount" type="button" data-amount="50000">50,000</button>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div class="m883-field"><label>ငွေသွင်းပမာဏ</label><input class="m883-input" id="depositAmount" inputmode="numeric" min="3000" max="1000000" required></div>
+              <div class="m883-field"><label>လွှဲသူအမည်</label><input class="m883-input" id="depositSenderName" autocomplete="name" required></div>
+              <div class="m883-field"><label>လွှဲသူဖုန်း</label><input class="m883-input" id="depositSenderPhone" inputmode="tel" required></div>
+              <div class="m883-field"><label>ငွေလွှဲ Screenshot (5MB အောက်)</label><input class="m883-input" id="depositProof" type="file" accept="image/*" required></div>
+              <p class="m883-muted" style="font-size:11px">တောင်းဆိုမှုကို Admin အတည်ပြုပြီးမှ balance ဝင်ပါမည်။</p>
+              <div class="m883-actions"><button class="m883-btn" id="submitDepositBtn" type="submit">ငွေသွင်းတောင်းဆိုမည်</button></div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </section>
+  </div>
+
+  <div class="m883-overlay" id="withdrawModal" aria-hidden="true">
+    <section class="m883-modal wide" role="dialog" aria-modal="true" aria-labelledby="withdrawTitle">
+      <header class="m883-modal-header">
+        <div class="m883-modal-title" id="withdrawTitle">🏦 ငွေထုတ်</div>
+        <button class="m883-close" type="button" data-close="withdrawModal">✕</button>
+      </header>
+      <div class="m883-modal-body">
+        <div class="m883-balance-strip"><span>ထုတ်ယူနိုင်သောလက်ကျန်</span><strong id="withdrawAvailable">0 KS</strong></div>
+        <form id="withdrawForm">
+          <div class="m883-grid">
+            <div>
+              <div class="m883-field"><label>Payment Method</label><div class="m883-methods" id="withdrawMethods"></div></div>
+              <div class="m883-field"><label>အကောင့်အမည်</label><input class="m883-input" id="withdrawAccountName" required></div>
+              <div class="m883-field"><label>အကောင့်/ဖုန်းနံပါတ်</label><input class="m883-input" id="withdrawAccountNumber" required></div>
+            </div>
+            <div>
+              <div class="m883-field"><label>ငွေထုတ်ပမာဏ</label><input class="m883-input" id="withdrawAmount" inputmode="numeric" min="5000" max="500000" required></div>
+              <div class="m883-summary">
+                <div><small>Fee 5%</small><strong id="withdrawFee">0 KS</strong></div>
+                <div><small>Receive</small><strong id="withdrawReceive">0 KS</strong></div>
+                <div><small>Status</small><strong>Pending</strong></div>
+              </div>
+              <p class="m883-muted" style="font-size:11px">တောင်းဆိုသည့် amount ကို reserve လုပ်ထားပါမည်။ Reject ဖြစ်လျှင် Admin ဘက်မှ refund ပြန်လုပ်ရပါမည်။</p>
+              <div class="m883-actions"><button class="m883-btn" id="submitWithdrawBtn" type="submit">ငွေထုတ်တောင်းဆိုမည်</button></div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </section>
+  </div>
+
+  <div class="m883-overlay" id="historyModal" aria-hidden="true">
+    <section class="m883-modal wide" role="dialog" aria-modal="true" aria-labelledby="historyTitle">
+      <header class="m883-modal-header">
+        <div class="m883-modal-title" id="historyTitle">📜 မှတ်တမ်း</div>
+        <button class="m883-close" type="button" data-close="historyModal">✕</button>
+      </header>
+      <div class="m883-tabs">
+        <button class="m883-tab active" type="button" data-panel="paymentHistoryPanel">ငွေသွင်း/ထုတ်</button>
+        <button class="m883-tab" type="button" data-panel="gameHistoryPanel">Game History</button>
+        <button class="m883-tab" type="button" data-panel="globalTopPanel">Global Top</button>
+      </div>
+      <div class="m883-modal-body">
+        <div class="m883-tab-panel active" id="paymentHistoryPanel"><div class="m883-list" id="paymentHistoryList"></div></div>
+        <div class="m883-tab-panel" id="gameHistoryPanel"><div class="m883-list" id="gameHistoryList"></div></div>
+        <div class="m883-tab-panel" id="globalTopPanel"><div class="m883-list" id="globalTopList"></div></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="m883-overlay" id="cashbackModal" aria-hidden="true">
+    <section class="m883-modal wide" role="dialog" aria-modal="true" aria-labelledby="cashbackTitle">
+      <header class="m883-modal-header">
+        <div class="m883-modal-title" id="cashbackTitle">🎁 Daily Goals · 5% Cashback</div>
+        <button class="m883-close" type="button" data-close="cashbackModal">✕</button>
+      </header>
+      <div class="m883-modal-body">
+        <div class="m883-summary">
+          <div><small>Total Deposit</small><strong id="cashbackTotal">0 KS</strong></div>
+          <div><small>Cashback</small><strong id="cashbackAmount">0 KS</strong></div>
+          <div><small>Progress</small><strong id="cashbackDay">0 / 5</strong></div>
+        </div>
+        <div class="m883-progress"><span id="cashbackProgress"></span></div>
+        <div class="m883-days" id="cashbackDays"></div>
+        <div class="m883-actions" style="justify-content:center"><button class="m883-btn" id="claimCashbackBtn" type="button" disabled>5 DAYS COMPLETE လုပ်ပါ</button></div>
+        <div class="m883-card" style="margin-top:16px"><h3>Deposit History</h3><div class="m883-list" id="cashbackHistoryList"></div></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="m883-overlay" id="journeyModal" aria-hidden="true">
+    <section class="m883-modal wide" role="dialog" aria-modal="true" aria-labelledby="journeyTitle">
+      <header class="m883-modal-header">
+        <div class="m883-modal-title" id="journeyTitle">🌍 World Journey</div>
+        <button class="m883-close" type="button" data-close="journeyModal">✕</button>
+      </header>
+      <div class="m883-modal-body">
+        <div class="m883-summary">
+          <div><small>Worlds Unlocked</small><strong id="journeyUnlocked">1 / 4</strong></div>
+          <div><small>Total Spins</small><strong id="journeySpins">0</strong></div>
+          <div><small>Biggest Win</small><strong id="journeyBiggestWin">0 KS</strong></div>
+        </div>
+        <div class="m883-worlds" id="journeyWorlds"></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="m883-overlay" id="userChatModal" aria-hidden="true">
+    <section class="m883-modal" role="dialog" aria-modal="true" aria-labelledby="chatTitle">
+      <header class="m883-modal-header">
+        <div class="m883-modal-title" id="chatTitle">💬 Admin Chat <span id="chatBadge" style="display:none"></span></div>
+        <button class="m883-close" type="button" data-close="userChatModal">✕</button>
+      </header>
+      <div class="m883-chat">
+        <div id="userChatMessages"><div class="m883-empty">စာများဖော်ပြရန်...</div></div>
+        <div class="m883-chat-compose">
+          <input class="m883-input" id="userChatInput" placeholder="စာရေးပါ..." autocomplete="off">
+          <button class="m883-btn" id="userChatSend" type="button">ပို့မည်</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="m883-overlay" id="settingsModal" aria-hidden="true">
+    <section class="m883-modal compact" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+      <header class="m883-modal-header">
+        <div class="m883-modal-title" id="settingsTitle">⚙️ ဆက်တင်များ</div>
+        <button class="m883-close" type="button" data-close="settingsModal">✕</button>
+      </header>
+      <div class="m883-modal-body">
+        <div class="m883-setting-row"><span>Sound Effects</span><input class="m883-switch" id="soundToggle" type="checkbox" checked></div>
+        <div class="m883-setting-row"><span>Lobby BGM</span><input class="m883-switch" id="bgmToggle" type="checkbox" checked></div>
+        <div class="m883-setting-row"><span>Vibration</span><input class="m883-switch" id="vibrationToggle" type="checkbox" checked></div>
+        <div class="m883-setting-row"><span>Notifications</span><input class="m883-switch" id="notificationToggle" type="checkbox" checked></div>
+        <div class="m883-setting-row"><span>Volume</span><input id="volumeSlider" type="range" min="0" max="100" value="70"></div>
+        <div class="m883-setting-row"><span>Language</span><select class="m883-select" id="languageSelect"><option value="my">မြန်မာ</option><option value="en">English</option><option value="th">ไทย</option></select></div>
+        <div class="m883-setting-row"><span>Theme</span><select class="m883-select" id="themeSelect"><option value="neon">Neon</option><option value="purple">Purple</option><option value="green">Green</option><option value="red">Red</option></select></div>
+        <div class="m883-actions"><button class="m883-btn teal" id="enableNotificationsBtn" type="button">🔔 Enable Push</button></div>
+      </div>
+    </section>
+  </div>
+
+  <section class="m883-game-shell" id="jackpotGameContainer" aria-hidden="true">
+    <div class="m883-game-toolbar"><strong class="m883-game-title">Jackpot Ways</strong><button class="m883-close" type="button" data-close-game>← Lobby</button></div>
+    <iframe class="m883-game-frame" id="jackpotframe" src="game/slot-jackpot/slot-jackpot.html" allow="autoplay; fullscreen"></iframe>
+  </section>
+  <section class="m883-game-shell" id="megaWaysContainer" aria-hidden="true">
+    <div class="m883-game-toolbar"><strong class="m883-game-title">Mega Ways</strong><button class="m883-close" type="button" data-close-game>← Lobby</button></div>
+    <iframe class="m883-game-frame" id="megaWaysIframe" src="games/mega-ways/mega-ways-slot.html" allow="autoplay; fullscreen"></iframe>
+  </section>
+  <section class="m883-game-shell" id="superWaysContainer" aria-hidden="true">
+    <div class="m883-game-toolbar"><strong class="m883-game-title">Super Ways</strong><button class="m883-close" type="button" data-close-game>← Lobby</button></div>
+    <iframe class="m883-game-frame" id="superWaysIframe" src="games/super-ways/super-ways-slot.html" allow="autoplay; fullscreen"></iframe>
+  </section>
+  <section class="m883-game-shell" id="phoenixGameContainer" aria-hidden="true">
+    <div class="m883-game-toolbar"><strong class="m883-game-title">Phoenix</strong><button class="m883-close" type="button" data-close-game>← Lobby</button></div>
+    <iframe class="m883-game-frame" id="phoenixGameIframe" src="games/phoenix-game/phoenix-game.html" allow="autoplay; fullscreen"></iframe>
+  </section>
+  <section class="m883-game-shell" id="cardGameContainer" aria-hidden="true">
+    <div class="m883-game-toolbar"><strong class="m883-game-title">Three Card Poker</strong><button class="m883-close" type="button" data-close-game>← Lobby</button></div>
+    <iframe class="m883-game-frame" id="cardGameIframe" src="games/card-game/card-game.html" allow="autoplay; fullscreen"></iframe>
+  </section>
+
+
+  <script>
+    (() => {
+      "use strict";
+
+      const canvas = document.getElementById("lobbyCanvas");
+      const ctx = canvas.getContext("2d", { alpha: false });
+
+      let W = 0;
+      let H = 0;
+      let DPR = 1;
+      let frameNow = performance.now();
+      let fullscreenOpened = false;
+
+      const COLORS = {
+        bgTop: "#320808",
+        bgBottom: "#130303",
+        gold: "#FFD75A",
+        goldBright: "#FFF0A3",
+        goldDark: "#8A4D00",
+        red: "#9E0C0C",
+        redDark: "#350000",
+        green: "#00A94A",
+        purple: "#7E13A6",
+        teal: "#0D5C63",
+        text: "#FFF8E7",
+        muted: "rgba(255,255,255,.65)"
+      };
+
+      const state = {
+        balance: 0,
+        gold: 0,
+        vip: 1,
+        vipProgress: 0,
+        playerName: "Player",
+
+        activeTab: "slot",
+        popup: null,
+        soundOn: true,
+        bgmOn: false,
+
+        scrollX: 0,
+        targetScrollX: 0,
+        velocityX: 0,
+        maxScrollX: 0,
+
+        pointerDown: false,
+        pointerId: null,
+        downX: 0,
+        downY: 0,
+        lastX: 0,
+        lastTime: 0,
+        dragStartScroll: 0,
+        moved: false,
+        pendingCardId: null,
+
+        loadingGame: null,
+        notifications: {
+          daily: 0,
+          journey: 0,
+          chat: 0,
+          withdraw: 0,
+          history: 0
+        },
+
+        cardAnimations: new Map(),
+        shineOffset: 0,
+        hitAreas: [],
+        showDailyBonus: false
+      };
+
+      window.Mini883CanvasState = state;
+      window.Mini883Canvas = {
+        setBalance(value) {
+          const n = Number(String(value ?? 0).replace(/,/g, ""));
+          state.balance = Number.isFinite(n) ? Math.max(0, n) : 0;
+        },
+        setUser(user = {}) {
+          if (user.name) state.playerName = String(user.name);
+          if (user.balance !== undefined) this.setBalance(user.balance);
+          if (user.vip !== undefined) state.vip = Math.max(0, Number(user.vip) || 0);
+          if (user.vipProgress !== undefined) state.vipProgress = Math.max(0, Math.min(1, Number(user.vipProgress) || 0));
+        },
+        setNotification(key, count) {
+          state.notifications[key] = Math.max(0, Number(count) || 0);
+        },
+        setSound(enabled) { state.soundOn = enabled !== false; },
+        setBgm(enabled) { state.bgmOn = enabled === true; }
+      };
+
+      const games = [
+        {
+          id: 1,
+          name: "CROCODILE JACKPOT",
+          type: "slot",
+          featured: true,
+          hot: true,
+          isNew: false,
+          image: "images/crocodile.png",
+          fallback: "🐊",
+          jackpotLabel: "GRAND JACKPOT",
+          jackpotMain: 16089437,
+          jackpotSub: 6922913,
+          hue: 30,
+          action: "crocodile"
+        },
+        {
+          id: 2,
+          name: "MEGA WAYS",
+          type: "slot",
+          featured: true,
+          hot: true,
+          isNew: false,
+          image: "images/buffalo.png",
+          fallback: "🐃",
+          jackpotLabel: "MEGA JACKPOT",
+          jackpotMain: 8422080,
+          jackpotSub: 6540872,
+          hue: 12,
+          action: "megaWays"
+        },
+        {
+          id: 3,
+          name: "SUPER WAYS",
+          type: "slot",
+          featured: false,
+          hot: true,
+          isNew: true,
+          image: "images/whitebf.png",
+          fallback: "⚡",
+          jackpotLabel: "SUPER JACKPOT",
+          jackpotMain: 21382946,
+          jackpotSub: 3219834,
+          hue: 2,
+          action: "superWays"
+        },
+        {
+          id: 4,
+          name: "PHOENIX FIRE",
+          type: "slot",
+          featured: true,
+          hot: false,
+          isNew: true,
+          image: "images/firelink.png",
+          fallback: "🔥",
+          jackpotLabel: "PHOENIX JACKPOT",
+          jackpotMain: 44852167,
+          jackpotSub: 5498774,
+          hue: 45,
+          action: "phoenix"
+        },
+        {
+          id: 5,
+          name: "JACKPOT WAYS",
+          type: "slot",
+          featured: false,
+          hot: true,
+          isNew: false,
+          image: "images/dragon.png",
+          fallback: "🐉",
+          jackpotLabel: "JACKPOT WAYS",
+          jackpotMain: 65740789,
+          jackpotSub: 998708,
+          hue: 205,
+          action: "jackpotWays"
+        },
+        {
+          id: 6,
+          name: "THREE CARD POKER",
+          type: "slot",
+          featured: false,
+          hot: false,
+          isNew: true,
+          image: "images/cover.png",
+          fallback: "🃏",
+          jackpotLabel: "CARD TABLE",
+          jackpotMain: 246176,
+          jackpotSub: 177838,
+          hue: 178,
+          action: "card"
+        }
+      ];
+
+      let audioCtx = null;
+      let bgmGain = null;
+      let bgmOscillators = [];
+
+      const particles = [];
+      const clickParticles = [];
+      const loadingParticles = [];
+
+      class AmbientParticle {
+        constructor() {
+          this.reset(true);
+        }
+
+        reset(initial = false) {
+          this.x = Math.random() * Math.max(W, 1);
+          this.y = initial ? Math.random() * Math.max(H, 1) : H + 12;
+          this.size = 1 + Math.random() * 2.3;
+          this.speed = 12 + Math.random() * 28;
+          this.alpha = .18 + Math.random() * .55;
+          this.phase = Math.random() * Math.PI * 2;
+          this.hue = 26 + Math.random() * 35;
+        }
+
+        update(dt) {
+          this.phase += dt * 1.6;
+          this.y -= this.speed * dt;
+          this.x += Math.sin(this.phase) * 8 * dt;
+          this.alpha -= dt * .018;
+
+          if (this.y < -16 || this.alpha <= 0) {
+            this.reset();
+          }
+        }
+
+        draw() {
+          ctx.save();
+          ctx.globalAlpha = this.alpha;
+          ctx.fillStyle = `hsl(${this.hue} 100% 62%)`;
+          ctx.shadowBlur = 8;
+          ctx.shadowColor = `hsl(${this.hue} 100% 50%)`;
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+      }
+
+      class ClickParticle {
+        constructor(x, y) {
+          this.x = x;
+          this.y = y;
+          const angle = Math.random() * Math.PI * 2;
+          const speed = 100 + Math.random() * 220;
+          this.vx = Math.cos(angle) * speed;
+          this.vy = Math.sin(angle) * speed;
+          this.size = 1.5 + Math.random() * 3.8;
+          this.life = 1;
+          this.gravity = 150;
+        }
+
+        update(dt) {
+          this.x += this.vx * dt;
+          this.y += this.vy * dt;
+          this.vx *= .965;
+          this.vy *= .965;
+          this.vy += this.gravity * dt;
+          this.life -= dt * 1.8;
+        }
+
+        draw() {
+          if (this.life <= 0) return;
+
+          ctx.save();
+          ctx.globalAlpha = Math.max(0, this.life);
+          ctx.fillStyle = "#FFD85D";
+          ctx.shadowBlur = 12;
+          ctx.shadowColor = "#FF5A1F";
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+      }
+
+      class LoadingParticle {
+        constructor() {
+          this.angle = Math.random() * Math.PI * 2;
+          this.radius = 22 + Math.random() * 65;
+          this.speed = .7 + Math.random() * 1.3;
+          this.size = 1.5 + Math.random() * 3;
+          this.life = .55 + Math.random() * .45;
+        }
+
+        update(dt) {
+          this.angle += this.speed * dt;
+          this.life -= dt * .08;
+
+          if (this.life <= 0) {
+            this.angle = Math.random() * Math.PI * 2;
+            this.radius = 22 + Math.random() * 65;
+            this.life = 1;
+          }
+        }
+
+        draw(cx, cy) {
+          const x = cx + Math.cos(this.angle) * this.radius;
+          const y = cy + Math.sin(this.angle) * this.radius * .55;
+
+          ctx.save();
+          ctx.globalAlpha = this.life;
+          ctx.fillStyle = "#FFD85D";
+          ctx.shadowBlur = 10;
+          ctx.shadowColor = "#FF7A24";
+          ctx.beginPath();
+          ctx.arc(x, y, this.size, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+      }
+
+      function clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
+      }
+
+      function lerp(a, b, t) {
+        return a + (b - a) * t;
+      }
+
+      function roundedPath(x, y, w, h, radius) {
+        const r = Math.min(radius, w / 2, h / 2);
+
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
+      }
+
+      function fillRoundedRect(
+        x,
+        y,
+        w,
+        h,
+        radius,
+        fill,
+        stroke = null,
+        lineWidth = 1
+      ) {
+        ctx.save();
+        roundedPath(x, y, w, h, radius);
+        ctx.fillStyle = fill;
+        ctx.fill();
+
+        if (stroke) {
+          ctx.strokeStyle = stroke;
+          ctx.lineWidth = lineWidth;
+          ctx.stroke();
+        }
+
+        ctx.restore();
+      }
+
+      function drawText(value, x, y, options = {}) {
+        const {
+          size = 14,
+          color = "#FFF",
+          align = "left",
+          weight = 400,
+          baseline = "middle",
+          maxWidth,
+          shadowColor = null,
+          shadowBlur = 0
+        } = options;
+
+        ctx.save();
+        ctx.font = `${weight} ${size}px Arial, "Padauk", sans-serif`;
+        ctx.fillStyle = color;
+        ctx.textAlign = align;
+        ctx.textBaseline = baseline;
+
+        if (shadowColor) {
+          ctx.shadowColor = shadowColor;
+          ctx.shadowBlur = shadowBlur;
+        }
+
+        if (maxWidth) {
+          ctx.fillText(String(value), x, y, maxWidth);
+        } else {
+          ctx.fillText(String(value), x, y);
+        }
+
+        ctx.restore();
+      }
+
+      function addHit(id, x, y, w, h, data = null) {
+        state.hitAreas.push({ id, x, y, w, h, data });
+      }
+
+      function pointIn(hit, x, y) {
+        return (
+          x >= hit.x &&
+          x <= hit.x + hit.w &&
+          y >= hit.y &&
+          y <= hit.y + hit.h
+        );
+      }
+
+      function findHit(x, y) {
+        for (let i = state.hitAreas.length - 1; i >= 0; i--) {
+          const hit = state.hitAreas[i];
+
+          if (pointIn(hit, x, y)) {
+            return hit;
+          }
+        }
+
+        return null;
+      }
+
+      function slantedPath(
+        x,
+        y,
+        w,
+        h,
+        cutLeft = 16,
+        cutRight = 16
+      ) {
+        const left = clamp(cutLeft, 0, w * .35);
+        const right = clamp(cutRight, 0, w * .35);
+
+        ctx.beginPath();
+        ctx.moveTo(x + left, y);
+        ctx.lineTo(x + w - right, y);
+        ctx.lineTo(x + w, y + h / 2);
+        ctx.lineTo(x + w - right, y + h);
+        ctx.lineTo(x + left, y + h);
+        ctx.lineTo(x, y + h / 2);
+        ctx.closePath();
+      }
+
+      function drawPremiumSlantedPanel(
+        x,
+        y,
+        w,
+        h,
+        options = {}
+      ) {
+        const {
+          cutLeft = 18,
+          cutRight = 18,
+          topColor = "#8A0A0A",
+          middleColor = "#5A0000",
+          bottomColor = "#270000",
+          activeGlow = "rgba(255, 185, 45, .36)",
+          shine = true
+        } = options;
+
+        ctx.save();
+
+        slantedPath(x, y, w, h, cutLeft, cutRight);
+
+        const borderOuter = ctx.createLinearGradient(x, y, x, y + h);
+        borderOuter.addColorStop(0, "#FFF0A0");
+        borderOuter.addColorStop(.22, "#FFD25A");
+        borderOuter.addColorStop(.58, "#A85B00");
+        borderOuter.addColorStop(1, "#FFE47A");
+
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = activeGlow;
+        ctx.fillStyle = borderOuter;
+        ctx.fill();
+
+        const border = Math.max(2, Math.min(4, h * .07));
+
+        slantedPath(
+          x + border,
+          y + border,
+          w - border * 2,
+          h - border * 2,
+          Math.max(0, cutLeft - border),
+          Math.max(0, cutRight - border)
+        );
+
+        const body = ctx.createLinearGradient(x, y, x, y + h);
+        body.addColorStop(0, topColor);
+        body.addColorStop(.48, middleColor);
+        body.addColorStop(1, bottomColor);
+        ctx.fillStyle = body;
+        ctx.shadowBlur = 0;
+        ctx.fill();
+
+        slantedPath(
+          x + border * 2.1,
+          y + border * 2.1,
+          w - border * 4.2,
+          h - border * 4.2,
+          Math.max(0, cutLeft - border * 1.6),
+          Math.max(0, cutRight - border * 1.6)
+        );
+
+        ctx.strokeStyle = "rgba(255, 238, 159, .44)";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        if (shine) {
+          ctx.save();
+
+          slantedPath(
+            x + border,
+            y + border,
+            w - border * 2,
+            h - border * 2,
+            Math.max(0, cutLeft - border),
+            Math.max(0, cutRight - border)
+          );
+
+          ctx.clip();
+
+          const gloss = ctx.createLinearGradient(
+            x,
+            y + border,
+            x,
+            y + h * .5
+          );
+
+          gloss.addColorStop(0, "rgba(255,255,255,.30)");
+          gloss.addColorStop(.38, "rgba(255,255,255,.09)");
+          gloss.addColorStop(1, "rgba(255,255,255,0)");
+
+          ctx.fillStyle = gloss;
+          ctx.fillRect(x, y, w, h * .52);
+
+          const sweepX =
+            x - w * .2 +
+            ((frameNow * .055) % (w * 1.45));
+
+          const sweep = ctx.createLinearGradient(
+            sweepX,
+            y,
+            sweepX + w * .18,
+            y + h
+          );
+
+          sweep.addColorStop(0, "rgba(255,255,255,0)");
+          sweep.addColorStop(.5, "rgba(255,255,255,.24)");
+          sweep.addColorStop(1, "rgba(255,255,255,0)");
+
+          ctx.fillStyle = sweep;
+          ctx.fillRect(sweepX, y, w * .2, h);
+
+          ctx.restore();
+        }
+
+        ctx.restore();
+      }
+
+      function drawTopIconButton(
+        id,
+        x,
+        y,
+        size,
+        icon,
+        active = false
+      ) {
+        drawPremiumSlantedPanel(
+          x,
+          y,
+          size,
+          size,
+          {
+            cutLeft: size * .18,
+            cutRight: size * .18,
+            topColor: active ? "#1A7B43" : "#6B0505",
+            middleColor: active ? "#0B522D" : "#420000",
+            bottomColor: "#190000"
+          }
+        );
+
+        drawText(icon, x + size / 2, y + size / 2 + 1, {
+          size: size * .40,
+          align: "center",
+          weight: 900
+        });
+
+        addHit(id, x, y, size, size);
+      }
+
+      function getLayout() {
+        const landscape = W > H;
+        const topBarH = clamp(H * .145, 58, 82);
+        const bottomBarH = clamp(H * .145, 58, 78);
+
+        const navY = H - bottomBarH;
+        const bodyTop = topBarH + 4;
+        const bodyBottom = navY - 4;
+        const bodyH = bodyBottom - bodyTop;
+
+        const cardGap = clamp(W * .012, 9, 16);
+        const cardW = clamp(W * .178, 130, 178);
+        const jackpotH = clamp(bodyH * .18, 46, 62);
+
+        // Jackpot header နှင့် game card ကို တစ်ခုတည်းသော group အဖြစ်ဆွဲရန်။
+        const cardH = clamp(
+          bodyH - jackpotH - 14,
+          180,
+          280
+        );
+
+        return {
+          landscape,
+          topBarH,
+          bottomBarH,
+          navY,
+          bodyTop,
+          bodyBottom,
+          bodyH,
+          cardGap,
+          cardW,
+          jackpotH,
+          cardH,
+          groupH: jackpotH + cardH,
+          startX: 16,
+          startY: bodyTop + 4
+        };
+      }
+
+      function resize() {
+        W = window.innerWidth;
+        H = window.innerHeight;
+        DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+        canvas.width = Math.max(1, Math.round(W * DPR));
+        canvas.height = Math.max(1, Math.round(H * DPR));
+        canvas.style.width = W + "px";
+        canvas.style.height = H + "px";
+
+        ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+
+        state.targetScrollX = clamp(
+          state.targetScrollX,
+          0,
+          state.maxScrollX
+        );
+
+        while (
+          particles.length <
+          Math.min(42, Math.max(18, Math.floor(W / 28)))
+        ) {
+          particles.push(new AmbientParticle());
+        }
+      }
+
+      async function enterFullscreen() {
+        if (fullscreenOpened) return;
+
+        try {
+          const root = document.documentElement;
+
+          if (!document.fullscreenElement && root.requestFullscreen) {
+            await root.requestFullscreen({
+              navigationUI: "hide"
+            });
+          }
+
+          if (screen.orientation?.lock) {
+            try {
+              await screen.orientation.lock("landscape");
+            } catch (_) {}
+          }
+
+          fullscreenOpened = true;
+          resize();
+        } catch (error) {
+          console.warn("Fullscreen unavailable:", error);
+        }
+      }
+
+      function initAudio() {
+        if (audioCtx) return;
+
+        audioCtx = new (
+          window.AudioContext ||
+          window.webkitAudioContext
+        )();
+
+        bgmGain = audioCtx.createGain();
+        bgmGain.gain.value = .055;
+        bgmGain.connect(audioCtx.destination);
+      }
+
+      function playBgm() {
+        if (state.bgmOn) return;
+        if (window.SoundManager) {
+          state.bgmOn = true;
+          window.SoundManager.playBGM?.();
+          window.Mini883Canvas?.setBgm?.(true);
+          return;
+        }
+
+        initAudio();
+        state.bgmOn = true;
+
+        const notes = [
+          261.63,
+          329.63,
+          392,
+          523.25,
+          440,
+          392,
+          329.63
+        ];
+
+        const start = audioCtx.currentTime + .03;
+        let t = 0;
+
+        for (let loop = 0; loop < 12; loop++) {
+          for (const note of notes) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            osc.type = "sine";
+            osc.frequency.value = note;
+
+            gain.gain.setValueAtTime(.0001, start + t);
+            gain.gain.exponentialRampToValueAtTime(
+              .035,
+              start + t + .07
+            );
+            gain.gain.exponentialRampToValueAtTime(
+              .0001,
+              start + t + .55
+            );
+
+            osc.connect(gain);
+            gain.connect(bgmGain);
+
+            osc.start(start + t);
+            osc.stop(start + t + .58);
+
+            bgmOscillators.push(osc);
+            t += .62;
+          }
+        }
+      }
+
+      function stopBgm() {
+        if (window.SoundManager) window.SoundManager.stopBGM?.();
+        for (const osc of bgmOscillators) {
+          try {
+            osc.stop();
+          } catch (_) {}
+        }
+
+        bgmOscillators = [];
+        state.bgmOn = false;
+      }
+
+      function toggleBgm() {
+        if (state.bgmOn) {
+          stopBgm();
+        } else {
+          playBgm();
+        }
+      }
+
+      function playClickSound() {
+        if (!state.soundOn) return;
+        if (window.SoundManager) {
+          window.SoundManager.button?.();
+          return;
+        }
+
+        initAudio();
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        const t = audioCtx.currentTime;
+
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(780, t);
+        osc.frequency.exponentialRampToValueAtTime(390, t + .12);
+
+        gain.gain.setValueAtTime(.09, t);
+        gain.gain.exponentialRampToValueAtTime(.0001, t + .16);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start(t);
+        osc.stop(t + .17);
+      }
+
+      function loadGameImages() {
+        for (const game of games) {
+          const image = new Image();
+          image.decoding = "async";
+
+          image.onload = () => {
+            game.loadedImage = image;
+          };
+
+          image.onerror = () => {
+            game.loadedImage = null;
+          };
+
+          image.src = game.image;
+        }
+      }
+
+      function drawBackground() {
+        const bg = ctx.createLinearGradient(0, 0, 0, H);
+        bg.addColorStop(0, COLORS.bgTop);
+        bg.addColorStop(.28, "#210505");
+        bg.addColorStop(1, COLORS.bgBottom);
+
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, W, H);
+
+        const glow = ctx.createRadialGradient(
+          W * .48,
+          H * .20,
+          0,
+          W * .48,
+          H * .20,
+          Math.max(W, H) * .62
+        );
+
+        glow.addColorStop(0, "rgba(255,100,20,.11)");
+        glow.addColorStop(.35, "rgba(122,30,0,.06)");
+        glow.addColorStop(1, "rgba(0,0,0,0)");
+
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, 0, W, H);
+
+        ctx.save();
+        ctx.globalAlpha = .035;
+        ctx.strokeStyle = "#FFD75A";
+        ctx.lineWidth = 1;
+
+        const grid = 28;
+
+        for (let x = 0; x <= W; x += grid) {
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, H);
+          ctx.stroke();
+        }
+
+        for (let y = 0; y <= H; y += grid) {
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(W, y);
+          ctx.stroke();
+        }
+
+        ctx.restore();
+      }
+
+      function drawVIPProgress(x, y, w, h) {
+        fillRoundedRect(
+          x,
+          y,
+          w,
+          h,
+          h / 2,
+          "#170404",
+          "rgba(255,215,90,.30)"
+        );
+
+        const progress = clamp(state.vipProgress, 0, 1);
+        const fillW = Math.max(h, w * progress);
+
+        const g = ctx.createLinearGradient(x, y, x + fillW, y);
+        g.addColorStop(0, "#9B5200");
+        g.addColorStop(.48, "#FFD75A");
+        g.addColorStop(1, "#FFAE28");
+
+        fillRoundedRect(
+          x + 1,
+          y + 1,
+          Math.max(0, fillW - 2),
+          h - 2,
+          (h - 2) / 2,
+          g
+        );
+
+        drawText(
+          `VIP ${state.vip} → ${state.vip + 1}`,
+          x + w / 2,
+          y + h / 2 + .5,
+          {
+            size: Math.max(7, h * .68),
+            align: "center",
+            color: "#3C1600",
+            weight: 900
+          }
+        );
+      }
+
+      function drawTopBar(layout) {
+        const h = layout.topBarH;
+
+        const bg = ctx.createLinearGradient(0, 0, 0, h);
+        bg.addColorStop(0, "#236A70");
+        bg.addColorStop(.45, "#0B454B");
+        bg.addColorStop(1, "#062D32");
+
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, W, h);
+
+        ctx.strokeStyle = "#FFD75A";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, h - 1);
+        ctx.lineTo(W, h - 1);
+        ctx.stroke();
+
+        const gap = clamp(W * .005, 4, 8);
+        const avatarW = clamp(W * .075, 62, 94);
+        const balanceW = clamp(W * .18, 145, 225);
+        const depositW = clamp(W * .105, 86, 135);
+        const officialW = clamp(W * .17, 140, 215);
+        const goldW = clamp(W * .11, 92, 140);
+        const actionSize = clamp(h * .66, 40, 52);
+        const y = clamp(h * .10, 5, 8);
+        const panelH = h - y * 2;
+
+        let x = 6;
+
+        drawPremiumSlantedPanel(
+          x,
+          y,
+          avatarW,
+          panelH,
+          {
+            cutLeft: 8,
+            cutRight: 18,
+            topColor: "#19616A",
+            middleColor: "#0C4147",
+            bottomColor: "#06282C"
+          }
+        );
+
+        const avatarSize = panelH * .66;
+        const avatarX = x + 12;
+        const avatarY = y + (panelH - avatarSize) / 2;
+
+        const avatarGrad = ctx.createRadialGradient(
+          avatarX + avatarSize * .35,
+          avatarY + avatarSize * .30,
+          1,
+          avatarX + avatarSize / 2,
+          avatarY + avatarSize / 2,
+          avatarSize / 2
+        );
+
+        avatarGrad.addColorStop(0, "#FFDE76");
+        avatarGrad.addColorStop(.45, "#FF8C22");
+        avatarGrad.addColorStop(1, "#8F1A00");
+
+        fillRoundedRect(
+          avatarX,
+          avatarY,
+          avatarSize,
+          avatarSize,
+          avatarSize / 2,
+          avatarGrad,
+          "#FFD75A",
+          2
+        );
+
+        drawText("🐯", avatarX + avatarSize / 2, avatarY + avatarSize / 2 + 1, {
+          size: avatarSize * .62,
+          align: "center"
+        });
+
+        const vipX = avatarX + avatarSize + 7;
+        const vipW = avatarW - (vipX - x) - 12;
+
+        fillRoundedRect(
+          vipX,
+          y + panelH * .16,
+          vipW,
+          panelH * .28,
+          5,
+          "#FFD75A"
+        );
+
+        drawText(`VIP ${state.vip}`, vipX + vipW / 2, y + panelH * .30, {
+          size: Math.max(8, panelH * .15),
+          align: "center",
+          color: "#7A1400",
+          weight: 900
+        });
+
+        drawVIPProgress(
+          vipX,
+          y + panelH * .56,
+          vipW,
+          Math.max(8, panelH * .17)
+        );
+
+        addHit("profile", x, y, avatarW, panelH);
+
+        x += avatarW - 12;
+
+        drawPremiumSlantedPanel(
+          x,
+          y,
+          balanceW,
+          panelH,
+          {
+            cutLeft: 20,
+            cutRight: 20,
+            topColor: "#821010",
+            middleColor: "#5A0000",
+            bottomColor: "#2A0000"
+          }
+        );
+
+        const coinR = panelH * .22;
+        const coinX = x + 31;
+        const coinY = y + panelH / 2;
+
+        const coinGrad = ctx.createRadialGradient(
+          coinX - coinR * .25,
+          coinY - coinR * .28,
+          1,
+          coinX,
+          coinY,
+          coinR
+        );
+
+        coinGrad.addColorStop(0, "#FFF4A6");
+        coinGrad.addColorStop(.44, "#FFD24E");
+        coinGrad.addColorStop(1, "#A85B00");
+
+        ctx.fillStyle = coinGrad;
+        ctx.beginPath();
+        ctx.arc(coinX, coinY, coinR, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = "#FFF0A0";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        drawText("$", coinX, coinY + 1, {
+          size: coinR * 1.05,
+          align: "center",
+          color: "#743600",
+          weight: 900
+        });
+
+        drawText(
+          state.balance.toLocaleString("en-US"),
+          x + balanceW * .58,
+          y + panelH * .43,
+          {
+            size: clamp(panelH * .30, 16, 25),
+            align: "center",
+            color: "#FFF1A0",
+            weight: 900,
+            shadowColor: "rgba(255,184,45,.45)",
+            shadowBlur: 8
+          }
+        );
+
+        drawText(
+          "BALANCE",
+          x + balanceW * .58,
+          y + panelH * .72,
+          {
+            size: clamp(panelH * .12, 8, 11),
+            align: "center",
+            color: COLORS.muted,
+            weight: 800
+          }
+        );
+
+        addHit("balance", x, y, balanceW, panelH);
+
+        x += balanceW - 13;
+
+        drawPremiumSlantedPanel(
+          x,
+          y,
+          depositW,
+          panelH,
+          {
+            cutLeft: 20,
+            cutRight: 20,
+            topColor: "#0FC25E",
+            middleColor: "#008D3D",
+            bottomColor: "#004E23",
+            activeGlow: "rgba(0,255,102,.28)"
+          }
+        );
+
+        drawText("＋", x + depositW * .28, y + panelH * .49, {
+          size: clamp(panelH * .34, 18, 27),
+          align: "center",
+          color: "#E8FFF0",
+          weight: 900
+        });
+
+        drawText("ဖြည့်ပါ", x + depositW * .63, y + panelH * .51, {
+          size: clamp(panelH * .20, 11, 16),
+          align: "center",
+          color: "#FFF",
+          weight: 900
+        });
+
+        addHit("deposit", x, y, depositW, panelH);
+
+        x += depositW - 13;
+
+        drawPremiumSlantedPanel(
+          x,
+          y,
+          officialW,
+          panelH,
+          {
+            cutLeft: 20,
+            cutRight: 20,
+            topColor: "#A526CA",
+            middleColor: "#741093",
+            bottomColor: "#3E0751",
+            activeGlow: "rgba(217,87,255,.25)"
+          }
+        );
+
+        drawText("⌂", x + officialW * .25, y + panelH * .47, {
+          size: clamp(panelH * .34, 18, 28),
+          align: "center",
+          color: "#FFF"
+        });
+
+        drawText(
+          "OFFICIAL WEBSITE",
+          x + officialW * .62,
+          y + panelH * .39,
+          {
+            size: clamp(panelH * .13, 8, 11),
+            align: "center",
+            color: "#FFF",
+            weight: 900,
+            maxWidth: officialW * .65
+          }
+        );
+
+        drawText(
+          "အိမ်",
+          x + officialW * .62,
+          y + panelH * .67,
+          {
+            size: clamp(panelH * .17, 9, 13),
+            align: "center",
+            color: "#F7C7FF",
+            weight: 800
+          }
+        );
+
+        addHit("official", x, y, officialW, panelH);
+
+        const rightButtonsWidth = actionSize * 2 + gap * 3;
+        const rightStart = W - rightButtonsWidth;
+
+        const availableGoldW = Math.max(
+          76,
+          rightStart - x - officialW + 14
+        );
+
+        x += officialW - 13;
+
+        drawPremiumSlantedPanel(
+          x,
+          y,
+          Math.max(goldW, availableGoldW),
+          panelH,
+          {
+            cutLeft: 18,
+            cutRight: 18,
+            topColor: "#916F06",
+            middleColor: "#5E4100",
+            bottomColor: "#251700"
+          }
+        );
+
+        const actualGoldW = Math.max(goldW, availableGoldW);
+
+        drawText("🪙", x + actualGoldW * .28, y + panelH / 2, {
+          size: clamp(panelH * .38, 20, 31),
+          align: "center"
+        });
+
+        drawText(state.gold, x + actualGoldW * .67, y + panelH / 2, {
+          size: clamp(panelH * .31, 17, 25),
+          align: "center",
+          color: "#FFF2A0",
+          weight: 900
+        });
+
+        drawTopIconButton(
+          "bgm",
+          W - actionSize * 2 - gap * 2,
+          y + (panelH - actionSize) / 2,
+          actionSize,
+          state.bgmOn ? "🔊" : "🔇",
+          state.bgmOn
+        );
+
+        drawTopIconButton(
+          "settings",
+          W - actionSize - gap,
+          y + (panelH - actionSize) / 2,
+          actionSize,
+          "⚙",
+          false
+        );
+      }
+
+      function updateJackpots() {
+        if (!updateJackpots.last) {
+          updateJackpots.last = performance.now();
+        }
+
+        if (frameNow - updateJackpots.last < 220) {
+          return;
+        }
+
+        updateJackpots.last = frameNow;
+
+        for (const game of games) {
+          game.jackpotMain += Math.floor(Math.random() * 8);
+          game.jackpotSub += Math.floor(Math.random() * 5);
+        }
+      }
+
+      function drawJackpotHeader(game, x, y, w, h) {
+        ctx.save();
+
+        roundedPath(x, y, w, h + 10, 14);
+        ctx.clip();
+
+        const g = ctx.createLinearGradient(x, y, x, y + h);
+        g.addColorStop(0, "#34100A");
+        g.addColorStop(.45, "#120707");
+        g.addColorStop(1, "#050303");
+
+        ctx.fillStyle = g;
+        ctx.fillRect(x, y, w, h + 10);
+
+        ctx.strokeStyle = game.featured ? "#FFD75A" : "#6A31A8";
+        ctx.lineWidth = game.featured ? 2.5 : 1.5;
+        roundedPath(x, y, w, h + 10, 14);
+        ctx.stroke();
+
+        drawText(
+          game.jackpotLabel,
+          x + w / 2,
+          y + h * .20,
+          {
+            size: clamp(h * .18, 8, 11),
+            align: "center",
+            color: "#FFD75A",
+            weight: 900,
+            shadowColor: "rgba(255,146,0,.55)",
+            shadowBlur: 7
+          }
+        );
+
+        const mainH = h * .38;
+        const mainY = y + h * .32;
+
+        fillRoundedRect(
+          x + 8,
+          mainY,
+          w - 16,
+          mainH,
+          5,
+          "#071B37",
+          "rgba(88,157,255,.65)"
+        );
+
+        const shineX =
+          x - w * .25 +
+          ((frameNow * .06 + game.id * 37) % (w * 1.45));
+
+        ctx.save();
+        roundedPath(x + 8, mainY, w - 16, mainH, 5);
+        ctx.clip();
+
+        const shine = ctx.createLinearGradient(
+          shineX,
+          mainY,
+          shineX + w * .18,
+          mainY + mainH
+        );
+
+        shine.addColorStop(0, "rgba(255,255,255,0)");
+        shine.addColorStop(.5, "rgba(255,255,255,.27)");
+        shine.addColorStop(1, "rgba(255,255,255,0)");
+
+        ctx.fillStyle = shine;
+        ctx.fillRect(shineX, mainY, w * .18, mainH);
+        ctx.restore();
+
+        drawText(
+          game.jackpotMain.toLocaleString("en-US"),
+          x + w / 2,
+          mainY + mainH / 2 + 1,
+          {
+            size: clamp(mainH * .52, 11, 17),
+            align: "center",
+            color: "#FFF",
+            weight: 900
+          }
+        );
+
+        const subY = y + h * .75;
+
+        fillRoundedRect(
+          x + w * .22,
+          subY,
+          w * .56,
+          h * .20,
+          999,
+          "#130A18",
+          "rgba(224,141,255,.55)"
+        );
+
+        drawText(
+          game.jackpotSub.toLocaleString("en-US"),
+          x + w / 2,
+          subY + h * .10,
+          {
+            size: clamp(h * .16, 8, 11),
+            align: "center",
+            color: "#F3BCFF",
+            weight: 900
+          }
+        );
+
+        ctx.restore();
+      }
+
+      function drawCardImage(game, x, y, w, h) {
+        ctx.save();
+        roundedPath(x, y, w, h, 11);
+        ctx.clip();
+
+        if (game.loadedImage) {
+          const img = game.loadedImage;
+          const scale = Math.max(w / img.width, h / img.height);
+          const sw = w / scale;
+          const sh = h / scale;
+          const sx = (img.width - sw) / 2;
+          const sy = (img.height - sh) / 2;
+
+          ctx.drawImage(
+            img,
+            sx,
+            sy,
+            sw,
+            sh,
+            x,
+            y,
+            w,
+            h
+          );
+        } else {
+          const fallback = ctx.createLinearGradient(
+            x,
+            y,
+            x,
+            y + h
+          );
+
+          fallback.addColorStop(
+            0,
+            `hsl(${game.hue} 68% 28%)`
+          );
+          fallback.addColorStop(
+            .55,
+            `hsl(${game.hue} 62% 15%)`
+          );
+          fallback.addColorStop(
+            1,
+            `hsl(${game.hue} 78% 8%)`
+          );
+
+          ctx.fillStyle = fallback;
+          ctx.fillRect(x, y, w, h);
+
+          const halo = ctx.createRadialGradient(
+            x + w * .52,
+            y + h * .40,
+            0,
+            x + w * .52,
+            y + h * .40,
+            w * .52
+          );
+
+          halo.addColorStop(0, "rgba(255,220,95,.32)");
+          halo.addColorStop(1, "rgba(255,220,95,0)");
+
+          ctx.fillStyle = halo;
+          ctx.fillRect(x, y, w, h);
+
+          drawText(
+            game.fallback,
+            x + w / 2,
+            y + h * .42,
+            {
+              size: clamp(w * .47, 54, 96),
+              align: "center",
+              shadowColor: "rgba(0,0,0,.55)",
+              shadowBlur: 18
+            }
+          );
+        }
+
+        const shade = ctx.createLinearGradient(
+          x,
+          y + h * .48,
+          x,
+          y + h
+        );
+
+        shade.addColorStop(0, "rgba(0,0,0,0)");
+        shade.addColorStop(.48, "rgba(0,0,0,.52)");
+        shade.addColorStop(1, "rgba(0,0,0,.94)");
+
+        ctx.fillStyle = shade;
+        ctx.fillRect(x, y, w, h);
+
+        ctx.restore();
+      }
+
+      function drawGameCard(game, x, y, w, h) {
+        const animation = state.cardAnimations.get(game.id);
+        let scale = 1;
+        let glow = 0;
+
+        if (animation) {
+          const elapsed = frameNow - animation.start;
+
+          if (elapsed >= 430) {
+            state.cardAnimations.delete(game.id);
+          } else {
+            const t = elapsed / 430;
+            scale = 1 + .09 * Math.sin(t * Math.PI);
+            glow = 1 - t;
+          }
+        }
+
+        const cx = x + w / 2;
+        const cy = y + h / 2;
+
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.scale(scale, scale);
+        ctx.translate(-cx, -cy);
+
+        if (glow > 0) {
+          ctx.save();
+          ctx.shadowBlur = 30 * glow;
+          ctx.shadowColor = "#FFD75A";
+          fillRoundedRect(
+            x - 2,
+            y - 2,
+            w + 4,
+            h + 4,
+            13,
+            "rgba(255,215,90,.03)"
+          );
+          ctx.restore();
+        }
+
+        const frame = ctx.createLinearGradient(x, y, x, y + h);
+        frame.addColorStop(0, game.featured ? "#FFF0A0" : "#D58DFF");
+        frame.addColorStop(.25, game.featured ? "#FFD75A" : "#8B3FC6");
+        frame.addColorStop(.62, game.featured ? "#8A4D00" : "#3C145E");
+        frame.addColorStop(1, game.featured ? "#FFD75A" : "#B86AFF");
+
+        fillRoundedRect(x, y, w, h, 13, frame);
+
+        fillRoundedRect(
+          x + 3,
+          y + 3,
+          w - 6,
+          h - 6,
+          11,
+          "#10040D"
+        );
+
+        drawCardImage(
+          game,
+          x + 7,
+          y + 7,
+          w - 14,
+          h - 14
+        );
+
+        if (game.isNew) {
+          fillRoundedRect(
+            x + 9,
+            y + 9,
+            Math.min(42, w * .30),
+            20,
+            5,
+            "#00A84A"
+          );
+
+          drawText("NEW", x + 9 + Math.min(42, w * .30) / 2, y + 19, {
+            size: 9,
+            align: "center",
+            color: "#FFF",
+            weight: 900
+          });
+        }
+
+        if (game.hot) {
+          fillRoundedRect(
+            x + w - Math.min(42, w * .30) - 9,
+            y + 9,
+            Math.min(42, w * .30),
+            20,
+            5,
+            "#FF4B20"
+          );
+
+          drawText(
+            "HOT",
+            x + w - Math.min(42, w * .30) / 2 - 9,
+            y + 19,
+            {
+              size: 9,
+              align: "center",
+              color: "#FFF",
+              weight: 900
+            }
+          );
+        }
+
+        drawText(
+          game.name,
+          x + w / 2,
+          y + h - 20,
+          {
+            size: clamp(w * .074, 10, 13),
+            align: "center",
+            color: "#FFD75A",
+            weight: 900,
+            shadowColor: "#000",
+            shadowBlur: 8,
+            maxWidth: w - 16
+          }
+        );
+
+        ctx.restore();
+
+        addHit(
+          `card-${game.id}`,
+          x,
+          y,
+          w,
+          h,
+          { game }
+        );
+      }
+
+      function drawGameGroups(layout, dt) {
+        updateJackpots();
+
+        const totalWidth =
+          games.length * layout.cardW +
+          (games.length - 1) * layout.cardGap +
+          layout.startX * 2;
+
+        state.maxScrollX = Math.max(0, totalWidth - W);
+
+        if (!state.pointerDown) {
+          state.scrollX += state.velocityX * dt;
+          state.velocityX *= Math.pow(.055, dt);
+
+          if (Math.abs(state.velocityX) < 4) {
+            state.velocityX = 0;
+          }
+
+          if (state.scrollX < 0) {
+            state.scrollX = lerp(state.scrollX, 0, .20);
+            state.velocityX *= .45;
+          } else if (state.scrollX > state.maxScrollX) {
+            state.scrollX = lerp(
+              state.scrollX,
+              state.maxScrollX,
+              .20
+            );
+            state.velocityX *= .45;
+          }
+        } else {
+          state.scrollX = lerp(
+            state.scrollX,
+            state.targetScrollX,
+            .34
+          );
+        }
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(
+          0,
+          layout.startY,
+          W,
+          layout.groupH + 6
+        );
+        ctx.clip();
+
+        games.forEach((game, index) => {
+          const x =
+            layout.startX +
+            index * (layout.cardW + layout.cardGap) -
+            state.scrollX;
+
+          if (
+            x + layout.cardW < -40 ||
+            x > W + 40
+          ) {
+            return;
+          }
+
+          drawJackpotHeader(
+            game,
+            x,
+            layout.startY,
+            layout.cardW,
+            layout.jackpotH
+          );
+
+          drawGameCard(
+            game,
+            x,
+            layout.startY + layout.jackpotH - 2,
+            layout.cardW,
+            layout.cardH
+          );
+        });
+
+        ctx.restore();
+
+        if (state.scrollX > 8) {
+          const leftFade = ctx.createLinearGradient(0, 0, 34, 0);
+          leftFade.addColorStop(0, "rgba(0,0,0,.82)");
+          leftFade.addColorStop(1, "rgba(0,0,0,0)");
+
+          ctx.fillStyle = leftFade;
+          ctx.fillRect(0, layout.startY, 34, layout.groupH);
+
+          drawText("◀", 15, layout.startY + layout.groupH / 2, {
+            size: 17,
+            align: "center",
+            color: "#FFD75A"
+          });
+        }
+
+        if (state.scrollX < state.maxScrollX - 8) {
+          const rightFade = ctx.createLinearGradient(
+            W - 34,
+            0,
+            W,
+            0
+          );
+
+          rightFade.addColorStop(0, "rgba(0,0,0,0)");
+          rightFade.addColorStop(1, "rgba(0,0,0,.82)");
+
+          ctx.fillStyle = rightFade;
+          ctx.fillRect(
+            W - 34,
+            layout.startY,
+            34,
+            layout.groupH
+          );
+
+          drawText("▶", W - 15, layout.startY + layout.groupH / 2, {
+            size: 17,
+            align: "center",
+            color: "#FFD75A"
+          });
+        }
+      }
+
+      function drawNotificationBadge(x, y, count) {
+        if (count <= 0) return;
+
+        ctx.save();
+        ctx.fillStyle = "#F01414";
+        ctx.beginPath();
+        ctx.arc(x, y, 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = "#FFF";
+        ctx.lineWidth = 1.3;
+        ctx.stroke();
+
+        drawText(count > 9 ? "9+" : count, x, y + .5, {
+          size: 9,
+          align: "center",
+          color: "#FFF",
+          weight: 900
+        });
+
+        ctx.restore();
+      }
+
+      function drawNavIcon(type, cx, cy, size, color) {
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = Math.max(1.5, size * .08);
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.shadowBlur = 7;
+        ctx.shadowColor = color;
+
+        const s = size * .42;
+
+        if (type === "slot") {
+          fillRoundedRect(-s, -s * .62, s * 2, s * 1.24, 4, color);
+          ctx.fillStyle = "#23040A";
+
+          for (let i = 0; i < 3; i++) {
+            ctx.beginPath();
+            ctx.arc(-s * .48 + i * s * .48, 0, 2.2, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          ctx.fillStyle = color;
+          ctx.beginPath();
+          ctx.moveTo(s * 1.05, -s * .30);
+          ctx.lineTo(s * 1.40, 0);
+          ctx.lineTo(s * 1.05, s * .30);
+          ctx.closePath();
+          ctx.fill();
+        } else if (type === "card") {
+          ctx.save();
+          ctx.rotate(-.22);
+          fillRoundedRect(-s * .70, -s, s * 1.4, s * 2, 4, color);
+          ctx.restore();
+
+          ctx.save();
+          ctx.rotate(.22);
+          fillRoundedRect(-s * .70, -s, s * 1.4, s * 2, 4, "#D02020");
+          drawText("♥", 0, 1, {
+            size: size * .40,
+            align: "center",
+            color: "#FFF"
+          });
+          ctx.restore();
+        } else if (type === "fish") {
+          ctx.beginPath();
+          ctx.ellipse(0, 0, s, s * .55, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.beginPath();
+          ctx.moveTo(s * .78, 0);
+          ctx.lineTo(s * 1.34, -s * .48);
+          ctx.lineTo(s * 1.34, s * .48);
+          ctx.closePath();
+          ctx.fill();
+
+          ctx.fillStyle = "#17040A";
+          ctx.beginPath();
+          ctx.arc(-s * .34, -s * .08, 2.4, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (type === "sport") {
+          ctx.beginPath();
+          ctx.arc(0, 0, s, 0, Math.PI * 2);
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.arc(0, 0, s * .30, 0, Math.PI * 2);
+          ctx.fill();
+
+          for (let i = 0; i < 5; i++) {
+            const a = -Math.PI / 2 + i * Math.PI * 2 / 5;
+            ctx.beginPath();
+            ctx.moveTo(
+              Math.cos(a) * s * .30,
+              Math.sin(a) * s * .30
+            );
+            ctx.lineTo(
+              Math.cos(a) * s,
+              Math.sin(a) * s
+            );
+            ctx.stroke();
+          }
+        }
+
+        ctx.restore();
+      }
+
+      function drawBottomNav(layout) {
+        const h = layout.bottomBarH;
+        const y = layout.navY;
+
+        const bg = ctx.createLinearGradient(0, y, 0, H);
+        bg.addColorStop(0, "#2A0808");
+        bg.addColorStop(.5, "#180404");
+        bg.addColorStop(1, "#090202");
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, y, W, h);
+
+        ctx.strokeStyle = "#8A5410";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(W, y);
+        ctx.stroke();
+
+        const items = [
+          { key: "home", label: "ဂိမ်း", icon: "🎰" },
+          { key: "daily", label: "Cashback", icon: "🎁" },
+          { key: "journey", label: "Journey", icon: "🌍" },
+          { key: "chat", label: "Chat", icon: "💬" },
+          { key: "withdraw", label: "ငွေထုတ်", icon: "🏦" },
+          { key: "history", label: "History", icon: "📜" }
+        ];
+
+        const itemW = W / items.length;
+        items.forEach((item, index) => {
+          const x = index * itemW;
+          const active = item.key === "home";
+          const cx = x + itemW / 2;
+
+          if (active) {
+            drawPremiumSlantedPanel(
+              cx - Math.min(itemW * .70, 88) / 2,
+              y + 5,
+              Math.min(itemW * .70, 88),
+              h - 10,
+              {
+                cutLeft: 11,
+                cutRight: 11,
+                topColor: "#7A130D",
+                middleColor: "#4C0705",
+                bottomColor: "#210000",
+                activeGlow: "rgba(255,215,90,.28)"
+              }
+            );
+          }
+
+          const color = active ? "#FFD75A" : "#A79A91";
+          drawText(item.icon, cx, y + h * .36, {
+            size: clamp(h * .34, 19, 26),
+            align: "center",
+            color
+          });
+          drawText(item.label, cx, y + h * .76, {
+            size: clamp(h * .13, 8, 10.5),
+            align: "center",
+            color,
+            weight: active ? 900 : 700
+          });
+
+          drawNotificationBadge(
+            cx + itemW * .20,
+            y + h * .18,
+            state.notifications[item.key] || 0
+          );
+
+          addHit(`nav-${item.key}`, x, y, itemW, h, { tab: item.key });
+        });
+      }
+
+      function drawPopup() {
+        if (!state.popup) return;
+
+        ctx.fillStyle = "rgba(0,0,0,.72)";
+        ctx.fillRect(0, 0, W, H);
+
+        const w = Math.min(W * .58, 560);
+        const h = Math.min(H * .68, 430);
+        const x = (W - w) / 2;
+        const y = (H - h) / 2;
+
+        const bg = ctx.createLinearGradient(x, y, x, y + h);
+        bg.addColorStop(0, "#351010");
+        bg.addColorStop(.42, "#180505");
+        bg.addColorStop(1, "#090202");
+
+        fillRoundedRect(
+          x,
+          y,
+          w,
+          h,
+          18,
+          bg,
+          "#FFD75A",
+          2
+        );
+
+        drawPremiumSlantedPanel(
+          x + 5,
+          y + 5,
+          w - 10,
+          46,
+          {
+            cutLeft: 17,
+            cutRight: 17,
+            topColor: "#971111",
+            middleColor: "#650000",
+            bottomColor: "#300000"
+          }
+        );
+
+        const title =
+          state.popup === "deposit"
+            ? "ငွေသွင်း"
+            : state.popup === "settings"
+              ? "ဆက်တင်များ"
+              : state.popup === "vip"
+                ? "VIP အဆင့်"
+                : "ကိုယ်ရေးအချက်အလက်";
+
+        drawText(title, x + w / 2, y + 28, {
+          size: 18,
+          align: "center",
+          color: "#FFD75A",
+          weight: 900
+        });
+
+        fillRoundedRect(
+          x + w - 42,
+          y + 11,
+          30,
+          30,
+          15,
+          "#D12B18",
+          "#FFD75A",
+          1.5
+        );
+
+        drawText("✕", x + w - 27, y + 26, {
+          size: 15,
+          align: "center",
+          weight: 900
+        });
+
+        addHit(
+          "popup-close",
+          x + w - 42,
+          y + 11,
+          30,
+          30
+        );
+
+        if (state.popup === "deposit") {
+          const methods = ["KBZ Pay", "WAVE Pay"];
+          const amounts = ["2K", "5K", "10K", "30K", "50K", "100K"];
+
+          methods.forEach((method, i) => {
+            const my = y + 70 + i * 46;
+
+            fillRoundedRect(
+              x + 24,
+              my,
+              w - 48,
+              38,
+              9,
+              "#180606",
+              "rgba(255,215,90,.60)"
+            );
+
+            drawText(method, x + w / 2, my + 19, {
+              size: 14,
+              align: "center",
+              color: "#FFD75A",
+              weight: 800
+            });
+          });
+
+          amounts.forEach((amount, i) => {
+            const col = i % 3;
+            const row = Math.floor(i / 3);
+            const gap = 8;
+            const bw = (w - 48 - gap * 2) / 3;
+            const bx = x + 24 + col * (bw + gap);
+            const by = y + 170 + row * 46;
+
+            fillRoundedRect(
+              bx,
+              by,
+              bw,
+              37,
+              9,
+              "#008C3C",
+              "#31FF82",
+              1
+            );
+
+            drawText(amount, bx + bw / 2, by + 18.5, {
+              size: 14,
+              align: "center",
+              weight: 900
+            });
+          });
+        } else if (state.popup === "settings") {
+          const rows = [
+            {
+              label: "နောက်ခံအသံ",
+              value: state.bgmOn ? "ON" : "OFF",
+              id: "toggle-bgm"
+            },
+            {
+              label: "အထူးအသံ",
+              value: state.soundOn ? "ON" : "OFF",
+              id: "toggle-sound"
+            }
+          ];
+
+          rows.forEach((row, index) => {
+            const ry = y + 86 + index * 62;
+
+            fillRoundedRect(
+              x + 28,
+              ry,
+              w - 56,
+              48,
+              10,
+              "#160505",
+              "rgba(255,215,90,.44)"
+            );
+
+            drawText(row.label, x + 50, ry + 24, {
+              size: 14,
+              color: "#FFF",
+              weight: 700
+            });
+
+            const on = row.value === "ON";
+
+            fillRoundedRect(
+              x + w - 100,
+              ry + 10,
+              60,
+              28,
+              14,
+              on ? "#00A84A" : "#5A5A5A"
+            );
+
+            drawText(row.value, x + w - 70, ry + 24, {
+              size: 12,
+              align: "center",
+              weight: 900
+            });
+
+            addHit(
+              row.id,
+              x + w - 110,
+              ry,
+              80,
+              48
+            );
+          });
+        } else if (state.popup === "vip") {
+          drawVIPProgress(
+            x + 38,
+            y + 92,
+            w - 76,
+            24
+          );
+
+          drawText(
+            "VIP 7 ရောက်ရန် 72% ပြည့်ပြီးပါပြီ",
+            x + w / 2,
+            y + 145,
+            {
+              size: 15,
+              align: "center",
+              color: "#FFD75A",
+              weight: 800
+            }
+          );
+
+          const benefits = [
+            "နေ့စဉ်အထူးဆု",
+            "ပိုမြန်သောငွေထုတ်",
+            "VIP သီးသန့်ဂိမ်း"
+          ];
+
+          benefits.forEach((item, index) => {
+            fillRoundedRect(
+              x + 38,
+              y + 178 + index * 48,
+              w - 76,
+              38,
+              9,
+              "#190606",
+              "rgba(255,215,90,.34)"
+            );
+
+            drawText(
+              `◆ ${item}`,
+              x + 54,
+              y + 197 + index * 48,
+              {
+                size: 13,
+                color: "#FFF"
+              }
+            );
+          });
+        } else {
+          drawText("🐯", x + w / 2, y + 112, {
+            size: 66,
+            align: "center"
+          });
+
+          const info = [
+            ["အမည်", state.playerName],
+            ["ID", "33301067"],
+            ["Balance", state.balance],
+            ["Gold", state.gold]
+          ];
+
+          info.forEach((row, index) => {
+            const ry = y + 158 + index * 42;
+
+            fillRoundedRect(
+              x + 34,
+              ry,
+              w - 68,
+              34,
+              8,
+              "#160505",
+              "rgba(255,215,90,.30)"
+            );
+
+            drawText(row[0], x + 50, ry + 17, {
+              size: 12,
+              color: COLORS.muted
+            });
+
+            drawText(row[1], x + w - 50, ry + 17, {
+              size: 12,
+              align: "right",
+              color: "#FFD75A",
+              weight: 800
+            });
+          });
+        }
+      }
+
+      function drawLoadingGame(dt) {
+        if (!state.loadingGame) return;
+
+        const elapsed = frameNow - state.loadingGame.start;
+        const progress = clamp(elapsed / 1800, 0, 1);
+        const alpha = .35 + progress * .60;
+
+        ctx.fillStyle = `rgba(0,0,0,${alpha})`;
+        ctx.fillRect(0, 0, W, H);
+
+        const cx = W / 2;
+        const cy = H / 2;
+
+        while (loadingParticles.length < 26) {
+          loadingParticles.push(new LoadingParticle());
+        }
+
+        for (const particle of loadingParticles) {
+          particle.update(dt);
+          particle.draw(cx, cy);
+        }
+
+        const iconSize = clamp(H * .18, 52, 88);
+
+        drawText(
+          state.loadingGame.game.fallback,
+          cx,
+          cy - H * .13,
+          {
+            size: iconSize,
+            align: "center",
+            shadowColor: "#FF7A24",
+            shadowBlur: 24
+          }
+        );
+
+        drawText(
+          state.loadingGame.game.name,
+          cx,
+          cy - H * .02,
+          {
+            size: clamp(H * .05, 18, 28),
+            align: "center",
+            color: "#FFD75A",
+            weight: 900,
+            shadowColor: "#FF7A24",
+            shadowBlur: 12
+          }
+        );
+
+        const spinnerR = clamp(H * .062, 22, 34);
+
+        ctx.save();
+        ctx.translate(cx, cy + H * .08);
+        ctx.rotate(frameNow * .006);
+        ctx.strokeStyle = "#FFD75A";
+        ctx.lineWidth = 4;
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.arc(0, 0, spinnerR, 0, Math.PI * 1.48);
+        ctx.stroke();
+        ctx.restore();
+
+        const barW = clamp(W * .28, 180, 300);
+        const barH = 10;
+        const barX = cx - barW / 2;
+        const barY = cy + H * .20;
+
+        fillRoundedRect(
+          barX,
+          barY,
+          barW,
+          barH,
+          999,
+          "#170606",
+          "rgba(255,215,90,.25)"
+        );
+
+        const progressW = Math.max(
+          barH,
+          barW * progress
+        );
+
+        const g = ctx.createLinearGradient(
+          barX,
+          barY,
+          barX + progressW,
+          barY
+        );
+
+        g.addColorStop(0, "#FF401F");
+        g.addColorStop(.5, "#FFD75A");
+        g.addColorStop(1, "#FF8B26");
+
+        fillRoundedRect(
+          barX,
+          barY,
+          progressW,
+          barH,
+          999,
+          g
+        );
+
+        drawText(
+          `${Math.floor(progress * 100)}%`,
+          cx,
+          barY + 26,
+          {
+            size: 12,
+            align: "center",
+            color: "#FFD75A",
+            weight: 800
+          }
+        );
+
+        if (progress >= 1) {
+          const readyGame = state.loadingGame.game;
+          state.loadingGame = null;
+          loadingParticles.length = 0;
+          setTimeout(() => {
+            window.Mini883Bridge?.openGame?.(readyGame.action);
+          }, 0);
+        }
+      }
+
+      function drawRotateHint() {
+        if (W > H) return;
+
+        ctx.fillStyle = "rgba(5,0,0,.88)";
+        ctx.fillRect(0, 0, W, H);
+
+        drawText("📱↻", W / 2, H / 2 - 42, {
+          size: 62,
+          align: "center"
+        });
+
+        drawText(
+          "Landscape ပြောင်းပြီးကစားပါ",
+          W / 2,
+          H / 2 + 28,
+          {
+            size: 18,
+            align: "center",
+            color: "#FFD75A",
+            weight: 900
+          }
+        );
+      }
+
+      function triggerCardAnimation(game, x, y) {
+        state.cardAnimations.set(game.id, {
+          start: performance.now()
+        });
+
+        for (let i = 0; i < 24; i++) {
+          clickParticles.push(
+            new ClickParticle(x, y)
+          );
+        }
+
+        playClickSound();
+
+        setTimeout(() => {
+          state.loadingGame = {
+            game,
+            start: performance.now()
+          };
+        }, 210);
+      }
+
+      function render(timestamp) {
+        const dt = Math.min(
+          .033,
+          Math.max(.001, (timestamp - frameNow) / 1000)
+        );
+
+        frameNow = timestamp;
+
+        // Do not keep rendering the expensive lobby behind an iframe game.
+        // This is especially important on Android phones and removes spin lag.
+        if (canvas.classList.contains('is-hidden') || document.hidden) {
+          requestAnimationFrame(render);
+          return;
+        }
+
+        state.hitAreas.length = 0;
+
+        drawBackground();
+
+        for (const particle of particles) {
+          particle.update(dt);
+          particle.draw();
+        }
+
+        for (let i = clickParticles.length - 1; i >= 0; i--) {
+          clickParticles[i].update(dt);
+          clickParticles[i].draw();
+
+          if (clickParticles[i].life <= 0) {
+            clickParticles.splice(i, 1);
+          }
+        }
+
+        const layout = getLayout();
+
+        drawTopBar(layout);
+        drawGameGroups(layout, dt);
+        drawBottomNav(layout);
+
+        // Daily bonus ခဏပိတ်ထားသည်။
+        // နောက်မှ lobby HTML bonus system callback နှင့်ချိတ်ပါ။
+
+        drawPopup();
+        drawLoadingGame(dt);
+        drawRotateHint();
+
+        requestAnimationFrame(render);
+      }
+
+      function getPointerPosition(event, changed = false) {
+        const rect = canvas.getBoundingClientRect();
+
+        let source = event;
+
+        if (event.touches?.length) {
+          source = event.touches[0];
+        } else if (changed && event.changedTouches?.length) {
+          source = event.changedTouches[0];
+        }
+
+        return {
+          x:
+            (source.clientX - rect.left) *
+            (W / rect.width),
+          y:
+            (source.clientY - rect.top) *
+            (H / rect.height)
+        };
+      }
+
+      function handlePointerDown(event) {
+        event.preventDefault();
+        enterFullscreen();
+
+        const pos = getPointerPosition(event);
+
+        state.pointerDown = true;
+        state.downX = pos.x;
+        state.downY = pos.y;
+        state.lastX = pos.x;
+        state.lastTime = performance.now();
+        state.dragStartScroll = state.scrollX;
+        state.targetScrollX = state.scrollX;
+        state.velocityX = 0;
+        state.moved = false;
+
+        const hit = findHit(pos.x, pos.y);
+        state.pendingCardId =
+          hit?.id?.startsWith("card-")
+            ? hit.id
+            : null;
+      }
+
+      function handlePointerMove(event) {
+        event.preventDefault();
+
+        if (!state.pointerDown) return;
+        if (state.popup || state.loadingGame) return;
+
+        const pos = getPointerPosition(event);
+        const dx = pos.x - state.downX;
+        const dy = pos.y - state.downY;
+        const distance = Math.hypot(dx, dy);
+
+        if (distance > 9) {
+          state.moved = true;
+          state.pendingCardId = null;
+        }
+
+        if (state.moved) {
+          state.targetScrollX = clamp(
+            state.dragStartScroll - dx,
+            -42,
+            state.maxScrollX + 42
+          );
+
+          const now = performance.now();
+          const dtMs = Math.max(1, now - state.lastTime);
+
+          // လက်ညှိုး၏ရွေ့လျားမှုနှင့် scroll direction ကိုကိုက်ညီအောင် ဆန့်ကျင်ဘက်ထားသည်။
+          state.velocityX =
+            -((pos.x - state.lastX) / dtMs) * 1000;
+
+          state.lastX = pos.x;
+          state.lastTime = now;
+        }
+      }
+
+      function handleHit(hit, pos) {
+        if (!hit) return;
+
+        if (hit.id.startsWith("card-")) {
+          triggerCardAnimation(hit.data.game, pos.x, pos.y);
+          return;
+        }
+
+        if (hit.id === "profile") {
+          window.Mini883Bridge?.openProfile?.();
+          return;
+        }
+        if (hit.id === "balance") {
+          window.Mini883Bridge?.openHistory?.();
+          return;
+        }
+        if (hit.id === "deposit") {
+          window.Mini883Bridge?.openDeposit?.();
+          return;
+        }
+        if (hit.id === "official") {
+          window.Mini883Bridge?.official?.();
+          return;
+        }
+        if (hit.id === "bgm") {
+          const enabled = window.Mini883Bridge?.toggleBgm?.();
+          if (typeof enabled === "boolean") state.bgmOn = enabled;
+          else toggleBgm();
+          return;
+        }
+        if (hit.id === "settings") {
+          window.Mini883Bridge?.openSettings?.();
+          return;
+        }
+        if (hit.id.startsWith("nav-")) {
+          const action = hit.id.slice(4);
+          if (action === "home") {
+            state.activeTab = "slot";
+            state.targetScrollX = 0;
+          } else if (action === "daily") window.Mini883Bridge?.openCashback?.();
+          else if (action === "journey") window.Mini883Bridge?.openJourney?.();
+          else if (action === "chat") window.Mini883Bridge?.openChat?.();
+          else if (action === "withdraw") window.Mini883Bridge?.openWithdraw?.();
+          else if (action === "history") window.Mini883Bridge?.openHistory?.();
+          if (state.notifications[action] !== undefined) state.notifications[action] = 0;
+          return;
+        }
+        if (hit.id === "popup-close") {
+          state.popup = null;
+          return;
+        }
+        if (hit.id === "toggle-bgm") {
+          toggleBgm();
+          return;
+        }
+        if (hit.id === "toggle-sound") {
+          state.soundOn = !state.soundOn;
+          window.SoundManager?.toggle?.(state.soundOn);
+        }
+      }
+
+      function handlePointerUp(event) {
+        event.preventDefault();
+
+        const pos = getPointerPosition(event, true);
+        const hit = findHit(pos.x, pos.y);
+
+        if (!state.moved) {
+          // touchstart မှာ loading မတက်တော့ဘဲ touchend/tap စစ်ပြီးမှသာ ဖွင့်သည်။
+          if (
+            state.pendingCardId &&
+            hit?.id === state.pendingCardId
+          ) {
+            handleHit(hit, pos);
+          } else if (!state.pendingCardId) {
+            handleHit(hit, pos);
+          }
+        }
+
+        state.pointerDown = false;
+        state.pendingCardId = null;
+        state.moved = false;
+
+        state.scrollX = clamp(
+          state.scrollX,
+          -42,
+          state.maxScrollX + 42
+        );
+      }
+
+      function handlePointerCancel() {
+        state.pointerDown = false;
+        state.pendingCardId = null;
+        state.moved = false;
+      }
+
+      canvas.addEventListener(
+        "touchstart",
+        handlePointerDown,
+        { passive: false }
+      );
+
+      canvas.addEventListener(
+        "touchmove",
+        handlePointerMove,
+        { passive: false }
+      );
+
+      canvas.addEventListener(
+        "touchend",
+        handlePointerUp,
+        { passive: false }
+      );
+
+      canvas.addEventListener(
+        "touchcancel",
+        handlePointerCancel,
+        { passive: false }
+      );
+
+      canvas.addEventListener(
+        "mousedown",
+        handlePointerDown
+      );
+
+      canvas.addEventListener(
+        "mousemove",
+        handlePointerMove
+      );
+
+      canvas.addEventListener(
+        "mouseup",
+        handlePointerUp
+      );
+
+      canvas.addEventListener(
+        "mouseleave",
+        handlePointerCancel
+      );
+
+      canvas.addEventListener(
+        "wheel",
+        event => {
+          event.preventDefault();
+
+          if (state.popup || state.loadingGame) {
+            return;
+          }
+
+          state.velocityX += event.deltaY * 4;
+        },
+        { passive: false }
+      );
+
+      window.addEventListener("resize", resize);
+      window.addEventListener("orientationchange", () => {
+        setTimeout(resize, 120);
+      });
+
+      function init() {
+        resize();
+        loadGameImages();
+
+        const loadingScreen =
+          document.getElementById("loadingScreen");
+
+        const loadingFill =
+          document.getElementById("loadingFill");
+
+        let progress = 0;
+
+        const timer = setInterval(() => {
+          progress += 10 + Math.random() * 18;
+          loadingFill.style.width =
+            Math.min(100, progress) + "%";
+
+          if (progress >= 100) {
+            clearInterval(timer);
+
+            setTimeout(() => {
+              loadingScreen.classList.add("hidden");
+            }, 240);
+          }
+        }, 115);
+
+        requestAnimationFrame(render);
+      }
+
+      init();
+    })();
+  </script>
+  <script src="js/lobby-core.js?v=5"></script>
+</body>
+</html>

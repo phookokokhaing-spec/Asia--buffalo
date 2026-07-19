@@ -1,6 +1,5 @@
-
 // ===== FIREBASE INITIALIZATION =====
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     console.log('Login system initializing...');
 
     // Check if Firebase is loaded
@@ -35,14 +34,24 @@ document.addEventListener('DOMContentLoaded', function() {
         if (user) {
             console.log('✅ User logged in:', user.uid);
 
-            // Get user data from Firestore
-            const userDoc = await window.db.collection('users').doc(user.uid).get();
+            try {
+                // Get user data from Firestore
+                const userDoc = await window.db
+                    .collection('users')
+                    .doc(user.uid)
+                    .get();
 
-            if (userDoc.exists) {
+                if (!userDoc.exists) {
+                    console.error('❌ User data not found in Firestore');
+                    await firebase.auth().signOut();
+                    return;
+                }
+
                 const userData = userDoc.data();
 
                 window.currentUser = {
                     id: user.uid,
+                    uid: user.uid,
                     username: userData.username,
                     balance: userData.balance || 0,
                     level: userData.level || 1,
@@ -53,44 +62,62 @@ document.addEventListener('DOMContentLoaded', function() {
                 };
 
                 // Update last login
-                await window.db.collection('users').doc(user.uid).update({
-                    lastLogin: new Date().toISOString()
-                }).catch(e => console.log('Last login update failed:', e));
+                await window.db
+                    .collection('users')
+                    .doc(user.uid)
+                    .update({
+                        lastLogin: new Date().toISOString()
+                    })
+                    .catch((e) => {
+                        console.log('Last login update failed:', e);
+                    });
 
-                localStorage.setItem('currentUser', JSON.stringify(window.currentUser));
+                // Lobby မှာ user data ပြန်ဖတ်နိုင်အောင် သိမ်းမယ်
+                localStorage.setItem(
+                    'currentUser',
+                    JSON.stringify(window.currentUser)
+                );
 
-                // Hide login, show game
-                document.getElementById('loginScreen').style.display = 'none';
-                document.getElementById('lobbyScreen').style.display = 'flex';
+                // Login အောင်မြင်ရင် lobby ကိုဝင်မယ်
+                window.location.replace('./lobby.html');
 
-                // Update UI
-                if (typeof updateUserUI === 'function') {
-                    updateUserUI(window.currentUser);
+            } catch (error) {
+                console.error('❌ User data loading error:', error);
+
+                const messageEl = document.getElementById('loginMessage');
+
+                if (messageEl) {
+                    showMessage(
+                        messageEl,
+                        'အသုံးပြုသူအချက်အလက် ရယူမရပါ။',
+                        'error'
+                    );
                 }
-
-                
-                // Update gameState if exists
-                if (typeof window.gameState !== 'undefined') {
-                    window.gameState.balance = window.currentUser.balance;
-                    window.gameState.userLevel = window.currentUser.level;
-                    window.gameState.vipLevel = window.currentUser.vip;
-                }
-                           await loadDailyGoals();
-                               await loadJourney();
-                document.dispatchEvent(new Event('userLoggedIn'));
             }
+
         } else {
             console.log('❌ User logged out');
+
             window.currentUser = null;
-             localStorage.removeItem('currentUser');
-            document.getElementById('loginScreen').style.display = 'flex';
-            document.getElementById('lobbyScreen').style.display = 'none';
+            localStorage.removeItem('currentUser');
+
+            const loginScreen = document.getElementById('loginScreen');
+            const lobbyScreen = document.getElementById('lobbyScreen');
+
+            if (loginScreen) {
+                loginScreen.style.display = 'flex';
+            }
+
+            if (lobbyScreen) {
+                lobbyScreen.style.display = 'none';
+            }
         }
     });
 
     checkOrientation();
     window.addEventListener('resize', checkOrientation);
 });
+
 
 // ===== CHECK FIREBASE CONNECTION =====
 function checkFirebaseConnection() {

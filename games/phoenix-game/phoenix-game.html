@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#000000">
+    <meta name="description" content="1024 Ways Buffalo Slot Game - 1024လမ်းကြောင်းနဲ့ အနိုင်ရသည့် ဂိမ်း">
+    <title>Phoenix_Slot</title>
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+         <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+      <!-- Orientation Warning -->
+<div class="orientation-warning" id="orientationWarning">
+    <div class="warning-bg"></div>
+    <div class="warning-content">
+        <div class="phone-icon">
+            <i class="fas fa-mobile-alt"></i>
+            <div class="rotate-arrow">
+                <i class="fas fa-redo"></i>
+            </div>
+        </div>
+        <h2>📱 ကျေးဇူးပြု၍ ဖုန်းကို ဘေးတိုက်လှန်ပါ</h2>
+        <p>ဒီဂိမ်းကို Landscape Mode နဲ့သာ ကစားနိုင်ပါသည်</p>
+    </div>
+</div>
+
+    <div id="game-container">
+
+        <!-- ===== SLOT FRAME ===== -->
+        <div id="slot-frame">
+            <img src="images/bbbf-frame.png" alt="Slot Frame" draggable="false">
+        </div>
+
+        <!-- ===== REELS (5x4) ===== -->
+        <div id="reels-container">
+            <div class="reel" id="reel0"></div>
+            <div class="reel" id="reel1"></div>
+            <div class="reel" id="reel2"></div>
+            <div class="reel" id="reel3"></div>
+            <div class="reel" id="reel4"></div>
+        </div>
+
+        <!-- ===== TOP BAR ===== -->
+        <div id="top-bar">
+            <div class="top-bar-balance">
+                <span class="top-label">.</span>
+                <span id="balance">100,000</span>
+            </div>
+            <div class="bet-box">
+                <span class="label">.</span>
+                <span class="value" id="bet-display">80</span>
+            </div>
+            <div class="win-box">
+                <span class="label">.</span>
+                <span class="value" id="win-display">0</span>
+            </div>
+        </div>
+      
+
+        <!-- ===== COIN SELECTOR STRIP (vertical, appears when C clicked) ===== -->
+        <div id="coin-strip" class="hidden">
+            <div class="coin-option" data-coin="50C" onclick="selectCoin('50C')">50C</div>
+            <div class="coin-option" data-coin="20C" onclick="selectCoin('20C')">20C</div>
+            <div class="coin-option" data-coin="10C" onclick="selectCoin('10C')">10C</div>
+            <div class="coin-option" data-coin="5C" onclick="selectCoin('5C')">5C</div>
+            <div class="coin-option active" data-coin="1C" onclick="selectCoin('1C')">1C</div>
+        </div>
+
+        <!-- ===== BOTTOM CONTROLS ===== -->
+        <div id="bottom-controls">
+            <!-- Left: Minus | Bet Value | Plus -->
+            <div class="control-left">
+                <div class="btn-control" id="fb-minus" onclick="decreaseBet()" title="Decrease Bet">
+                    <img src="images/btn_minus.png" alt="-" draggable="false">
+                </div>
+                <div class="bet-value-box" id="fb-bet1">
+                    <span id="bet-value-1">80</span>
+                </div>
+                <div class="btn-control" id="fb-plus" onclick="increaseBet()" title="Increase Bet">
+                    <img src="images/btn_plus.png" alt="+" draggable="false">
+                </div>
+                 <div class="btn-control" id="fb-coin" onclick="toggleCoinStrip()" title="Select Coin">   
+                 <img src="images/btn_coin_1c.png" alt="C" draggable="false">
+                </div>
+            </div>
+
+            <!-- Center: C (Coin) | Win Display -->
+            <div class="control-center">
+                <div class="win-display" id="fb-win2">
+                    <span id="win-value-1">0</span>
+                </div>
+            </div>
+
+            <!-- Right: Max | Spin -->
+            <div class="control-right">
+                <div class="btn-control" id="fb-max" onclick="maxBet()" title="Max Bet">
+                    <img src="images/btn_max.png" alt="MAX" draggable="false">
+                </div>
+                    <div class="btn-control" id="fb-spin" onclick="spin()" title="Spin">
+                      <img src="images/btn_spin.png" alt="SPIN" id="img-spin" draggable="false">
+                   </div>
+                  <div class="btn-control" id="auto-spin-btn" onclick="toggleAutoSpin()" title="Auto">
+                 
+
+                      <img src="images/auto-spin.png" id="img-auto" draggable="false">
+                         
+
+                          <img src="images/btn_stop.png" id="img-stop" class="hidden" draggable="false">
+                </div>
+            </div>
+        </div>
+
+                <!-- ===== WIN OVERLAY ===== -->
+        <div id="win-overlay">
+            <div id="win-dark-bg"></div>
+            <div id="win-stars"></div>
+            <div id="win-celebration-layer">
+                <img src="" alt="" id="win-celebration-img">
+            </div>
+            <div id="win-tier-layer">
+                <img src="" alt="" id="win-tier-img">
+            </div>
+            <div id="win-total-layer">
+                <img src="" alt="" id="win-total-img">
+            </div>
+        </div>
+
+    </div>
+<!-- ================================================================ -->
+<!-- SCATTER NOTIFICATION POPUP (လှပပြီး BG Image ပါ)            -->
+<!-- ================================================================ -->
+
+<div id="scatterNotiPopup" class="fixed inset-0 z-[99999] hidden items-center justify-center p-4 bg-black/60 backdrop-blur-sm" style="display:none;">
+    <div class="relative w-[420px] max-w-[90vw] rounded-3xl overflow-hidden animate-pop-in"
+         style="background-image: url('images/notification_bg.png'); background-size: 100% 100%; background-position: center; box-shadow: 0 20px 60px rgba(0,0,0,0.9); border: 2px solid rgba(255, 215, 0, 0.2);">
+        
+        <!-- Dark Overlay (စာတွေပိုထင်အောင်) -->
+        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 0;"></div>
+        
+        <!-- Content -->
+        <div style="position: relative; z-index: 1; padding: 40px 30px 30px; text-align: center;">
+            
+            <!-- Close Button -->
+            <button onclick="closeScatterNotification()" 
+                    class="absolute top-3 right-3 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center position-right transition border border-white/10 z-10">
+                <i class="fas fa-times text-white/70 text-lg"></i>
+            </button>
+            
+            <!-- Scatter Icon -->
+            <div class="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-amber-500/30 to-orange-500/20 flex items-center justify-center border-2 border-amber-400/30 backdrop-blur-sm mb-4">
+                <i class="fas fa-star text-5xl text-amber-400" style="text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);"></i>
+            </div>
+            
+            <!-- Title -->
+            <div style="font-family: 'Impact', 'Arial Black', sans-serif; font-size: 28px; font-weight: 900; color: #FFD700; text-shadow: 0 0 30px rgba(255, 215, 0, 0.3); letter-spacing: 3px; margin-bottom: 4px;">
+                SCATTER <span id="scatterCountDisplay" style="color: #fff;">3</span>
+            </div>
+            
+            <!-- Win Amount -->
+            <div style="font-family: 'Impact', 'Arial Black', sans-serif; font-size: 48px; font-weight: 900; color: #fff; text-shadow: 0 0 30px rgba(255, 215, 0, 0.4), 0 2px 8px rgba(0,0,0,0.8); margin: 8px 0; animation: winPulse 1s ease-in-out infinite alternate;">
+                <span id="scatterWinAmount">0</span> <span style="font-size: 28px; color: #FFD700;">KS</span>
+            </div>
+            
+            <!-- Win Type Badge -->
+            <div id="scatterWinBadge" style="display: none; margin: 8px auto 16px; padding: 4px 24px; border-radius: 20px; font-family: 'Impact', sans-serif; font-size: 16px; font-weight: 900; text-transform: uppercase; letter-spacing: 3px; background: linear-gradient(135deg, #FFD70044, #FF6B0044); border: 2px solid #FFD700; color: #FFD700; text-shadow: 0 0 20px rgba(255, 215, 0, 0.3); display: inline-block;">
+                <span id="scatterWinTypeText">BIG</span>
+            </div>
+            
+            <!-- Sub Text -->
+            <div style="font-size: 14px; color: rgba(255,255,255,0.6); margin-top: 8px;">
+                ⏳ Free Spin ပြီးမှ ငွေပေါင်းပေးပါမည်။
+            </div>
+            
+            <!-- Progress Bar -->
+            <div style="width: 80%; height: 3px; background: rgba(255,255,255,0.1); border-radius: 10px; margin: 16px auto 0; overflow: hidden;">
+                <div id="scatterNotiProgress" style="width: 100%; height: 100%; background: linear-gradient(90deg, #FFD700, #FF6B00); border-radius: 10px; animation: progressShrink 3s linear forwards;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="game.js"></script>
+</body>
+</html>

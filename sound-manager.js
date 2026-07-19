@@ -58,6 +58,10 @@ const SoundManager = (function() {
         coinboxSound: { src: 'sounds/coinbox.mp3', volume: 0.5, loop: false },
         boxbgSound: { src: 'sounds/boxbg.mp3', volume: 0.3, loop: true },
         
+           //New add
+        spinBtnSound: { src: 'sounds/spin_btn.mp3', volume: 0.4, loop: false },
+         bsmSound: { src: 'sounds/bsm.mp3', volume: 0.8, loop: false },
+        checkSound: { src: 'sounds/check.mp3', volume: 0.5, loop: false },
         // Additional (for compatibility)
         revealSound: { src: 'sounds/reveal.mp3', volume: 0.4, loop: false },
         fanfareSound: { src: 'sounds/fanfare.mp3', volume: 0.5, loop: false },
@@ -323,6 +327,14 @@ const SoundManager = (function() {
         // Congrats
         congratulations: function() { return play('congratulationsSound'); },
         congrats: function() { return play('congratsSound'); },
+        
+         
+        // Scatter
+        check: function() { return play('checkSound'); },
+        // Win
+        bsm: function() { return play('bsmSound'); },
+         // Spin
+        spin: function() { return play('spinBtnSound'); },
         
         // Notifications
         balance: function() { return play('balanceSound'); },
