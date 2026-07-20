@@ -62,24 +62,24 @@ const IMAGE_PATHS = {
 // ============================================
 const PAYTABLE = {
     // High symbols
-    phoenix:  {2: 5,  3: 100, 4: 200, 5: 500},
-    dragon:   {2: 4,  3: 80,  4: 150, 5: 300},
-    tiger:    {2: 3,  3: 60,  4: 120, 5: 250},
-    buffalon: {2: 2,  3: 50,  4: 100, 5: 200},
-    nlion:    {3: 30, 4: 60,  5: 150},
-    eagle:    {3: 25, 4: 50,  5: 120},
+    phoenix:  {2: 5,  3: 2, 4: 3, 5: 5},
+    dragon:   {2: 4,  3: 2,  4: 4, 5: 5},
+    tiger:    {2: 3,  3: 2,  4: 4, 5: 5},
+    buffalon: {2: 2,  3: 2,  4: 3, 5: 5},
+    nlion:    {3: 3, 4: 6,  5: 3},
+    eagle:    {3: 2, 4: 5,  5: 1},
 
     // Medium symbols
-    deern:    {3: 20, 4: 40,  5: 100},
-    turtle:   {3: 15, 4: 30,  5: 80},
-    jade:     {3: 12, 4: 25,  5: 60},
-    ingot:    {3: 10, 4: 20,  5: 50},
-    lotus:    {3: 8,  4: 15,  5: 40},
+    deern:    {3: 2, 4: 4,  5: 5},
+    turtle:   {3: 1, 4: 3,  5: 5},
+    jade:     {3: 1, 4: 3,  5: 5},
+    ingot:    {3: 1, 4: 3,  5: 5},
+    lotus:    {3: 1,  4: 3,  5: 4},
 
     // Low symbols
-    na:       {3: 5,  4: 10,  5: 25},
-    nten:     {3: 4,  4: 8,   5: 20},
-    n9:       {3: 3,  4: 6,   5: 15}
+    na:       {3: 1,  4: 2,  5: 3},
+    nten:     {3: 1,  4: 2,   5: 3},
+    n9:       {3: 1,  4: 2,   5: 3}
 };
 // ---- Scatter Rewards ----
 const SCATTER_REWARDS = {
@@ -142,11 +142,11 @@ const WEIGHTS = {
 // ============================================
 const SCALE_CYCLE = {
     rounds: [
-        { normal: 10, ch1: 5, ch2: 5, ch3: 1, ch4: 1 },
-        { normal: 20, ch1: 2, ch2: 3, ch3: 1, ch4: 1 },
-        { normal: 20, ch1: 1, ch2: 2, ch3: 2, ch4: 1 },
-        { normal: 10, ch1: 1, ch2: 1, ch3: 1, ch4: 1 },
-        { normal: 20, ch1: 1, ch2: 1, ch3: 2, ch4: 1 }
+        { normal: 1, ch1: 15, ch2: 5, ch3: 1, ch4: 1 },
+        { normal: 2, ch1: 12, ch2: 3, ch3: 1, ch4: 1 },
+        { normal: 2, ch1: 10, ch2: 2, ch3: 2, ch4: 1 },
+        { normal: 1, ch1: 10, ch2: 1, ch3: 1, ch4: 1 },
+        { normal: 2, ch1: 10, ch2: 1, ch3: 2, ch4: 1 }
     ],
     currentRound: 0,
     currentPhase: 'normal',

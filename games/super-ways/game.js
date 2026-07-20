@@ -50,18 +50,18 @@ const IMAGE_PATHS = {
 // PAYTABLE (HARD MODE)
 // ============================================
 const PAYTABLE = {
-    'buffalo': {2: 2,  3: 80,  4: 15, 5: 30},
-    'lion':    {3: 20,  4: 50,  5: 15},
-    'ele':     {3: 10,  4: 30,  5: 10},
-    'zebra':   {3: 10,  4: 20,  5: 8},
-    'deer':    {3: 10,  4: 20,  5: 5},
-    'a':       {3: 10,  4: 10,  5: 4},
-    'k':       {3: 10,  4: 10,  5: 3},
-    'q':       {3: 10,  4: 10,  5: 2},
-    'j':       {3: 10,  4: 10,  5: 2},
-    'ten':     {3: 10,  4: 10,  5: 1},
-    'coin':    {3: 10,  4: 10,  5: 1},
-    'nine':    {3: 10,  4: 10,  5: 1}
+    'buffalo': {2: 2,  3: 8,  4: 15, 5: 30},
+    'lion':    {3: 2,  4: 5,  5: 15},
+    'ele':     {3: 1,  4: 3,  5: 10},
+    'zebra':   {3: 1,  4: 2,  5: 8},
+    'deer':    {3: 1,  4: 2,  5: 5},
+    'a':       {3: 1,  4: 1,  5: 4},
+    'k':       {3: 1,  4: 1,  5: 3},
+    'q':       {3: 1,  4: 1,  5: 2},
+    'j':       {3: 1,  4: 1,  5: 2},
+    'ten':     {3: 1,  4: 1,  5: 1},
+    'coin':    {3: 1,  4: 1,  5: 1},
+    'nine':    {3: 1,  4: 1,  5: 1}
 };
 
 // ---- Scatter Rewards ----
@@ -92,11 +92,10 @@ const coinMap = {
 // ---- Game Constants ----
 const REELS = 5;
 const ROWS = 4;
-const WIN_DURATION = 500;
 
 // ---- Symbol Weights ----
 const WEIGHTS = {
-    'buffalo': 6, 'ele': 2, 'lion': 2, 'zebra': 3,
+    'buffalo': 3, 'ele': 2, 'lion': 2, 'zebra': 3,
     'deer': 3, 'a': 4, 'k': 4, 'q': 4,
     'j': 4, 'ten': 5, 'nine': 5, 'coin': 5,
     'wild': 1, 'scatter': 1
@@ -107,11 +106,11 @@ const WEIGHTS = {
 // ============================================
 const SCALE_CYCLE = {
     rounds: [
-        { normal: 10, ch1: 5, ch2: 5, ch3: 1, ch4: 1 },
-        { normal: 20, ch1: 2, ch2: 3, ch3: 1, ch4: 1 },
-        { normal: 20, ch1: 1, ch2: 2, ch3: 2, ch4: 1 },
-        { normal: 10, ch1: 1, ch2: 1, ch3: 1, ch4: 1 },
-        { normal: 20, ch1: 1, ch2: 1, ch3: 2, ch4: 1 }
+        { normal: 1, ch1: 15, ch2: 2, ch3: 1, ch4: 1 },
+        { normal: 2, ch1: 20, ch2: 3, ch3: 1, ch4: 1 },
+        { normal: 2, ch1: 15, ch2: 2, ch3: 2, ch4: 1 },
+        { normal: 1, ch1: 15, ch2: 1, ch3: 1, ch4: 1 },
+        { normal: 2, ch1: 10, ch2: 1, ch3: 2, ch4: 1 }
     ],
     currentRound: 0,
     currentPhase: 'normal',
