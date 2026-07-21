@@ -62,12 +62,12 @@ const IMAGE_PATHS = {
 // ============================================
 const PAYTABLE = {
     // High symbols
-    phoenix:  {2: 5,  3: 2, 4: 3, 5: 5},
-    dragon:   {2: 4,  3: 2,  4: 4, 5: 5},
-    tiger:    {2: 3,  3: 2,  4: 4, 5: 5},
-    buffalon: {2: 2,  3: 2,  4: 3, 5: 5},
-    nlion:    {3: 3, 4: 6,  5: 3},
-    eagle:    {3: 2, 4: 5,  5: 1},
+    phoenix:  {2: 2,  3: 2, 4: 3, 5: 4},
+    dragon:   {2: 2,  3: 2,  4: 3, 5: 4},
+    tiger:    {2: 2,  3: 2,  4: 3, 5: 4},
+    buffalon: {2: 2,  3: 2,  4: 3, 5: 4},
+    nlion:    {3: 2, 4: 3,  5: 3},
+    eagle:    {3: 2, 4: 3,  5: 1},
 
     // Medium symbols
     deern:    {3: 2, 4: 4,  5: 5},
@@ -113,24 +113,24 @@ const WIN_DURATION = 15000;
 
 const WEIGHTS = {
     // High symbols — ထွက်ခဲ
-    phoenix:  2,
-    dragon:   2,
-    tiger:    3,
-    buffalon: 3,
-    nlion:    4,
-    eagle:    4,
+    phoenix:  1,
+    dragon:   1,
+    tiger:    1,
+    buffalon: 1,
+    nlion:    1,
+    eagle:    1,
 
     // Medium symbols
-    deern:    4,
-    turtle:   5,
-    jade:     5,
-    ingot:    5,
-    lotus:    6,
+    deern:    2,
+    turtle:   2,
+    jade:     2,
+    ingot:    2,
+    lotus:    3,
 
     // Low symbols — ထွက်များ
-    na:       7,
-    nten:     7,
-    n9:       8,
+    na:       2,
+    nten:     2,
+    n9:       2,
 
     // Special symbols
     wilds:    1,

@@ -95,9 +95,9 @@ const ROWS = 4;
 
 // ---- Symbol Weights ----
 const WEIGHTS = {
-    'buffalo': 3, 'ele': 2, 'lion': 2, 'zebra': 3,
-    'deer': 3, 'a': 4, 'k': 4, 'q': 4,
-    'j': 4, 'ten': 5, 'nine': 5, 'coin': 5,
+    'buffalo': 1, 'ele': 1, 'lion': 1, 'zebra': 1,
+    'deer': 2, 'a': 2, 'k': 2, 'q': 2,
+    'j': 2, 'ten': 2, 'nine': 2, 'coin': 2,
     'wild': 1, 'scatter': 1
 };
 
@@ -106,11 +106,11 @@ const WEIGHTS = {
 // ============================================
 const SCALE_CYCLE = {
     rounds: [
-        { normal: 1, ch1: 15, ch2: 2, ch3: 1, ch4: 1 },
-        { normal: 2, ch1: 20, ch2: 3, ch3: 1, ch4: 1 },
-        { normal: 2, ch1: 15, ch2: 2, ch3: 2, ch4: 1 },
-        { normal: 1, ch1: 15, ch2: 1, ch3: 1, ch4: 1 },
-        { normal: 2, ch1: 10, ch2: 1, ch3: 2, ch4: 1 }
+        { normal: 1, ch1: 30, ch2: 1, ch3: 1, ch4: 1 },
+        { normal: 1, ch1: 20, ch2: 1, ch3: 1, ch4: 1 },
+        { normal: 1, ch1: 18, ch2: 1, ch3: 1, ch4: 1 },
+        { normal: 1, ch1: 19, ch2: 1, ch3: 1, ch4: 1 },
+        { normal: 1, ch1: 25, ch2: 1, ch3: 1, ch4: 1 }
     ],
     currentRound: 0,
     currentPhase: 'normal',
